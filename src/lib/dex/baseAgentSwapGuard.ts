@@ -39,13 +39,15 @@ import {
   type PreparedAerodromeSlipstreamExactInput,
 } from './aerodromeSlipstreamSwap';
 import {
-  PANCAKE_SWAP_V3_BASE_CODE_IDENTITY,
-  PANCAKE_SWAP_V3_BASE_FACTORY,
-  PANCAKE_SWAP_V3_BASE_QUOTER_V2,
-  PANCAKE_SWAP_V3_BASE_SWAP_ROUTER,
+  PANCAKE_SWAP_V3_BNB_CHAIN_ID,
+  type PANCAKE_SWAP_V3_BASE_CHAIN_ID,
+  PANCAKE_SWAP_V3_BNB_USDC,
+  PANCAKE_SWAP_V3_BNB_USDT,
+  PANCAKE_SWAP_V3_BNB_USDT_USDC,
   PANCAKE_SWAP_V3_BASE_USDC,
   PANCAKE_SWAP_V3_BASE_USDC_USDT,
   PANCAKE_SWAP_V3_BASE_USDT,
+  pancakeSwapV3DeploymentForChain,
   type ReviewedPancakeSwapV3ProfileId,
 } from './pancakeSwapV3';
 import {
@@ -59,11 +61,16 @@ export const BASE_AGENT_SWAP_GUARD_PROFILE_IDS = [
   'base-aerodrome-slipstream-weth-usdc-cl100',
   'base-aerodrome-slipstream-usdc-usdt-cl1',
   'base-pancakeswap-v3-usdc-usdt-100',
+  'bnb-pancakeswap-v3-usdt-usdc-100',
 ] as const;
 
 export type BaseAgentSwapGuardProfileId = (typeof BASE_AGENT_SWAP_GUARD_PROFILE_IDS)[number];
 export type BaseAgentSwapGuardVerdict = 'ALLOW' | 'CAUTION' | 'BLOCK';
 export type BaseAgentSwapGuardDirection = 'token0-to-token1' | 'token1-to-token0';
+/** Every chain with at least one reviewed guard profile. */
+export type BaseAgentSwapGuardChainId =
+  | typeof PANCAKE_SWAP_V3_BASE_CHAIN_ID
+  | typeof PANCAKE_SWAP_V3_BNB_CHAIN_ID;
 
 const ADDRESS = /^0x[0-9a-fA-F]{40}$/;
 const POSITIVE_DECIMAL = /^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$/;
@@ -132,7 +139,7 @@ interface OracleCheckSummary {
 }
 
 interface GuardBinding {
-  chainId: 8453;
+  chainId: BaseAgentSwapGuardChainId;
   recipient: string;
   approval: {
     token: string;
@@ -154,7 +161,7 @@ export interface BaseAgentSwapGuardResult {
   evaluatedAt: string;
   validUntil: number | null;
   scope: {
-    chainId: 8453;
+    chainId: BaseAgentSwapGuardChainId;
     profileId: BaseAgentSwapGuardProfileId;
     transactionAuthority: 'none';
     supportedCallShape: 'reviewed_single_hop_direct_router';
@@ -250,6 +257,7 @@ function profileAssets(
 const GUARD_PROFILE_SPECS: Record<
   BaseAgentSwapGuardProfileId,
   {
+    chainId: BaseAgentSwapGuardChainId;
     kind: 'aerodrome-slipstream-exact-input-v1' | 'pancakeswap-v3-exact-input-v1';
     market: string;
     token0: { symbol: 'WETH' | 'USDC' | 'USDT'; address: string };
@@ -260,6 +268,7 @@ const GUARD_PROFILE_SPECS: Record<
   }
 > = {
   'base-aerodrome-slipstream-weth-usdc-cl100': {
+    chainId: 8453,
     kind: 'aerodrome-slipstream-exact-input-v1',
     market: 'WETH/USDC',
     token0: { symbol: 'WETH', address: BASE_WETH },
@@ -268,6 +277,7 @@ const GUARD_PROFILE_SPECS: Record<
     tickSpacing: AERODROME_SLIPSTREAM_WETH_USDC.tickSpacing,
   },
   'base-aerodrome-slipstream-usdc-usdt-cl1': {
+    chainId: 8453,
     kind: 'aerodrome-slipstream-exact-input-v1',
     market: 'USDC/USDT',
     token0: { symbol: 'USDC', address: BASE_USDC },
@@ -276,12 +286,23 @@ const GUARD_PROFILE_SPECS: Record<
     tickSpacing: AERODROME_SLIPSTREAM_USDC_USDT.tickSpacing,
   },
   'base-pancakeswap-v3-usdc-usdt-100': {
+    chainId: 8453,
     kind: 'pancakeswap-v3-exact-input-v1',
     market: 'USDC/USDT',
     token0: { symbol: 'USDC', address: PANCAKE_SWAP_V3_BASE_USDC },
     token1: { symbol: 'USDT', address: PANCAKE_SWAP_V3_BASE_USDT },
     pool: PANCAKE_SWAP_V3_BASE_USDC_USDT.pool,
     feeTier: PANCAKE_SWAP_V3_BASE_USDC_USDT.feeTier,
+  },
+  'bnb-pancakeswap-v3-usdt-usdc-100': {
+    chainId: PANCAKE_SWAP_V3_BNB_CHAIN_ID,
+    kind: 'pancakeswap-v3-exact-input-v1',
+    market: 'USDT/USDC',
+    // On the reviewed BNB pool USDT sorts before USDC, so token0 is USDT.
+    token0: { symbol: 'USDT', address: PANCAKE_SWAP_V3_BNB_USDT },
+    token1: { symbol: 'USDC', address: PANCAKE_SWAP_V3_BNB_USDC },
+    pool: PANCAKE_SWAP_V3_BNB_USDT_USDC.pool,
+    feeTier: PANCAKE_SWAP_V3_BNB_USDT_USDC.feeTier,
   },
 } as const;
 
@@ -375,7 +396,7 @@ function marketAndBinding(
       },
     },
     binding: {
-      chainId: 8453,
+      chainId: prepared.chainId,
       recipient: prepared.exactInput.recipient,
       approval: {
         token: prepared.approval.token,
@@ -415,7 +436,7 @@ function baseResult(
     evaluatedAt,
     validUntil: extras.validUntil,
     scope: {
-      chainId: 8453,
+      chainId: GUARD_PROFILE_SPECS[input.profileId].chainId,
       profileId: input.profileId,
       transactionAuthority: 'none',
       supportedCallShape: 'reviewed_single_hop_direct_router',
@@ -539,11 +560,16 @@ function reviewedProfileBindingIsValid(prepared: PreparedBaseDirectSwap): boolea
     );
   }
 
+  // PancakeSwap V3 is admitted per reviewed chain deployment. A profile on a
+  // chain without a reviewed bundle (or one bound to another chain's router
+  // bytes) can never validate here.
+  const deployment = pancakeSwapV3DeploymentForChain(spec.chainId);
+  if (!deployment) return false;
   return (
-    sameAddress(prepared.router.address, PANCAKE_SWAP_V3_BASE_SWAP_ROUTER) &&
-    sameCodeHash(prepared.router.codeHash, PANCAKE_SWAP_V3_BASE_CODE_IDENTITY.router) &&
-    sameAddress(prepared.quote.contracts.factory, PANCAKE_SWAP_V3_BASE_FACTORY) &&
-    sameAddress(prepared.quote.contracts.quoterV2, PANCAKE_SWAP_V3_BASE_QUOTER_V2) &&
+    sameAddress(prepared.router.address, deployment.swapRouter) &&
+    sameCodeHash(prepared.router.codeHash, deployment.routerCodeHash) &&
+    sameAddress(prepared.quote.contracts.factory, deployment.factory) &&
+    sameAddress(prepared.quote.contracts.quoterV2, deployment.quoterV2) &&
     prepared.exactInput.feeTier === spec.feeTier
   );
 }
@@ -645,7 +671,7 @@ function preparedCallBindingIsValid(
   input: BaseAgentSwapGuardInput
 ): boolean {
   return (
-    prepared.chainId === 8453 &&
+    prepared.chainId === GUARD_PROFILE_SPECS[input.profileId].chainId &&
     prepared.kind === GUARD_PROFILE_SPECS[input.profileId].kind &&
     prepared.exactInput.profileId === input.profileId &&
     // The swap the preparer actually bound must be the direction the oracle
@@ -793,7 +819,7 @@ export async function prepareBaseAgentSwapGuard(
     destination = await preTrade({
       asset: assets.destination.symbol,
       destinationAsset: assets.source.symbol,
-      chainId: 8453,
+      chainId: spec.chainId,
       action: 'swap',
       tradeAmountUsd: destinationDeclaredTradeAmountUsd,
       schemaVersion: 3,
@@ -908,7 +934,7 @@ export async function prepareBaseAgentSwapGuard(
     source = await preTrade({
       asset: assets.source.symbol,
       destinationAsset: assets.destination.symbol,
-      chainId: 8453,
+      chainId: spec.chainId,
       action: 'swap',
       tradeAmountUsd: sourceTradeAmountUsd,
       schemaVersion: 3,

@@ -293,12 +293,14 @@ export const AerodromeSlipstreamMarketInputSchema = z.object({
     .describe('Reviewed Aerodrome Slipstream pool id; defaults to Base WETH/USDC CL100'),
 });
 
-/** A fixed profile id selects one code-reviewed PancakeSwap V3 Base pool. */
+/** A fixed profile id selects one code-reviewed PancakeSwap V3 pool. */
 export const PancakeSwapV3MarketInputSchema = z.object({
   profileId: z
     .enum(REVIEWED_PANCAKE_SWAP_V3_PROFILE_IDS)
     .optional()
-    .describe('Reviewed PancakeSwap V3 pool id; defaults to Base USDC/USDT 0.01%'),
+    .describe(
+      'Reviewed PancakeSwap V3 pool id (Base or BNB Smart Chain); defaults to Base USDC/USDT 0.01%'
+    ),
 });
 
 /** A fixed profile id selects one code-reviewed QuickSwap V2 Base pair. */
@@ -607,12 +609,14 @@ export const PancakeSwapV3SwapPreparationInputSchema = z.object({
   profileId: z
     .enum(REVIEWED_PANCAKE_SWAP_V3_PROFILE_IDS)
     .optional()
-    .describe('Reviewed PancakeSwap V3 pool id; defaults to Base USDC/USDT 0.01%'),
+    .describe(
+      'Reviewed PancakeSwap V3 pool id (Base or BNB Smart Chain); defaults to Base USDC/USDT 0.01%'
+    ),
   direction: z
     .enum(['token0-to-token1', 'token1-to-token0'])
     .default('token0-to-token1')
     .describe(
-      'Quote direction inside the reviewed pool: token0→token1 (USDC→USDT) or the reverse (USDT→USDC)'
+      'Quote direction inside the reviewed pool, stated in its token0/token1 order (e.g. Base USDC/USDT: USDC→USDT; BNB USDT/USDC: USDT→USDC) or the reverse'
     ),
   amountIn: z
     .string()

@@ -240,6 +240,93 @@ describe('settleBaseAgentSwapGuard', () => {
     expect(s.reasonCodes).toEqual(['APPROVAL_TX_NOT_PRESENTED']);
   });
 
+  it('closes a BNB Smart Chain settlement with chain 56 binding and 18-decimal reconciliation', async () => {
+    const bnbUSDT = '0x55d398326f99059fF775485246999027B3197955' as const;
+    const bnbUSDC = '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d' as const;
+    const bnbClone: Record<string, unknown> = JSON.parse(JSON.stringify(guard()));
+    delete bnbClone.decisionHash; // baseAgentSwapGuardDecisionHash must not see a hash field.
+    const bnbUnsigned: Omit<BaseAgentSwapGuardResult, 'decisionHash'> = {
+      ...(bnbClone as unknown as Omit<BaseAgentSwapGuardResult, 'decisionHash'>),
+      scope: {
+        ...(guard().scope as object),
+        chainId: 56,
+        profileId: 'bnb-pancakeswap-v3-usdt-usdc-100',
+      },
+      market: {
+        ...guard().market,
+        venue: 'pancakeswap-v3',
+        market: 'USDT/USDC',
+        sourceAsset: 'USDT',
+        destinationAsset: 'USDC',
+        pool: '0x92b7807bf19b7dddf89b706143896d05228f3121',
+        quoter: '0xB048Bbc1Ee6b733FFfCFb9e9CeF7375518e25997',
+        router: {
+          address: '0x1b81D678ffb9C0263b24A97847620C99d213eB14',
+          codeHash: `0x${'44'.repeat(32)}`,
+        },
+        exactInput: {
+          ...guard().market.exactInput,
+          amountInRaw: '1250000000000000000',
+          quotedAmountOutRaw: '1249000000000000000',
+          amountOutMinimumRaw: '1242755000000000000',
+          effectiveDestinationPerSource: 0.9992,
+          routeQuotePriceUsd: 1,
+          destinationConsensusPriceUsd: 1,
+        },
+      },
+      binding: {
+        ...(guard().binding as object),
+        chainId: 56,
+        approval: {
+          ...(guard().binding.approval as object),
+          token: bnbUSDT,
+          amountRaw: '1250000000000000000',
+        },
+      },
+    } as Omit<BaseAgentSwapGuardResult, 'decisionHash'>;
+    // Keep the executable calls consistent with the BNB binding.
+    const bnbUnsignedWithCalls = {
+      ...bnbUnsigned,
+      transactionsToSign: {
+        approval: { ...bnbUnsigned.transactionsToSign.approval, to: bnbUSDT },
+        swap: { ...bnbUnsigned.transactionsToSign.swap },
+      },
+    };
+    const bnbDecision = await createBaseAgentSwapGuardDecision(
+      {
+        ...bnbUnsignedWithCalls,
+        decisionHash: baseAgentSwapGuardDecisionHash(bnbUnsignedWithCalls),
+      },
+      signerDependencies
+    );
+
+    const bnbFx: ChainFixture = {
+      ...baseChain(),
+      receipt: {
+        ...baseChain().receipt!,
+        logs: [
+          transferLog(bnbUSDT, ACCOUNT, ROUTER, 1_250_000_000_000_000_000n),
+          transferLog(bnbUSDC, ROUTER, ACCOUNT, 1_249_000_000_000_000_000n),
+        ],
+      },
+      decimals: { [bnbUSDT.toLowerCase()]: 18, [bnbUSDC.toLowerCase()]: 18 },
+    };
+
+    const result = await settleBaseAgentSwapGuard({
+      ...baseParams,
+      decision: bnbDecision,
+      swapTxHash: SWAP_TX,
+      client: fakeClient(bnbFx),
+    });
+
+    if (!result.ok) throw new Error(`expected ok, got ${result.code} (${result.reason ?? '-'})`);
+    expect(result.settlement.data.chainId).toBe(56);
+    expect(result.settlement.data.fillStatus).toBe('FULL');
+    expect(result.settlement.data.sourceAmountRaw).toBe('1250000000000000000');
+    expect(result.settlement.data.destinationAmountRaw).toBe('1249000000000000000');
+    expect(result.settlement.reasonCodes).toEqual(['APPROVAL_TX_NOT_PRESENTED']);
+  });
+
   it('accepts a matching presented approval tx and drops the not-presented code', async () => {
     const decision = await signedDecision();
     const fx = baseChain();
@@ -583,5 +670,58 @@ describe('settleBaseAgentSwapGuard', () => {
         verifyBaseAgentSwapGuardSettlement(result.settlement, { trustAttester: async () => false })
       ).resolves.toMatchObject({ valid: false, reason: 'untrusted_attester' });
     });
+  });
+});
+
+describe('settlement fill reconciliation precision', () => {
+  it('reconciles an 18-decimal fill exactly, without float round-trip drift', async () => {
+    // A raw source amount that does not survive a number→float→number round
+    // trip: rebuilding raw via Number(human) * 10**18 yields ...800, which used
+    // to fabricate a SOURCE_AMOUNT_MISMATCH. The settlement must carry the
+    // receipt's exact raw sum instead.
+    const NON_ROUND = 1_234_567_890_123_456_789n;
+    const clone: Record<string, unknown> = JSON.parse(JSON.stringify(guard()));
+    delete clone.decisionHash;
+    const unsigned: Omit<BaseAgentSwapGuardResult, 'decisionHash'> = {
+      ...(clone as unknown as Omit<BaseAgentSwapGuardResult, 'decisionHash'>),
+      market: {
+        ...guard().market,
+        exactInput: {
+          ...guard().market.exactInput,
+          amountInRaw: NON_ROUND.toString(),
+          quotedAmountOutRaw: '1999234567',
+          amountOutMinimumRaw: '1989248291',
+        },
+      },
+      binding: {
+        ...(guard().binding as object),
+        approval: {
+          ...(guard().binding.approval as object),
+          amountRaw: NON_ROUND.toString(),
+        },
+      },
+    } as Omit<BaseAgentSwapGuardResult, 'decisionHash'>;
+    const decision = await createBaseAgentSwapGuardDecision(
+      { ...unsigned, decisionHash: baseAgentSwapGuardDecisionHash(unsigned) },
+      signerDependencies
+    );
+
+    const fx = baseChain();
+    fx.receipt!.logs = [
+      transferLog(WETH, ACCOUNT, ROUTER, NON_ROUND),
+      transferLog(USDC, ROUTER, ACCOUNT, 1_999_234_567n),
+    ];
+
+    const result = await settleBaseAgentSwapGuard({
+      ...baseParams,
+      decision,
+      swapTxHash: SWAP_TX,
+      client: fakeClient(fx),
+    });
+
+    if (!result.ok) throw new Error(`expected ok, got ${result.code} (${result.reason ?? '-'})`);
+    expect(result.settlement.data.sourceAmountRaw).toBe('1234567890123456789');
+    expect(result.settlement.data.destinationAmountRaw).toBe('1999234567');
+    expect(result.settlement.reasonCodes).toEqual(['APPROVAL_TX_NOT_PRESENTED']);
   });
 });

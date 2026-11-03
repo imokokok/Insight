@@ -15,7 +15,8 @@ export type ReviewedUniswapV3PreTradeProfile =
   | 'monad-wmon-usdc'
   | 'base-weth-usdc'
   | 'base-uniswap-v3-weth-usdc-500'
-  | 'base-pancakeswap-v3-usdc-usdt';
+  | 'base-pancakeswap-v3-usdc-usdt'
+  | 'bnb-pancakeswap-v3-usdt-usdc';
 
 /**
  * Explicit pool selection for the Base WETH→USDC route, which now has two
@@ -105,6 +106,22 @@ function selectProfile(request: ReviewedUniswapV3PreTradeRequest): SelectedProfi
     return {
       profile: 'base-pancakeswap-v3-usdc-usdt',
       definition: reviewedPancakeSwapV3Profile('base-pancakeswap-v3-usdc-usdt-100'),
+      direction: 'token1-to-token0',
+    };
+  }
+  // BNB stable lane: the reviewed BNB PancakeSwap pool, quoted USDT→USDC
+  // (USDT is token0 there) and the reverse USDC→USDT direction.
+  if (request.chainId === 56 && asset === 'USDT' && destination === 'USDC') {
+    return {
+      profile: 'bnb-pancakeswap-v3-usdt-usdc',
+      definition: reviewedPancakeSwapV3Profile('bnb-pancakeswap-v3-usdt-usdc-100'),
+      direction: 'token0-to-token1',
+    };
+  }
+  if (request.chainId === 56 && asset === 'USDC' && destination === 'USDT') {
+    return {
+      profile: 'bnb-pancakeswap-v3-usdt-usdc',
+      definition: reviewedPancakeSwapV3Profile('bnb-pancakeswap-v3-usdt-usdc-100'),
       direction: 'token1-to-token0',
     };
   }

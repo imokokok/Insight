@@ -692,7 +692,7 @@ export const BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME = 'prepare_base_agent_swap_guar
 export const BAZAAR_BASE_AGENT_SWAP_GUARD_MCP_DISCOVERY_EXTENSION = declareDiscoveryExtension({
   toolName: BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME,
   description:
-    'Base mainnet pre-signing Swap Guard for an AI agent. Reviews one supported direct Aerodrome Slipstream WETH→USDC CL100 or PancakeSwap V3 USDC→USDT 0.01% swap; independently validates source and destination decision prices, a pinned venue quote, price impact, TWAP, slippage, route contract identities, and byte-exact unsigned approval/swap calldata. Returns ALLOW, CAUTION, or BLOCK; only ALLOW includes calls for human confirmation. It never signs, routes, relays, or broadcasts a trade.',
+    'Pre-signing Swap Guard for an AI agent on Base mainnet or BNB Smart Chain. Reviews one supported direct Aerodrome Slipstream WETH→USDC CL100 (Base), PancakeSwap V3 USDC→USDT 0.01% (Base), or PancakeSwap V3 USDT→USDC 0.01% (BNB) swap; independently validates source and destination decision prices, a pinned venue quote, price impact, TWAP, slippage, route contract identities, and byte-exact unsigned approval/swap calldata. Returns ALLOW, CAUTION, or BLOCK; only ALLOW includes calls for human confirmation. It never signs, routes, relays, or broadcasts a trade.',
   transport: 'streamable-http',
   inputSchema: BaseAgentSwapGuardInputSchema.toJSONSchema() as {
     type: 'object';
@@ -730,7 +730,7 @@ function mcpRouteConfigFor(cfg: X402Config, amountAtomic: string, discoveryToolN
   const baseSwapGuard = discoveryToolName === BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME;
   return {
     description: baseSwapGuard
-      ? 'Base mainnet AI-agent Swap Guard: a paid pre-signing decision for one reviewed Aerodrome Slipstream WETH→USDC CL100 or PancakeSwap V3 USDC→USDT 0.01% direct swap. It returns ALLOW, CAUTION, or BLOCK and only returns unsigned calldata on ALLOW; it never signs, routes, relays, or broadcasts a trade.'
+      ? 'AI-agent Swap Guard (Base mainnet and BNB Smart Chain): a paid pre-signing decision for one reviewed Aerodrome Slipstream WETH→USDC CL100 (Base), PancakeSwap V3 USDC→USDT 0.01% (Base), or PancakeSwap V3 USDT→USDC 0.01% (BNB) direct swap. It returns ALLOW, CAUTION, or BLOCK and only returns unsigned calldata on ALLOW; it never signs, routes, relays, or broadcasts a trade.'
       : 'MCP tools/call over JSON-RPC (streamable HTTP): pay-per-call access to the Insight oracle tool catalog for x402 agents without an API key. Price scales with the tool metering class (C1..C4).',
     mimeType: 'application/json',
     accepts: acceptsFor(cfg, amountAtomic),
