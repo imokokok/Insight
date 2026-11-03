@@ -88,6 +88,7 @@ const X402_CHAIN_NEUTRAL_MCP_PAYMENT_SCOPE_BY_TOOL = {
   get_provider_reputation: X402_PAYMENT_SCOPE.configured,
   get_reputation_rankings: X402_PAYMENT_SCOPE.configured,
   get_risk_summary: X402_PAYMENT_SCOPE.configured,
+  get_settlement_evidence: X402_PAYMENT_SCOPE.configured,
   get_robinhood_rwa_context: X402_PAYMENT_SCOPE.configured,
   get_robinhood_rwa_instrument: X402_PAYMENT_SCOPE.configured,
   get_stablecoin_list: X402_PAYMENT_SCOPE.configured,

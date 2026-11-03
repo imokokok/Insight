@@ -114,6 +114,11 @@ jobs:
   evidence:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
+    env:
+      # Settlement-evidence signing is optional: without the key, packs are
+      # persisted unsigned and the collection run still succeeds.
+      ATTESTATION_SIGNER_PRIVATE_KEY: ${{ secrets.ATTESTATION_SIGNER_PRIVATE_KEY }}
+      POLYMARKET_GAMMA_BASE_URL: ${{ vars.POLYMARKET_GAMMA_BASE_URL || '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
@@ -137,3 +142,9 @@ jobs:
       # affect the raw capture lease or its projection acknowledgement.
       - name: Collect manipulation cost
         run: node .github/cron-dist/collect-manip-cost.mjs
+
+      # Prediction-market settlement evidence (Gamma watch → Kraken candles →
+      # signed packs). Kraken is the only rights-cleared collection venue; the
+      # library fails closed and every step above tolerates an upstream outage.
+      - name: Collect settlement evidence
+        run: node .github/cron-dist/collect-settlement-evidence.mjs

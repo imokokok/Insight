@@ -83,6 +83,7 @@ import {
   FeedHealthJsonSchema,
   FeedsJsonSchema,
   IncidentsJsonSchema,
+  SettlementEvidenceJsonSchema,
   LatencyJsonSchema,
   MetricsJsonSchema,
   HanjiMonadMarketJsonSchema,
@@ -147,6 +148,7 @@ import {
 } from './riskTools';
 import { robinhoodRwaContextTool, robinhoodRwaInstrumentTool, rwaAssessmentTool } from './rwaTools';
 import { checkPositionSafetyTool } from './safetyTools';
+import { getSettlementEvidenceTool } from './settlementEvidenceTools';
 import { solanaLendingGuardTool } from './solanaLendingGuardTools';
 import {
   settleSolanaSwapGuardTool,
@@ -191,6 +193,7 @@ const MCP_TOOLS: McpToolDefinition[] = [
   getProviderReputationTool,
   getDailyReportTool,
   getIncidentsTool,
+  getSettlementEvidenceTool,
   getLatencyTool,
   getAnomaliesTool,
   getCorrelationTool,
@@ -406,6 +409,11 @@ const JSON_SCHEMA_MAP: Record<
     required?: string[];
   },
   get_incidents: IncidentsJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  get_settlement_evidence: SettlementEvidenceJsonSchema.toJSONSchema() as {
     type: 'object';
     properties?: Record<string, unknown>;
     required?: string[];

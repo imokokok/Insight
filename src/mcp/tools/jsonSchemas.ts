@@ -212,6 +212,22 @@ export const IncidentsJsonSchema = z.object({
   offset: z.number().int().min(0).optional().describe('Pagination offset'),
 });
 
+export const SettlementEvidenceJsonSchema = z.object({
+  slug: z
+    .string()
+    .min(1)
+    .max(256)
+    .optional()
+    .describe('Polymarket market slug, e.g. btc-updown-5m-1766162100. Omit to list recent packs'),
+  limit: z
+    .number()
+    .int()
+    .min(1)
+    .max(100)
+    .optional()
+    .describe('Maximum packs when listing, default 20'),
+});
+
 export const FeedsJsonSchema = z.object({
   provider: providerEnum.optional().describe('Filter by oracle provider'),
   symbol: z.string().optional().describe('Filter by asset symbol'),
