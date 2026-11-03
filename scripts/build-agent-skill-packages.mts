@@ -28,6 +28,10 @@ const packages = [
     directory: 'skills/insight-hyperliquid-perp-guard',
     archive: 'insight-hyperliquid-perp-guard-skill-v0.1.0.zip',
   },
+  {
+    directory: 'skills/insight-solana-perp-guard',
+    archive: 'insight-solana-perp-guard-skill-v0.1.0.zip',
+  },
 ] as const;
 const destination = path.join(root, 'public', 'downloads');
 
