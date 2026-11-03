@@ -407,6 +407,16 @@ export const HyperliquidPerpGuardJsonSchema = z.object({
   marginValueUsd: z.number().positive().max(1_000_000_000_000),
 });
 
+/** Wire schema for the Solana Drift v2 perp pre-trade gate. */
+export const SolanaPerpGuardJsonSchema = z.object({
+  protocolId: z.enum(['drift-v2-mainnet']),
+  action: z.enum(['open_long', 'open_short']),
+  assetSymbol: z.string().regex(/^[A-Za-z][A-Za-z0-9.-]{0,15}$/),
+  marginAssetSymbol: z.literal('USDC'),
+  sizeUsd: z.number().positive().max(1_000_000_000_000),
+  marginValueUsd: z.number().positive().max(1_000_000_000_000),
+});
+
 /** Wire schema for exact-order Hyperliquid Perp Guard decision evidence. */
 export const HyperliquidPerpGuardExactJsonSchema = z
   .object({
