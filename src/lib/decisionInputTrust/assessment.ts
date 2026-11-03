@@ -67,6 +67,16 @@ export interface DecisionInputCheckRequest {
     amountIn: string;
     maxQuoteDeviationBps: number;
     maxTwapDeviationBps: number;
+    /**
+     * Destination-per-source token rate of the caller's own prepared route
+     * quote (same pool, same direction). When present, the reviewed-pool
+     * divergence check compares the independently fetched reviewed quote
+     * against this rate — token per token — instead of against the USD
+     * `quotePriceUsd`, because a token-per-token rate and a USD-per-source
+     * price are only numerically comparable when the destination is a $1
+     * stablecoin (the comparison is otherwise dimensionally wrong).
+     */
+    routeEffectiveDestinationPerSource?: number;
   };
   /**
    * Opt in to one exact-input quote from the reviewed Base Aerodrome
@@ -77,6 +87,8 @@ export interface DecisionInputCheckRequest {
     amountIn: string;
     maxQuoteDeviationBps: number;
     maxTwapDeviationBps: number;
+    /** Same-unit anchor as `reviewedUniswapV3.routeEffectiveDestinationPerSource`. */
+    routeEffectiveDestinationPerSource?: number;
   };
   /** Optional route quote captured by the gated execution workflow. */
   operationRouteQuote?: DecisionInputRouteQuote;
@@ -489,6 +501,7 @@ export const DecisionInputAssessmentSchema = z
               .max(128),
             maxQuoteDeviationBps: z.number().int().min(0).max(10_000),
             maxTwapDeviationBps: z.number().int().min(0).max(10_000),
+            routeEffectiveDestinationPerSource: FinitePositiveNumberSchema.optional(),
           })
           .strict()
           .optional(),
@@ -500,6 +513,7 @@ export const DecisionInputAssessmentSchema = z
               .max(128),
             maxQuoteDeviationBps: z.number().int().min(0).max(10_000),
             maxTwapDeviationBps: z.number().int().min(0).max(10_000),
+            routeEffectiveDestinationPerSource: FinitePositiveNumberSchema.optional(),
           })
           .strict()
           .optional(),
@@ -1349,7 +1363,16 @@ function assessReviewedUniswapV3(
     );
     return { evidence: null };
   }
-  const quoteDeviationBps = deviationBps(effectivePerSource, request.quotePriceUsd);
+  // Prefer the same-unit anchor (destination tokens per source token) supplied
+  // by the caller's own prepared route quote; fall back to the USD-per-source
+  // `quotePriceUsd`, which is only numerically comparable when the destination
+  // token is a $1 stablecoin.
+  const anchorRate = request.reviewedUniswapV3.routeEffectiveDestinationPerSource;
+  const anchor =
+    anchorRate !== undefined && Number.isFinite(anchorRate) && anchorRate > 0
+      ? anchorRate
+      : request.quotePriceUsd;
+  const quoteDeviationBps = deviationBps(effectivePerSource, anchor);
   if (
     quoteDeviationBps !== null &&
     quoteDeviationBps > request.reviewedUniswapV3.maxQuoteDeviationBps
@@ -1444,7 +1467,16 @@ function assessReviewedAerodromeSlipstream(
     );
     return { evidence: null };
   }
-  const quoteDeviationBps = deviationBps(effectivePerSource, request.quotePriceUsd);
+  // Prefer the same-unit anchor (destination tokens per source token) supplied
+  // by the caller's own prepared route quote; fall back to the USD-per-source
+  // `quotePriceUsd`, which is only numerically comparable when the destination
+  // token is a $1 stablecoin.
+  const anchorRate = request.reviewedAerodromeSlipstream.routeEffectiveDestinationPerSource;
+  const anchor =
+    anchorRate !== undefined && Number.isFinite(anchorRate) && anchorRate > 0
+      ? anchorRate
+      : request.quotePriceUsd;
+  const quoteDeviationBps = deviationBps(effectivePerSource, anchor);
   if (
     quoteDeviationBps !== null &&
     quoteDeviationBps > request.reviewedAerodromeSlipstream.maxQuoteDeviationBps
