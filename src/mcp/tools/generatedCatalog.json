@@ -3421,6 +3421,257 @@
     }
   },
   {
+    "name": "solana_swap_guard",
+    "description": "Gate exactly one unsigned Orca Whirlpool swap on Solana mainnet: the reviewed USDC/USDT 0.01% pool (both directions). The caller supplies the fully resolved compiled unsigned transaction containing exactly one legacy Whirlpool swap instruction (no swapV2, no aggregators, no bundles). Insight canonical-decodes the instruction, re-verifies the pool, vaults, tick array, oracle, and both user token accounts from live mainnet state, prices the pool from its own sqrtPrice against independent oracle consensus, requires a positive otherAmountThreshold consistent with the declared decision prices, and simulates the exact unsigned message. ALLOW returns a short-lived signed decision bound to the exact message hash; CAUTION or BLOCK returns no executable payload. After settlement, pair the signed decision with the transaction signature via settle_solana_swap_guard. It does not sign, submit, relay, or authorize anything.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "guard": {
+          "type": "object",
+          "properties": {
+            "profileId": {
+              "type": "string",
+              "enum": ["solana-orca-whirlpool-usdc-usdt-1"]
+            },
+            "direction": {
+              "type": "string",
+              "enum": ["usdc-to-usdt", "usdt-to-usdc"]
+            },
+            "sourceDecisionPriceUsd": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 1000000000
+            },
+            "destinationDecisionPriceUsd": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 1000000000
+            },
+            "policy": {
+              "type": "object",
+              "properties": {
+                "maxSlippageBps": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000
+                },
+                "maxReferenceDeviationBps": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000
+                }
+              },
+              "required": ["maxSlippageBps", "maxReferenceDeviationBps"],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "profileId",
+            "direction",
+            "sourceDecisionPriceUsd",
+            "destinationDecisionPriceUsd",
+            "policy"
+          ],
+          "additionalProperties": false
+        },
+        "transaction": {
+          "type": "object",
+          "properties": {
+            "network": {
+              "type": "string",
+              "const": "mainnet-beta"
+            },
+            "messageVersion": {
+              "type": "string",
+              "enum": ["legacy", "v0"]
+            },
+            "feePayer": {
+              "type": "string"
+            },
+            "recentBlockhash": {
+              "type": "string"
+            },
+            "header": {
+              "type": "object",
+              "properties": {
+                "numRequiredSignatures": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 32
+                },
+                "numReadonlySignedAccounts": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 32
+                },
+                "numReadonlyUnsignedAccounts": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 255
+                }
+              },
+              "required": [
+                "numRequiredSignatures",
+                "numReadonlySignedAccounts",
+                "numReadonlyUnsignedAccounts"
+              ],
+              "additionalProperties": false
+            },
+            "accountKeys": {
+              "minItems": 1,
+              "maxItems": 256,
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "addressTableLookups": {
+              "maxItems": 32,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "accountKey": {
+                    "type": "string"
+                  },
+                  "writableIndexes": {
+                    "maxItems": 256,
+                    "type": "array",
+                    "items": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    }
+                  },
+                  "readonlyIndexes": {
+                    "maxItems": 256,
+                    "type": "array",
+                    "items": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    }
+                  }
+                },
+                "required": ["accountKey", "writableIndexes", "readonlyIndexes"],
+                "additionalProperties": false
+              }
+            },
+            "loadedAddresses": {
+              "type": "object",
+              "properties": {
+                "writable": {
+                  "maxItems": 256,
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "readonly": {
+                  "maxItems": 256,
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": ["writable", "readonly"],
+              "additionalProperties": false
+            },
+            "instructions": {
+              "minItems": 1,
+              "maxItems": 64,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "programIdIndex": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 255
+                  },
+                  "accountIndexes": {
+                    "maxItems": 64,
+                    "type": "array",
+                    "items": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    }
+                  },
+                  "data": {
+                    "type": "string",
+                    "maxLength": 8192,
+                    "pattern": "^[1-9A-HJ-NP-Za-km-z]*$"
+                  }
+                },
+                "required": ["programIdIndex", "accountIndexes", "data"],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "network",
+            "messageVersion",
+            "feePayer",
+            "recentBlockhash",
+            "header",
+            "accountKeys",
+            "addressTableLookups",
+            "loadedAddresses",
+            "instructions"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": ["guard", "transaction"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "settle_solana_swap_guard",
+    "description": "Close the loop on a settled Solana Swap Guard swap. Present the signed guard decision the agent executed under plus the on-chain transaction signature. Insight verifies the decision, re-collects execution facts from Solana JSON-RPC, reconciles the observed SPL input and output balance deltas against the reviewed exact amounts (amountInRaw and the otherAmountThreshold minimum output), and returns a signed settlement bound to the decisionHash with an explicit status (SETTLED, REVERTED, or UNRECONCILED) and reconciliation code. A decision that does not verify is rejected. This is settlement evidence, not transaction authority, a price-correctness claim, or a guarantee of good timing.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "decision": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[1-9A-HJ-NP-Za-km-z]{87,88}$"
+        }
+      },
+      "required": ["decision", "signature"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "verify_solana_swap_guard_settlement",
+    "description": "Independently verify a signed Solana Swap Guard settlement: structural shape, the Ed25519 attester signature, and attester trust against the published Insight public key. Returns valid/invalid with a machine-readable reason plus the signed decisionHash, transaction signature, status, and attester so a third party can detect two valid closures binding one decisionHash to different transactions. This checks the signature only; it does not re-read the chain.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "settlement": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        }
+      },
+      "required": ["settlement"],
+      "additionalProperties": false
+    }
+  },
+  {
     "name": "loopscale_vault_deposit",
     "description": "Build a single Solana mainnet Loopscale lending-vault deposit with Loopscale’s official production API, verify the live vault and principal mint, resolve every address lookup table, simulate the exact unsigned message, check oracle evidence, and return short-lived Insight evidence for PriorSeal. It does not sign, authorize, or broadcast. Deposit bundles requiring preliminary transactions are rejected rather than partially attested.",
     "inputSchema": {

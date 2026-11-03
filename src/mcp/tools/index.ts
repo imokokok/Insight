@@ -132,6 +132,11 @@ import {
 import { robinhoodRwaContextTool, robinhoodRwaInstrumentTool, rwaAssessmentTool } from './rwaTools';
 import { checkPositionSafetyTool } from './safetyTools';
 import { solanaLendingGuardTool } from './solanaLendingGuardTools';
+import {
+  settleSolanaSwapGuardTool,
+  solanaSwapGuardTool,
+  verifySolanaSwapGuardSettlementTool,
+} from './solanaSwapGuardTools';
 import { getStablecoinPegTool } from './stablecoinTools';
 import { getStablecoinListTool, getSymbolsTool, recommendOracleSetupTool } from './utilityTools';
 import { verifyExecutionPairTool } from './verifyExecutionPairTools';
@@ -202,6 +207,9 @@ const MCP_TOOLS: McpToolDefinition[] = [
   multichainEvmLendingGuardTool,
   multichainEvmLendingGuardExactCallTool,
   solanaLendingGuardTool,
+  solanaSwapGuardTool,
+  settleSolanaSwapGuardTool,
+  verifySolanaSwapGuardSettlementTool,
   loopscaleVaultDepositTool,
   checkPositionSafetyTool,
   preTradeSafetyCheckTool,
@@ -522,6 +530,22 @@ const JSON_SCHEMA_MAP: Record<
     properties?: Record<string, unknown>;
     required?: string[];
   },
+  solana_swap_guard: solanaSwapGuardTool.parameters.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  settle_solana_swap_guard: settleSolanaSwapGuardTool.parameters.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  verify_solana_swap_guard_settlement:
+    verifySolanaSwapGuardSettlementTool.parameters.toJSONSchema() as {
+      type: 'object';
+      properties?: Record<string, unknown>;
+      required?: string[];
+    },
   loopscale_vault_deposit: loopscaleVaultDepositTool.parameters.toJSONSchema() as {
     type: 'object';
     properties?: Record<string, unknown>;

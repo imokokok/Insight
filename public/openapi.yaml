@@ -3677,6 +3677,126 @@ paths:
       responses:
         '200': { description: Cryptographic verification result and expiry state. }
 
+  /safety/solana-swap-guard:
+    post:
+      operationId: createSolanaSwapGuardExactDecision
+      tags: [Safety]
+      summary: Simulate and attest one exact Orca Whirlpool swap
+      description: >-
+        Read-only pre-signing gate for one legacy Whirlpool `swap` instruction in
+        the reviewed USDC/USDT pool on Solana mainnet. It re-derives every
+        reviewed identity from live mainnet state, prices the pool from its own
+        sqrtPrice, runs both oracle checks, and simulates the exact unsigned
+        message before issuing an Ed25519 decision when configured. It never
+        signs, submits, or authorizes a transaction. API-key access or x402
+        payment on the native Solana rail is accepted.
+      security:
+        - apiKey: []
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [guard, transaction]
+              properties:
+                guard:
+                  type: object
+                  required:
+                    [
+                      profileId,
+                      direction,
+                      sourceDecisionPriceUsd,
+                      destinationDecisionPriceUsd,
+                      policy,
+                    ]
+                  properties:
+                    profileId: { type: string, enum: [solana-orca-whirlpool-usdc-usdt-1] }
+                    direction: { type: string, enum: [usdc-to-usdt, usdt-to-usdc] }
+                    sourceDecisionPriceUsd: { type: number, exclusiveMinimum: 0, example: 1 }
+                    destinationDecisionPriceUsd:
+                      { type: number, exclusiveMinimum: 0, example: 0.9987 }
+                    policy:
+                      type: object
+                      required: [maxSlippageBps, maxReferenceDeviationBps]
+                      properties:
+                        maxSlippageBps: { type: integer, minimum: 0, maximum: 1000, example: 50 }
+                        maxReferenceDeviationBps:
+                          { type: integer, minimum: 0, maximum: 1000, example: 100 }
+                transaction:
+                  type: object
+                  description: >-
+                    Complete unsigned legacy Solana message containing exactly one
+                    reviewed Whirlpool swap instruction. Every address lookup table
+                    must include its resolved addresses.
+      responses:
+        '200':
+          {
+            description: Complete BLOCK/CAUTION/ALLOW decision,
+            optionally with a short-lived Ed25519 attestation.,
+          }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+
+  /safety/solana-swap-guard/verify:
+    get:
+      operationId: getSolanaSwapGuardVerificationSchema
+      tags: [Safety]
+      summary: Get Solana swap guard Ed25519 attester information
+      security: []
+      responses:
+        '200': { description: Attester public key and schema status. }
+    post:
+      operationId: verifySolanaSwapGuardDecision
+      tags: [Safety]
+      summary: Verify a Solana swap guard decision
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: { type: object, additionalProperties: true }
+      responses:
+        '200': { description: Cryptographic verification result and expiry state. }
+
+  /safety/solana-swap-guard/settlement:
+    post:
+      operationId: settleSolanaSwapGuard
+      tags: [Safety]
+      summary: Close a Solana swap guard decision against on-chain facts
+      description: >-
+        Presents the signed guard decision plus the on-chain transaction
+        signature. Insight re-verifies the decision, collects execution facts
+        from Solana JSON-RPC, reconciles the observed wallet-level SPL balance
+        deltas against the guarded exact amounts and minimum output, and returns
+        a signed `SolanaSwapGuardSettlement` bound to the `decisionHash`. With
+        `verifyOnly: true`, only the signed settlement's own Ed25519 signature is
+        verified.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision, signature]
+              properties:
+                decision: { type: object, additionalProperties: true }
+                signature:
+                  { type: string, description: Base58 on-chain transaction signature (87-88 chars) }
+                verifyOnly: { type: boolean, default: false }
+                settlement: { type: object, additionalProperties: true }
+      responses:
+        '200':
+          { description: Signed settlement receipt, or a verification result in verifyOnly mode. }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '404': { description: The on-chain transaction signature was not found. }
+
   /safety/swap-intent:
     get:
       operationId: createPaidSwapIntent
