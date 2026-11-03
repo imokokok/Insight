@@ -72,10 +72,13 @@ the PriorSeal side: `examples/web3-agent-kit-base-swap-v2/` pins the Insight
 signed advisory evidence → governor → principal exact-call authorization →
 PriorSeal receipt chain for a Base swap with fail-closed mutations, and
 `examples/exact-call-partner-reference-v1/` verifies the exact-call receipt
-matrix offline. A dedicated reference-agent example that drives the Base
-Agent Swap Guard binding (assess → bind → authorize → observe → review, with
-deterministic demo keys and a machine-readable report) ships together with
-PriorSeal's base-agent-swap-guard SDK adapter release.
+matrix offline. The dedicated reference-agent example ships with
+priorseal-sdk v0.14.0:
+[PriorSeal `examples/insight-base-agent-swap-guard-reference-v1/`](https://github.com/imokokok/PriorSeal/tree/main/examples/insight-base-agent-swap-guard-reference-v1)
+drives assess → bind → authorize → observe → review with deterministic public
+demo keys, verifies both receipts plus the original signed Insight decision
+offline through the base-agent-swap-guard adapter, and emits a
+machine-readable `report.json` (wired into PriorSeal CI).
 
 A live Base mainnet recorded run (real Insight attestation, real principal
 funds, real broadcast, real receipts, real settlement closure) follows the
