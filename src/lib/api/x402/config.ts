@@ -660,6 +660,9 @@ export const X402_MULTICHAIN_EVM_LENDING_GUARD_ROUTE =
 /** Solana-native exact-transaction lending gate for Kamino, Marginfi, and Jupiter Earn. */
 export const X402_SOLANA_LENDING_GUARD_ROUTE = '/api/v1/safety/solana-lending-guard';
 
+/** Solana-native exact-transaction Orca Whirlpool swap gate and its settlement. */
+export const X402_SOLANA_SWAP_GUARD_ROUTE = '/api/v1/safety/solana-swap-guard';
+
 /** Official-API-built Loopscale Solana lending-vault deposit gate. */
 export const X402_LOOPSCALE_VAULT_DEPOSIT_ROUTE = '/api/v1/safety/loopscale-vault-deposit';
 
