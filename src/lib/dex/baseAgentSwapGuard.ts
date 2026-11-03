@@ -964,6 +964,7 @@ export async function prepareBaseAgentSwapGuard(
                 amountIn: input.amountIn,
                 maxQuoteDeviationBps: input.policy.maxReferenceDeviationBps,
                 maxTwapDeviationBps: input.policy.maxTwapDeviationBps,
+                routeEffectiveDestinationPerSource: effectiveDestinationPerSource(prepared),
               },
             }
           : {
@@ -971,6 +972,7 @@ export async function prepareBaseAgentSwapGuard(
                 amountIn: input.amountIn,
                 maxQuoteDeviationBps: input.policy.maxReferenceDeviationBps,
                 maxTwapDeviationBps: input.policy.maxTwapDeviationBps,
+                routeEffectiveDestinationPerSource: effectiveDestinationPerSource(prepared),
               },
             }),
       },
