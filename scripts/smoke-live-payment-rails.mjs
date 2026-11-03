@@ -21,6 +21,18 @@ const ATTEMPTS = Number(process.env.SMOKE_ATTEMPTS ?? 3);
 const PRE_TRADE_URL = `${BASE_URL}/api/v1/safety/pre-trade?asset=ETH&chainId=1&action=swap&tradeAmountUsd=1000`;
 const MCP_URL = `${BASE_URL}/api/mcp/mpp`;
 const X402_MANIFEST_URL = `${BASE_URL}/.well-known/x402`;
+const FIXED_SCOPE_PROBES = [
+  {
+    path: '/api/v1/safety/base-lending-guard',
+    expectedNetwork: 'eip155:8453',
+    name: 'base-lending',
+  },
+  {
+    path: '/api/v1/safety/monad-lending-guard',
+    expectedNetwork: 'eip155:143',
+    name: 'monad-lending',
+  },
+];
 
 const failures = [];
 
@@ -151,6 +163,62 @@ async function smokeRestRail() {
   console.log(`[rest] 402 dual-challenge OK (x402 + MPP, scope=${opaque?._mppx_scope ?? 'n/a'})`);
 }
 
+async function smokeFixedScopeParity() {
+  const manifestResponse = await fetchWithRetry(
+    X402_MANIFEST_URL,
+    { headers: { accept: 'application/json' } },
+    'manifest-scopes'
+  );
+  if (!manifestResponse.ok) {
+    fail('manifest-scopes', `expected HTTP 200, got ${manifestResponse.status}`);
+    return;
+  }
+  let manifest;
+  try {
+    manifest = await manifestResponse.json();
+  } catch {
+    fail('manifest-scopes', 'response is not JSON');
+    return;
+  }
+  if (!Array.isArray(manifest?.resources)) {
+    fail('manifest-scopes', 'response has no resources array');
+    return;
+  }
+
+  await Promise.all(
+    FIXED_SCOPE_PROBES.map(async ({ path, expectedNetwork, name }) => {
+      const url = `${BASE_URL}${path}`;
+      const advertised = manifest.resources.find((resource) => resource?.url === url);
+      const advertisedNetworks = x402Networks(advertised, `manifest-${name}`);
+      if (!advertisedNetworks.includes(expectedNetwork)) {
+        fail(`manifest-${name}`, `missing expected ${expectedNetwork}: ${advertisedNetworks.join(', ')}`);
+      }
+
+      const response = await fetchWithRetry(
+        url,
+        { method: 'GET', headers: { accept: 'application/json' } },
+        `live-${name}`
+      );
+      if (response.status !== 402) {
+        fail(`live-${name}`, `expected HTTP 402 challenge, got ${response.status}`);
+        return;
+      }
+      const challenge = decodeX402Challenge(response.headers.get('payment-required'));
+      const liveNetworks = x402Networks(challenge, `live-${name}`);
+      const staleNetworks = advertisedNetworks.filter((network) => !liveNetworks.includes(network));
+      if (staleNetworks.length > 0) {
+        fail(
+          `manifest-${name}`,
+          `advertised networks are absent from the live challenge: ${staleNetworks.join(', ')}`
+        );
+      }
+      if (!liveNetworks.includes(expectedNetwork)) {
+        fail(`live-${name}`, `missing expected ${expectedNetwork}: ${liveNetworks.join(', ')}`);
+      }
+    })
+  );
+}
+
 async function smokeMcpRail() {
   const headers = {
     'content-type': 'application/json',
@@ -244,6 +312,7 @@ async function smokeMcpRail() {
 
 try {
   await smokeRestRail();
+await smokeFixedScopeParity();
   await smokeMcpRail();
 } catch (error) {
   failures.push(error instanceof Error ? error.message : String(error));
