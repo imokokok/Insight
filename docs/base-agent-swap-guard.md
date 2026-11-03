@@ -147,7 +147,10 @@ signed Insight ALLOW
 Both PriorSeal intents must use the same source-token amount, wallet/recipient,
 expiry, and `insight.base-agent-swap-guard.v1` commitment. They must have
 different intent IDs and adjacent nonces. They are never a multicall or a
-single blanket allowance. See PriorSeal's
+single blanket allowance. The full assess → authorize → execute → review
+composition with roles, commercial sequence, and recorded runs is the
+[canonical joint reference agent](integrations/priorseal-joint-reference-agent.md).
+See PriorSeal's
 [`Base Agent Swap Guard binding`](https://github.com/imokokok/PriorSeal/blob/main/docs/insight-base-agent-swap-guard.md)
 for the SDK verifier contract. A public attestation verifier is available at
 `/api/v1/safety/base-agent-swap-guard/verify`.
