@@ -183,11 +183,15 @@ function baseAgentSwapGuardMcpPaymentScope(
   if (!isRecord(argumentsValue)) return null;
 
   if (toolName === 'prepare_base_agent_swap_guard') {
-    // profileId is optional and defaults to the reviewed Base lane.
+    // profileId is optional and defaults to the reviewed Base lane. Only a
+    // recognized BNB prefix selects the BNB realm; an unrecognized prefix
+    // fails closed rather than silently authorizing on Base.
     const profileId =
       typeof argumentsValue.profileId === 'string' ? argumentsValue.profileId : null;
     if (profileId === null) return X402_PAYMENT_SCOPE.base;
-    return profileId.startsWith('bnb-') ? X402_PAYMENT_SCOPE.bnb : X402_PAYMENT_SCOPE.base;
+    if (profileId.startsWith('bnb-')) return X402_PAYMENT_SCOPE.bnb;
+    if (profileId.startsWith('base-')) return X402_PAYMENT_SCOPE.base;
+    return null;
   }
 
   // settle/verify carry the signed decision (or settlement) whose guard scope

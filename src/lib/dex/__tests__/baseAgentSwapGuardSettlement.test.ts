@@ -672,3 +672,56 @@ describe('settleBaseAgentSwapGuard', () => {
     });
   });
 });
+
+describe('settlement fill reconciliation precision', () => {
+  it('reconciles an 18-decimal fill exactly, without float round-trip drift', async () => {
+    // A raw source amount that does not survive a number→float→number round
+    // trip: rebuilding raw via Number(human) * 10**18 yields ...800, which used
+    // to fabricate a SOURCE_AMOUNT_MISMATCH. The settlement must carry the
+    // receipt's exact raw sum instead.
+    const NON_ROUND = 1_234_567_890_123_456_789n;
+    const clone: Record<string, unknown> = JSON.parse(JSON.stringify(guard()));
+    delete clone.decisionHash;
+    const unsigned: Omit<BaseAgentSwapGuardResult, 'decisionHash'> = {
+      ...(clone as unknown as Omit<BaseAgentSwapGuardResult, 'decisionHash'>),
+      market: {
+        ...guard().market,
+        exactInput: {
+          ...guard().market.exactInput,
+          amountInRaw: NON_ROUND.toString(),
+          quotedAmountOutRaw: '1999234567',
+          amountOutMinimumRaw: '1989248291',
+        },
+      },
+      binding: {
+        ...(guard().binding as object),
+        approval: {
+          ...(guard().binding.approval as object),
+          amountRaw: NON_ROUND.toString(),
+        },
+      },
+    } as Omit<BaseAgentSwapGuardResult, 'decisionHash'>;
+    const decision = await createBaseAgentSwapGuardDecision(
+      { ...unsigned, decisionHash: baseAgentSwapGuardDecisionHash(unsigned) },
+      signerDependencies
+    );
+
+    const fx = baseChain();
+    fx.receipt!.logs = [
+      transferLog(WETH, ACCOUNT, ROUTER, NON_ROUND),
+      transferLog(USDC, ROUTER, ACCOUNT, 1_999_234_567n),
+    ];
+
+    const result = await settleBaseAgentSwapGuard({
+      ...baseParams,
+      decision,
+      swapTxHash: SWAP_TX,
+      client: fakeClient(fx),
+    });
+
+    if (!result.ok) throw new Error(`expected ok, got ${result.code} (${result.reason ?? '-'})`);
+    expect(result.settlement.data.sourceAmountRaw).toBe('1234567890123456789');
+    expect(result.settlement.data.destinationAmountRaw).toBe('1999234567');
+    expect(result.settlement.reasonCodes).toEqual(['APPROVAL_TX_NOT_PRESENTED']);
+  });
+});

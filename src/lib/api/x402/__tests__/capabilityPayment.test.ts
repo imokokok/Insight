@@ -120,6 +120,32 @@ describe('x402 capability payment bindings', () => {
     expect(boundNames).toEqual(catalogNames);
   });
 
+  it('derives guard prepare scopes from the profileId prefix and fails closed on unknown ones', () => {
+    // Missing profileId defaults to the reviewed Base lane.
+    expect(x402PaymentScopeForMcpTool('prepare_base_agent_swap_guard', {})).toEqual(
+      X402_PAYMENT_SCOPE.base
+    );
+    expect(x402PaymentScopeForMcpTool('prepare_base_agent_swap_guard', { profileId: 123 })).toEqual(
+      X402_PAYMENT_SCOPE.base
+    );
+    expect(
+      x402PaymentScopeForMcpTool('prepare_base_agent_swap_guard', {
+        profileId: 'bnb-pancakeswap-v3-usdt-usdc-100',
+      })
+    ).toEqual(X402_PAYMENT_SCOPE.bnb);
+    expect(
+      x402PaymentScopeForMcpTool('prepare_base_agent_swap_guard', {
+        profileId: 'base-pancakeswap-v3-usdc-usdt-100',
+      })
+    ).toEqual(X402_PAYMENT_SCOPE.base);
+    // An unrecognized prefix must not silently authorize a Base payment.
+    expect(
+      x402PaymentScopeForMcpTool('prepare_base_agent_swap_guard', {
+        profileId: 'not-a-reviewed-profile',
+      })
+    ).toBeNull();
+  });
+
   it('leaves genuinely chain-neutral tools on the merchant-configured rail', () => {
     expect(x402PaymentScopeForMcpTool('pre_trade_safety_check', { chainId: 143 })).toEqual(
       X402_PAYMENT_SCOPE.configured

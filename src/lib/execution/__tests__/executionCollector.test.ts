@@ -200,8 +200,58 @@ describe('collectExecutionFacts', () => {
     expect(result.facts.fillStatus).toBe('FULL');
     expect(result.facts.sourceAmount).toBeCloseTo(1000, 6);
     expect(result.facts.destinationAmount).toBeCloseTo(0.4, 9);
+    // Raw sums are carried BigInt-safe, exactly as the receipt reported them.
+    expect(result.facts.sourceAmountRaw).toBe('1000000000');
+    expect(result.facts.destinationAmountRaw).toBe('400000000000000000');
     // 0.4 / 1000 = 0.0004 WETH per USDC
     expect(result.facts.executedPrice).toBeCloseTo(0.0004, 10);
+    expect(result.facts.unavailableReason).toBeNull();
+  });
+
+  it('carries 18-decimal raw sums that do not survive a float round trip', async () => {
+    const receipt: RpcTransactionReceipt = {
+      transactionHash: '0xabc',
+      transactionIndex: '0x0',
+      blockHash: '0xblock',
+      blockNumber: '0x10',
+      from: TAKER,
+      to: '0xdead' as `0x${string}`,
+      cumulativeGasUsed: '0x1',
+      gasUsed: '0x5208',
+      effectiveGasPrice: '0x3b9aca00',
+      status: '0x1',
+      type: '0x2',
+      contractAddress: null,
+      logs: [
+        transferLog(SRC, TAKER, ROUTER, 1_234_567_890_123_456_789n),
+        transferLog(DST, ROUTER, TAKER, 400_000_000_000_000_001n),
+      ],
+    };
+    const client = fakeClient({
+      receipt,
+      block: { timestamp: '0x' + (1_700_000_000).toString(16) },
+    });
+    (client.ethCall as jest.Mock).mockImplementation(async (_k, _e, token) => {
+      const d = token.toLowerCase() === SRC ? 6 : 18;
+      return ('0x' + d.toString(16).padStart(64, '0')) as `0x${string}`;
+    });
+
+    const result = await collectExecutionFacts({
+      txHash: '0xabc' as `0x${string}`,
+      chainId: 1,
+      endpoints,
+      sourceAssetId: `eip155:1/erc20:${SRC}`,
+      destinationAssetId: `eip155:1/erc20:${DST}`,
+      taker: TAKER,
+      client,
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    // String(Math.round(human * 10**18)) would produce '...800'/'...000'; the
+    // raw fields must preserve the exact on-chain sums.
+    expect(result.facts.sourceAmountRaw).toBe('1234567890123456789');
+    expect(result.facts.destinationAmountRaw).toBe('400000000000000001');
     expect(result.facts.unavailableReason).toBeNull();
   });
 

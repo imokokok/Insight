@@ -291,12 +291,14 @@ export const AerodromeSlipstreamMarketJsonSchema = z.object({
     .describe('Reviewed Aerodrome Slipstream pool id; defaults to Base WETH/USDC CL100'),
 });
 
-/** Wire schema for a named allowlisted PancakeSwap V3 Base market. */
+/** Wire schema for a named allowlisted PancakeSwap V3 market. */
 export const PancakeSwapV3MarketJsonSchema = z.object({
   profileId: z
     .enum(REVIEWED_PANCAKE_SWAP_V3_PROFILE_IDS)
     .optional()
-    .describe('Reviewed PancakeSwap V3 pool id; defaults to Base USDC/USDT 0.01%'),
+    .describe(
+      'Reviewed PancakeSwap V3 pool id (Base or BNB Smart Chain); defaults to Base USDC/USDT 0.01%'
+    ),
 });
 
 /** Wire schema for a named allowlisted QuickSwap V2 Base pair. */
@@ -786,16 +788,18 @@ export const AerodromeSlipstreamSwapPreparationJsonSchema = z.object({
     .describe('Maximum shortfall versus the pinned quote, encoded as amountOutMinimum'),
 });
 
-/** Wire schema for a user-signable PancakeSwap V3 Base transaction. */
+/** Wire schema for a user-signable PancakeSwap V3 transaction. */
 export const PancakeSwapV3SwapPreparationJsonSchema = z.object({
   profileId: z
     .enum(REVIEWED_PANCAKE_SWAP_V3_PROFILE_IDS)
     .optional()
-    .describe('Reviewed PancakeSwap V3 pool id; defaults to Base USDC/USDT 0.01%'),
+    .describe(
+      'Reviewed PancakeSwap V3 pool id (Base or BNB Smart Chain); defaults to Base USDC/USDT 0.01%'
+    ),
   direction: z
     .enum(['token0-to-token1', 'token1-to-token0'])
     .describe(
-      'Quote direction inside the reviewed pool: token0→token1 (USDC→USDT) or the reverse (USDT→USDC). Defaults to token0→token1.'
+      'Quote direction inside the reviewed pool, stated in its token0/token1 order (e.g. Base USDC/USDT: USDC→USDT; BNB USDT/USDC: USDT→USDC) or the reverse. Defaults to token0→token1.'
     ),
   amountIn: z
     .string()

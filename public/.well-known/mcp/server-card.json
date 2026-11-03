@@ -2029,13 +2029,13 @@
     },
     {
       "name": "get_pancakeswap_v3_market",
-      "description": "Get fresh, block-pinned market evidence for one allowlisted PancakeSwap V3 Base pool. The Factory, QuoterV2, and Pool runtime identities are re-verified at the quoted block. This is DEX venue context, not an oracle-consensus price.",
+      "description": "Get fresh, block-pinned market evidence for one allowlisted PancakeSwap V3 pool on Base or BNB Smart Chain. The Factory, QuoterV2, and Pool runtime identities are re-verified at the quoted block. This is DEX venue context, not an oracle-consensus price.",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
         "properties": {
           "profileId": {
-            "description": "Reviewed PancakeSwap V3 pool id; defaults to Base USDC/USDT 0.01%",
+            "description": "Reviewed PancakeSwap V3 pool id (Base or BNB Smart Chain); defaults to Base USDC/USDT 0.01%",
             "type": "string",
             "enum": ["base-pancakeswap-v3-usdc-usdt-100", "bnb-pancakeswap-v3-usdt-usdc-100"]
           }
@@ -2051,14 +2051,14 @@
         "type": "object",
         "properties": {
           "profileId": {
-            "description": "Reviewed PancakeSwap V3 pool id; defaults to Base USDC/USDT 0.01%",
+            "description": "Reviewed PancakeSwap V3 pool id (Base or BNB Smart Chain); defaults to Base USDC/USDT 0.01%",
             "type": "string",
             "enum": ["base-pancakeswap-v3-usdc-usdt-100", "bnb-pancakeswap-v3-usdt-usdc-100"]
           },
           "direction": {
             "type": "string",
             "enum": ["token0-to-token1", "token1-to-token0"],
-            "description": "Quote direction inside the reviewed pool: token0→token1 (USDC→USDT) or the reverse (USDT→USDC). Defaults to token0→token1."
+            "description": "Quote direction inside the reviewed pool, stated in its token0/token1 order (e.g. Base USDC/USDT: USDC→USDT; BNB USDT/USDC: USDT→USDC) or the reverse. Defaults to token0→token1."
           },
           "amountIn": {
             "type": "string",

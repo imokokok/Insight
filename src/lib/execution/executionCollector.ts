@@ -55,6 +55,13 @@ export interface ExecutionFacts {
   /** Human-unit amounts (raw amount divided by the token's decimals). */
   sourceAmount: number | null;
   destinationAmount: number | null;
+  /** Exact on-chain amounts as raw integer strings (BigInt-safe). Null exactly
+   *  when the human-unit field above is null. Consumers that compare or
+   *  re-serialize amounts (e.g. settlement reconciliation) must use these —
+   *  reconstructing raw from the float human value loses precision on
+   *  18-decimal tokens. */
+  sourceAmountRaw: string | null;
+  destinationAmountRaw: string | null;
   /** Destination units per source unit. Null when it cannot be computed. */
   executedPrice: number | null;
   /** Gas actually consumed, in the chain's native units (wei for EVM). */
@@ -138,6 +145,7 @@ function assetSpecFor(assetId: string, chainId: number): AssetSpec {
  * null when the leg emitted no attributable transfer or its `decimals()` could
  * not be read — a missing amount is reported, never assumed (treating a null
  * decimals as 18 would misstate the price for a 6-decimal token by a trillion).
+ * The raw sum is returned alongside the human value so no precision is lost.
  */
 async function readErc20Amount(params: {
   tokenAddress: string;
@@ -148,7 +156,7 @@ async function readErc20Amount(params: {
   key: string;
   endpoints: string[];
   signal?: AbortSignal;
-}): Promise<number | null> {
+}): Promise<{ human: number; raw: string } | null> {
   let raw = 0n;
   for (const t of params.transfers) {
     if (t.token.toLowerCase() !== params.tokenAddress) continue;
@@ -163,7 +171,79 @@ async function readErc20Amount(params: {
     params.signal
   );
   if (raw === 0n || decimals === null) return null;
-  return Number(raw) / 10 ** decimals;
+  return { human: Number(raw) / 10 ** decimals, raw: raw.toString() };
+}
+
+const NATIVE_DECIMALS = 18; // wei; native gas tokens are always 18 decimals.
+
+/** One trade leg as observed on the receipt: the human-unit amount for pricing
+ *  and the exact raw integer string (BigInt-safe) for reconciliation. Nulls
+ *  mean the leg is unattributable — reported, never guessed. */
+interface LegAmount {
+  human: number | null;
+  raw: string | null;
+}
+
+/** Read the SOURCE leg. A native leg cannot be read from `Transfer` events; the
+ *  native amount SOLD is the transaction's `value` — but only when the taker is
+ *  the transaction sender, since native leaves the sender's balance directly. */
+async function readSourceLeg(params: {
+  spec: AssetSpec;
+  taker: string;
+  sender: string;
+  txValueWei: bigint | null;
+  transfers: DecodedTransfer[];
+  client: RpcClientWithFallback;
+  key: string;
+  endpoints: string[];
+  signal?: AbortSignal;
+}): Promise<LegAmount> {
+  if (params.spec.kind === 'native') {
+    if (params.txValueWei !== null && params.taker === params.sender) {
+      return {
+        human: Number(params.txValueWei) / 10 ** NATIVE_DECIMALS,
+        raw: params.txValueWei.toString(),
+      };
+    }
+    return { human: null, raw: null };
+  }
+  const read = await readErc20Amount({
+    tokenAddress: params.spec.address!,
+    taker: params.taker,
+    direction: 'out',
+    transfers: params.transfers,
+    client: params.client,
+    key: params.key,
+    endpoints: params.endpoints,
+    signal: params.signal,
+  });
+  return read ?? { human: null, raw: null };
+}
+
+/** Read the DESTINATION leg. A native destination is unobservable — the native
+ *  amount BOUGHT never appears in a Transfer log or in tx.value (that is what
+ *  was sent, not received), so it stays unavailable and we do not guess it. */
+async function readDestinationLeg(params: {
+  spec: AssetSpec;
+  receiver: string;
+  transfers: DecodedTransfer[];
+  client: RpcClientWithFallback;
+  key: string;
+  endpoints: string[];
+  signal?: AbortSignal;
+}): Promise<LegAmount> {
+  if (params.spec.kind === 'native') return { human: null, raw: null };
+  const read = await readErc20Amount({
+    tokenAddress: params.spec.address!,
+    taker: params.receiver as `0x${string}`,
+    direction: 'in',
+    transfers: params.transfers,
+    client: params.client,
+    key: params.key,
+    endpoints: params.endpoints,
+    signal: params.signal,
+  });
+  return read ?? { human: null, raw: null };
 }
 
 export async function collectExecutionFacts(
@@ -239,6 +319,8 @@ export async function collectExecutionFacts(
         fillStatus: 'REVERTED',
         sourceAmount: null,
         destinationAmount: null,
+        sourceAmountRaw: null,
+        destinationAmountRaw: null,
         executedPrice: null,
         feeNative,
         executedAt,
@@ -284,6 +366,8 @@ export async function collectExecutionFacts(
         fillStatus: 'FULL',
         sourceAmount: selected.sourceAmount,
         destinationAmount: selected.destinationAmount,
+        sourceAmountRaw: selected.sourceRaw.toString(),
+        destinationAmountRaw: selected.destinationRaw.toString(),
         executedPrice: selected.executedPrice,
         feeNative,
         executedAt,
@@ -311,6 +395,8 @@ export async function collectExecutionFacts(
         fillStatus: 'FULL',
         sourceAmount: null,
         destinationAmount: null,
+        sourceAmountRaw: null,
+        destinationAmountRaw: null,
         executedPrice: null,
         feeNative,
         executedAt,
@@ -328,14 +414,9 @@ export async function collectExecutionFacts(
   }
 
   const transfers = decodeAllTransfers(receipt.logs);
-  const NATIVE_DECIMALS = 18; // wei; native gas tokens are always 18 decimals.
 
-  // A native leg cannot be read from `Transfer` events. The native amount SOLD
-  // (source native) is the transaction's `value` — but only when the taker is
-  // the transaction sender, since native leaves the sender's balance directly.
-  // The native amount BOUGHT (destination native) never appears in a Transfer
-  // log or in tx.value (that is what was sent, not received), so it is genuinely
-  // unreadable and the price stays unavailable — we do not guess it.
+  // A native leg cannot be read from `Transfer` events, so the transaction's
+  // `value` is needed whenever either leg is native.
   const needsTx = sourceSpec.kind === 'native' || destinationSpec.kind === 'native';
   let txValueWei: bigint | null = null;
   if (needsTx) {
@@ -347,40 +428,33 @@ export async function collectExecutionFacts(
     }
   }
 
-  // Source leg.
-  let sourceAmount: number | null = null;
-  if (sourceSpec.kind === 'native') {
-    sourceAmount =
-      txValueWei !== null && taker === (receipt.from ?? '').toLowerCase()
-        ? Number(txValueWei) / 10 ** NATIVE_DECIMALS
-        : null;
-  } else {
-    sourceAmount = await readErc20Amount({
-      tokenAddress: sourceSpec.address!,
-      taker,
-      direction: 'out',
-      transfers,
-      client,
-      key,
-      endpoints,
-      signal,
-    });
-  }
+  const source = await readSourceLeg({
+    spec: sourceSpec,
+    taker,
+    sender: (receipt.from ?? '').toLowerCase(),
+    txValueWei,
+    transfers,
+    client,
+    key,
+    endpoints,
+    signal,
+  });
+  // The destination leg arrives at the guarded receiver, which may be a
+  // different address than the sending taker.
+  const destination = await readDestinationLeg({
+    spec: destinationSpec,
+    receiver: (params.destinationReceiver ?? taker) as `0x${string}`,
+    transfers,
+    client,
+    key,
+    endpoints,
+    signal,
+  });
 
-  // Destination leg. A native destination is unobservable → price unavailable.
+  // A native destination is unobservable → price unavailable.
   const destinationNativeUnreadable = destinationSpec.kind === 'native';
-  const destinationAmount = destinationNativeUnreadable
-    ? null
-    : await readErc20Amount({
-        tokenAddress: destinationSpec.address!,
-        taker: (params.destinationReceiver ?? taker) as `0x${string}`,
-        direction: 'in',
-        transfers,
-        client,
-        key,
-        endpoints,
-        signal,
-      });
+  const sourceAmount = source.human;
+  const destinationAmount = destination.human;
 
   const executedPrice =
     sourceAmount !== null && sourceAmount > 0 && destinationAmount !== null && destinationAmount > 0
@@ -403,6 +477,8 @@ export async function collectExecutionFacts(
       fillStatus: 'FULL',
       sourceAmount,
       destinationAmount,
+      sourceAmountRaw: source.raw,
+      destinationAmountRaw: destination.raw,
       executedPrice,
       feeNative,
       executedAt,

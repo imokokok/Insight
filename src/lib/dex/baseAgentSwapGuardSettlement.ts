@@ -40,7 +40,6 @@
 import { hashTypedData, keccak256, toBytes, verifyTypedData, type Hex } from 'viem';
 
 import { getAttesterAccount, type AttesterAccount } from '@/lib/attestations/attesterAccount';
-import { DECIMALS_SELECTOR, parseDecimalsResult } from '@/lib/execution/events';
 import { collectExecutionFacts, type ExecutionFacts } from '@/lib/execution/executionCollector';
 import { getRpcEndpoints } from '@/lib/execution/rpcEndpoints';
 import { RpcClientWithFallback } from '@/lib/oracles/utils/rpcClientWithFallback';
@@ -236,29 +235,6 @@ function typedDataArgs(data: BaseAgentSwapGuardSettlementData) {
   } as const;
 }
 
-/** Read a token's `decimals()`. Null on any failure — callers treat null as
- *  "unknown" and report an unmeasured amount instead of assuming 18. */
-async function fetchDecimals(
-  client: RpcClientWithFallback,
-  key: string,
-  endpoints: string[],
-  token: string,
-  signal?: AbortSignal
-): Promise<number | null> {
-  try {
-    const result = await client.ethCall(
-      key,
-      endpoints,
-      token as `0x${string}`,
-      DECIMALS_SELECTOR,
-      signal
-    );
-    return parseDecimalsResult(result);
-  } catch {
-    return null;
-  }
-}
-
 function rpcMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
@@ -375,12 +351,6 @@ async function reconcileFill(params: {
   facts: ExecutionFacts;
   exactInput: NonNullable<BaseAgentSwapGuardResult['market']>['exactInput'];
   maxSlippageBps: number;
-  tokenIn: string;
-  tokenOut: string;
-  client: RpcClientWithFallback;
-  key: string;
-  endpoints: string[];
-  signal?: AbortSignal;
 }): Promise<{
   sourceAmountRaw: string;
   destinationAmountRaw: string;
@@ -407,32 +377,15 @@ async function reconcileFill(params: {
     out.codes.push(facts.unavailableReason);
     return out;
   }
-  if (facts.sourceAmount === null || facts.destinationAmount === null) {
+  if (facts.sourceAmountRaw === null || facts.destinationAmountRaw === null) {
     out.codes.push('FILL_PRICE_UNAVAILABLE');
     return out;
   }
-
-  const inDecimals = await fetchDecimals(
-    params.client,
-    params.key,
-    params.endpoints,
-    params.tokenIn,
-    params.signal
-  );
-  const outDecimals = await fetchDecimals(
-    params.client,
-    params.key,
-    params.endpoints,
-    params.tokenOut,
-    params.signal
-  );
-  if (inDecimals === null || outDecimals === null) {
-    // Without decimals the amounts cannot be stated honestly; report, never guess.
-    out.codes.push('FILL_PRICE_UNAVAILABLE');
-    return out;
-  }
-  out.sourceAmountRaw = String(Math.round(facts.sourceAmount * 10 ** inDecimals));
-  out.destinationAmountRaw = String(Math.round(facts.destinationAmount * 10 ** outDecimals));
+  // The exact on-chain raw sums from the receipt, carried BigInt-safe through
+  // the collector. Rebuilding raw from the float human amount would lose
+  // precision on 18-decimal tokens and misreport the reconciliation.
+  out.sourceAmountRaw = facts.sourceAmountRaw;
+  out.destinationAmountRaw = facts.destinationAmountRaw;
   if (facts.executedPrice !== null) out.executedPrice = String(facts.executedPrice);
 
   if (out.sourceAmountRaw !== exactInput.amountInRaw) {
@@ -577,12 +530,6 @@ export async function settleBaseAgentSwapGuard(
     facts,
     exactInput: guard.market.exactInput,
     maxSlippageBps: guard.policy.maxSlippageBps,
-    tokenIn,
-    tokenOut,
-    client,
-    key,
-    endpoints,
-    signal: params.signal,
   });
   reasonCodes.push(...fill.codes);
 
