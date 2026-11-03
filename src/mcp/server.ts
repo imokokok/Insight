@@ -83,7 +83,11 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
           }
         }
 
-        const result = await executeTool(name, args);
+        const result = await executeTool(name, args, {
+          // Product tools record payment provenance from the caller surface:
+          // an API key bought with credits, a keyless caller buys with x402.
+          apiKeyId: auth?.type === 'apikey' ? auth.apiKey.keyId : null,
+        });
 
         if (auth) {
           // Only consume credits when the tool actually returned data.

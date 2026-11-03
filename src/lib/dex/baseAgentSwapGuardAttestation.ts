@@ -64,6 +64,7 @@ const SUPPORTED_PROFILE_IDS = new Set([
   'base-aerodrome-slipstream-usdc-usdt-cl1',
   'base-pancakeswap-v3-usdc-usdt-100',
   'bnb-pancakeswap-v3-usdt-usdc-100',
+  'bnb-pancakeswap-v3-usdt-wbnb-100',
 ]);
 const SUPPORTED_CHAIN_IDS = new Set<number>([8453, 56]);
 
