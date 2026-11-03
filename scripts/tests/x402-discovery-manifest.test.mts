@@ -89,4 +89,68 @@ test('x402 discovery manifests publish the Monad Lending Guard as a first-class 
 
   const urls = manifest.resources.map((resource) => resource.url);
   assert.equal(new Set(urls).size, urls.length, 'resource URLs must be unique');
+
+  // Every paid REST surface must be discoverable in the root manifest. This
+  // list mirrors the route map in src/lib/api/x402/resourceServer.ts; the
+  // resourceServer regression test proves each path returns a real 402 quote.
+  const expectedPaths = [
+    '/api/v1/safety/pre-trade',
+    '/api/v1/safety/preflight',
+    '/api/v1/safety/base-lending-guard',
+    '/api/v1/safety/base-perp-guard',
+    '/api/v1/safety/hyperliquid-perp-guard',
+    '/api/v1/safety/monad-lending-guard',
+    '/api/v1/safety/multichain-evm-lending-guard',
+    '/api/v1/safety/solana-lending-guard',
+    '/api/v1/safety/loopscale-vault-deposit',
+    '/api/v1/safety/swap-intent',
+    '/api/v1/safety/oracle-watch-window',
+    '/api/v1/safety/position-lifecycle',
+    '/api/mcp',
+  ];
+  for (const expectedPath of expectedPaths) {
+    assert.ok(
+      urls.some((url) => url === `https://www.oracleinsight.xyz${expectedPath}`),
+      `discovery manifest must advertise ${expectedPath}`
+    );
+  }
+});
+
+test('plan-priced resources quote their plan amounts on every settlement rail', async () => {
+  const manifest = await readManifest(manifestPaths[0]);
+
+  const preTrade = manifest.resources.find(
+    (resource) => resource.url === 'https://www.oracleinsight.xyz/api/v1/safety/pre-trade'
+  );
+  assert.ok(preTrade, 'pre-trade safety must remain present in root x402 discovery');
+
+  const plans = [
+    {
+      url: 'https://www.oracleinsight.xyz/api/v1/safety/oracle-watch-window',
+      method: 'POST',
+      amount: '500000',
+      name: 'Oracle Watch Monitored Window',
+    },
+    {
+      url: 'https://www.oracleinsight.xyz/api/v1/safety/position-lifecycle',
+      method: 'POST',
+      amount: '550000',
+      name: 'Position Lifecycle Bundle',
+    },
+  ] as const;
+
+  for (const plan of plans) {
+    const resource = manifest.resources.find((entry) => entry.url === plan.url);
+    assert.ok(resource, `${plan.name} must be present in root x402 discovery`);
+    assert.equal(resource.method, plan.method);
+    assert.match(resource.description, /24h|24 hours/i);
+    assert.equal(resource.accepts.length, preTrade.accepts.length, 'same rails as pre-trade');
+    for (const acceptance of resource.accepts) {
+      assert.equal(
+        acceptance.amount,
+        plan.amount,
+        `${plan.name} must quote ${plan.amount} atomic on ${acceptance.network}`
+      );
+    }
+  }
 });

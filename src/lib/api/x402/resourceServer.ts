@@ -17,6 +17,7 @@ import {
   type X402Config,
   X402_BASE_LENDING_GUARD_ROUTE,
   X402_BASE_PERP_GUARD_ROUTE,
+  X402_HYPERLIQUID_PERP_GUARD_ROUTE,
   X402_MONAD_LENDING_GUARD_ROUTE,
   X402_MULTICHAIN_EVM_LENDING_GUARD_ROUTE,
   X402_ORACLE_WATCH_WINDOW_ROUTE,
@@ -880,6 +881,10 @@ export async function buildX402HttpServer(
       cfg,
       BAZAAR_BASE_PERP_GUARD_DISCOVERY_EXTENSION,
       'Base Perp Guard: a read-only, pre-trade decision-input integrity gate for opening a Synthetix Perps V3 position on Base (reviewed BTC, ETH, SOL, XRP, DOGE, and PEPE markets, USDC margin). It separately evaluates the underlying and USDC margin oracle integrity and checks caller-declared post-action leverage against reviewed market caps. GET returns a preview; POST accepts one unsigned direct PerpsMarketProxy commitOrder call and may return an Insight EIP-712 decision attestation. It never signs, broadcasts, or authorizes an order.'
+    ),
+    [X402_HYPERLIQUID_PERP_GUARD_ROUTE]: routeConfigWithoutDiscovery(
+      cfg,
+      'Hyperliquid Perp Guard: a read-only, pre-trade decision-input integrity gate for one declared Hyperliquid HyperCore order intent (asset index, size, leverage, price). It evaluates underlying oracle integrity and the declared leverage against Hyperliquid margin requirements, and POST binds the exact unsigned exchange envelope — including intent hash, asset index, size, price, and expiry — into an Insight EIP-712 decision attestation. It never signs, submits, or authorizes an order.'
     ),
     [X402_MONAD_LENDING_GUARD_ROUTE]: routeConfigFor(
       cfg,

@@ -1,7 +1,7 @@
 {
   "type": "https://eips.ethereum.org/EIPS/eip-8004#registration-v1",
   "name": "Insight",
-  "description": "Pre-trade decision-input integrity for onchain AI agents: before a trade is signed, check whether the price it relies on is trustworthy. Returns an oracle-manipulation-aware verdict (PASS/WARN/BLOCK) from multi-provider oracle consensus, with verifiable EIP-712 attestations. Pay-per-call via x402 v2 in USDC.",
+  "description": "Decision-input integrity for onchain AI agents: before a trade, borrow, or perp order is signed, check whether the price and action it relies on are trustworthy. Cross-oracle consensus (13 providers, 40+ chains) with manipulation-risk verdicts and verifiable EIP-712 attestations, plus pre-signing guard families for Base, Monad, multichain EVM, Solana lending, Base and Hyperliquid perps, a Base swap guard, 24h Oracle Watch monitored windows, and Position Lifecycle bundles. Pay-per-call via x402 v2 in USDC.",
   "services": [
     {
       "name": "A2A",
@@ -25,9 +25,18 @@
     "mcpEndpoint": "https://www.oracleinsight.xyz/api/mcp",
     "manifest": "https://www.oracleinsight.xyz/.well-known/x402",
     "agentSkill": "https://www.oracleinsight.xyz/skill.md",
+    "docs": "https://www.oracleinsight.xyz/docs/x402",
     "pricePerRequest": "0.02",
     "acceptedTokens": ["USDC"],
-    "networks": ["eip155:8453", "eip155:137", "eip155:42161", "eip155:143", "eip155:56"],
+    "networks": [
+      "eip155:8453",
+      "eip155:137",
+      "eip155:42161",
+      "eip155:143",
+      "eip155:999",
+      "eip155:56",
+      "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"
+    ],
     "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231"
   },
   "active": true,

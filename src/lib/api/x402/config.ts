@@ -641,6 +641,15 @@ export const X402_BASE_LENDING_GUARD_ROUTE = '/api/v1/safety/base-lending-guard'
  */
 export const X402_BASE_PERP_GUARD_ROUTE = '/api/v1/safety/base-perp-guard';
 
+/**
+ * Hyperliquid Perp decision gate. GET returns the assessment for one declared
+ * HyperCore order intent; POST binds one exact unsigned exchange envelope into
+ * a signed decision. Like every other guard route it must appear in the
+ * resource-server route map (resourceServer.ts) so a keyless x402 caller gets
+ * a real 402 quote instead of the defensive no-route 402.
+ */
+export const X402_HYPERLIQUID_PERP_GUARD_ROUTE = '/api/v1/safety/hyperliquid-perp-guard';
+
 /** Monad lending decision gate; x402 quotes are bound to Monad mainnet. */
 export const X402_MONAD_LENDING_GUARD_ROUTE = '/api/v1/safety/monad-lending-guard';
 

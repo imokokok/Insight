@@ -1,7 +1,22 @@
 import { type HTTPAdapter } from '@x402/core/server';
 
 import { x402ConfigForPaymentScope, X402_PAYMENT_SCOPE } from '../capabilityPayment';
-import { parseX402Config, SOLANA_DEVNET_CAIP2 } from '../config';
+import {
+  parseX402Config,
+  SOLANA_DEVNET_CAIP2,
+  X402_BASE_LENDING_GUARD_ROUTE,
+  X402_BASE_PERP_GUARD_ROUTE,
+  X402_EXECUTION_PREFLIGHT_ROUTE,
+  X402_HYPERLIQUID_PERP_GUARD_ROUTE,
+  X402_LOOPSCALE_VAULT_DEPOSIT_ROUTE,
+  X402_MONAD_LENDING_GUARD_ROUTE,
+  X402_MULTICHAIN_EVM_LENDING_GUARD_ROUTE,
+  X402_ORACLE_WATCH_WINDOW_ROUTE,
+  X402_POSITION_LIFECYCLE_ROUTE,
+  X402_PRE_TRADE_ROUTE,
+  X402_SOLANA_LENDING_GUARD_ROUTE,
+  X402_SWAP_INTENT_ROUTE,
+} from '../config';
 import { resetFacilitatorResilienceForTests } from '../facilitatorResilience';
 import {
   BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME,
@@ -215,6 +230,61 @@ describe('x402 SVM resource-server registration', () => {
       scheme: 'exact',
       extra: { name: 'USDC', version: '2' },
     });
+  });
+
+  it('returns a real 402 quote for every registered REST route (no no-route regressions)', async () => {
+    const fetchMock = jest.fn(async (input: string | URL | Request) => {
+      if (String(input) !== 'https://facilitator.example/supported') {
+        throw new Error(`unexpected fetch: ${String(input)}`);
+      }
+      return Response.json({
+        kinds: [{ x402Version: 2, scheme: 'exact', network: 'eip155:8453' }],
+        extensions: [],
+        signers: {},
+      });
+    });
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    const cfg = parseX402Config({
+      X402_ENABLED: 'true',
+      X402_EVM_NETWORKS: 'eip155:8453',
+      X402_PAY_TO: EVM_PAY_TO,
+      X402_FACILITATOR_URL: 'https://facilitator.example',
+    });
+    const server = await buildX402HttpServer(cfg);
+
+    // (path, method, expected amount in atomic units) for every paid REST
+    // surface a keyless agent can hit. A route missing from the resource-server
+    // map would return the defensive no-quote 402 instead of a real quote.
+    const routes = [
+      { path: X402_PRE_TRADE_ROUTE, method: 'GET', amount: '20000' },
+      { path: X402_EXECUTION_PREFLIGHT_ROUTE, method: 'GET', amount: '20000' },
+      { path: X402_BASE_LENDING_GUARD_ROUTE, method: 'GET', amount: '20000' },
+      { path: X402_BASE_PERP_GUARD_ROUTE, method: 'GET', amount: '20000' },
+      { path: X402_HYPERLIQUID_PERP_GUARD_ROUTE, method: 'GET', amount: '20000' },
+      { path: X402_MONAD_LENDING_GUARD_ROUTE, method: 'GET', amount: '20000' },
+      { path: X402_MULTICHAIN_EVM_LENDING_GUARD_ROUTE, method: 'GET', amount: '20000' },
+      { path: X402_SOLANA_LENDING_GUARD_ROUTE, method: 'POST', amount: '20000' },
+      { path: X402_LOOPSCALE_VAULT_DEPOSIT_ROUTE, method: 'POST', amount: '20000' },
+      { path: X402_SWAP_INTENT_ROUTE, method: 'GET', amount: '20000' },
+      { path: X402_ORACLE_WATCH_WINDOW_ROUTE, method: 'POST', amount: '500000' },
+      { path: X402_POSITION_LIFECYCLE_ROUTE, method: 'POST', amount: '550000' },
+    ];
+
+    for (const route of routes) {
+      const result = await server.processHTTPRequest({
+        adapter: new TestRequestAdapter(),
+        path: route.path,
+        method: route.method,
+      });
+      expect(result.type).toBe('payment-error');
+      if (result.type !== 'payment-error') throw new Error(`expected a quote for ${route.path}`);
+      const quote = JSON.parse(
+        Buffer.from(result.response.headers['PAYMENT-REQUIRED'] ?? '', 'base64url').toString('utf8')
+      ) as { accepts: Array<Record<string, unknown>> };
+      expect(quote.accepts.length).toBeGreaterThan(0);
+      expect(quote.accepts[0]).toMatchObject({ network: 'eip155:8453', amount: route.amount });
+    }
   });
 
   it('puts the Base Swap Guard Bazaar tool contract in its paid MCP quote', async () => {
