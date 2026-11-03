@@ -1,0 +1,70 @@
+name: Turso Control Plane Alert
+
+on:
+  schedule:
+    # Check after both Cloudflare primary schedules and their delayed GitHub
+    # fallbacks have had time to run. This is deliberately independent from
+    # Supabase pg_cron, which is the failure mode it watches.
+    - cron: '12,27,42,57 * * * *'
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  readiness:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - name: Check public control-plane readiness
+        id: readiness
+        env:
+          READINESS_URL: https://www.oracleinsight.xyz/api/v1/health/ready
+        run: |
+          set -u
+          response_file="$(mktemp)"
+          status="$(curl --silent --show-error --max-time 20 --output "$response_file" --write-out '%{http_code}' "$READINESS_URL" || true)"
+          body="$(tr '\n' ' ' < "$response_file" | cut -c 1-3000)"
+          if [ "$status" = '200' ]; then
+            echo 'healthy=true' >> "$GITHUB_OUTPUT"
+            echo "Control plane ready: $body"
+            exit 0
+          fi
+          echo 'healthy=false' >> "$GITHUB_OUTPUT"
+          {
+            echo 'body<<EOF'
+            echo "Automated readiness check failed at $(date -u +'%Y-%m-%dT%H:%M:%SZ')."
+            echo
+            echo "HTTP status: ${status:-transport-error}"
+            echo
+            echo 'Response:'
+            echo '```json'
+            echo "$body"
+            echo '```'
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
+          echo "::error::Turso control plane is not ready (HTTP ${status:-transport-error})"
+          exit 1
+
+      - name: Open or resolve the incident issue
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEALTHY: ${{ steps.readiness.outputs.healthy }}
+          INCIDENT_BODY: ${{ steps.readiness.outputs.body }}
+        run: |
+          set -euo pipefail
+          title='[Turso Control Plane] readiness degraded'
+          issue_number="$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "in:title $title" --json number --jq '.[0].number // empty')"
+          if [ "$HEALTHY" = 'true' ]; then
+            if [ -n "$issue_number" ]; then
+              gh issue comment "$issue_number" --repo "$GITHUB_REPOSITORY" --body "Automated recovery check passed at $(date -u +'%Y-%m-%dT%H:%M:%SZ). Closing this incident."
+              gh issue close "$issue_number" --repo "$GITHUB_REPOSITORY"
+            fi
+            exit 0
+          fi
+          if [ -z "$issue_number" ]; then
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body "$INCIDENT_BODY"
+          else
+            gh issue comment "$issue_number" --repo "$GITHUB_REPOSITORY" --body "$INCIDENT_BODY"
+          fi

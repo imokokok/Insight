@@ -130,24 +130,38 @@ jobs:
         if: steps.guard.outputs.should_run == 'true'
         run: node .github/cron-dist/collect-snapshot.mjs
 
-      # External truth layer. The checked-in source-rights gate makes this a
-      # no-op until a reviewed vendor agreement is recorded; it cannot be
-      # enabled by a repository variable alone.
-      - name: Collect market reference
-        if: (success() || failure()) && steps.guard.outputs.should_run == 'true'
-        run: node .github/cron-dist/collect-market-reference.mjs
-
-      # Manipulation-cost layer (foundation block ②: DEX pool depth -> cost to
-      # move price, arXiv:2606.03548), same 15-min cadence and proven runner.
-      # Evidence-only: writes manip_cost_pool_snapshots (migration 0082).
-      # Fail-closed per pool; the step hard-fails only when zero pools succeed
-      # (same policy as the market-reference step above).
-      - name: Collect manipulation cost
-        if: (success() || failure()) && steps.guard.outputs.should_run == 'true'
-        run: node .github/cron-dist/collect-manip-cost.mjs
-
       - name: Finish run ledger
         if: always() && steps.guard.outputs.should_run == 'true'
         env:
           CRON_CONCLUSION: ${{ job.status }}
         run: node scripts/cron-control.mjs finish
+
+  # Evidence collection has a separate job result from raw capture. A transient
+  # Supabase schema-cache or evidence-source issue remains visible in Actions,
+  # but can never turn a captured Turso slot into a failed collection run.
+  evidence:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - name: Verify required secrets
+        run: |
+          set -u
+          if [ -z "${SUPABASE_URL}" ] || [ -z "${SUPABASE_SERVICE_ROLE_KEY}" ]; then
+            echo "::error::SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required."
+            exit 1
+          fi
+
+      # External truth layer. The checked-in source-rights gate makes this a
+      # no-op until a reviewed vendor agreement is recorded; it cannot be
+      # enabled by a repository variable alone.
+      - name: Collect market reference
+        run: node .github/cron-dist/collect-market-reference.mjs
+
+      # Manipulation-cost layer (foundation block ②: DEX pool depth -> cost to
+      # move price). Evidence failure is isolated to this job and does not
+      # affect the raw capture lease or its projection acknowledgement.
+      - name: Collect manipulation cost
+        run: node .github/cron-dist/collect-manip-cost.mjs

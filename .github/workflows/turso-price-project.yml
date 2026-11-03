@@ -6,10 +6,10 @@ name: Turso Price Projection
 # idempotent.
 on:
   schedule:
-    # This is only a fallback. Supabase's primary dispatcher invokes this
-    # workflow at the same offsets and records the run in its durable ledger.
-    # GitHub schedule events are intentionally not the primary delivery path.
-    - cron: '3,18,33,48 * * * *'
+    # Cloudflare invokes the primary Turso outbox drain at :03/:18/:33/:48.
+    # Native GitHub scheduling waits seven minutes and runs only if the
+    # receipt-backed primary delivery is stale.
+    - cron: '10,25,40,55 * * * *'
   workflow_dispatch:
     inputs:
       dispatch_id:
