@@ -35,7 +35,7 @@ async function readManifest(path: URL): Promise<DiscoveryManifest> {
   return JSON.parse(await readFile(path, 'utf8')) as DiscoveryManifest;
 }
 
-test('x402 discovery manifests publish the Monad Lending Guard as a first-class resource', async () => {
+test('x402 discovery manifests publish all paid routes without inactive rails', async () => {
   const manifests = await Promise.all(manifestPaths.map(readManifest));
   assert.deepEqual(manifests[0], manifests[1], 'the extensionless and .json manifests must match');
 
@@ -55,26 +55,9 @@ test('x402 discovery manifests publish the Monad Lending Guard as a first-class 
     (resource) => resource.url === 'https://www.oracleinsight.xyz/api/v1/safety/pre-trade'
   );
   assert.ok(preTrade, 'pre-trade safety must remain present in root x402 discovery');
-  assert.deepEqual(
-    guard.accepts,
-    preTrade.accepts,
-    'the Lending Guard must publish every x402 settlement rail available to pre-trade safety'
-  );
+  assert.deepEqual(guard.accepts, preTrade.accepts);
 
-  const monad = guard.accepts.find((acceptance) => acceptance.network === 'eip155:143');
-  assert.deepEqual(monad, {
-    amount: '20000',
-    asset: '0x754704Bc059F8C67012fEd69BC8A327a5aafb603',
-    assetDecimals: 6,
-    assetSymbol: 'USDC',
-    extra: { name: 'USDC', version: '2' },
-    maxTimeoutSeconds: 60,
-    network: 'eip155:143',
-    payTo: '0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231',
-    scheme: 'exact',
-  });
-
-  const hyperEvm = guard.accepts.find((acceptance) => acceptance.network === 'eip155:999');
+  const hyperEvm = guard.accepts[0];
   assert.deepEqual(hyperEvm, {
     amount: '20000',
     asset: '0xb88339CB7199b77E23DB6E890353E22632Ba630f',
@@ -86,6 +69,19 @@ test('x402 discovery manifests publish the Monad Lending Guard as a first-class 
     payTo: '0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231',
     scheme: 'exact',
   });
+
+  for (const resource of manifest.resources) {
+    assert.equal(
+      resource.accepts.length,
+      1,
+      `${resource.url} must advertise only the production x402 rail`
+    );
+    assert.equal(
+      resource.accepts[0]?.network,
+      'eip155:999',
+      `${resource.url} must not advertise an inactive payment rail`
+    );
+  }
 
   const urls = manifest.resources.map((resource) => resource.url);
   assert.equal(new Set(urls).size, urls.length, 'resource URLs must be unique');

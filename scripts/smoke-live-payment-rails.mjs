@@ -20,11 +20,29 @@ const ATTEMPTS = Number(process.env.SMOKE_ATTEMPTS ?? 3);
 
 const PRE_TRADE_URL = `${BASE_URL}/api/v1/safety/pre-trade?asset=ETH&chainId=1&action=swap&tradeAmountUsd=1000`;
 const MCP_URL = `${BASE_URL}/api/mcp/mpp`;
+const X402_MANIFEST_URL = `${BASE_URL}/.well-known/x402`;
 
 const failures = [];
 
 function fail(probe, message) {
   failures.push(`[${probe}] ${message}`);
+}
+
+function x402Networks(payload, source) {
+  if (!payload || !Array.isArray(payload.accepts)) {
+    fail(source, 'x402 payload has no accepts array');
+    return [];
+  }
+  return [...new Set(payload.accepts.map((option) => option?.network).filter(Boolean))].sort();
+}
+
+function decodeX402Challenge(value) {
+  if (!value) return null;
+  try {
+    return JSON.parse(Buffer.from(value, 'base64url').toString('utf8'));
+  } catch {
+    return null;
+  }
 }
 
 async function fetchWithRetry(url, init, probe) {
@@ -49,11 +67,23 @@ async function fetchWithRetry(url, init, probe) {
 }
 
 async function smokeRestRail() {
-  const response = await fetchWithRetry(
-    PRE_TRADE_URL,
-    { method: 'GET', headers: { accept: 'application/json' } },
-    'rest'
-  );
+  const [manifestResponse, response] = await Promise.all([
+    fetchWithRetry(X402_MANIFEST_URL, { headers: { accept: 'application/json' } }, 'manifest'),
+    fetchWithRetry(
+      PRE_TRADE_URL,
+      { method: 'GET', headers: { accept: 'application/json' } },
+      'rest'
+    ),
+  ]);
+  if (!manifestResponse.ok) {
+    fail('manifest', `expected HTTP 200, got ${manifestResponse.status}`);
+  }
+  let manifest;
+  try {
+    manifest = await manifestResponse.json();
+  } catch {
+    fail('manifest', 'response is not JSON');
+  }
   if (response.status !== 402) {
     fail('rest', `expected HTTP 402 challenge, got ${response.status}`);
     return;
@@ -61,6 +91,29 @@ async function smokeRestRail() {
 
   const x402Quote = response.headers.get('payment-required');
   if (!x402Quote) fail('rest', 'missing x402 PAYMENT-REQUIRED header on 402');
+  const challenge = decodeX402Challenge(x402Quote);
+  if (!challenge) {
+    fail('rest', 'PAYMENT-REQUIRED is not decodable base64url JSON');
+  } else if (!Array.isArray(manifest?.resources)) {
+    fail('manifest', 'response has no resources array');
+  } else {
+    const advertised = manifest.resources.find(
+      (resource) => resource?.url === PRE_TRADE_URL.split('?')[0]
+    );
+    const manifestNetworks = x402Networks(advertised, 'manifest');
+    const challengeNetworks = x402Networks(challenge, 'rest');
+    // The manifest may omit dynamic, route-specific options. It must never
+    // advertise a rail the endpoint will not actually accept.
+    const unavailableAdvertisedNetworks = manifestNetworks.filter(
+      (network) => !challengeNetworks.includes(network)
+    );
+    if (unavailableAdvertisedNetworks.length > 0) {
+      fail(
+        'manifest',
+        `advertised x402 networks are absent from the live challenge: ${unavailableAdvertisedNetworks.join(', ')}; live networks: ${challengeNetworks.join(', ') || '(none)'}`
+      );
+    }
+  }
 
   if (!EXPECT_MPP) {
     console.log('[rest] x402 challenge present; MPP assertions skipped (SMOKE_EXPECT_MPP=false)');
