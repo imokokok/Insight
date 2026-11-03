@@ -942,3 +942,55 @@ export const VerifyExecutionPairJsonSchema = z.object({
     .passthrough()
     .describe('The Execution Receipt to check against the pre-trade attestation.'),
 });
+
+/** `oracle_watch_window_begin` / `position_lifecycle_begin`. Defaults are not
+ *  applied so zod v4's toJSONSchema() stays happy. */
+export const ProductBeginJsonSchema = z.object({
+  symbol: z.string().describe('Asset monitored for the whole coverage, e.g. ETH'),
+  chain: chainEnum.optional().describe('Optional chain scope fixed for the coverage'),
+});
+
+/** In-window token-authed operations: poll/close and the lifecycle equivalents. */
+export const ProductTokenJsonSchema = z.object({
+  windowId: z.string().describe('windowId returned at purchase'),
+  windowToken: z.string().describe('The one-time token returned at purchase (oww_<hex>)'),
+});
+
+export const LifecycleTokenJsonSchema = z.object({
+  lifecycleId: z.string().describe('lifecycleId returned at purchase'),
+  lifecycleToken: z.string().describe('The one-time token returned at purchase (plc_<hex>)'),
+});
+
+/** `position_lifecycle_guard`. Params are the chosen family's native input. */
+export const PositionLifecycleGuardJsonSchema = z.object({
+  lifecycleId: z.string().describe('lifecycleId returned by position_lifecycle_begin'),
+  lifecycleToken: z.string().describe('The one-time lifecycle token (plc_<hex>)'),
+  family: z
+    .enum([
+      'base_perp',
+      'hyperliquid_perp',
+      'base_lending',
+      'monad_lending',
+      'multichain_evm_lending',
+      'solana_lending',
+    ])
+    .describe('Guard family to assess with'),
+  params: z
+    .record(z.string(), z.any())
+    .describe('The native guard input for the chosen family (same schema as the family tool)'),
+  transaction: z
+    .unknown()
+    .optional()
+    .describe(
+      'Required for solana_lending: the exact unsigned Solana lending transaction the guard evaluates'
+    ),
+});
+
+/** `position_lifecycle_receipt`. Same fields as execution_receipt. */
+export const PositionLifecycleReceiptJsonSchema = z.object({
+  lifecycleId: z.string().describe('lifecycleId returned by position_lifecycle_begin'),
+  lifecycleToken: z.string().describe('The one-time lifecycle token (plc_<hex>)'),
+  receipt: z
+    .record(z.string(), z.any())
+    .describe('The same pre-trade + settlement fields execution_receipt takes'),
+});

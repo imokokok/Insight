@@ -871,3 +871,73 @@ export const VerifyExecutionPairInputSchema = z.object({
       'v3 only: the SECOND pre-trade gate (destination leg) when the Execution Receipt commits to one via data.destinationPreTradeUid. Required for v3 receipts signed with a two-gate VERIFIED binding; omitting it fails the destination-gate binding check.'
     ),
 });
+
+/** Purchase a 24h Oracle Watch monitored window (`oracle_watch_window_begin`). */
+export const OracleWatchWindowBeginInputSchema = z.object({
+  symbol: SafeSymbolSchema.describe('Asset to monitor for the whole window, e.g. ETH'),
+  chain: SafeChainSchema.optional().describe('Optional chain scope fixed for the window'),
+});
+
+/** In-window operations (`oracle_watch_window_poll` / `oracle_watch_window_close`). */
+export const OracleWatchWindowTokenInputSchema = z.object({
+  windowId: z.string().min(1).describe('windowId returned by oracle_watch_window_begin'),
+  windowToken: z
+    .string()
+    .min(1)
+    .describe('The one-time window token returned by oracle_watch_window_begin (oww_<hex>)'),
+});
+
+/** Purchase a 24h Position Lifecycle Bundle (`position_lifecycle_begin`). */
+export const PositionLifecycleBeginInputSchema = z.object({
+  symbol: SafeSymbolSchema.describe('Position subject monitored for the whole lifecycle, e.g. ETH'),
+  chain: SafeChainSchema.optional().describe('Optional chain scope fixed for the lifecycle'),
+});
+
+/** One bundled guard assessment (`position_lifecycle_guard`). */
+export const PositionLifecycleGuardInputSchema = z.object({
+  lifecycleId: z.string().min(1).describe('lifecycleId returned by position_lifecycle_begin'),
+  lifecycleToken: z
+    .string()
+    .min(1)
+    .describe('The one-time lifecycle token returned by position_lifecycle_begin (plc_<hex>)'),
+  family: z
+    .enum([
+      'base_perp',
+      'hyperliquid_perp',
+      'base_lending',
+      'monad_lending',
+      'multichain_evm_lending',
+      'solana_lending',
+    ])
+    .describe('Guard family to assess with'),
+  params: z
+    .record(z.string(), z.any())
+    .describe('The native guard input for the chosen family (same schema as the family tool)'),
+  transaction: z
+    .unknown()
+    .optional()
+    .describe(
+      'Required for solana_lending: the exact unsigned Solana lending transaction the guard evaluates'
+    ),
+});
+
+/** Issue the bundled attested execution receipt (`position_lifecycle_receipt`). */
+export const PositionLifecycleReceiptInputSchema = z.object({
+  lifecycleId: z.string().min(1).describe('lifecycleId returned by position_lifecycle_begin'),
+  lifecycleToken: z
+    .string()
+    .min(1)
+    .describe('The one-time lifecycle token returned by position_lifecycle_begin (plc_<hex>)'),
+  receipt: ExecutionReceiptInputSchema.describe(
+    'The same pre-trade + settlement fields execution_receipt takes'
+  ),
+});
+
+/** Close a lifecycle and return the combined summary (`position_lifecycle_close`). */
+export const PositionLifecycleCloseInputSchema = z.object({
+  lifecycleId: z.string().min(1).describe('lifecycleId returned by position_lifecycle_begin'),
+  lifecycleToken: z
+    .string()
+    .min(1)
+    .describe('The one-time lifecycle token returned by position_lifecycle_begin (plc_<hex>)'),
+});

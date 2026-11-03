@@ -4015,6 +4015,265 @@
       }
     },
     {
+      "name": "oracle_watch_window_begin",
+      "description": "Purchase a 24h Oracle Watch monitored window for one asset (optionally scoped to one chain): ONE product price covers continuous halt/proceed manipulation-signal coverage, then poll the current signal inside the window at no per-call charge via oracle_watch_window_poll (budget: 300 polls, minimum 30s apart). This tool charges the full window product price once — it does not itself issue a signal. The response includes a one-time window token shown exactly once; keep it, every in-window call authenticates with it.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "symbol": {
+            "type": "string",
+            "description": "Asset monitored for the whole coverage, e.g. ETH"
+          },
+          "chain": {
+            "description": "Optional chain scope fixed for the coverage",
+            "type": "string",
+            "enum": [
+              "ethereum",
+              "arbitrum",
+              "optimism",
+              "polygon",
+              "solana",
+              "avalanche",
+              "fantom",
+              "cronos",
+              "juno",
+              "cosmos",
+              "osmosis",
+              "bnb-chain",
+              "base",
+              "scroll",
+              "zksync",
+              "aptos",
+              "sui",
+              "gnosis",
+              "mantle",
+              "linea",
+              "celestia",
+              "injective",
+              "sei",
+              "tron",
+              "ton",
+              "near",
+              "aurora",
+              "celo",
+              "starknet",
+              "blast",
+              "cardano",
+              "polkadot",
+              "kava",
+              "moonbeam",
+              "moonriver",
+              "metis",
+              "starkex",
+              "stellar",
+              "flare",
+              "supra-chain",
+              "bandchain",
+              "monad"
+            ]
+          }
+        },
+        "required": ["symbol"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "oracle_watch_window_poll",
+      "description": "Issue one current Oracle Watch halt/proceed signal inside an open monitored window purchased with oracle_watch_window_begin. Covered by the window purchase — no per-call charge — but counted against the window poll budget (300 per 24h, minimum 30s apart). Authenticates with the one-time window token from the purchase; without it the call fails closed.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "windowId": {
+            "type": "string",
+            "description": "windowId returned at purchase"
+          },
+          "windowToken": {
+            "type": "string",
+            "description": "The one-time token returned at purchase (oww_<hex>)"
+          }
+        },
+        "required": ["windowId", "windowToken"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "oracle_watch_window_close",
+      "description": "Close an Oracle Watch monitored window early (idempotent; also works on an expired window) and return the summary of every signal issued inside it: poll counts, verdict distribution, and halt timestamps. Covered by the window purchase — no per-call charge. Authenticates with the one-time window token from the purchase.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "windowId": {
+            "type": "string",
+            "description": "windowId returned at purchase"
+          },
+          "windowToken": {
+            "type": "string",
+            "description": "The one-time token returned at purchase (oww_<hex>)"
+          }
+        },
+        "required": ["windowId", "windowToken"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "position_lifecycle_begin",
+      "description": "Purchase a 24h Position Lifecycle Bundle for one position subject (optionally scoped to one chain): ONE product price covers an embedded Oracle Watch monitored window, 4 bundled guard assessments across base_perp, hyperliquid_perp, base_lending, monad_lending, multichain_evm_lending, or solana_lending, and 1 attested execution receipt. This tool charges the full bundle price once — it does not itself assess anything. The response includes a one-time lifecycle token shown exactly once; keep it, every bundled call authenticates with it (the embedded watch window accepts the SAME token).",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "symbol": {
+            "type": "string",
+            "description": "Asset monitored for the whole coverage, e.g. ETH"
+          },
+          "chain": {
+            "description": "Optional chain scope fixed for the coverage",
+            "type": "string",
+            "enum": [
+              "ethereum",
+              "arbitrum",
+              "optimism",
+              "polygon",
+              "solana",
+              "avalanche",
+              "fantom",
+              "cronos",
+              "juno",
+              "cosmos",
+              "osmosis",
+              "bnb-chain",
+              "base",
+              "scroll",
+              "zksync",
+              "aptos",
+              "sui",
+              "gnosis",
+              "mantle",
+              "linea",
+              "celestia",
+              "injective",
+              "sei",
+              "tron",
+              "ton",
+              "near",
+              "aurora",
+              "celo",
+              "starknet",
+              "blast",
+              "cardano",
+              "polkadot",
+              "kava",
+              "moonbeam",
+              "moonriver",
+              "metis",
+              "starkex",
+              "stellar",
+              "flare",
+              "supra-chain",
+              "bandchain",
+              "monad"
+            ]
+          }
+        },
+        "required": ["symbol"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "position_lifecycle_guard",
+      "description": "Run one bundled guard assessment inside an open Position Lifecycle (purchased with position_lifecycle_begin). Choose the guard family per call; params use that family's native input (the same schema as the family's standalone guard tool), and solana_lending additionally requires the exact unsigned Solana lending transaction. Covered by the lifecycle purchase — no per-call charge — but consumes one of the 4 bundled guard slots; a BLOCK verdict is a complete assessment and consumes the slot. Authenticates with the one-time lifecycle token.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "lifecycleId": {
+            "type": "string",
+            "description": "lifecycleId returned by position_lifecycle_begin"
+          },
+          "lifecycleToken": {
+            "type": "string",
+            "description": "The one-time lifecycle token (plc_<hex>)"
+          },
+          "family": {
+            "type": "string",
+            "enum": [
+              "base_perp",
+              "hyperliquid_perp",
+              "base_lending",
+              "monad_lending",
+              "multichain_evm_lending",
+              "solana_lending"
+            ],
+            "description": "Guard family to assess with"
+          },
+          "params": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {},
+            "description": "The native guard input for the chosen family (same schema as the family tool)"
+          },
+          "transaction": {
+            "description": "Required for solana_lending: the exact unsigned Solana lending transaction the guard evaluates"
+          }
+        },
+        "required": ["lifecycleId", "lifecycleToken", "family", "params"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "position_lifecycle_receipt",
+      "description": "Issue the single bundled attested execution receipt inside an open Position Lifecycle (purchased with position_lifecycle_begin). The receipt fields are the same execution_receipt takes: the pre-trade fields the agent gated on plus the settlement txHash. Covered by the lifecycle purchase — no per-call charge — but the single bundled credit is consumed on success; a failed issuance never consumes it. Authenticates with the one-time lifecycle token.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "lifecycleId": {
+            "type": "string",
+            "description": "lifecycleId returned by position_lifecycle_begin"
+          },
+          "lifecycleToken": {
+            "type": "string",
+            "description": "The one-time lifecycle token (plc_<hex>)"
+          },
+          "receipt": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {},
+            "description": "The same pre-trade + settlement fields execution_receipt takes"
+          }
+        },
+        "required": ["lifecycleId", "lifecycleToken", "receipt"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "position_lifecycle_close",
+      "description": "Close a Position Lifecycle early (idempotent; also works on an expired lifecycle) and return the combined summary: guard and receipt usage plus the embedded watch window's coverage summary (polls, verdict distribution, halts). Covered by the lifecycle purchase — no per-call charge. Authenticates with the one-time lifecycle token.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "lifecycleId": {
+            "type": "string",
+            "description": "lifecycleId returned at purchase"
+          },
+          "lifecycleToken": {
+            "type": "string",
+            "description": "The one-time token returned at purchase (plc_<hex>)"
+          }
+        },
+        "required": ["lifecycleId", "lifecycleToken"],
+        "additionalProperties": false
+      }
+    },
+    {
       "name": "execution_receipt",
       "description": "Issue signed execution-price evidence comparing an observed fill with the oracle-assessed quote and signed slippage band. Provide the pre-trade fields (preTradeUid, requestHash, asset ids, chain, oracle gate counts) plus the settlement txHash. Insight collects the on-chain fill, signs a receipt paired to the pre-trade via preTradeUid + requestHash, and returns a FAITHFUL / DEVIATED / NOT_EXECUTED / UNDETERMINED verdict. This reports supported price/fill fidelity, not principal authorization or overall transaction safety. Pair it with pre_trade_safety_check and oracle_watch.",
       "inputSchema": {

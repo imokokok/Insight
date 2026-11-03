@@ -16,8 +16,8 @@
 import { logApiKeyUsage } from '@/lib/api/apiKey';
 import { rateLimitStore } from '@/lib/api/middleware/rateLimitStore';
 import { consumeCredits, makeMeteringKey, precheckCredits } from '@/lib/billing/creditWallet';
-import { getToolCreditCost } from '@/lib/billing/metering';
 import { normalizePlan, PLANS } from '@/lib/billing/plans';
+import { getMcpToolCreditCost } from '@/lib/billing/productPricing';
 import { createLogger } from '@/lib/utils/logger';
 
 import type { McpAuthContext } from './auth';
@@ -172,7 +172,12 @@ export async function precheckMcpToolQuota(
     return { allowed: true };
   }
 
-  const cost = getToolCreditCost(toolName);
+  // Product-priced tools: the begin tools charge the full product price, and
+  // the in-window tools (0) are covered by that purchase — never re-metered.
+  const cost = getMcpToolCreditCost(toolName);
+  if (cost === 0) {
+    return { allowed: true };
+  }
   const precheck = await precheckCredits(auth.apiKey.keyId, cost);
   if (!precheck.ok) {
     return { allowed: false, reason: precheck.reason ?? 'Insufficient credits' };
@@ -200,7 +205,11 @@ export async function consumeMcpQuota(
     return { allowed: true };
   }
 
-  const cost = getToolCreditCost(toolName);
+  // Product-priced tools: 0 means covered by the prior purchase.
+  const cost = getMcpToolCreditCost(toolName);
+  if (cost === 0) {
+    return { allowed: true };
+  }
   const meteringKey = makeMeteringKey(`mcp:${auth.apiKey.keyId}:${toolName}`);
   const charge = await consumeCredits(
     auth.apiKey.keyId,
