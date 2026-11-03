@@ -230,6 +230,86 @@ export const RECHECK_V3_TYPES = {
 export const RECHECK_TYPE = 'OracleSafetyRecheck';
 
 // ---------------------------------------------------------------------------
+// OracleScenarioRun v1 — 13 signed fields (the scenario-testing harness)
+// ---------------------------------------------------------------------------
+
+/**
+ * The test attestation is a DIFFERENT domain from every assessment line
+ * (`name: 'Insight Oracle Test'` vs `'Insight Oracle Safety'`), so a test
+ * receipt can never be replayed as a pre-trade or watch receipt even though
+ * both share `chainId: 1` as a separator.
+ *
+ * ROUTING WARNING — schemaVersion 1 is NOT unique to this line.
+ * `OracleScenarioRun` v1 also reads `schemaVersion: 1`, exactly like the
+ * v1 pre-trade receipt, so `schemaVersion` alone cannot select this layout.
+ * It is routed by `primaryType` / `type === TEST_TYPE` FIRST, before the
+ * numeric branch. `TEST_TYPE` is the discriminator; see verify.ts.
+ */
+export const TEST_DOMAIN = {
+  name: 'Insight Oracle Test',
+  version: '1',
+  chainId: 1,
+} as const;
+
+export const TEST_PRIMARY_TYPE = 'OracleScenarioRun';
+
+/** Envelope discriminator, parallel to RECHECK_TYPE. */
+export const TEST_TYPE = 'OracleScenarioRun';
+
+export const TEST_TYPES = {
+  OracleScenarioRun: [
+    { name: 'scenarioId', type: 'string' },
+    { name: 'scenarioKind', type: 'string' },
+    { name: 'verdict', type: 'string' },
+    { name: 'harnessVersion', type: 'string' },
+    { name: 'stepCount', type: 'uint256' },
+    { name: 'caughtStepCount', type: 'uint256' },
+    { name: 'falsePositiveCount', type: 'uint256' },
+    { name: 'detectionRate', type: 'uint256' },
+    { name: 'scenarioHash', type: 'bytes32' },
+    { name: 'reasonCodesHash', type: 'bytes32' },
+    { name: 'ranAt', type: 'uint256' },
+    { name: 'validUntil', type: 'uint256' },
+    { name: 'schemaVersion', type: 'uint256' },
+  ],
+} as const;
+
+/** Signed fields as JSON-serializable values (the wire format). */
+export interface TestRunMessage {
+  scenarioId: string;
+  scenarioKind: string;
+  verdict: string;
+  harnessVersion: string;
+  stepCount: bigint;
+  caughtStepCount: bigint;
+  falsePositiveCount: bigint;
+  detectionRate: bigint;
+  scenarioHash: string;
+  reasonCodesHash: string;
+  ranAt: bigint;
+  validUntil: bigint;
+  schemaVersion: bigint;
+}
+
+export function toTestRunMessage(data: Record<string, unknown>): TestRunMessage {
+  return {
+    scenarioId: str(pick(data, 'scenarioId'), 'scenarioId'),
+    scenarioKind: str(pick(data, 'scenarioKind'), 'scenarioKind'),
+    verdict: str(pick(data, 'verdict'), 'verdict'),
+    harnessVersion: str(pick(data, 'harnessVersion'), 'harnessVersion'),
+    stepCount: uint(pick(data, 'stepCount'), 'stepCount'),
+    caughtStepCount: uint(pick(data, 'caughtStepCount'), 'caughtStepCount'),
+    falsePositiveCount: uint(pick(data, 'falsePositiveCount'), 'falsePositiveCount'),
+    detectionRate: uint(pick(data, 'detectionRate'), 'detectionRate'),
+    scenarioHash: str(pick(data, 'scenarioHash'), 'scenarioHash'),
+    reasonCodesHash: str(pick(data, 'reasonCodesHash'), 'reasonCodesHash'),
+    ranAt: uint(pick(data, 'ranAt'), 'ranAt'),
+    validUntil: uint(pick(data, 'validUntil'), 'validUntil'),
+    schemaVersion: uint(pick(data, 'schemaVersion'), 'schemaVersion'),
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Widening: JSON numbers -> bigint for viem
 // ---------------------------------------------------------------------------
 
@@ -353,7 +433,7 @@ export function toRecheckV3Message(data: Record<string, unknown>): RecheckV3Mess
 // Schema registry — machine-readable descriptor of every supported layout
 // ---------------------------------------------------------------------------
 
-export type SchemaId = 'v1' | 'v2' | 'v3' | 'recheck' | 'recheckV3';
+export type SchemaId = 'v1' | 'v2' | 'v3' | 'recheck' | 'recheckV3' | 'testRun';
 
 export const DOMAIN_BY_SCHEMA = {
   v1: V1_DOMAIN,
@@ -361,6 +441,7 @@ export const DOMAIN_BY_SCHEMA = {
   v3: V3_DOMAIN,
   recheck: RECHECK_DOMAIN,
   recheckV3: RECHECK_V3_DOMAIN,
+  testRun: TEST_DOMAIN,
 } as const;
 
 export const TYPES_BY_SCHEMA = {
@@ -369,6 +450,7 @@ export const TYPES_BY_SCHEMA = {
   v3: V3_TYPES,
   recheck: RECHECK_TYPES,
   recheckV3: RECHECK_V3_TYPES,
+  testRun: TEST_TYPES,
 } as const;
 
 export const PRIMARY_TYPE_BY_SCHEMA = {
@@ -377,6 +459,7 @@ export const PRIMARY_TYPE_BY_SCHEMA = {
   v3: V3_PRIMARY_TYPE,
   recheck: RECHECK_PRIMARY_TYPE,
   recheckV3: RECHECK_V3_PRIMARY_TYPE,
+  testRun: TEST_PRIMARY_TYPE,
 } as const;
 
 /** Canonical, order-stable JSON of a layout. Used by the parity test to diff

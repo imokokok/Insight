@@ -43,7 +43,11 @@ const RecheckBodySchema = z.object({
   action: z
     .enum(['swap', 'borrow', 'lend', 'liquidate', 'repay'])
     .describe('Type of DeFi operation (must match original)'),
-  tradeAmountUsd: z.coerce.number().positive().describe('Trade size in USD (must match original)'),
+  tradeAmountUsd: z.coerce
+    .number()
+    .finite()
+    .positive()
+    .describe('Trade size in USD (must match original)'),
   targetProviders: z
     .string()
     .transform((value) => value.split(',').map((provider) => provider.trim()))

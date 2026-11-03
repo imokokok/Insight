@@ -1,0 +1,60 @@
+{
+  "kind": "MainlineProtocolPromotion",
+  "promotionVersion": 29,
+  "effectiveFrom": "2026-10-06",
+  "classification": "Explicit one-time VERITAS partner-policy activation for the bilaterally agreed 2026-10-06 joint-run window",
+  "registryReleaseId": "0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b",
+  "predecessorReleaseId": "0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b",
+  "predecessorPromotionId": "0xf75d4bf4af27cfba3628b59e032cffc584026d28a74b19eeb33c2aaf7380dff9",
+  "activationSetId": "0x32335b66b91bd4ab1742b86ffcaefa94bbfc063de5f9a1d51e0080df67896157",
+  "receiptImpact": "OracleSafetyCheck v3 and ExecutionReceipt v5 signed layouts, semantic profile, registry release, attester key, historical evidence and every other partner policy remain unchanged. Only VERITAS advances to immutable policy v5 with the 2026-10-06 17:00 UTC one-time end, fixed WETH/USDC terms, selection rule v3 and 1800-second gate validity. The registered 600-second configuration is unchanged.",
+  "activationRule": "The original-thread written AGREED for 2026-10-06 was sent on 2026-10-06. Activation makes policy v5 resolvable for VERITAS only; it does not itself authorize live signing or broadcast. Dedicated new API-key ID and exact server-side date must be configured and independently read back by 14:30 UTC on 2026-10-06; fresh signer and clock confirmation must be sent by 15:00; VERITAS balances, nonce, gas, RPC and clock preflights must pass; its fresh 31/31 READY must arrive at 15:25–15:30 UTC. No signing before 15:30; requests stop before 16:20; pairs signed at or after 16:25 are unused. No Bitcoin broadcast at or after 16:30; attempts end by 16:55; records and all authorization end by 17:00 or earlier signed validUntil. Attempt 7 starts, retry requires published ATTEMPT_ABORT and explicit VERITAS_RETRY_REQUEST. Any missing prerequisite yields NO_START / PREREQUISITE_OPEN, with no in-window amendment. F12 remains OPEN.",
+  "compatibilityMatrix": [
+    {
+      "partnerId": "agent-passport",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves agent-passport policy ID byte for byte from v5. Its schema, profile, registry release, signer and production reachability remain unchanged. The one-time VERITAS issuer requires partnerId veritas, policy v5, a dedicated API-key ID and exact date."
+    },
+    {
+      "partnerId": "andydgrea",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves andydgrea policy ID byte for byte from v5. Its schema, profile, registry release, signer and production reachability remain unchanged. The one-time VERITAS issuer requires partnerId veritas, policy v5, a dedicated API-key ID and exact date."
+    },
+    {
+      "partnerId": "emilia",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves emilia policy ID byte for byte from v5. Its schema, profile, registry release, signer and production reachability remain unchanged. The one-time VERITAS issuer requires partnerId veritas, policy v5, a dedicated API-key ID and exact date."
+    },
+    {
+      "partnerId": "frontier-compute",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves frontier-compute policy ID byte for byte from v5. Its schema, profile, registry release, signer and production reachability remain unchanged. The one-time VERITAS issuer requires partnerId veritas, policy v5, a dedicated API-key ID and exact date."
+    },
+    {
+      "partnerId": "headless",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves headless policy ID byte for byte from v5. Its schema, profile, registry release, signer and production reachability remain unchanged. The one-time VERITAS issuer requires partnerId veritas, policy v5, a dedicated API-key ID and exact date."
+    },
+    {
+      "partnerId": "interai",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves interai policy ID byte for byte from v5. Its schema, profile, registry release, signer and production reachability remain unchanged. The one-time VERITAS issuer requires partnerId veritas, policy v5, a dedicated API-key ID and exact date."
+    },
+    {
+      "partnerId": "raul",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves raul policy ID byte for byte from v5. Its schema, profile, registry release, signer and production reachability remain unchanged. The one-time VERITAS issuer requires partnerId veritas, policy v5, a dedicated API-key ID and exact date."
+    },
+    {
+      "partnerId": "vaara",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves vaara policy ID byte for byte from v5. Its schema, profile, registry release, signer and production reachability remain unchanged. The one-time VERITAS issuer requires partnerId veritas, policy v5, a dedicated API-key ID and exact date."
+    },
+    {
+      "partnerId": "veritas",
+      "outcome": "one-time-partner-policy-activated",
+      "evidence": "The original-thread written AGREED selected 2026-10-06. Activation set v6 changes only VERITAS to the pre-published immutable policy v5. Production read-back, dedicated access and date, fresh preflights and READY remain separate gates; activation alone signs no gate and broadcasts nothing."
+    }
+  ],
+  "promotionId": "0x4284befb6144d0e0ef507d6d531e7fa2bbd38a23972699e398a52383a371d212"
+}

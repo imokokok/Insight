@@ -18,7 +18,8 @@ export interface RoutableAttestation {
   data: Record<string, unknown>;
   signature?: string;
   eip712?: { primaryType?: string };
-  /** Envelope discriminator: rechecks carry 'OracleSafetyRecheck'. */
+  /** Envelope discriminator: rechecks carry 'OracleSafetyRecheck',
+   *  scenario-test receipts carry 'OracleScenarioRun'. */
   type?: string;
   /** v1 only: the freshness budget, in seconds. */
   validForSeconds?: number;
@@ -82,8 +83,8 @@ export interface VerifyResult {
   /** Terminal outcome. Branch on this. */
   code: VerifyCode;
   /** 'recheck' for a freshness re-verification of an earlier receipt,
-   *  otherwise 'check'. */
-  kind: 'check' | 'recheck';
+   *  'test' for an OracleScenarioRun harness receipt, otherwise 'check'. */
+  kind: 'check' | 'recheck' | 'test';
   attester: string;
   uid: string | null;
   schemaVersion: number;

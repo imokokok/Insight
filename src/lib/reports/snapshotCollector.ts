@@ -5,8 +5,8 @@
  * runs from BOTH the Vercel cron route AND the GitHub Actions
  * `scripts/collect-snapshot.ts` job. The GH Actions job escapes Vercel's 60s
  * serverless timeout and runs at 15-minute cadence, dual-writing to
- * `hourly_price_snapshots` (upsert, for the daily report) and the new
- * `price_snapshots` table (append, 15-min grain, for ML/anomaly detection).
+ * `hourly_price_snapshots` (upsert, for the daily report) and a
+ * policy-controlled `price_snapshots` history for ML/anomaly detection.
  *
  * The route's behaviour is unchanged: `collectSnapshot()` performs exactly the
  * steps the old GET handler did (fetch → consensus → build inputs → upsert
@@ -16,13 +16,17 @@
  */
 import { calculateConsensusPrice, type ConsensusPriceInput } from '@/lib/analytics/consensusPrice';
 import { fetchPriceWithDatabase } from '@/lib/oracles/base/databaseOperations';
-import { getBlockchainByChainId } from '@/lib/oracles/constants/chainMapping';
 import { getDefaultFactory } from '@/lib/oracles/factory';
 import { resolveOracleAgeSeconds } from '@/lib/oracles/oracleAge';
 import { getAllActiveFeedsByProviderWithStatus } from '@/lib/oracles/utils/dynamicFeedResolver';
+import { resolveOracleFeedBlockchain } from '@/lib/oracles/utils/feedChain';
 import { extractBaseSymbol, isUsdDenominatedFeedSymbol } from '@/lib/oracles/utils/oracleDataUtils';
 import { getRpcUsage, rpcUsageSince } from '@/lib/oracles/utils/rpcClientWithFallback';
 import { flushRpcMetadataCache, primeRpcMetadataCache } from '@/lib/oracles/utils/rpcMetadataCache';
+import {
+  type SnapshotBatchPriceClient,
+  type SnapshotBatchPriceRequest,
+} from '@/lib/oracles/utils/snapshotBatch';
 import { savePricesToDatabase } from '@/lib/oracles/utils/storage';
 import {
   reportService,
@@ -35,7 +39,8 @@ import { getAdminQueries } from '@/lib/supabase/server';
 import { mapWithConcurrency } from '@/lib/utils/concurrency';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
 import { calculateMedian } from '@/lib/utils/statistics';
-import { type Blockchain, type OracleProvider, type PriceData } from '@/types/oracle';
+import { Blockchain, OracleProvider, type PriceData } from '@/types/oracle';
+import { FailureMode } from '@/types/oracle/signals';
 
 const logger = createLogger('DailyReportSnapshot');
 
@@ -59,6 +64,31 @@ function lastHealthCheck(feed: OracleFeed): number {
 const MAX_SNAPSHOT_PRICE = 9_999_999_999_999_999.99999999;
 // DECIMAL(10, 4) max absolute value
 const MAX_DEVIATION_PCT = 9_999.9999;
+
+/**
+ * Keep the rich, short-lived record stream useful for signals and exports
+ * without duplicating every normal 15-minute snapshot.
+ *
+ * `price_snapshots` retains every 15-minute core-asset observation; adaptive
+ * feeds retain an hourly baseline plus material changes. `price_records` keeps
+ * one rich checkpoint per hour plus every observation that carries an
+ * audit-relevant degradation. That preserves near-term investigation evidence
+ * without writing redundant normal samples and their later TTL deletes.
+ */
+export function selectPriceRecordsForPersistence(
+  prices: PriceData[],
+  snapshotTs: Date
+): PriceData[] {
+  const isHourlyCheckpoint = snapshotTs.getUTCMinutes() === 0;
+  if (isHourlyCheckpoint) return prices;
+
+  return prices.filter(
+    (price) =>
+      price.metadataFallback === true ||
+      price.dataSource === 'fallback' ||
+      (price.failureMode !== undefined && price.failureMode !== FailureMode.NONE)
+  );
+}
 
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value);
@@ -116,6 +146,7 @@ async function fetchBatchPrices(
     chain?: Blockchain;
     feedChainId?: number;
     feedSymbol?: string;
+    feedAddress?: string;
     healthOnly?: boolean;
   }[] = [];
   const skipped: BatchResultItem[] = [];
@@ -166,9 +197,10 @@ async function fetchBatchPrices(
           queries.push({
             provider,
             symbol,
-            chain: getBlockchainByChainId(feed.chain_id),
+            chain: resolveOracleFeedBlockchain(feed),
             feedChainId: feed.chain_id,
             feedSymbol: feed.symbol,
+            feedAddress: feed.address,
           });
         }
       } else if (feedRegistry.errored) {
@@ -225,9 +257,10 @@ async function fetchBatchPrices(
     queries.push({
       provider: feed.provider as OracleProvider,
       symbol: extractBaseSymbol(feed.symbol).toUpperCase(),
-      chain: getBlockchainByChainId(feed.chain_id),
+      chain: resolveOracleFeedBlockchain(feed),
       feedChainId: feed.chain_id,
       feedSymbol: feed.symbol,
+      feedAddress: feed.address,
       healthOnly: true,
     });
   }
@@ -239,59 +272,31 @@ async function fetchBatchPrices(
   const rpcBefore = getRpcUsage();
   const preloaded = reuseRpcMetadata ? await primeRpcMetadataCache() : 0;
 
-  const fetched = await mapWithConcurrency(
-    queries,
-    REPORT_FETCH_CONCURRENCY,
-    async ({
-      provider,
-      symbol,
-      chain,
-      feedChainId,
-      feedSymbol,
-      healthOnly,
-    }): Promise<BatchResultItem> => {
-      const startedAt = performance.now();
-      const latencyMs = () => Math.round(performance.now() - startedAt);
-      try {
-        const price = await fetchPriceWithDatabase(
-          provider,
-          symbol,
-          chain,
-          true,
-          true,
-          healthOnly ? AbortSignal.timeout(ADDITIONAL_HEALTH_TIMEOUT_MS) : undefined,
-          feedSymbol,
-          { persist: false }
-        );
-        const check = sanitizePriceForSnapshot(price.price);
-        if (!check.valid) {
-          logger.warn(`Price validation failed for ${provider}/${symbol}: ${check.reason}`);
-          return {
-            provider,
-            symbol,
-            feedChainId,
-            feedSymbol,
-            healthOnly,
-            price: null,
-            error: `Price validation failed: ${check.reason}`,
-            skipped: false,
-            latencyMs: latencyMs(),
-          };
-        }
-        return {
-          provider,
-          symbol,
-          feedChainId,
-          feedSymbol,
-          healthOnly,
-          price,
-          error: null,
-          skipped: false,
-          latencyMs: latencyMs(),
-        };
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        logger.warn(`Price fetch failed for ${provider}/${symbol}: ${message}`);
+  type SnapshotQuery = (typeof queries)[number];
+  const fetchOne = async ({
+    provider,
+    symbol,
+    chain,
+    feedChainId,
+    feedSymbol,
+    healthOnly,
+  }: SnapshotQuery): Promise<BatchResultItem> => {
+    const startedAt = performance.now();
+    const latencyMs = () => Math.round(performance.now() - startedAt);
+    try {
+      const price = await fetchPriceWithDatabase(
+        provider,
+        symbol,
+        chain,
+        true,
+        true,
+        healthOnly ? AbortSignal.timeout(ADDITIONAL_HEALTH_TIMEOUT_MS) : undefined,
+        feedSymbol,
+        { persist: false }
+      );
+      const check = sanitizePriceForSnapshot(price.price);
+      if (!check.valid) {
+        logger.warn(`Price validation failed for ${provider}/${symbol}: ${check.reason}`);
         return {
           provider,
           symbol,
@@ -299,13 +304,193 @@ async function fetchBatchPrices(
           feedSymbol,
           healthOnly,
           price: null,
-          error: message,
+          error: `Price validation failed: ${check.reason}`,
           skipped: false,
           latencyMs: latencyMs(),
         };
       }
+      return {
+        provider,
+        symbol,
+        feedChainId,
+        feedSymbol,
+        healthOnly,
+        price,
+        error: null,
+        skipped: false,
+        latencyMs: latencyMs(),
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      logger.warn(`Price fetch failed for ${provider}/${symbol}: ${message}`);
+      return {
+        provider,
+        symbol,
+        feedChainId,
+        feedSymbol,
+        healthOnly,
+        price: null,
+        error: message,
+        skipped: false,
+        latencyMs: latencyMs(),
+      };
     }
+  };
+
+  const hasSnapshotBatchCapability = (client: unknown): client is SnapshotBatchPriceClient =>
+    !!client &&
+    typeof client === 'object' &&
+    'getSnapshotPricesBatch' in client &&
+    typeof client.getSnapshotPricesBatch === 'function';
+  const validEvmAddress = (address: string | undefined): address is `0x${string}` =>
+    typeof address === 'string' && /^0x[0-9a-f]{40}$/i.test(address);
+  const isSnapshotBatchEligible = (query: SnapshotQuery): boolean => {
+    if (!query.chain || query.feedChainId === undefined) return false;
+    switch (query.provider) {
+      case OracleProvider.CHAINLINK:
+        return query.chain === Blockchain.SOLANA || validEvmAddress(query.feedAddress);
+      case OracleProvider.PYTH:
+        return query.chain === Blockchain.SOLANA || query.chain === Blockchain.MONAD;
+      case OracleProvider.STORK:
+      case OracleProvider.CHRONICLE:
+      case OracleProvider.REDSTONE:
+      case OracleProvider.SUPRA:
+        return query.chain === Blockchain.MONAD;
+      case OracleProvider.TWAP:
+        return true;
+      default:
+        return false;
+    }
+  };
+
+  type IndexedQuery = { index: number; query: SnapshotQuery };
+  type FetchTask =
+    | { kind: 'single'; entry: IndexedQuery }
+    | { kind: 'batch'; entries: IndexedQuery[] };
+  const batchGroups = new Map<string, IndexedQuery[]>();
+  const tasks: FetchTask[] = [];
+  for (const [index, query] of queries.entries()) {
+    // A batch is deliberately limited to active registry feeds with an
+    // explicit chain. The generic/fallback query path below retains all
+    // existing database gates and client behaviour for every other source.
+    if (isSnapshotBatchEligible(query)) {
+      const key = `${query.provider}:${query.feedChainId}:${query.healthOnly ? 'health' : 'report'}`;
+      const entries = batchGroups.get(key) ?? [];
+      entries.push({ index, query });
+      batchGroups.set(key, entries);
+    } else {
+      tasks.push({ kind: 'single', entry: { index, query } });
+    }
+  }
+  const multicallPlan = Array.from(batchGroups.values()).reduce(
+    (plan, entries) => {
+      const provider = entries[0]?.query.provider;
+      if (provider) plan[provider] = (plan[provider] ?? 0) + entries.length;
+      return plan;
+    },
+    {} as Record<string, number>
   );
+  if (batchGroups.size > 0) {
+    logger.info('Snapshot Multicall plan', {
+      batches: batchGroups.size,
+      feeds: Object.values(multicallPlan).reduce((total, count) => total + count, 0),
+      byProvider: multicallPlan,
+    });
+  }
+  for (const entries of batchGroups.values()) tasks.push({ kind: 'batch', entries });
+
+  const taskResults = await mapWithConcurrency(tasks, REPORT_FETCH_CONCURRENCY, async (task) => {
+    if (task.kind === 'single') {
+      return [{ index: task.entry.index, result: await fetchOne(task.entry.query) }];
+    }
+    const first = task.entries[0].query;
+    const client = factory.getClient(first.provider);
+    if (!hasSnapshotBatchCapability(client)) {
+      return Promise.all(
+        task.entries.map(async (entry) => ({
+          index: entry.index,
+          result: await fetchOne(entry.query),
+        }))
+      );
+    }
+    const startedAt = performance.now();
+    const requestById = new Map<string, IndexedQuery>();
+    const requests: SnapshotBatchPriceRequest[] = task.entries.map((entry) => {
+      const id = `snapshot-${entry.index}`;
+      requestById.set(id, entry);
+      return {
+        id,
+        symbol: entry.query.symbol,
+        chain: entry.query.chain!,
+        // TWAP does not consume the registry address. For Chainlink it pins
+        // the aggregate read to the exact active feed we just selected.
+        feedAddress: validEvmAddress(entry.query.feedAddress) ? entry.query.feedAddress : undefined,
+      };
+    });
+    try {
+      const batch = await client.getSnapshotPricesBatch(
+        requests,
+        first.healthOnly ? AbortSignal.timeout(ADDITIONAL_HEALTH_TIMEOUT_MS) : undefined
+      );
+      const resultById = new Map(batch.map((result) => [result.id, result]));
+      return task.entries.map((entry) => {
+        const id = `snapshot-${entry.index}`;
+        const outcome = resultById.get(id);
+        const latencyMs = Math.round(performance.now() - startedAt);
+        if (!outcome) {
+          return {
+            index: entry.index,
+            result: {
+              provider: entry.query.provider,
+              symbol: entry.query.symbol,
+              feedChainId: entry.query.feedChainId,
+              feedSymbol: entry.query.feedSymbol,
+              healthOnly: entry.query.healthOnly,
+              price: null,
+              error: 'Missing Multicall batch result',
+              skipped: false,
+              latencyMs,
+            } satisfies BatchResultItem,
+          };
+        }
+        const check = outcome.price ? sanitizePriceForSnapshot(outcome.price.price) : null;
+        return {
+          index: entry.index,
+          result: {
+            provider: entry.query.provider,
+            symbol: entry.query.symbol,
+            feedChainId: entry.query.feedChainId,
+            feedSymbol: entry.query.feedSymbol,
+            healthOnly: entry.query.healthOnly,
+            price: check?.valid ? outcome.price : null,
+            error:
+              outcome.error?.message ??
+              (check && !check.valid ? `Price validation failed: ${check.reason}` : null),
+            skipped: false,
+            latencyMs,
+          } satisfies BatchResultItem,
+        };
+      });
+    } catch (error) {
+      // This protects the collector if an adapter capability itself throws
+      // before producing per-feed fallback results. Use the unmodified path.
+      logger.warn('Snapshot Multicall batch setup failed; using individual reads', {
+        provider: first.provider,
+        chain: first.chain,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return Promise.all(
+        task.entries.map(async (entry) => ({
+          index: entry.index,
+          result: await fetchOne(entry.query),
+        }))
+      );
+    }
+  });
+  const fetched = taskResults
+    .flat()
+    .sort((a, b) => a.index - b.index)
+    .map(({ result }) => result);
 
   const persisted = reuseRpcMetadata ? await flushRpcMetadataCache() : 0;
   logger.info('Snapshot RPC resource usage', {
@@ -326,6 +511,11 @@ export function buildProviderConsensusInputs(items: BatchResultItem[]): Consensu
 
   for (const item of items) {
     if (!item.price || item.price.price <= 0 || !Number.isFinite(item.price.price)) continue;
+    // A shadow-only observation is valuable for feed-health and divergence
+    // monitoring, but it has not passed the source-overlap / promotion review
+    // required to influence strict historical consensus. Keep the raw snapshot
+    // row elsewhere in this collector; exclude it only from this aggregate.
+    if (item.price.countsTowardOracleQuorum === false) continue;
     const prices = byProvider.get(item.provider) ?? [];
     prices.push(item.price);
     byProvider.set(item.provider, prices);
@@ -540,6 +730,14 @@ export interface SnapshotCollectionResult {
   snapshotTs: Date;
   results: BatchResultItem[];
   inputs: HourlySnapshotInput[];
+  /** Selected rich observations, held for post-capture best-effort persistence when requested. */
+  priceRecords: PriceData[];
+  /**
+   * One normalized health observation per probed feed. The Actions collector
+   * passes these to the post-commit lifecycle step; normal API callers keep
+   * the existing immediate path.
+   */
+  healthUpdates: Array<{ provider: string; symbol: string; chainId: number; isSuccess: boolean }>;
   insertedHourly: number;
   updatedHealth: number;
   deactivated: number;
@@ -576,7 +774,23 @@ export function resolveSnapshotSlot(scheduledFor?: string, now: Date = new Date(
  */
 export async function collectSnapshot(
   snapshotTs: Date = resolveSnapshotSlot(),
-  options: { includeAdditionalHealthChecks?: boolean; reuseRpcMetadata?: boolean } = {}
+  options: {
+    includeAdditionalHealthChecks?: boolean;
+    reuseRpcMetadata?: boolean;
+    /**
+     * Let a trusted caller atomically commit hourly + fine-grained evidence
+     * before applying the non-critical feed-health lifecycle. This removes a
+     * commit/WAL flush from the high-frequency Actions path while preserving
+     * the existing API-route behaviour by default.
+     */
+    deferDurableSnapshotWrites?: boolean;
+    /**
+     * Keep the rich Supabase cache out of the intake critical path. Trusted
+     * callers persist this returned batch only after Turso durably owns the
+     * raw slot.
+     */
+    deferPriceRecordPersistence?: boolean;
+  } = {}
 ): Promise<SnapshotCollectionResult> {
   const now = snapshotTs;
   const snapshotDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
@@ -590,15 +804,15 @@ export async function collectSnapshot(
     options.includeAdditionalHealthChecks ?? true,
     options.reuseRpcMetadata ?? false
   );
-  // Finish cache persistence before returning. Individual adapters must not
-  // append one row/HTTP request per feed while the batch is still running.
-  try {
-    const prices = results.flatMap((result) => (result.price ? [result.price] : []));
-    const saved = await savePricesToDatabase(prices);
-    logger.info('Persisted price cache batch', { observations: prices.length, saved });
-  } catch (error) {
-    // Durable snapshots and feed failure evidence still need to be recorded.
-    logger.warn('Price cache batch persistence failed', normalizeError(error));
+  const prices = results.flatMap((result) => (result.price ? [result.price] : []));
+  const priceRecords = selectPriceRecordsForPersistence(prices, snapshotTs);
+  if (options.deferPriceRecordPersistence) {
+    logger.info('Deferred rich price-record cache persistence until after raw capture', {
+      observations: prices.length,
+      selected: priceRecords.length,
+    });
+  } else {
+    await persistSelectedPriceRecords(priceRecords, prices.length, snapshotTs);
   }
   const consensusBySymbol = calculateConsensusBySymbol(results);
 
@@ -608,6 +822,7 @@ export async function collectSnapshot(
   // "ETH" + "ETH/USDC") can't violate hourly_price_snapshots' unique key and
   // crash the whole run. See dedupeHourlySnapshotInputs for the full rationale.
   const hourlyInputs = dedupeHourlySnapshotInputs(inputs);
+  const healthUpdates = buildFeedHealthUpdates(results);
 
   const successCount = inputs.filter((i) => i.isSuccess).length;
   const failedCount = inputs.length - successCount;
@@ -615,6 +830,25 @@ export async function collectSnapshot(
   logger.info(
     `Price batch completed for ${snapshotDate}: ${successCount} success, ${failedCount} failed, ${skippedCount} skipped out of ${results.length}`
   );
+
+  if (options.deferDurableSnapshotWrites) {
+    logger.info('Deferred durable snapshot writes for atomic collection-slot commit', {
+      hourlyRows: hourlyInputs.length,
+      healthRows: healthUpdates.length,
+    });
+    return {
+      snapshotDate,
+      snapshotHour,
+      snapshotTs,
+      results,
+      inputs: hourlyInputs,
+      priceRecords,
+      healthUpdates,
+      insertedHourly: 0,
+      updatedHealth: 0,
+      deactivated: 0,
+    };
+  }
 
   let insertedHourly = 0;
   try {
@@ -635,12 +869,98 @@ export async function collectSnapshot(
     throw new SnapshotCollectionError('upsert_snapshots', error.message);
   }
 
+  const { updatedHealth, deactivated } = await applyFeedHealthLifecycle(healthUpdates);
+
+  return {
+    snapshotDate,
+    snapshotHour,
+    snapshotTs,
+    results,
+    inputs: hourlyInputs,
+    priceRecords,
+    healthUpdates,
+    insertedHourly,
+    updatedHealth,
+    deactivated,
+  };
+}
+
+/**
+ * The rich cache is useful but never allowed to determine whether evidence is
+ * captured. Primary-mode callers invoke this only after Turso commits.
+ */
+export async function persistSelectedPriceRecords(
+  records: PriceData[],
+  observationCount: number,
+  snapshotTs: Date
+): Promise<number> {
+  try {
+    if (records.length === 0) {
+      logger.info('Skipped normal rich price-record batch between hourly checkpoints', {
+        observations: observationCount,
+      });
+      return 0;
+    }
+    const saved = await savePricesToDatabase(records);
+    logger.info('Persisted rich price-record batch', {
+      observations: observationCount,
+      selected: records.length,
+      saved,
+      checkpoint: snapshotTs.getUTCMinutes() === 0 ? 'hourly' : 'audit-exception',
+    });
+    return saved;
+  } catch (error) {
+    // Durable snapshots and feed failure evidence still need to be recorded.
+    logger.warn('Price cache batch persistence failed', normalizeError(error));
+    return 0;
+  }
+}
+
+/**
+ * Apply the intentionally non-critical feed-health side effects after the
+ * snapshot evidence transaction has committed. Failures remain isolated from
+ * snapshot collection exactly as they were before the slot-commit path.
+ */
+export async function applyFeedHealthLifecycle(
+  healthUpdates: Array<{ provider: string; symbol: string; chainId: number; isSuccess: boolean }>
+): Promise<{ updatedHealth: number; deactivated: number }> {
+  const adminQueries = getAdminQueries();
+
+  // This lifecycle is deliberately a non-critical side effect. Preserve that
+  // contract even when an incomplete rolling deployment (or an unavailable
+  // service-role query facade) cannot supply the admin query implementation.
+  if (!adminQueries) {
+    logger.warn('Feed-health lifecycle unavailable (non-critical)');
+    return { updatedHealth: 0, deactivated: 0 };
+  }
+
+  // Newer deployments complete health mutation and threshold deactivation in
+  // one RPC transaction. Keep the compatibility path below for a rolling
+  // deploy or a partial database rollout: health remains non-critical and a
+  // failure here must never make the evidence collector fail.
+  if (typeof adminQueries.applyFeedHealthAndDeactivate === 'function') {
+    try {
+      const { updated, deactivated } = await adminQueries.applyFeedHealthAndDeactivate(
+        healthUpdates,
+        3
+      );
+      logger.info(`Updated feed health for ${updated} feeds`);
+      if (deactivated > 0) {
+        logger.info(`Auto-deactivated ${deactivated} feeds with persistent failures`);
+      }
+      return { updatedHealth: updated, deactivated };
+    } catch (healthLifecycleError) {
+      logger.warn(
+        'Failed atomic feed-health lifecycle; using compatibility path',
+        healthLifecycleError instanceof Error ? healthLifecycleError : undefined
+      );
+    }
+  }
+
   // Update feed health based on this batch's results. Each result carries
   // the chain_id of the feed it was sampled from (one result per feed).
   let updatedHealth = 0;
   try {
-    const adminQueries = getAdminQueries();
-    const healthUpdates = buildFeedHealthUpdates(results);
     const { updated } = await adminQueries.batchUpdateFeedHealth(healthUpdates);
     updatedHealth = updated;
     logger.info(`Updated feed health for ${updatedHealth} feeds`);
@@ -660,7 +980,7 @@ export async function collectSnapshot(
   // threw, ensuring persistently-broken feeds are taken offline promptly.
   let deactivated = 0;
   try {
-    deactivated = await getAdminQueries().deactivateStaleFeeds(3);
+    deactivated = await adminQueries.deactivateStaleFeeds(3);
     if (deactivated > 0) {
       logger.info(`Auto-deactivated ${deactivated} feeds with persistent failures`);
     }
@@ -671,14 +991,5 @@ export async function collectSnapshot(
     );
   }
 
-  return {
-    snapshotDate,
-    snapshotHour,
-    snapshotTs,
-    results,
-    inputs: hourlyInputs,
-    insertedHourly,
-    updatedHealth,
-    deactivated,
-  };
+  return { updatedHealth, deactivated };
 }

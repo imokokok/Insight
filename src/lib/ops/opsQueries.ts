@@ -58,7 +58,7 @@ interface ApiUsageRow {
  */
 const PAGE_SIZE = 1000;
 
-async function pagedSelect<T>(
+export async function pagedSelect<T>(
   buildPage: (
     from: number,
     to: number
@@ -688,6 +688,443 @@ export async function getBillingSummary(): Promise<BillingSummary> {
     if (k.is_active) activeKeys++;
   }
   return { totalKeys: data.length, activeKeys, byPlan, byRateLimit };
+}
+
+// ---------------------------------------------------------------------------
+// x402 lifecycle and settlement operations
+// ---------------------------------------------------------------------------
+
+export interface X402OpsRow {
+  id: string;
+  requestId: string;
+  createdAt: string;
+  status: string;
+  protocol: 'x402' | 'mpp';
+  surface: 'rest' | 'mcp' | 'legacy';
+  resource: string | null;
+  network: string | null;
+  amountUsdc: number | null;
+  payer: string | null;
+  txHash: string | null;
+  responseTimeMs: number | null;
+  errorReason: string | null;
+}
+
+export interface X402OpsResourceSummary {
+  protocol: 'x402' | 'mpp';
+  surface: string;
+  resource: string;
+  quotes: number;
+  verified: number;
+  businessSucceeded: number;
+  businessFailed: number;
+  settled: number;
+  settlementFailed: number;
+  grossUsdc: number;
+  avgResponseMs: number | null;
+}
+
+/** Lifecycle and gross receipts grouped by the selected payment network. */
+export interface X402OpsNetworkSummary {
+  /** `unattributed` means a multi-chain quote/rejection had no selected rail yet. */
+  network: string;
+  quotes: number;
+  verified: number;
+  businessSucceeded: number;
+  businessFailed: number;
+  settled: number;
+  settlementFailed: number;
+  grossUsdc: number;
+}
+
+/** Aggregate-only attribution; never a customer or wallet identity. */
+export interface X402OpsAcquisitionSourceSummary {
+  acquisitionSource: string;
+  quotes: number;
+  verified: number;
+  settled: number;
+  grossUsdc: number;
+}
+
+export interface X402OpsTrendPoint {
+  hour: string;
+  quotes: number;
+  verified: number;
+  settled: number;
+  grossUsdc: number;
+}
+
+export interface X402Ops {
+  windowHours: number;
+  quotes: number;
+  paymentRejected: number;
+  verified: number;
+  businessSucceeded: number;
+  businessFailed: number;
+  settled: number;
+  lifecycleSettled: number;
+  settlementFailed: number;
+  lifecycleSettlementFailed: number;
+  grossUsdc: number;
+  uniquePayers: number;
+  repeatPayers: number;
+  avgResponseMs: number | null;
+  p95ResponseMs: number | null;
+  quoteToVerifiedPct: number | null;
+  verificationToBusinessPct: number | null;
+  businessToSettlementPct: number | null;
+  byResource: X402OpsResourceSummary[];
+  byNetwork: X402OpsNetworkSummary[];
+  byAcquisitionSource: X402OpsAcquisitionSourceSummary[];
+  byHour: X402OpsTrendPoint[];
+  recent: X402OpsRow[];
+  errored?: boolean;
+}
+
+interface X402OpsDbRow {
+  id: string;
+  request_id: string;
+  created_at: string;
+  status: string;
+  protocol: string | null;
+  surface: string | null;
+  resource: string | null;
+  network: string | null;
+  amount_usdc: number | string | null;
+  payer: string | null;
+  tx_hash: string | null;
+  response_time_ms: number | null;
+  error_reason: string | null;
+  acquisition_source: string | null;
+}
+
+function asUsdc(value: number | string | null): number | null {
+  if (value == null) return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function countDistinctRequestIds(rows: X402OpsDbRow[], status: string): number {
+  return new Set(rows.filter((row) => row.status === status).map((row) => row.request_id)).size;
+}
+
+function percentage(numerator: number, denominator: number): number | null {
+  return denominator > 0 ? roundTo((numerator / denominator) * 100, 1) : null;
+}
+
+export async function getX402Ops(windowHours = 24): Promise<X402Ops> {
+  const supabase = createServiceRoleClient();
+  const since = hoursAgoIso(windowHours);
+  const { data, error } = await pagedSelect<X402OpsDbRow>((from, to) =>
+    supabase
+      .from('x402_settlements')
+      .select(
+        'id, request_id, created_at, status, protocol, surface, resource, network, amount_usdc, payer, tx_hash, response_time_ms, error_reason, acquisition_source'
+      )
+      .gte('created_at', since)
+      .order('created_at', { ascending: false })
+      .range(from, to)
+  );
+
+  const recentResult = await supabase
+    .from('x402_settlements')
+    .select(
+      'id, request_id, created_at, status, protocol, surface, resource, network, amount_usdc, payer, tx_hash, response_time_ms, error_reason, acquisition_source'
+    )
+    .gte('created_at', since)
+    .order('created_at', { ascending: false })
+    .limit(100);
+
+  const empty: X402Ops = {
+    windowHours,
+    quotes: 0,
+    paymentRejected: 0,
+    verified: 0,
+    businessSucceeded: 0,
+    businessFailed: 0,
+    settled: 0,
+    lifecycleSettled: 0,
+    settlementFailed: 0,
+    lifecycleSettlementFailed: 0,
+    grossUsdc: 0,
+    uniquePayers: 0,
+    repeatPayers: 0,
+    avgResponseMs: null,
+    p95ResponseMs: null,
+    quoteToVerifiedPct: null,
+    verificationToBusinessPct: null,
+    businessToSettlementPct: null,
+    byResource: [],
+    byNetwork: [],
+    byAcquisitionSource: [],
+    byHour: [],
+    recent: [],
+  };
+
+  if (error || !data || recentResult.error || !recentResult.data) {
+    return { ...empty, errored: true };
+  }
+
+  const rows = data;
+  const quotes = countDistinctRequestIds(rows, 'quote_issued');
+  const instrumentedRows = rows.filter((row) => row.surface === 'rest' || row.surface === 'mcp');
+  const paymentRejected = countDistinctRequestIds(instrumentedRows, 'payment_rejected');
+  const verified = countDistinctRequestIds(instrumentedRows, 'payment_verified');
+  const businessSucceeded = countDistinctRequestIds(instrumentedRows, 'business_succeeded');
+  const businessFailed = new Set(
+    instrumentedRows.filter((row) => row.status === 'business_failed').map((row) => row.request_id)
+  ).size;
+  const settled = countDistinctRequestIds(rows, 'settled');
+  const settlementFailed = countDistinctRequestIds(rows, 'settlement_failed');
+  const instrumentedSettled = countDistinctRequestIds(instrumentedRows, 'settled');
+  const instrumentedSettlementFailed = countDistinctRequestIds(
+    instrumentedRows,
+    'settlement_failed'
+  );
+
+  let grossUsdc = 0;
+  const payerCounts = new Map<string, number>();
+  const responseTimes: number[] = [];
+  const resources = new Map<
+    string,
+    {
+      protocol: 'x402' | 'mpp';
+      surface: string;
+      resource: string;
+      quotes: Set<string>;
+      verified: Set<string>;
+      businessSucceeded: Set<string>;
+      businessFailed: Set<string>;
+      settled: Set<string>;
+      settlementFailed: Set<string>;
+      grossUsdc: number;
+      responseTimes: number[];
+    }
+  >();
+  const networks = new Map<
+    string,
+    {
+      network: string;
+      quotes: Set<string>;
+      verified: Set<string>;
+      businessSucceeded: Set<string>;
+      businessFailed: Set<string>;
+      settled: Set<string>;
+      settlementFailed: Set<string>;
+      grossUsdc: number;
+    }
+  >();
+  const acquisitionSources = new Map<
+    string,
+    {
+      acquisitionSource: string;
+      quotes: Set<string>;
+      verified: Set<string>;
+      settled: Set<string>;
+      grossUsdc: number;
+    }
+  >();
+  const hours = new Map<string, X402OpsTrendPoint>();
+  const quoteRequestsByHour = new Map<string, Set<string>>();
+
+  for (const row of rows) {
+    const protocol = row.protocol === 'mpp' ? 'mpp' : 'x402';
+    const surface = row.surface ?? 'legacy';
+    const resource = row.resource ?? 'historical / unclassified';
+    const resourceKey = `${protocol}\0${surface}\0${resource}`;
+    const group = resources.get(resourceKey) ?? {
+      protocol,
+      surface,
+      resource,
+      quotes: new Set<string>(),
+      verified: new Set<string>(),
+      businessSucceeded: new Set<string>(),
+      businessFailed: new Set<string>(),
+      settled: new Set<string>(),
+      settlementFailed: new Set<string>(),
+      grossUsdc: 0,
+      responseTimes: [],
+    };
+
+    if (row.status === 'quote_issued') group.quotes.add(row.request_id);
+    if (row.status === 'payment_verified') group.verified.add(row.request_id);
+    if (row.status === 'business_succeeded') {
+      group.businessSucceeded.add(row.request_id);
+    }
+    if (row.status === 'business_failed') {
+      group.businessFailed.add(row.request_id);
+    }
+    if (
+      (row.status === 'business_succeeded' || row.status === 'business_failed') &&
+      typeof row.response_time_ms === 'number'
+    ) {
+      responseTimes.push(row.response_time_ms);
+      group.responseTimes.push(row.response_time_ms);
+    }
+    if (row.status === 'settled') {
+      group.settled.add(row.request_id);
+      const amount = asUsdc(row.amount_usdc) ?? 0;
+      grossUsdc += amount;
+      group.grossUsdc += amount;
+      if (row.payer) payerCounts.set(row.payer, (payerCounts.get(row.payer) ?? 0) + 1);
+    }
+    if (row.status === 'settlement_failed') group.settlementFailed.add(row.request_id);
+    resources.set(resourceKey, group);
+
+    // Multi-chain 402 quotes intentionally have no selected network until the
+    // payer returns a signature. Keep those lifecycle rows visible as
+    // `unattributed` rather than guessing a rail.
+    const network = row.network ?? 'unattributed';
+    const networkGroup = networks.get(network) ?? {
+      network,
+      quotes: new Set<string>(),
+      verified: new Set<string>(),
+      businessSucceeded: new Set<string>(),
+      businessFailed: new Set<string>(),
+      settled: new Set<string>(),
+      settlementFailed: new Set<string>(),
+      grossUsdc: 0,
+    };
+    if (row.status === 'quote_issued') networkGroup.quotes.add(row.request_id);
+    if (row.status === 'payment_verified') networkGroup.verified.add(row.request_id);
+    if (row.status === 'business_succeeded') networkGroup.businessSucceeded.add(row.request_id);
+    if (row.status === 'business_failed') networkGroup.businessFailed.add(row.request_id);
+    if (row.status === 'settled') {
+      networkGroup.settled.add(row.request_id);
+      networkGroup.grossUsdc += asUsdc(row.amount_usdc) ?? 0;
+    }
+    if (row.status === 'settlement_failed') networkGroup.settlementFailed.add(row.request_id);
+    networks.set(network, networkGroup);
+
+    const acquisitionSource = row.acquisition_source ?? 'unknown';
+    const acquisitionGroup = acquisitionSources.get(acquisitionSource) ?? {
+      acquisitionSource,
+      quotes: new Set<string>(),
+      verified: new Set<string>(),
+      settled: new Set<string>(),
+      grossUsdc: 0,
+    };
+    if (row.status === 'quote_issued') acquisitionGroup.quotes.add(row.request_id);
+    if (row.status === 'payment_verified') acquisitionGroup.verified.add(row.request_id);
+    if (row.status === 'settled') {
+      acquisitionGroup.settled.add(row.request_id);
+      acquisitionGroup.grossUsdc += asUsdc(row.amount_usdc) ?? 0;
+    }
+    acquisitionSources.set(acquisitionSource, acquisitionGroup);
+
+    const hour = new Date(row.created_at).toISOString().slice(0, 13);
+    const trend = hours.get(hour) ?? { hour, quotes: 0, verified: 0, settled: 0, grossUsdc: 0 };
+    if (row.status === 'quote_issued') {
+      const quoteRequests = quoteRequestsByHour.get(hour) ?? new Set<string>();
+      if (!quoteRequests.has(row.request_id)) {
+        quoteRequests.add(row.request_id);
+        trend.quotes++;
+        quoteRequestsByHour.set(hour, quoteRequests);
+      }
+    }
+    if (row.status === 'payment_verified') trend.verified++;
+    if (row.status === 'settled') {
+      trend.settled++;
+      trend.grossUsdc += asUsdc(row.amount_usdc) ?? 0;
+    }
+    hours.set(hour, trend);
+  }
+
+  const recent = (recentResult.data as X402OpsDbRow[]).map((row) => ({
+    id: String(row.id),
+    requestId: row.request_id,
+    createdAt: row.created_at,
+    status: row.status,
+    protocol: row.protocol === 'mpp' ? 'mpp' : 'x402',
+    surface: row.surface === 'rest' || row.surface === 'mcp' ? row.surface : 'legacy',
+    resource: row.resource,
+    network: row.network,
+    amountUsdc: asUsdc(row.amount_usdc),
+    payer: row.payer,
+    txHash: row.tx_hash,
+    responseTimeMs: row.response_time_ms,
+    errorReason: row.error_reason,
+  })) as X402OpsRow[];
+
+  const payers = Array.from(payerCounts.values());
+  return {
+    windowHours,
+    quotes,
+    paymentRejected,
+    verified,
+    businessSucceeded,
+    businessFailed,
+    settled,
+    lifecycleSettled: instrumentedSettled,
+    settlementFailed,
+    lifecycleSettlementFailed: instrumentedSettlementFailed,
+    grossUsdc: roundTo(grossUsdc, 6),
+    uniquePayers: payers.length,
+    repeatPayers: payers.filter((count) => count > 1).length,
+    avgResponseMs: responseTimes.length
+      ? roundTo(responseTimes.reduce((sum, value) => sum + value, 0) / responseTimes.length, 1)
+      : null,
+    p95ResponseMs: percentile(responseTimes, 95),
+    quoteToVerifiedPct: percentage(verified, quotes),
+    verificationToBusinessPct: percentage(businessSucceeded, verified),
+    businessToSettlementPct: percentage(instrumentedSettled, businessSucceeded),
+    byResource: Array.from(resources.values())
+      .map((group) => ({
+        protocol: group.protocol,
+        surface: group.surface,
+        resource: group.resource,
+        quotes: group.quotes.size,
+        verified: group.verified.size,
+        businessSucceeded: group.businessSucceeded.size,
+        businessFailed: group.businessFailed.size,
+        settled: group.settled.size,
+        settlementFailed: group.settlementFailed.size,
+        grossUsdc: roundTo(group.grossUsdc, 6),
+        avgResponseMs: group.responseTimes.length
+          ? roundTo(
+              group.responseTimes.reduce((sum, value) => sum + value, 0) /
+                group.responseTimes.length,
+              1
+            )
+          : null,
+      }))
+      .sort((a, b) => b.grossUsdc - a.grossUsdc || b.verified - a.verified),
+    byNetwork: Array.from(networks.values())
+      .map((group) => ({
+        network: group.network,
+        quotes: group.quotes.size,
+        verified: group.verified.size,
+        businessSucceeded: group.businessSucceeded.size,
+        businessFailed: group.businessFailed.size,
+        settled: group.settled.size,
+        settlementFailed: group.settlementFailed.size,
+        grossUsdc: roundTo(group.grossUsdc, 6),
+      }))
+      .sort(
+        (a, b) =>
+          b.grossUsdc - a.grossUsdc ||
+          b.settled - a.settled ||
+          b.verified - a.verified ||
+          a.network.localeCompare(b.network)
+      ),
+    byAcquisitionSource: Array.from(acquisitionSources.values())
+      .map((group) => ({
+        acquisitionSource: group.acquisitionSource,
+        quotes: group.quotes.size,
+        verified: group.verified.size,
+        settled: group.settled.size,
+        grossUsdc: roundTo(group.grossUsdc, 6),
+      }))
+      .sort(
+        (a, b) =>
+          b.grossUsdc - a.grossUsdc ||
+          b.settled - a.settled ||
+          b.verified - a.verified ||
+          a.acquisitionSource.localeCompare(b.acquisitionSource)
+      ),
+    byHour: Array.from(hours.values()).sort((a, b) => a.hour.localeCompare(b.hour)),
+    recent,
+  };
 }
 
 // ---------------------------------------------------------------------------

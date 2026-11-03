@@ -2,7 +2,11 @@
 /**
  * Market-reference collector entry (the step inside snapshot-collect.yml and
  * the manual market-reference-collect.yml workflow). Delegates to
- * `collectMarketReference()` (which queries Coinbase/Kraken/Gemini spot) and
+ * `collectMarketReference()` only after the source-rights register records a
+ * reviewed vendor permission for a venue. Without one, the job exits cleanly
+ * without contacting a CEX or writing rows. The source register also records
+ * whether the venue permits only Insight-derived analytics or raw customer
+ * delivery; that boundary is persisted with each row. It then
  * upserts one row per (symbol, exchange, snapshot_ts) into
  * `market_reference_snapshots` (migration 0037).
  *
@@ -11,31 +15,35 @@
  *
  * Requires: SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY.
  */
+import { customerEligibleMarketReferenceVenues } from '@/lib/dataRights/evidenceRights';
 import {
   collectMarketReference,
   MARKET_REFERENCE_CORE_SYMBOLS,
   MARKET_REFERENCE_SYMBOLS,
   type MarketReferenceRow,
 } from '@/lib/marketReference/collector';
+import { retryIdempotentSupabaseWrite } from '@/lib/supabase/idempotentWrite';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 
 async function insertRows(rows: MarketReferenceRow[]): Promise<number> {
   if (rows.length === 0) return 0;
   const supabase = createServiceRoleClient();
-  const { error } = await supabase.from('market_reference_snapshots').upsert(
-    rows.map((r) => ({ ...r })),
-    {
-      onConflict: 'snapshot_ts,symbol,quote,exchange',
-      ignoreDuplicates: true,
-    }
-  );
-  if (error) {
-    throw new Error(
-      `Failed to upsert market reference rows: ${
-        typeof error.message === 'string' ? error.message : '[object Object]'
-      }`
+  await retryIdempotentSupabaseWrite(async () => {
+    const { error } = await supabase.from('market_reference_snapshots').upsert(
+      rows.map((r) => ({ ...r })),
+      {
+        onConflict: 'snapshot_ts,symbol,quote,exchange',
+        ignoreDuplicates: true,
+      }
     );
-  }
+    if (error) {
+      throw new Error(
+        `Failed to upsert market reference rows: ${
+          typeof error.message === 'string' ? error.message : '[object Object]'
+        }`
+      );
+    }
+  }, 'upsert market-reference snapshots');
   return rows.length;
 }
 
@@ -43,8 +51,15 @@ async function main(): Promise<void> {
   const startedAt = Date.now();
   console.log('[collect-market-reference] starting…');
   const snapshotTs = new Date();
+  const eligibleExchanges = customerEligibleMarketReferenceVenues();
+  if (eligibleExchanges.length === 0) {
+    console.log(
+      '[collect-market-reference] skipped: no reviewed vendor market-data permission is registered; no CEX request or database write was made'
+    );
+    return;
+  }
 
-  // Preserve 15-minute truth for the four strategic/core assets, while the
+  // Preserve 15-minute truth for the five strategic/core assets, while the
   // eight demand-led additions run hourly. This reuses the same workflow but
   // roughly halves new rows and exchange requests for the Supabase/GitHub free
   // tiers. Dispatcher-triggered runs provide the exact scheduled slot; manual
@@ -55,11 +70,15 @@ async function main(): Promise<void> {
   const fullUniverse = manual || cadenceTime.getUTCMinutes() < 15;
   const symbols = fullUniverse ? MARKET_REFERENCE_SYMBOLS : MARKET_REFERENCE_CORE_SYMBOLS;
 
-  const { rows, summary } = await collectMarketReference(snapshotTs, { symbols });
+  const { rows, summary } = await collectMarketReference(snapshotTs, {
+    symbols,
+    purpose: 'customer-facing',
+  });
   const inserted = await insertRows(rows);
 
   console.log(
-    `[collect-market-reference] rows=${rows.length} inserted=${inserted} ` +
+    `[collect-market-reference] eligibleExchanges=${summary.eligibleExchanges.join(',') || '(none)'} ` +
+      `rows=${rows.length} inserted=${inserted} ` +
       `covered=${summary.covered.join(',') || '(none)'} ` +
       `uncovered=${summary.uncovered.join(',') || '(none)'} ` +
       `maxCrossExchangeSpreadPct=${summary.maxCrossExchangeSpreadPct?.toFixed(3) ?? 'n/a'}`

@@ -36,7 +36,16 @@ jobs:
           cache: npm
       - name: Check whether tracked releases changed
         id: release-check
-        run: node scripts/check-npm-releases.mts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          existing="$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --limit 100 --json headRefName,url --jq 'first(.[] | select(.headRefName | startswith("automation/npm-release-")) | .url)')"
+          if [ -n "$existing" ]; then
+            echo 'needed=false' >> "$GITHUB_OUTPUT"
+            echo "::notice::An npm release PR is already open: $existing"
+          else
+            node scripts/check-npm-releases.mts
+          fi
       - run: npm ci
         if: steps.release-check.outputs.needed == 'true'
       - name: Read npm latest tags and update tracked files
@@ -55,15 +64,30 @@ jobs:
             echo "All tracked npm packages are current."
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
-            git diff --check
+            # Generated chunks may contain whitespace from upstream literals;
+            # validate:ci verifies their exact bytes against a fresh build.
+            git diff --check -- package.json package-lock.json src/lib/npmPackageVersions.ts
             git diff --stat
           fi
       - name: Run the full validation suite
         if: steps.changes.outputs.changed == 'true'
         run: npm run validate:ci
+      - name: Restore Playwright Chromium
+        id: playwright-cache
+        if: steps.changes.outputs.changed == 'true'
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - name: Install the browser used by smoke tests
         if: steps.changes.outputs.changed == 'true'
         run: npx playwright install --with-deps chromium
+      - name: Cache Playwright Chromium
+        if: steps.changes.outputs.changed == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - name: Run browser smoke tests
         if: steps.changes.outputs.changed == 'true'
         run: npm run test:e2e -- --project=chromium

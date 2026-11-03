@@ -1,0 +1,42 @@
+name: Integration request
+description: You want to verify, integrate, or build on Insight receipts or SDKs and something is missing.
+labels: ['integration']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Integration requests filed here become part of a public trail: what
+        was asked, when, and how it was answered. If your question is a bug
+        instead, use the bug report template.
+  - type: textarea
+    id: use_case
+    attributes:
+      label: What are you building, and what outcome do you need?
+      description: The integration you are attempting and the end state you need to reach.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence_needs
+    attributes:
+      label: What do you need to independently verify?
+      description: Which receipts, schema layouts, or registry snapshots must you check offline, and against what pin?
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Surface
+      options:
+        - verify-insight-receipt (npm verifier)
+        - oracle-insight-guard (npm SDK)
+        - pre-trade safety API (/api/v1/safety/pre-trade)
+        - MCP endpoint (/api/mcp)
+        - priorseal-sdk bridge
+        - other
+    validations:
+      required: true
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Constraints and timeline
+      description: Environments, compliance needs, or dates that shape the answer.

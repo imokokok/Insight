@@ -8,6 +8,17 @@ import { build } from 'esbuild';
 import assert from 'node:assert/strict';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const verifierManifest = JSON.parse(
+  await readFile(join(root, 'verifier/package.json'), 'utf8')
+) as { name?: unknown; version?: unknown };
+if (
+  verifierManifest.name !== 'verify-insight-receipt' ||
+  typeof verifierManifest.version !== 'string' ||
+  !/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(verifierManifest.version)
+) {
+  throw new Error('Invalid verifier package name or version');
+}
+const expectedVersion = verifierManifest.version;
 const browser = process.argv.includes('--browser');
 if (process.argv.slice(2).some((a) => a !== '--browser'))
   throw new Error('Usage: npm run verifier:release:check [-- --browser]');
@@ -47,6 +58,7 @@ try {
     execFileSync(process.execPath, [join(consumer, 'conformance.mjs')], {
       cwd: consumer,
       encoding: 'utf8',
+      env: { ...process.env, VERIFY_INSIGHT_RECEIPT_EXPECTED_VERSION: expectedVersion },
     })
   );
   const { browserFixture, ...checks } = validated;

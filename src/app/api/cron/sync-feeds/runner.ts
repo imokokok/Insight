@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { verifyCronSecret } from '@/lib/api/cronAuth';
 import { fetchPriceWithDatabase } from '@/lib/oracles/base/databaseOperations';
 import { API3_MAX_DATA_AGE_SECONDS } from '@/lib/oracles/constants/api3Health';
-import { getBlockchainByChainId } from '@/lib/oracles/constants/chainMapping';
+import { resolveSupraMonadFeed } from '@/lib/oracles/constants/supraMonad';
 import { getDefaultFactory } from '@/lib/oracles/factory';
 import { api3NetworkService } from '@/lib/oracles/services/api3NetworkService';
 import { chainlinkOnChainService } from '@/lib/oracles/services/chainlinkOnChainService';
@@ -11,11 +11,16 @@ import { feedDiscoveryService } from '@/lib/oracles/services/feedDiscovery';
 import { feedSyncService } from '@/lib/oracles/services/feedSyncService';
 import { getReflectorDataService } from '@/lib/oracles/services/reflectorDataService';
 import { getSupraDataService } from '@/lib/oracles/services/supraDataService';
+import { supraMonadOnChainService } from '@/lib/oracles/services/supraMonadOnChainService';
 import { getWINkLinkRealDataService } from '@/lib/oracles/services/winklinkRealDataService';
 import { invalidateAllFeedsCache } from '@/lib/oracles/utils/dynamicFeedResolver';
+import { resolveOracleFeedBlockchain } from '@/lib/oracles/utils/feedChain';
 import { extractBaseSymbol } from '@/lib/oracles/utils/oracleDataUtils';
 import { type OracleFeed, type OracleFeedInsert } from '@/lib/supabase/queries';
 import { createServiceRoleClient, getAdminQueries } from '@/lib/supabase/server';
+import { getTursoPriceClient, readTursoPriceWriteMode } from '@/lib/turso/price/client';
+import { publishTursoFeedRegistry } from '@/lib/turso/price/controlPlaneRepository';
+import { ensureTursoPriceSchema } from '@/lib/turso/price/schema';
 import { mapWithConcurrency } from '@/lib/utils/concurrency';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
 import { Blockchain, OracleProvider, ORACLE_PROVIDER_VALUES } from '@/types/oracle';
@@ -36,6 +41,33 @@ const VERIFY_CONCURRENCY = 8;
 const VERIFY_TIMEOUT_MS = 10_000;
 const CHAINLINK_VERIFY_CONCURRENCY = 4;
 const CHAINLINK_VERIFY_TIMEOUT_MS = 4_000;
+const PYTH_VERIFY_CONCURRENCY = 4;
+
+/**
+ * Feed administration stays in Supabase, but primary-mode collection reads a
+ * bounded last-known-good copy from Turso. Publish immediately after a feed
+ * lifecycle mutation so an intentional activation/deactivation never waits
+ * for the mirror TTL to expire.
+ */
+async function invalidateAndRefreshTursoFeedRegistry(): Promise<void> {
+  invalidateAllFeedsCache();
+  if (readTursoPriceWriteMode() !== 'primary') return;
+  try {
+    const registry = await getAdminQueries().getOracleFeedsWithStatus('');
+    if (registry.errored) throw new Error('Authoritative active-feed registry read failed');
+    const client = getTursoPriceClient();
+    await ensureTursoPriceSchema(client);
+    const snapshot = await publishTursoFeedRegistry(client, registry.feeds);
+    logger.info('Published active feed registry to Turso', {
+      feeds: snapshot.feeds.length,
+      versionHash: snapshot.versionHash,
+    });
+  } catch (error) {
+    // The Supabase mutation remains authoritative and successful. Surface a
+    // mirror lag in logs; the next collector performs the same bounded repair.
+    logger.error('Failed to refresh Turso feed registry mirror', normalizeError(error));
+  }
+}
 
 function maxFeedAgeMs(feed: OracleFeed | OracleFeedInsert): number {
   const metadata = (feed.metadata || {}) as Record<string, unknown>;
@@ -45,9 +77,25 @@ function maxFeedAgeMs(feed: OracleFeed | OracleFeedInsert): number {
       ? Math.max(60 * 60 * 1000, heartbeat * 2 * 1000)
       : 2 * 60 * 60 * 1000;
   }
+  if (feed.provider === OracleProvider.PYTH) {
+    const configured = Number(metadata.timeDifferenceSeconds);
+    return Number.isFinite(configured) && configured > 0
+      ? Math.max(60 * 1000, configured * 2 * 1000)
+      : 2 * 60 * 60 * 1000;
+  }
+  if (feed.provider === OracleProvider.STORK) {
+    const configured = Number(metadata.maxStalenessSeconds);
+    return Number.isFinite(configured) && configured > 0 ? configured * 1000 : 60 * 60 * 1000;
+  }
+  if (feed.provider === OracleProvider.CHRONICLE) {
+    const configured = Number(metadata.maxStalenessSeconds);
+    return Number.isFinite(configured) && configured > 0 ? configured * 1000 : 30 * 60 * 1000;
+  }
   if (feed.provider === OracleProvider.API3) return API3_MAX_DATA_AGE_SECONDS * 1000;
   if (feed.provider === OracleProvider.DIA) return 72 * 60 * 60 * 1000;
   if (feed.provider === OracleProvider.SUPRA) {
+    const configured = Number(metadata.maxStalenessSeconds);
+    if (Number.isFinite(configured) && configured > 0) return configured * 1000;
     return feed.category === 'equity' || feed.category === 'commodity'
       ? 72 * 60 * 60 * 1000
       : 60 * 60 * 1000;
@@ -126,7 +174,7 @@ async function probeRedStoneFeed(
 ): Promise<boolean> {
   try {
     const provider = OracleProvider.REDSTONE;
-    const chain = getBlockchainByChainId(feed.chain_id);
+    const chain = resolveOracleFeedBlockchain(feed);
     const client = getDefaultFactory().getClient(provider);
     const price = await client.getPrice(feed.symbol, chain, { signal });
     return (
@@ -151,7 +199,7 @@ async function probeFeed(
     // BSC/Polygon/Arbitrum) are verified on the correct chain instead of the
     // client's default (Ethereum), which would cause checkSymbolActive to
     // reject them. chain_id=0 (chain-agnostic) → undefined → default chain.
-    const chain = getBlockchainByChainId(feed.chain_id);
+    const chain = resolveOracleFeedBlockchain(feed);
 
     if (provider === OracleProvider.REDSTONE) {
       return probeRedStoneFeed(feed, signal);
@@ -256,7 +304,9 @@ async function verifyDiscoveredFeeds(
     ? 1
     : feeds.every((feed) => feed.provider === OracleProvider.CHAINLINK)
       ? CHAINLINK_VERIFY_CONCURRENCY
-      : VERIFY_CONCURRENCY;
+      : feeds.every((feed) => feed.provider === OracleProvider.PYTH)
+        ? PYTH_VERIFY_CONCURRENCY
+        : VERIFY_CONCURRENCY;
   const results = await mapWithConcurrency(feeds, concurrency, async (feed, index) => {
     if (feed.provider === OracleProvider.WINKLINK && index > 0) {
       // Public TronGrid permits 15 calls per 30-second window. Each feed needs
@@ -358,7 +408,7 @@ const REACTIVATE_LIMIT = 200;
 async function probeInactiveFeed(feed: OracleFeed): Promise<boolean> {
   try {
     const provider = feed.provider as OracleProvider;
-    const chain = getBlockchainByChainId(feed.chain_id);
+    const chain = resolveOracleFeedBlockchain(feed);
 
     // API3 dAPIs are cross-chain and resolved via the communal proxy contract
     // using the dAPI name stored in `address`. Probe through the network
@@ -396,6 +446,23 @@ async function probeInactiveFeed(feed: OracleFeed): Promise<boolean> {
           REACTIVATE_TIMEOUT_MS
         )) ?? false
       );
+    }
+
+    // Curated Monad DORA Push rows are identity-bound to one pair index under
+    // the shared S-value contract. They cannot be reactivated by the generic
+    // API client without losing that identity; reread the exact Push pair.
+    if (
+      provider === OracleProvider.SUPRA &&
+      chain === Blockchain.MONAD &&
+      feed.source === 'supra-monad-dora-push-registry'
+    ) {
+      const supraFeed = resolveSupraMonadFeed(feed.symbol);
+      if (!supraFeed) return false;
+      const reading = await runProbeWithTimeout(
+        (signal) => supraMonadOnChainService.getPrice(supraFeed, signal),
+        REACTIVATE_TIMEOUT_MS
+      );
+      return !!reading && isFreshTimestamp(feed, reading.timestamp);
     }
 
     if (provider === OracleProvider.SUPRA && /^\d+$/.test(feed.address)) {
@@ -554,7 +621,7 @@ export async function runFeedSync(mode: string, provider: string): Promise<FeedS
         // Feed rows changed — drop the cross-provider aggregate cache so
         // the next dashboard SSR / cron read picks up the new state
         // without waiting for the 5-minute TTL.
-        invalidateAllFeedsCache();
+        await invalidateAndRefreshTursoFeedRegistry();
         const summary = results.map((r) => ({
           provider: r.provider,
           discovered: r.discovered,
@@ -690,7 +757,7 @@ export async function runFeedSync(mode: string, provider: string): Promise<FeedS
         // Feed rows changed (upserts + deactivations) — drop the
         // cross-provider aggregate cache so the next read sees the new
         // state without waiting for the 5-minute TTL.
-        invalidateAllFeedsCache();
+        await invalidateAndRefreshTursoFeedRegistry();
         const summary = [
           {
             provider: discovery[0]?.provider || provider,
@@ -712,7 +779,7 @@ export async function runFeedSync(mode: string, provider: string): Promise<FeedS
       case 'registry': {
         // Chainlink Feed Registry only
         const results = [await feedSyncService.syncChainlinkFeedsFromRegistry()];
-        invalidateAllFeedsCache();
+        await invalidateAndRefreshTursoFeedRegistry();
         const summary = results.map((r) => ({
           provider: r.provider,
           discovered: r.discovered,
@@ -729,7 +796,7 @@ export async function runFeedSync(mode: string, provider: string): Promise<FeedS
         // `npm run sync:chainlink-catalog` from an RPC-reachable env to EXPAND
         // the directory itself to the full on-chain universe.
         const results = [await feedSyncService.syncChainlinkFeedsFromCatalog()];
-        invalidateAllFeedsCache();
+        await invalidateAndRefreshTursoFeedRegistry();
         const summary = results.map((r) => ({
           provider: r.provider,
           discovered: r.discovered,
@@ -757,7 +824,7 @@ export async function runFeedSync(mode: string, provider: string): Promise<FeedS
         // inactive rows first). Safe to run frequently — each probe is bounded and
         // only feeds returning a valid price are reactivated.
         const result = await reactivateRecoveredFeeds(provider || undefined);
-        invalidateAllFeedsCache();
+        await invalidateAndRefreshTursoFeedRegistry();
         return {
           status: 200,
           body: {

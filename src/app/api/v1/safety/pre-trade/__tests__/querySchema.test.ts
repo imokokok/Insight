@@ -37,4 +37,87 @@ describe('PreTradeQuerySchema targetProviders', () => {
   it.each(['unknown-provider', 'chainlink,unknown-provider', ''])('%s fails closed', (value) => {
     expect(() => PreTradeQuerySchema.parse({ ...base, targetProviders: value })).toThrow();
   });
+
+  it('accepts the complete opt-in decision-input check with explicit policy bounds', () => {
+    const parsed = PreTradeQuerySchema.parse({
+      ...base,
+      decisionInputCheck: '1',
+      decisionPriceUsd: '2500',
+      quotePriceUsd: '2501',
+      quoteObservedAt: '2026-10-13T06:00:00.000Z',
+      maxReferenceDeviationBps: '50',
+      maxSlippageBps: '75',
+      maxQuoteAgeSeconds: '30',
+    });
+
+    expect(parsed).toMatchObject({
+      decisionInputCheck: '1',
+      decisionPriceUsd: 2500,
+      quotePriceUsd: 2501,
+      maxReferenceDeviationBps: 50,
+      maxSlippageBps: 75,
+      maxQuoteAgeSeconds: 30,
+    });
+  });
+
+  it('accepts a hash-only quote provenance envelope but rejects malformed JSON', () => {
+    const parsed = PreTradeQuerySchema.parse({
+      ...base,
+      decisionInputCheck: '1',
+      decisionPriceUsd: '2500',
+      quotePriceUsd: '2501',
+      quoteObservedAt: '2026-10-13T06:00:00.000Z',
+      maxReferenceDeviationBps: '50',
+      maxSlippageBps: '75',
+      maxQuoteAgeSeconds: '30',
+      requireQuoteProvenance: '1',
+      quoteProvenance: JSON.stringify({
+        schemaVersion: 1,
+        sourceId: 'customer-broker',
+        rightsScope: 'customer-authorized',
+        captureMethod: 'client-held',
+        asset: 'ETH',
+        chainId: 1,
+        quotePriceUsd: 2501,
+        observedAt: '2026-10-13T06:00:00.000Z',
+        requestHash: `0x${'11'.repeat(32)}`,
+        responseHash: `0x${'22'.repeat(32)}`,
+      }),
+    });
+
+    expect(parsed.requireQuoteProvenance).toBe(true);
+    expect(parsed.quoteProvenance?.sourceId).toBe('customer-broker');
+    expect(() =>
+      PreTradeQuerySchema.parse({ ...base, decisionInputCheck: '1', quoteProvenance: '{invalid' })
+    ).toThrow();
+  });
+
+  it('rejects partial input checks, orphaned parameters, and timestamps without a timezone', () => {
+    expect(() => PreTradeQuerySchema.parse({ ...base, decisionInputCheck: '1' })).toThrow();
+    expect(() => PreTradeQuerySchema.parse({ ...base, decisionPriceUsd: '2500' })).toThrow();
+    expect(() =>
+      PreTradeQuerySchema.parse({
+        ...base,
+        decisionInputCheck: '1',
+        decisionPriceUsd: '2500',
+        quotePriceUsd: '2501',
+        quoteObservedAt: '2026-10-13T06:00:00',
+        maxReferenceDeviationBps: '50',
+        maxSlippageBps: '75',
+        maxQuoteAgeSeconds: '30',
+      })
+    ).toThrow();
+    expect(() =>
+      PreTradeQuerySchema.parse({
+        ...base,
+        decisionInputCheck: '1',
+        decisionPriceUsd: '2500',
+        quotePriceUsd: '2501',
+        quoteObservedAt: '2026-02-30T06:00:00Z',
+        maxReferenceDeviationBps: '50',
+        maxSlippageBps: '75',
+        maxQuoteAgeSeconds: '30',
+      })
+    ).toThrow();
+  });
 });

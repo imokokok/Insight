@@ -9,10 +9,12 @@ import {
   BarChart3,
   Sun,
   Waves,
+  Radio,
   Search,
   GitCompare,
   Settings,
   FileText,
+  Radar,
 } from 'lucide-react';
 
 import { providerNames, chainNames, symbols } from '@/lib/constants';
@@ -30,6 +32,9 @@ import type { LucideIcon } from 'lucide-react';
 // Oracle icons mapping
 const oracleIcons: Record<OracleProvider, LucideIcon> = {
   [OracleProvider.CHAINLINK]: Shield,
+  [OracleProvider.PYTH]: Radio,
+  [OracleProvider.STORK]: Radio,
+  [OracleProvider.CHRONICLE]: Radio,
   [OracleProvider.API3]: Activity,
   [OracleProvider.REDSTONE]: Flame,
   [OracleProvider.DIA]: Globe,
@@ -44,6 +49,12 @@ const oracleIcons: Record<OracleProvider, LucideIcon> = {
 // Oracle descriptions mapping
 const oracleDescriptions: Record<OracleProvider, string> = {
   [OracleProvider.CHAINLINK]: 'Decentralized oracle network providing reliable price feeds',
+  [OracleProvider.PYTH]:
+    'On-chain Pyth Core price feeds on Monad with publish-time and confidence evidence',
+  [OracleProvider.STORK]:
+    'Monad on-chain Stork pushed feeds with fixed-point value and timestamp evidence',
+  [OracleProvider.CHRONICLE]:
+    'Monad on-chain Chronicle push feeds with source timestamp and contract evidence',
   [OracleProvider.API3]: 'First-party oracle solution with Airnode technology',
   [OracleProvider.REDSTONE]: 'Innovative oracle with on-chain data streaming',
   [OracleProvider.DIA]: 'Open-source oracle for financial data',
@@ -113,6 +124,7 @@ const blockchainIcons: Record<Blockchain, string> = {
   [Blockchain.FLARE]: '',
   [Blockchain.SUPRA_CHAIN]: '',
   [Blockchain.BANDCHAIN]: '/logos/oracles/band.svg',
+  [Blockchain.MONAD]: '',
 };
 
 // Generate blockchain search results
@@ -137,7 +149,7 @@ function getPairSearchResults(): SearchResult[] {
     title: `${symbol}/USD`,
     description: 'Current price feed data',
     type: 'pair' as SearchResultType,
-    href: `/price-query?symbol=${symbol}`,
+    href: `/price-insight?stage=observe&symbol=${symbol}`,
     keywords: [symbol.toLowerCase(), 'price', 'price feed'],
     priority: 9,
   }));
@@ -157,24 +169,63 @@ function getPageSearchResults(): SearchResult[] {
       priority: 10,
     },
     {
-      id: 'page-price-query',
-      title: 'Price Query',
-      description: 'Search and view current price data',
+      id: 'page-oracle-evidence',
+      title: 'Oracle Evidence',
+      description: 'Inspect a current source record with verification context',
       type: 'page',
-      href: `/price-query`,
+      href: `/price-insight?stage=observe`,
       icon: Search,
-      keywords: ['price', 'query'],
+      keywords: ['price', 'query', 'source', 'evidence'],
+      priority: 9,
+    },
+    {
+      id: 'page-decision-integrity',
+      title: 'Decision Integrity',
+      description:
+        'Run a pre-trade oracle assessment, monitor conditions with Oracle Watch, and understand the evidence boundary',
+      type: 'page',
+      href: '/decision-integrity',
+      icon: Shield,
+      keywords: [
+        'decision integrity',
+        'pre-trade',
+        'pre trade',
+        'oracle watch',
+        'assessment',
+        'agent safety',
+      ],
       priority: 9,
     },
     {
       id: 'page-price-insight',
-      title: 'Price Insight',
-      description: 'Compare oracle prices across providers and blockchains',
+      title: 'Compare & Assess',
+      description: 'Compare oracle prices across providers and chains, then assess the risk',
       type: 'page',
-      href: `/price-insight`,
+      href: `/price-insight?stage=compare`,
       icon: GitCompare,
-      keywords: ['price insight', 'comparison', 'cross oracle', 'cross chain'],
+      keywords: ['price insight', 'comparison', 'cross oracle', 'cross chain', 'risk'],
       priority: 8,
+    },
+    {
+      id: 'page-risk-intelligence',
+      title: 'Risk Intelligence',
+      description:
+        'Explore source comparison, position stress, peg risk, and oracle monitoring tools',
+      type: 'page',
+      href: '/risk-intelligence',
+      icon: Radar,
+      keywords: ['risk', 'position stress', 'peg risk', 'oracle risk', 'liquidation'],
+      priority: 8,
+    },
+    {
+      id: 'page-build',
+      title: 'Build with Insight',
+      description: 'Choose the REST API, AI / MCP, or Guard SDK integration path',
+      type: 'page',
+      href: '/build',
+      icon: Settings,
+      keywords: ['build', 'api', 'mcp', 'sdk', 'integration', 'developer'],
+      priority: 7,
     },
 
     {
@@ -209,7 +260,7 @@ function getFeatureSearchResults(): SearchResult[] {
       title: 'Price Charts',
       description: 'Visualize price trends and historical data',
       type: 'feature',
-      href: `/price-query`,
+      href: `/price-insight?stage=observe`,
       icon: BarChart3,
       keywords: ['chart', 'graph'],
       priority: 7,

@@ -19,7 +19,7 @@ import {
   ChevronUp,
 } from 'lucide-react';
 
-import { AutoRefreshControl } from '@/app/price-query/components/AutoRefreshControl';
+import { AutoRefreshControl } from '@/app/price-insight/source-record/components/AutoRefreshControl';
 import { DropdownSelect } from '@/components/ui';
 import { useDynamicSymbols } from '@/hooks/data/useDynamicSymbols';
 import { getPriceOracleProvidersSortedByMarketCap, getOracleConfig } from '@/lib/config/oracles';

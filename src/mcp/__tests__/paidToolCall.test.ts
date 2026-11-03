@@ -1,0 +1,565 @@
+/**
+ * @jest-environment node
+ */
+
+/**
+ * Tests for the x402 pay-per-call bridge on the MCP HTTP transport:
+ * an unauthenticated single `tools/call` gets a 402 quote priced by the
+ * tool's metering class, and after payment verification the JSON-RPC call
+ * dispatches with settlement only on a successful tool result.
+ *
+ * The x402 resource server, the MCP transport and the MCP server factory are
+ * all mocked so the tests exercise the dispatch/quote/settle wiring in
+ * isolation.
+ */
+
+import { priceAtomicForTool } from '@/lib/api/x402/mcpBridge';
+
+import { handleMcpHttpRequest } from '../transports/http';
+
+const authenticateMcpRequestMock = jest.fn();
+
+jest.mock('../auth', () => ({
+  authenticateMcpRequest: (...args: unknown[]) => authenticateMcpRequestMock(...(args as [])),
+}));
+
+const incrementMock = jest.fn();
+
+jest.mock('@/lib/api/middleware/rateLimitStore', () => ({
+  rateLimitStore: { increment: (...args: unknown[]) => incrementMock(...(args as [])) },
+}));
+
+const getX402ConfigMock = jest.fn();
+
+// Keep the real module's constants (X402_CREDIT_USD drives the pricing
+// bridge); only swap out the env-dependent resolver.
+jest.mock('@/lib/api/x402/config', () => ({
+  ...jest.requireActual('@/lib/api/x402/config'),
+  getX402Config: (...args: unknown[]) => getX402ConfigMock(...(args as [])),
+}));
+
+const getMcpX402HttpServerMock = jest.fn();
+
+jest.mock('@/lib/api/x402/resourceServer', () => ({
+  BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME: 'prepare_base_agent_swap_guard',
+  getMcpX402HttpServer: (...args: unknown[]) => getMcpX402HttpServerMock(...(args as [])),
+}));
+
+const mockInsert = jest.fn(async () => ({ error: null }));
+const createServiceRoleClientMock = jest.fn();
+
+jest.mock('@/lib/supabase/server', () => ({
+  createServiceRoleClient: (...args: unknown[]) => createServiceRoleClientMock(...(args as [])),
+}));
+
+// mcpBridge → guard imports next/server for `after()`; stub it like
+// guard.test.ts so settlement audits run synchronously in tests.
+jest.mock('next/server', () => ({
+  after: (fn: () => unknown) => void Promise.resolve().then(fn),
+}));
+
+// The MCP server factory is mocked: real tool execution would hit Supabase.
+const createMcpServerMock = jest.fn();
+
+const createMppMcpCallHandlerMock = jest.fn();
+
+jest.mock('@/lib/api/mpp/mcp', () => ({
+  createMppMcpCallHandler: (...args: unknown[]) => createMppMcpCallHandlerMock(...(args as [])),
+}));
+
+jest.mock('../server', () => ({
+  createMcpServer: (...args: unknown[]) => createMcpServerMock(...(args as [])),
+}));
+
+function primeCreateMcpServer(): void {
+  createMcpServerMock.mockImplementation(() => ({
+    connect: async () => {},
+    close: async () => {},
+    onclose: null,
+    onerror: null,
+  }));
+}
+
+// The streamable transport is mocked with a canned JSON-RPC response so the
+// paid dispatch path (transport.handleRequest inside runBusiness) is
+// exercised without a live MCP server.
+let cannedRpcResponse: Record<string, unknown>;
+let cannedRpcStatus = 200;
+
+const TransportCtor = jest.fn();
+
+jest.mock('@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js', () => ({
+  // Regular function (not an arrow): the transport is constructed with
+  // `new`, and `new arrowFn()` throws "not a constructor".
+  WebStandardStreamableHTTPServerTransport: function (...args: unknown[]) {
+    return TransportCtor(...(args as []));
+  },
+}));
+
+function primeTransport(): void {
+  TransportCtor.mockImplementation(() => ({
+    handleRequest: async (): Promise<Response> =>
+      new Response(JSON.stringify(cannedRpcResponse), {
+        status: cannedRpcStatus,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+  }));
+}
+
+function mcpPost(body: unknown, headers: Record<string, string> = {}): Request {
+  return new Request('http://localhost:3000/api/mcp', {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      accept: 'application/json, text/event-stream',
+      ...headers,
+    },
+    body: JSON.stringify(body),
+  });
+}
+
+function toolsCallBody(name = 'get_symbols') {
+  return {
+    jsonrpc: '2.0',
+    id: 9,
+    method: 'tools/call',
+    params: { name, arguments: {} },
+  };
+}
+
+function mcpGet(headers: Record<string, string> = {}): Request {
+  return new Request('http://localhost:3000/api/mcp', { method: 'GET', headers });
+}
+
+const CFG = {
+  enabled: true,
+  evmEnabled: true,
+  network: 'eip155:999' as const,
+  evmNetworks: ['eip155:999'] as const,
+  payTo: '0xAbC0000000000000000000000000000000000001',
+  amountAtomic: '20000',
+  priceUsd: 0.02,
+  facilitatorUrl: 'https://x402.org/facilitator',
+  facilitatorUrls: { 'eip155:999': 'https://hyper.example' },
+  facilitatorTimeoutMs: 15_000,
+  maxTimeoutSeconds: 60,
+  facilitatorCdpAuth: null,
+};
+
+const OK_RPC = { jsonrpc: '2.0', id: 9, result: { content: [{ type: 'text', text: 'ok' }] } };
+
+const processHTTPRequest = jest.fn();
+const processSettlement = jest.fn();
+
+beforeEach(() => {
+  // jest.config.js sets resetMocks: true, which wipes factory-set
+  // implementations before every test — re-prime everything here.
+  primeCreateMcpServer();
+  primeTransport();
+  authenticateMcpRequestMock.mockImplementation(async () => ({
+    success: false,
+    error: 'Authentication required. Provide X-API-Key or Authorization: Bearer <token>.',
+    statusCode: 401,
+  }));
+  incrementMock.mockImplementation(async () => ({ count: 1, resetTime: Date.now() + 60_000 }));
+  getX402ConfigMock.mockImplementation(() => ({ ...CFG }));
+  processHTTPRequest.mockReset();
+  processSettlement.mockReset();
+  getMcpX402HttpServerMock.mockImplementation(async () => ({
+    processHTTPRequest,
+    processSettlement,
+  }));
+  createServiceRoleClientMock.mockImplementation(() => ({
+    from: () => ({
+      insert: (...args: unknown[]) => ({
+        abortSignal: () => mockInsert(...args),
+      }),
+    }),
+  }));
+  mockInsert.mockImplementation(async () => ({ error: null }));
+  cannedRpcResponse = OK_RPC;
+  cannedRpcStatus = 200;
+});
+
+describe('x402 paid MCP tools/call', () => {
+  it('returns a 402 quote priced by the tool metering class without dispatching', async () => {
+    processHTTPRequest.mockResolvedValue({
+      type: 'payment-error',
+      response: {
+        status: 402,
+        headers: { 'PAYMENT-REQUIRED': 'base64quote' },
+        body: { accepts: [{ scheme: 'exact', amount: '2000' }] },
+      },
+    });
+
+    const { response, cleanup } = await handleMcpHttpRequest(mcpPost(toolsCallBody()));
+    await cleanup();
+
+    expect(response.status).toBe(402);
+    expect(response.headers.get('PAYMENT-REQUIRED')).toBe('base64quote');
+    // C1 tool (get_symbols): 0.5cr × $0.004 = $0.002 = 2000 atomic.
+    expect(processHTTPRequest).toHaveBeenCalledWith(
+      expect.objectContaining({ path: '/api/mcp', method: 'POST' })
+    );
+    // An unsigned quote carries no payment evidence, so it must not schedule
+    // an x402 lifecycle insert for a directory crawler to amplify.
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(mockInsert).not.toHaveBeenCalled();
+  });
+
+  it('quotes the Base agent swap guard at its C3 price without dispatching', async () => {
+    processHTTPRequest.mockResolvedValue({
+      type: 'payment-error',
+      response: {
+        status: 402,
+        headers: { 'PAYMENT-REQUIRED': 'base64quote' },
+        body: { accepts: [{ scheme: 'exact', amount: '20000' }] },
+      },
+    });
+
+    const { response, cleanup } = await handleMcpHttpRequest(
+      mcpPost(toolsCallBody('prepare_base_agent_swap_guard'))
+    );
+    await cleanup();
+
+    expect(response.status).toBe(402);
+    // C3 (5cr) × $0.004 = $0.02 = 20,000 Base-USDC atomic units.
+    expect(getMcpX402HttpServerMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        enabled: true,
+        network: 'eip155:8453',
+        evmNetworks: ['eip155:8453'],
+        solana: null,
+      }),
+      priceAtomicForTool('prepare_base_agent_swap_guard'),
+      'prepare_base_agent_swap_guard'
+    );
+    expect(priceAtomicForTool('prepare_base_agent_swap_guard')).toBe('20000');
+    // The stateless MCP transport is initialized before the payment bridge,
+    // but an unsigned quote must never execute or settle the tool call.
+    expect(processSettlement).not.toHaveBeenCalled();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(mockInsert).not.toHaveBeenCalled();
+  });
+
+  it('settles after a successful tool result and attaches the receipt header', async () => {
+    processHTTPRequest.mockResolvedValue({
+      type: 'payment-verified',
+      cancellationDispatcher: {},
+      paymentPayload: { x402Version: 2 },
+      paymentRequirements: {
+        scheme: 'exact',
+        network: 'eip155:84532',
+        asset: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
+        amount: '2000',
+      },
+    });
+    processSettlement.mockResolvedValue({
+      success: true,
+      transaction: `0x${'a'.repeat(64)}`,
+      payer: `0x${'b'.repeat(40)}`,
+      amount: undefined, // CDP v2 settle omits amount; bridge falls back to the quote.
+      network: 'eip155:84532',
+      headers: { 'PAYMENT-RESPONSE': 'receipt' },
+      requirements: {},
+    });
+    mockInsert.mockClear();
+
+    const { response, cleanup } = await handleMcpHttpRequest(
+      mcpPost(toolsCallBody(), { 'payment-signature': 'b64payload' })
+    );
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await cleanup();
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('PAYMENT-RESPONSE')).toBe('receipt');
+    expect(processSettlement).toHaveBeenCalledTimes(1);
+    const body = await response.json();
+    expect((body as { result?: unknown }).result).toBeDefined();
+    expect(mockInsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: 'settled',
+        tx_hash: `0x${'a'.repeat(64)}`,
+        payer: `0x${'b'.repeat(40)}`,
+        amount_usdc: '0.002',
+        verdict: 'mcp:get_symbols',
+      })
+    );
+  });
+
+  it('executes and settles the verified Base agent swap guard with tool-specific evidence', async () => {
+    processHTTPRequest.mockResolvedValue({
+      type: 'payment-verified',
+      cancellationDispatcher: {},
+      paymentPayload: { x402Version: 2 },
+      paymentRequirements: {
+        scheme: 'exact',
+        network: 'eip155:8453',
+        asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+        amount: '20000',
+      },
+    });
+    processSettlement.mockResolvedValue({
+      success: true,
+      transaction: `0x${'c'.repeat(64)}`,
+      payer: `0x${'d'.repeat(40)}`,
+      amount: '20000',
+      network: 'eip155:8453',
+      headers: { 'PAYMENT-RESPONSE': 'base-swap-guard-receipt' },
+      requirements: {},
+    });
+
+    const { response, cleanup } = await handleMcpHttpRequest(
+      mcpPost(toolsCallBody('prepare_base_agent_swap_guard'), {
+        'payment-signature': 'base64payload',
+      })
+    );
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await cleanup();
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('PAYMENT-RESPONSE')).toBe('base-swap-guard-receipt');
+    expect(getMcpX402HttpServerMock).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: true }),
+      '20000',
+      'prepare_base_agent_swap_guard'
+    );
+    expect(processSettlement).toHaveBeenCalledWith(
+      { x402Version: 2 },
+      expect.objectContaining({ amount: '20000', network: 'eip155:8453' })
+    );
+    expect(mockInsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: 'settled',
+        tx_hash: `0x${'c'.repeat(64)}`,
+        payer: `0x${'d'.repeat(40)}`,
+        amount_usdc: '0.02',
+        resource: 'mcp:prepare_base_agent_swap_guard',
+        verdict: 'mcp:prepare_base_agent_swap_guard',
+      })
+    );
+  });
+
+  it('skips settlement when the tool result is a JSON-RPC error result', async () => {
+    processHTTPRequest.mockResolvedValue({
+      type: 'payment-verified',
+      cancellationDispatcher: {},
+      paymentPayload: { x402Version: 2 },
+      paymentRequirements: {
+        scheme: 'exact',
+        network: 'eip155:84532',
+        asset: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
+        amount: '2000',
+      },
+    });
+    cannedRpcResponse = {
+      jsonrpc: '2.0',
+      id: 9,
+      result: { content: [{ type: 'text', text: 'Insufficient credits' }], isError: true },
+    };
+
+    const { response, cleanup } = await handleMcpHttpRequest(
+      mcpPost(toolsCallBody(), { 'payment-signature': 'b64payload' })
+    );
+    await cleanup();
+
+    expect(response.status).toBe(200);
+    expect(processSettlement).not.toHaveBeenCalled();
+    expect(response.headers.get('PAYMENT-RESPONSE')).toBeNull();
+  });
+
+  it('skips settlement when the dispatch response is non-2xx', async () => {
+    processHTTPRequest.mockResolvedValue({
+      type: 'payment-verified',
+      cancellationDispatcher: {},
+      paymentPayload: { x402Version: 2 },
+      paymentRequirements: {
+        scheme: 'exact',
+        network: 'eip155:84532',
+        asset: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
+        amount: '2000',
+      },
+    });
+    cannedRpcStatus = 500;
+
+    const { response, cleanup } = await handleMcpHttpRequest(
+      mcpPost(toolsCallBody(), { 'payment-signature': 'b64payload' })
+    );
+    await cleanup();
+
+    expect(response.status).toBe(500);
+    expect(processSettlement).not.toHaveBeenCalled();
+  });
+
+  it('falls through to 401 when the x402 tier is disarmed', async () => {
+    getX402ConfigMock.mockImplementation(() => ({ ...CFG, enabled: false }));
+
+    const { response, cleanup } = await handleMcpHttpRequest(mcpPost(toolsCallBody()));
+    await cleanup();
+
+    expect(response.status).toBe(401);
+    expect(processHTTPRequest).not.toHaveBeenCalled();
+  });
+
+  it('falls through to 401 for a batch containing tools/call', async () => {
+    const { response, cleanup } = await handleMcpHttpRequest(
+      mcpPost([{ jsonrpc: '2.0', id: 10, method: 'tools/list' }, toolsCallBody()])
+    );
+    await cleanup();
+
+    expect(response.status).toBe(401);
+    expect(processHTTPRequest).not.toHaveBeenCalled();
+  });
+
+  it('rate limits the paid tier per IP after the configured burst', async () => {
+    incrementMock.mockImplementation(async () => ({
+      count: 61,
+      resetTime: Date.now() + 60_000,
+    }));
+
+    const { response, cleanup } = await handleMcpHttpRequest(mcpPost(toolsCallBody()));
+    await cleanup();
+
+    expect(response.status).toBe(429);
+    expect(response.headers.get('retry-after')).toBeDefined();
+  });
+
+  it('prices C1, C3 and C4 tools at the credit-class bridge rate', () => {
+    // C3 (5cr) → $0.02 = 20000; C4 (10cr) → $0.04 = 40000; C1 (0.5cr) → 2000.
+    expect(priceAtomicForTool('pre_trade_safety_check')).toBe('20000');
+    expect(priceAtomicForTool('get_symbols')).toBe('2000');
+    expect(priceAtomicForTool('verify_execution_pair')).toBe('40000');
+  });
+});
+
+describe('unauthenticated GET indexer probes', () => {
+  it('answers a plain GET with the x402 quote built for the resource\u2019s canonical POST method', async () => {
+    processHTTPRequest.mockResolvedValue({
+      type: 'payment-error',
+      response: {
+        status: 402,
+        headers: { 'PAYMENT-REQUIRED': 'base64quote' },
+        body: { x402Version: 2, accepts: [{ scheme: 'exact', amount: '2000' }] },
+      },
+    });
+
+    const { response, cleanup } = await handleMcpHttpRequest(mcpGet());
+    await cleanup();
+
+    expect(response.status).toBe(402);
+    expect(response.headers.get('payment-required')).toBe('base64quote');
+    const body = await response.json();
+    expect(body.x402Version).toBe(2);
+    // The probe quote is priced by the flagship tool and mirrors the POST
+    // handshake's method so directory metadata stays accurate.
+    expect(getMcpX402HttpServerMock).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: true }),
+      priceAtomicForTool('pre_trade_safety_check')
+    );
+    expect(processHTTPRequest).toHaveBeenCalledWith(expect.objectContaining({ method: 'POST' }));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(mockInsert).not.toHaveBeenCalled();
+  });
+
+  it('keeps the protocol 405 for an SSE stream request and carries no payment signature', async () => {
+    const { response, cleanup } = await handleMcpHttpRequest(
+      mcpGet({ accept: 'text/event-stream' })
+    );
+    await cleanup();
+
+    expect(response.status).toBe(405);
+    expect(processHTTPRequest).not.toHaveBeenCalled();
+  });
+});
+
+describe('MPP paid MCP pilot routing', () => {
+  it('routes anonymous calls through the MPP handler only when the pilot is enabled', async () => {
+    const previous = {
+      MPP_ENABLED: process.env.MPP_ENABLED,
+      MPP_MCP_ENABLED: process.env.MPP_MCP_ENABLED,
+      MPP_SECRET_KEY: process.env.MPP_SECRET_KEY,
+    };
+    process.env.MPP_ENABLED = 'true';
+    process.env.MPP_MCP_ENABLED = 'true';
+    process.env.MPP_SECRET_KEY = 'mpp-test-secret-key-with-at-least-32-bytes';
+    const mppHandler = jest.fn();
+    createMppMcpCallHandlerMock.mockReturnValue(mppHandler);
+
+    try {
+      const { response, cleanup } = await handleMcpHttpRequest(
+        mcpPost(toolsCallBody('pre_trade_safety_check')),
+        { paymentRail: 'mpp' }
+      );
+      await cleanup();
+
+      expect(response.status).toBe(200);
+      expect(createMppMcpCallHandlerMock).toHaveBeenCalledWith(
+        expect.objectContaining({ enabled: true }),
+        process.env.MPP_SECRET_KEY
+      );
+      expect(createMcpServerMock).toHaveBeenCalledWith(
+        undefined,
+        expect.objectContaining({ mppPaymentEnabled: true, mppCallHandler: mppHandler })
+      );
+      expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
+    } finally {
+      for (const [key, value] of Object.entries(previous)) {
+        if (value === undefined) delete process.env[key];
+        else process.env[key] = value;
+      }
+    }
+  });
+
+  it('does not arm the MPP handler when its separate MCP flag is off', async () => {
+    const previous = {
+      MPP_ENABLED: process.env.MPP_ENABLED,
+      MPP_MCP_ENABLED: process.env.MPP_MCP_ENABLED,
+      MPP_SECRET_KEY: process.env.MPP_SECRET_KEY,
+    };
+    process.env.MPP_ENABLED = 'true';
+    process.env.MPP_MCP_ENABLED = 'false';
+    process.env.MPP_SECRET_KEY = 'mpp-test-secret-key-with-at-least-32-bytes';
+
+    try {
+      const { response, cleanup } = await handleMcpHttpRequest(mcpPost(toolsCallBody()), {
+        paymentRail: 'mpp',
+      });
+      await cleanup();
+
+      expect(response.status).toBe(401);
+      expect(createMppMcpCallHandlerMock).not.toHaveBeenCalled();
+    } finally {
+      for (const [key, value] of Object.entries(previous)) {
+        if (value === undefined) delete process.env[key];
+        else process.env[key] = value;
+      }
+    }
+  });
+
+  it('does not turn failed authorization headers into MPP payment challenges', async () => {
+    const previous = {
+      MPP_ENABLED: process.env.MPP_ENABLED,
+      MPP_MCP_ENABLED: process.env.MPP_MCP_ENABLED,
+      MPP_SECRET_KEY: process.env.MPP_SECRET_KEY,
+    };
+    process.env.MPP_ENABLED = 'true';
+    process.env.MPP_MCP_ENABLED = 'true';
+    process.env.MPP_SECRET_KEY = 'mpp-test-secret-key-with-at-least-32-bytes';
+
+    try {
+      const { response, cleanup } = await handleMcpHttpRequest(
+        mcpPost(toolsCallBody('pre_trade_safety_check'), { authorization: 'Bearer expired' }),
+        { paymentRail: 'mpp' }
+      );
+      await cleanup();
+
+      expect(response.status).toBe(401);
+      expect(createMppMcpCallHandlerMock).not.toHaveBeenCalled();
+    } finally {
+      for (const [key, value] of Object.entries(previous)) {
+        if (value === undefined) delete process.env[key];
+        else process.env[key] = value;
+      }
+    }
+  });
+});

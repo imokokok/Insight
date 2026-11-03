@@ -159,6 +159,11 @@ interface ErrorConfig {
 }
 
 const PROVIDER_ERROR_CONFIGS: Record<string, Record<string, ErrorConfig>> = {
+  chronicle: {
+    CHRONICLE_ERROR: { retryable: true, severity: 'medium', statusCode: 502 },
+    STALE_DATA: { retryable: true, severity: 'high', statusCode: 502 },
+    INVALID_PRICE: { retryable: false, severity: 'critical', statusCode: 502 },
+  },
   redstone: {
     FETCH_ERROR: { retryable: true, severity: 'high', statusCode: 502 },
     PARSE_ERROR: { retryable: false, severity: 'high', statusCode: 422 },

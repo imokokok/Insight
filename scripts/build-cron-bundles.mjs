@@ -21,10 +21,15 @@ const entryPoints = {
   'backfill-market-reference': 'scripts/backfill-market-reference.ts',
   billing: 'scripts/billing.ts',
   'collect-market-reference': 'scripts/collect-market-reference.ts',
+  'collect-manip-cost': 'scripts/collect-manip-cost.ts',
   'collect-oracle-watch': 'scripts/collect-oracle-watch.ts',
   'collect-snapshot': 'scripts/collect-snapshot.ts',
+  'collect-settlement-evidence': 'scripts/collect-settlement-evidence.ts',
+  'project-turso-price': 'scripts/project-turso-price.ts',
   'daily-report-publish': 'scripts/daily-report-publish.ts',
+  'erc8004-anchor': 'scripts/anchor-erc8004-reputation.ts',
   'feed-cadence': 'scripts/feed-cadence.ts',
+  'monad-dex-market': 'scripts/monad-dex-market.ts',
   'protocol-metrics': 'scripts/protocol-metrics.ts',
   reputation: 'scripts/reputation.ts',
   'safety-outcome': 'scripts/safety-outcome.ts',
@@ -76,6 +81,20 @@ console.log(
     1024
   ).toFixed(1)} MiB total`
 );
+
+const nativeLibsqlBundleReferences = [];
+for (const output of Object.keys(result.metafile.outputs).filter((path) => path.endsWith('.mjs'))) {
+  const source = await readFile(output, 'utf8');
+  if (/@libsql\/(?:darwin|linux|win32)|\brequireNative\b/.test(source)) {
+    nativeLibsqlBundleReferences.push(output);
+  }
+}
+if (nativeLibsqlBundleReferences.length) {
+  throw new Error(
+    `Cron bundles must not load platform-specific libSQL bindings: ${nativeLibsqlBundleReferences.join(', ')}. ` +
+      "Use '@libsql/client/web' for code that runs from committed bundles."
+  );
+}
 
 if (check) {
   async function files(root, directory = root) {

@@ -136,6 +136,10 @@ const PriceDataSchemaRaw = PriceDataBaseSchema.extend({
       feedHash: z.string().nullish(),
       rawValue: z.string().nullish(),
       sourceTimestamp: z.number().nullish(),
+      valueExponent: z.number().int().nullish(),
+      rawConfidence: z.number().nonnegative().nullish(),
+      sourceTimestampNs: z.string().regex(/^\d+$/).nullish(),
+      assetId: z.string().min(1).max(256).nullish(),
       signatureScheme: z.enum(['ed25519', 'secp256k1']).nullish(),
       recoveryId: z.number().nullish(),
     })

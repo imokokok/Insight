@@ -1,0 +1,48 @@
+{
+  "linkset": [
+    {
+      "anchor": "https://www.oracleinsight.xyz/api",
+      "service-desc": [
+        {
+          "href": "https://www.oracleinsight.xyz/openapi.json",
+          "type": "application/vnd.oai.openapi+json",
+          "title": "Insight API OpenAPI specification (x-payment-info annotated)"
+        }
+      ],
+      "service-doc": [
+        {
+          "href": "https://www.oracleinsight.xyz/docs/x402",
+          "type": "text/html",
+          "title": "Insight pay-per-call docs (x402 v2 + MPP, USDC on Base)"
+        }
+      ],
+      "status": [
+        {
+          "href": "https://www.oracleinsight.xyz/api/v1/safety/pre-trade?asset=ETH&chainId=1&action=swap&tradeAmountUsd=1000",
+          "type": "application/json",
+          "title": "Pre-trade check health: HTTP 402 with payment challenge = service healthy; 200 = result (paid)"
+        }
+      ],
+      "links": [
+        {
+          "rel": "service-desc",
+          "href": "https://www.oracleinsight.xyz/openapi.json",
+          "type": "application/vnd.oai.openapi+json",
+          "title": "Insight API OpenAPI specification"
+        },
+        {
+          "rel": "alternate",
+          "href": "https://www.oracleinsight.xyz/llms.txt",
+          "type": "text/plain",
+          "title": "llms.txt for LLM agents"
+        },
+        {
+          "rel": "alternate",
+          "href": "https://www.oracleinsight.xyz/.well-known/agent-card.json",
+          "type": "application/json",
+          "title": "A2A agent card"
+        }
+      ]
+    }
+  ]
+}

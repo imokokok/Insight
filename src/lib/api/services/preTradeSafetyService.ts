@@ -39,11 +39,40 @@ import { selectPreTradeValidity } from '@/lib/attestations/preTradeValidityPolic
 import type { ProviderObservationEntry } from '@/lib/attestations/providerObservationsHash';
 import { nonDerivedGroupCount } from '@/lib/attestations/sourceGroups';
 import { assertVeritasJointRun1800Admission } from '@/lib/attestations/veritasJointRunValidity';
+import {
+  assessDecisionInput,
+  type DecisionInputAssessment,
+  type DecisionInputCheckRequest,
+} from '@/lib/decisionInputTrust/assessment';
+import { signDecisionInputAssessment } from '@/lib/decisionInputTrust/attestation';
+import {
+  getReviewedAerodromeSlipstreamPreTradeEvidence,
+  type ReviewedAerodromeSlipstreamPreTradeEvidence,
+} from '@/lib/dex/preTradeAerodromeSlipstream';
+import {
+  getReviewedUniswapV3PreTradeEvidence,
+  type ReviewedUniswapV3PreTradeEvidence,
+} from '@/lib/dex/preTradeUniswapV3';
 import { UnsupportedSymbolError, ValidationError } from '@/lib/errors';
 import {
+  getManipCostAdvisory,
+  isManipCostCoveredSymbol,
+  type ManipCostAdvisory,
+} from '@/lib/manipCost/baseline';
+import {
+  fetchChainlinkMarketReference,
+  type ChainlinkMarketReference,
+} from '@/lib/marketReference/chainlink';
+import {
   computeMarketReferenceContext,
+  getMarketReference,
   type MarketReferenceContext,
+  type MarketReference,
 } from '@/lib/marketReference/client';
+import {
+  fetchRedStoneMarketReference,
+  type RedStoneMarketReference,
+} from '@/lib/marketReference/redstone';
 import {
   classifyMlRisk,
   featuresFromPreTrade,
@@ -56,6 +85,7 @@ import {
   type MultiHorizonScore,
   type PreTradeFeatures,
 } from '@/lib/ml/inference';
+import { readIssuanceHalt } from '@/lib/ops/issuanceControl';
 import { getBlockchainByChainId } from '@/lib/oracles/constants/chainMapping';
 import {
   getFeedStalenessBaselineMap,
@@ -67,8 +97,23 @@ import {
 import { getProtocolByIdWithDynamicData } from '@/lib/protocols/dynamicData';
 import { getStablecoinConfig } from '@/lib/stablecoins/config';
 import { calculateAllStablecoinSnapshots } from '@/lib/stablecoins/monitor';
+import {
+  normalizeTokenSecurityView,
+  rawBodySha256,
+  signContextAttestation,
+  tokenSecurityViewSha256,
+  type ContextAttestation,
+  type TokenSecurityView,
+} from '@/lib/tokenSecurity/contextAttestation';
+import {
+  fetchGoPlusTokenSecurity,
+  parseTokenSecurityViewFields,
+  type GoPlusLaneOutcome,
+  type GoPlusRawResult,
+} from '@/lib/tokenSecurity/goplus';
 import { roundTo } from '@/lib/utils/format';
 import { createLogger } from '@/lib/utils/logger';
+import { throwIfAborted } from '@/lib/utils/requestDeadline';
 import { Blockchain, type OracleProvider } from '@/types/oracle';
 
 import { getConsensusPrice, type ConsensusPriceResponse } from './consensusPriceService';
@@ -140,6 +185,28 @@ export interface PreTradeSafetyInput {
    * the source asset id (degenerate self-pair) so the binding is still valid.
    */
   destinationAsset?: string;
+  /**
+   * Optional token contract address whose third-party security scan should be
+   * captured and signed as decision-input evidence (contextAttestation +
+   * tokenSecurity advisory view). When omitted, a small built-in symbol→address
+   * map (Ethereum mainnet USDC/WBTC/WETH) is used; when neither resolves, both
+   * fields are omitted entirely (禁合成: absence means "no evidence", never
+   * "safe"). Advisory evidence only — NEVER a verdict input and NEVER part of
+   * the signed oracle attestation.
+   */
+  tokenAddress?: string;
+  /**
+   * Opt-in diagnostic surface (query `debugTokenSec=1`): attaches
+   * `tokenSecurityDebug` to the response with the advisory lane's terminal
+   * outcome. Never affects the verdict and adds no external calls.
+   */
+  debugTokenSecurity?: boolean;
+  /**
+   * Opt-in operation-input sufficiency check. This is an advisory output
+   * separate from the existing oracle verdict and requires caller-supplied
+   * decision price, venue quote, and explicit tolerances.
+   */
+  decisionInput?: DecisionInputCheckRequest;
 }
 
 /**
@@ -184,6 +251,8 @@ export interface ProviderPriceDetail {
   confidence: number | null;
   reputationScore: number | null;
   status: 'success' | 'unsupported' | 'error';
+  /** False when the provider is an observation-only/shadow feed. */
+  countsTowardOracleQuorum: boolean;
 }
 
 export interface DepegWarning {
@@ -268,6 +337,48 @@ export interface PreTradeSafetyResult {
    * the displayed risk level; does not itself drive the verdict.
    */
   anomalyScore: number;
+  /**
+   * Advisory manipulation-cost context (foundation block ②). EVIDENCE ONLY,
+   * per the collector's own discipline: how much USD (lower bound for v3
+   * pools) it would take to move the Ethereum-mainnet DEX reference price of
+   * this asset by 0.5–10%. NEVER a verdict gate and NEVER part of the signed
+   * attestation. Omitted when the asset has no covered pool mapping, the chain
+   * is not Ethereum, or fresh snapshots are unavailable — absence means "no
+   * evidence", not "low risk".
+   */
+  manipulationCost?: ManipCostAdvisory;
+  /** Optional, caller-requested assessment of price + quote evidence. */
+  decisionInputAssessment?: DecisionInputAssessment;
+  /**
+   * Signed third-party input evidence (decision-input expansion, lane 1):
+   * signs the source-response digest and the digest of the normalized view
+   * returned alongside it. This is an Insight capture statement, not proof
+   * that the source was correct or an agent consumed the view. The independent
+   * EIP-712 domain deliberately leaves the oracle attestation unchanged.
+   * Emitted ONLY when raw evidence was captured AND signing succeeded
+   * (fail-closed: no unsigned evidence lookalikes). Absence means "no
+   * evidence", not "safe".
+   */
+  contextAttestation?: ContextAttestation;
+  /**
+   * Advisory parsed view of the third-party token scan linked by `rawHash` and
+   * `normalizedResultSha256` to the signed capture above. Flag passthrough only — Insight makes no
+   * honeypot/tax judgment and never adjusts the verdict for these values.
+   * Omitted together with contextAttestation (an unsigned view would read as
+   * an Insight endorsement of the third party's conclusion).
+   */
+  tokenSecurity?: TokenSecurityView;
+  /**
+   * Opt-in diagnostic (query `debugTokenSec=1`): terminal outcome of the
+   * token-security advisory lane. Explicitly requested, so this is an honest
+   * probe result rather than a synthesized safety signal.
+   */
+  tokenSecurityDebug?: {
+    requested: boolean;
+    outcome: GoPlusLaneOutcome;
+    latencyMs?: number;
+    keyed: boolean;
+  };
   /**
    * EIP-712 offchain attestation proving "Insight verified oracle state for this
    * trade at time T". Portable, tamper-evident proof agents can relay in tx
@@ -397,6 +508,8 @@ function normalize(value: number, max: number): number {
 export interface AuditMeta {
   apiKeyId?: string;
   requestId?: string;
+  /** Opaque lifecycle correlation. It is operational metadata, never signed evidence. */
+  journeyId?: string;
   workflowTag?: string;
   baselineVerdict?: 'allow' | 'alert' | 'block' | 'unknown';
   baselineVersion?: string;
@@ -438,6 +551,7 @@ async function logAudit(
 
     const { error } = await client.from('pre_trade_checks').insert({
       request_id: meta.requestId ?? null,
+      journey_id: meta.journeyId ?? null,
       workflow_tag: meta.workflowTag ?? null,
       baseline_verdict: meta.baselineVerdict ?? null,
       baseline_version: meta.baselineVersion ?? null,
@@ -451,6 +565,7 @@ async function logAudit(
       api_key_id: meta.apiKeyId ?? null,
       protocol_id: input.protocolId ?? null,
       protocol_safety: result.protocolSafety,
+      decision_input_assessment: result.decisionInputAssessment ?? null,
       verdict: result.verdict,
       consensus_price: result.consensusPrice,
       max_deviation_pct: result.maxDeviationPct,
@@ -518,6 +633,10 @@ function buildProviderPrices(
       confidence: p.confidence,
       reputationScore: p.reputationScore,
       status: p.status,
+      // Older persisted/fixture responses predate the explicit field. They
+      // remain strict participants unless a source explicitly opts into the
+      // shadow-only state.
+      countsTowardOracleQuorum: p.countsTowardOracleQuorum !== false,
       timestamp: p.status === 'success' ? p.timestamp : null,
       source: p.source,
       retrievedAt: p.retrievedAt,
@@ -558,7 +677,9 @@ function computeMaxDeviation(
     targetProviders && targetProviders.length > 0
       ? entries.filter(([provider]) => targetProviders.includes(provider))
       : entries;
-  const successful = filtered.filter(([, d]) => d.status === 'success' && d.deviationPct !== null);
+  const successful = filtered.filter(
+    ([, d]) => d.status === 'success' && d.countsTowardOracleQuorum && d.deviationPct !== null
+  );
   if (successful.length === 0) return 0;
   const scored = inConsensusOrAll(successful, (d) => d.isOutlier);
   return Math.max(...scored.map(([, d]) => Math.abs(d.deviationPct as number)));
@@ -573,7 +694,9 @@ function computeSpread(
     targetProviders && targetProviders.length > 0
       ? entries.filter(([provider]) => targetProviders.includes(provider))
       : entries;
-  const successful = filtered.filter(([, d]) => d.status === 'success' && d.price > 0);
+  const successful = filtered.filter(
+    ([, d]) => d.status === 'success' && d.countsTowardOracleQuorum && d.price > 0
+  );
   const scored = inConsensusOrAll(successful, (d) => d.isOutlier);
   const prices = scored.map(([, d]) => d.price);
   if (prices.length < 2) return 0;
@@ -592,7 +715,7 @@ function computeStaleRisk(
   staleProviders: string[];
 } {
   const entries = Object.entries(providerPrices).filter(
-    ([, d]) => d.status === 'success' && d.dataAgeSeconds !== null
+    ([, d]) => d.status === 'success' && d.countsTowardOracleQuorum && d.dataAgeSeconds !== null
   );
   if (entries.length === 0) return { staleRisk: false, maxAge: 0, staleProviders: [] };
 
@@ -631,7 +754,11 @@ function classifyStalenessHardBlock(providerPrices: Record<string, ProviderPrice
   timestampAnomalyProviders: string[];
 } {
   const successful = Object.entries(providerPrices).filter(
-    ([, d]) => d.status === 'success' && d.dataAgeSeconds !== null && d.price > 0
+    ([, d]) =>
+      d.status === 'success' &&
+      d.countsTowardOracleQuorum &&
+      d.dataAgeSeconds !== null &&
+      d.price > 0
   );
   const absolutelyStale = successful.filter(
     ([, d]) => (d.dataAgeSeconds as number) >= HARD_STALE_BLOCK_SECONDS
@@ -675,18 +802,35 @@ function classifyStalenessHardBlock(providerPrices: Record<string, ProviderPrice
 }
 
 async function fetchDepegWarnings(
-  asset: string
+  asset: string,
+  destinationAsset: string | undefined,
+  signal?: AbortSignal
 ): Promise<{ warnings: DepegWarning[]; available: boolean }> {
   try {
-    const snapshots = await calculateAllStablecoinSnapshots();
+    // A pre-trade check only needs peg evidence for the assets it evaluates.
+    // Collecting every supported stablecoin on a cold instance fans a single
+    // check into dozens of Oracle/RPC calls and is not evidence about this
+    // trade's source or destination asset.
+    const evaluatedStablecoins = [asset, destinationAsset]
+      .filter((symbol): symbol is string => typeof symbol === 'string')
+      .map((symbol) => symbol.toUpperCase())
+      .filter((symbol, index, values) => values.indexOf(symbol) === index)
+      .filter((symbol) => Boolean(getStablecoinConfig(symbol)));
+    if (evaluatedStablecoins.length === 0) return { warnings: [], available: true };
+
+    const snapshots = await calculateAllStablecoinSnapshots({
+      symbols: evaluatedStablecoins,
+      signal,
+    });
+    throwIfAborted(signal);
     // The monitor deliberately resolves partial results after per-coin failures.
-    // An unrelated coin's snapshot cannot establish this asset's peg evidence.
     const validSnapshots = snapshots.filter((s) => Number.isFinite(s.maxDeviationPercent));
     return {
-      available: getStablecoinConfig(asset)
-        ? validSnapshots.some((s) => s.symbol === asset)
-        : validSnapshots.length > 0,
+      available: evaluatedStablecoins.every((symbol) =>
+        validSnapshots.some((snapshot) => snapshot.symbol === symbol)
+      ),
       warnings: validSnapshots
+        .filter((snapshot) => evaluatedStablecoins.includes(snapshot.symbol))
         .filter((s) => Math.abs(s.maxDeviationPercent) >= THRESHOLDS.stablecoinDepegPct.caution)
         .map((s) => ({
           stablecoin: s.symbol,
@@ -698,6 +842,17 @@ async function fetchDepegWarnings(
     // Non-blocking: depeg data unavailable should not fail the safety check.
     return { warnings: [], available: false };
   }
+}
+
+function fetchConsensusForPreTrade(
+  input: PreTradeSafetyInput,
+  chain: Blockchain | undefined,
+  signal?: AbortSignal
+) {
+  const targetProviders = input.targetProviders as OracleProvider[] | undefined;
+  return signal
+    ? getConsensusPrice(input.asset, chain, undefined, targetProviders, { signal })
+    : getConsensusPrice(input.asset, chain, undefined, targetProviders);
 }
 
 /**
@@ -743,6 +898,97 @@ function computeRecommendedMaxPosition(
     : 1;
   const recommended = Math.round((base * deviationFactor * bufferFactor) / 1000) * 1000;
   return Math.max(10_000, recommended);
+}
+
+/**
+ * Derive a conservative venue-liquidity cap from one exact reviewed-pool quote
+ * and the pool's live balances. The quote's own price impact implies the pool's
+ * effective depth (impact ≈ size / depth for concentrated liquidity), and the
+ * input-token pool balance bounds what the pool can absorb at all; the cap is
+ * 1% of the smaller of the two, so executing the recommended maximum keeps the
+ * modeled price impact near ~1% and never assumes out-of-range depth. Null
+ * means the evidence cannot support a venue cap and the oracle-only cap stands.
+ */
+function computeVenueLiquidityCapUsd(
+  evidence: ReviewedUniswapV3PreTradeEvidence | ReviewedAerodromeSlipstreamPreTradeEvidence,
+  sourceConsensusPriceUsd: number
+): number | null {
+  const forward = evidence.quote.direction !== 'token1-to-token0';
+  const poolInputHuman = forward ? evidence.poolBalances.token0 : evidence.poolBalances.token1;
+  if (
+    !Number.isFinite(poolInputHuman) ||
+    poolInputHuman <= 0 ||
+    !Number.isFinite(sourceConsensusPriceUsd) ||
+    sourceConsensusPriceUsd <= 0 ||
+    !Number.isFinite(evidence.quote.amountIn) ||
+    evidence.quote.amountIn <= 0 ||
+    !Number.isFinite(evidence.quote.priceImpactBps) ||
+    evidence.quote.priceImpactBps < 0
+  ) {
+    return null;
+  }
+  const amountInUsd = evidence.quote.amountIn * sourceConsensusPriceUsd;
+  // Floor the impact at 1bp: stable pairs can quote 0 impact, which would
+  // otherwise imply infinite depth.
+  const impliedDepthUsd = (amountInUsd * 10_000) / Math.max(evidence.quote.priceImpactBps, 1);
+  const depthUsd = Math.min(poolInputHuman * sourceConsensusPriceUsd, impliedDepthUsd);
+  const cap = depthUsd * 0.01;
+  return Number.isFinite(cap) && cap > 0 ? Math.round(cap) : null;
+}
+
+/**
+ * Step 7 of the pre-trade check: resolve the reviewed DEX evidence lane (the
+ * lane promises were started before consensus so the calibration lands inside
+ * the signed attestation; the same promises are consumed again by the
+ * decision-input assessment below), then combine the oracle-dispersion advisory
+ * cap with the lane's real venue depth. Returns the effective recommended
+ * maximum position, the lane evidence for downstream reuse, and the human
+ * basis string used by the amount sanity warnings.
+ */
+async function resolveRecommendedPositionCap(
+  maxDeviationPct: number,
+  protocolSafety: ProtocolSafetyContext | null,
+  consensusPriceUsd: number,
+  uniswapV3Lane: Promise<ReviewedUniswapV3PreTradeEvidence | null> | undefined,
+  aerodromeLane: Promise<ReviewedAerodromeSlipstreamPreTradeEvidence | null> | undefined,
+  warnings: string[]
+): Promise<{
+  reviewedLaneEvidence:
+    | ReviewedUniswapV3PreTradeEvidence
+    | ReviewedAerodromeSlipstreamPreTradeEvidence
+    | null;
+  recommendedMaxPositionUsd: number;
+  liquidityBasis: string;
+}> {
+  const oracleRecommendedMaxPositionUsd = computeRecommendedMaxPosition(
+    maxDeviationPct,
+    protocolSafety
+  );
+  const reviewedLaneEvidence =
+    (
+      await Promise.all([
+        uniswapV3Lane ?? Promise.resolve(null),
+        aerodromeLane ?? Promise.resolve(null),
+      ])
+    ).find((evidence): evidence is NonNullable<typeof evidence> => evidence !== null) ?? null;
+  const venueLiquidityCapUsd = reviewedLaneEvidence
+    ? computeVenueLiquidityCapUsd(reviewedLaneEvidence, consensusPriceUsd)
+    : null;
+  let recommendedMaxPositionUsd = oracleRecommendedMaxPositionUsd;
+  if (
+    reviewedLaneEvidence &&
+    venueLiquidityCapUsd !== null &&
+    venueLiquidityCapUsd < oracleRecommendedMaxPositionUsd
+  ) {
+    recommendedMaxPositionUsd = Math.max(1, venueLiquidityCapUsd);
+    warnings.push(
+      `Reviewed venue liquidity cap applied: recommended max position limited to $${recommendedMaxPositionUsd.toLocaleString()} by reviewed pool depth at block ${reviewedLaneEvidence.block.number}.`
+    );
+  }
+  const liquidityBasis = reviewedLaneEvidence
+    ? `oracle-condition and reviewed-venue-liquidity cap $${recommendedMaxPositionUsd.toLocaleString()}`
+    : `oracle-condition advisory cap (not venue liquidity) $${recommendedMaxPositionUsd.toLocaleString()}`;
+  return { reviewedLaneEvidence, recommendedMaxPositionUsd, liquidityBasis };
 }
 
 /**
@@ -931,7 +1177,7 @@ function computeManipulationRisk(args: {
   let anomalyScore = 0;
   try {
     const successfulProviders = Object.values(args.providerPrices).filter(
-      (d) => d.status === 'success'
+      (d) => d.status === 'success' && d.countsTowardOracleQuorum
     );
     const absDevs = successfulProviders
       .map((d) => d.deviationPct)
@@ -1147,22 +1393,28 @@ const OBS_PRICE_SCALE = 1e8; // provider observation prices → uint256 (matches
  * Build the canonical provider-observation entries for the v2
  * providerObservationsHash from the consensus response. Each entry binds the
  * evidence source (provider), the observed value, freshness, and inclusion
- * status. `feedId` is left empty in v2.0 — feed-level granularity would require
- * an oracle_feeds lookup (a hot-path DB read this service deliberately avoids);
- * the provider namespace is the primary evidence key and is sufficient for the
- * v2.0 binding. Outlier providers remain `included` (they contributed to the
- * consensus); only unsupported/error providers are marked excluded.
+ * status. Feed IDs travel with the already-fetched provider reading, avoiding
+ * an extra hot-path registry lookup. Only observations that participated in
+ * strict consensus are included; shadow-only, outlier, unsupported, and error
+ * observations remain committed as explicit exclusions.
  */
 function buildProviderObservations(consensus: ConsensusPriceResponse): ProviderObservationEntry[] {
   return consensus.providers.map((p) => {
-    const included = p.status === 'success';
+    const included = p.status === 'success' && p.countsTowardOracleQuorum !== false && !p.isOutlier;
     let exclusionReason = '';
     if (!included) {
-      exclusionReason = p.status === 'unsupported' ? 'UNSUPPORTED' : 'ERROR';
+      exclusionReason =
+        p.status !== 'success'
+          ? p.status === 'unsupported'
+            ? 'UNSUPPORTED'
+            : 'ERROR'
+          : p.countsTowardOracleQuorum === false
+            ? 'SHADOW_ONLY'
+            : 'OUTLIER';
     }
     return {
       provider: p.provider,
-      feedId: '',
+      feedId: p.feedId ?? '',
       value: BigInt(Math.max(0, Math.round(p.price * OBS_PRICE_SCALE))),
       timestamp: BigInt(Math.floor((p.timestamp ?? Date.now()) / 1000)),
       dataAgeSeconds: BigInt(Math.max(0, Math.floor(p.dataAgeSeconds ?? 0))),
@@ -1307,7 +1559,7 @@ function applyV2IndependenceGate(
   warnings: string[]
 ): SafetyVerdict | null {
   const includedProviders = consensus.providers
-    .filter((p) => p.status === 'success')
+    .filter((p) => p.status === 'success' && p.countsTowardOracleQuorum !== false && !p.isOutlier)
     .map((p) => p.provider);
   const nonDerivedGroups = nonDerivedGroupCount(includedProviders);
   if (nonDerivedGroups >= V2_REQUIRED_NON_DERIVED_GROUPS) return null;
@@ -1323,6 +1575,96 @@ function applyV2IndependenceGate(
     `v2 independence gate: ${nonDerivedGroups} distinct non-derived operator group(s) < required ${V2_REQUIRED_NON_DERIVED_GROUPS}.`
   );
   return 'BLOCK';
+}
+
+/**
+ * A well-formed, empty consensus response. Used when no oracle data is available
+ * (zero coverage) and when issuance is halted: CAIP-19 resolution and the
+ * remaining fields still produce a valid, verifiable attestation, so the BLOCK
+ * is provable downstream instead of being dropped.
+ */
+function emptyConsensusResponse(
+  symbol: string,
+  chain: Blockchain | undefined
+): ConsensusPriceResponse {
+  return {
+    symbol,
+    chain,
+    consensusPrice: 0,
+    // 'reference' is deliberately outside the ConsensusMethod union: it marks a
+    // response that carries no consensus at all, so it can never be mistaken for
+    // a real aggregation method.
+    method: 'reference' as ConsensusMethod,
+    recommendedMethod: 'reference' as ConsensusMethod,
+    confidence: 0,
+    confidenceLevel: 'very_low',
+    agreement: 0,
+    participantCount: 0,
+    excludedCount: 0,
+    excludedProviders: [],
+    priceRange: { min: 0, max: 0 },
+    methodResults: {} as Record<ConsensusMethod, number>,
+    providers: [],
+    recommendedProvider: null,
+  };
+}
+
+/** Unsigned rule name recorded for a check refused by the operator kill switch. */
+const ISSUANCE_HALTED_RULE = 'issuance_halted';
+
+/**
+ * The result returned while the operator kill switch is engaged. It is a normal,
+ * signed BLOCK: no trade is authorised, the refusal is provable downstream, and
+ * the per-request audit row still accounts for the check. The operator's free-text
+ * reason is carried in the (unsigned) contributing factor and the audit row — it
+ * is deliberately NOT added to the signed field set, whose reason codes stay a
+ * fixed enum, so the signature layout is unchanged.
+ */
+function buildHaltedSafetyResult(
+  input: PreTradeSafetyInput,
+  reason: string | null,
+  startedAt: number
+): PreTradeSafetyResult {
+  const detail = reason ? ` Reason: ${reason}` : '';
+  const message = `Pre-trade issuance is halted by the operator; no verdict is issued while the halt is engaged.${detail}`;
+  return {
+    assessmentScope: buildAssessmentScope(input, {}, null, null, false),
+    sizingBasis: buildSizingBasis(null),
+    verdict: 'BLOCK',
+    consensusPrice: 0,
+    maxDeviationPct: 0,
+    manipulationRiskScore: 1,
+    staleDataRisk: false,
+    crossProviderAgreement: 0,
+    recommendedMaxPositionUsd: 0,
+    participantCount: 0,
+    providerPrices: {},
+    depegWarnings: [],
+    warnings: [message],
+    contributingFactors: [
+      {
+        rule: ISSUANCE_HALTED_RULE,
+        value: 1,
+        threshold: 0,
+        triggeredVerdict: 'BLOCK',
+        message,
+      },
+    ],
+    protocolSafety: null,
+    recommendedActions: [],
+    mlScore: null,
+    mlModelVersion: null,
+    mlScore1h: null,
+    mlScore6h: null,
+    mlRiskLevel: null,
+    mlMediumThreshold: null,
+    mlHighThreshold: null,
+    mlFeatureVector: {},
+    anomalyScore: 0,
+    attestation: null,
+    evaluatedAt: new Date().toISOString(),
+    latencyMs: Date.now() - startedAt,
+  };
 }
 
 function buildUnavailableSafetyResult(
@@ -1366,15 +1708,573 @@ function buildUnavailableSafetyResult(
 }
 
 /**
+ * Evaluate the operator kill switch and, when it is engaged, produce the signed
+ * BLOCK that every surface returns. Returns null while issuance runs normally.
+ *
+ * Kept out of preTradeSafetyCheck so that (already large) function stays within
+ * its line/complexity budget, and so the halt contract has exactly one home. The
+ * switch is read before any upstream call, so an incident implicating the oracle
+ * sources cannot influence the outcome, and the refusal is signed + accounted
+ * for exactly like a normal check.
+ */
+async function haltedCheckResult(
+  input: PreTradeSafetyInput,
+  meta: AuditMeta,
+  chain: Blockchain | undefined,
+  startedAt: number
+): Promise<PreTradeSafetyResult | null> {
+  const halt = await readIssuanceHalt();
+  if (!halt.halted) return null;
+
+  const result = buildHaltedSafetyResult(input, halt.reason, startedAt);
+  try {
+    result.attestation = await issueAttestation(
+      input,
+      result,
+      emptyConsensusResponse(input.asset, chain),
+      { maxAge: 0, worstDepegPct: 0, meta }
+    );
+  } catch (error) {
+    logger.warn('Failed to issue attestation for a halted check', {
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+  // Do not return a refusal that cannot be accounted for later. This write is
+  // fail-closed, so an unreadable database still refuses to serve the request.
+  await logAudit(input, result, meta);
+  return result;
+}
+
+/**
+ * Advisory manipulation-cost fetch (foundation block ②), extracted to keep
+ * preTradeSafetyCheck within its complexity budget. EVIDENCE ONLY per the
+ * collector's discipline: the result is attached to the response verbatim and
+ * is NEVER a verdict gate or a signed-attestation input. Ethereum mainnet
+ * (chainId 1) only in v0 — mainnet pool depth must not be presented as the
+ * manipulation cost of another chain's reference market. Returns undefined on
+ * any failure, uncovered symbol, or stale data; never throws.
+ */
+async function fetchManipCostAdvisorySafe(
+  asset: string,
+  chainId: number
+): Promise<ManipCostAdvisory | undefined> {
+  // Avoid constructing a database client for an asset that the fixed v0 pool
+  // map cannot possibly cover. The helper has the same guard internally, but
+  // this hot-path check prevents needless work for every unsupported symbol.
+  if (chainId !== 1 || !isManipCostCoveredSymbol(asset)) return undefined;
+  try {
+    const { createServiceRoleClient } = await import('@/lib/supabase/server');
+    const supabase = createServiceRoleClient();
+    return (await getManipCostAdvisory(supabase, asset)) ?? undefined;
+  } catch (e) {
+    logger.warn('Manipulation-cost advisory fetch failed; advisory omitted', {
+      asset,
+      error: e instanceof Error ? e.message : String(e),
+    });
+    return undefined;
+  }
+}
+
+interface DecisionInputReferenceEvidence {
+  chainlink: ChainlinkMarketReference | null;
+  redstone: RedStoneMarketReference | null;
+  cex: MarketReference | null;
+}
+
+/**
+ * Start the optional reviewed-pool read alongside the independent references.
+ * This lane is deliberately opt-in and fail-closed: a requested, unavailable,
+ * or unsupported profile becomes signed insufficient evidence rather than an
+ * inferred quote from another pool or direction.
+ */
+function startReviewedUniswapV3Fetch(
+  input: PreTradeSafetyInput
+): Promise<ReviewedUniswapV3PreTradeEvidence | null> | undefined {
+  const requested = input.decisionInput?.reviewedUniswapV3;
+  if (!requested) return undefined;
+  return getReviewedUniswapV3PreTradeEvidence({
+    chainId: input.chainId,
+    asset: input.asset,
+    destinationAsset: input.destinationAsset,
+    amountIn: requested.amountIn,
+  }).catch((error: unknown) => {
+    logger.warn('Reviewed Uniswap V3 pre-trade evidence unavailable', {
+      asset: input.asset,
+      destinationAsset: input.destinationAsset ?? null,
+      chainId: input.chainId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return null;
+  });
+}
+
+function startReviewedAerodromeSlipstreamFetch(
+  input: PreTradeSafetyInput
+): Promise<ReviewedAerodromeSlipstreamPreTradeEvidence | null> | undefined {
+  const requested = input.decisionInput?.reviewedAerodromeSlipstream;
+  if (!requested) return undefined;
+  return getReviewedAerodromeSlipstreamPreTradeEvidence({
+    chainId: input.chainId,
+    asset: input.asset,
+    destinationAsset: input.destinationAsset,
+    amountIn: requested.amountIn,
+  }).catch((error: unknown) => {
+    logger.warn('Reviewed Aerodrome Slipstream pre-trade evidence unavailable', {
+      asset: input.asset,
+      destinationAsset: input.destinationAsset ?? null,
+      chainId: input.chainId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return null;
+  });
+}
+
+function assertSingleReviewedDexLane(input: PreTradeSafetyInput): void {
+  if (input.decisionInput?.reviewedUniswapV3 && input.decisionInput.reviewedAerodromeSlipstream) {
+    throw new ValidationError(
+      'Choose only one reviewed DEX evidence lane per decision-input assessment.',
+      { field: 'decisionInput' }
+    );
+  }
+}
+
+function startDecisionInputReferenceFetch(
+  input: PreTradeSafetyInput
+): Promise<DecisionInputReferenceEvidence> | undefined {
+  if (!input.decisionInput) return undefined;
+
+  // WETH uses the ETH/USD reference feed and centralized market symbol.
+  const symbol = input.asset.trim().toUpperCase() === 'WETH' ? 'ETH' : input.asset;
+  const chainlink = fetchChainlinkMarketReference({
+    symbol,
+    chainId: input.chainId,
+    signal: AbortSignal.timeout(10_000),
+  }).catch((error: unknown) => {
+    logger.warn('Decision-input Chainlink evidence unavailable', {
+      asset: input.asset,
+      chainId: input.chainId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return null;
+  });
+  const cex = getMarketReference(symbol).catch((error: unknown) => {
+    logger.warn('Decision-input CEX evidence unavailable', {
+      asset: input.asset,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return null;
+  });
+  const redstone = fetchRedStoneMarketReference({
+    symbol,
+    // This is an optional cross-check, so keep its added request latency bounded.
+    signal: AbortSignal.timeout(3_000),
+  }).catch((error: unknown) => {
+    logger.warn('Decision-input RedStone evidence unavailable', {
+      asset: input.asset,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return null;
+  });
+
+  return Promise.all([chainlink, cex, redstone]).then(
+    ([chainlinkResult, cexResult, redstoneResult]) => ({
+      chainlink: chainlinkResult,
+      cex: cexResult,
+      redstone: redstoneResult,
+    })
+  );
+}
+
+async function attachDecisionInputAssessment(
+  input: PreTradeSafetyInput,
+  result: PreTradeSafetyResult,
+  referenceEvidencePromise: Promise<DecisionInputReferenceEvidence> | undefined,
+  reviewedUniswapV3Promise: Promise<ReviewedUniswapV3PreTradeEvidence | null> | undefined,
+  reviewedAerodromeSlipstreamPromise:
+    | Promise<ReviewedAerodromeSlipstreamPreTradeEvidence | null>
+    | undefined,
+  /** undefined means fetch now; null means the normal advisory fetch already found no evidence. */
+  knownManipulationCost?: ManipCostAdvisory | null
+): Promise<void> {
+  if (!input.decisionInput) return;
+
+  const [referenceEvidence, manipulationCost, reviewedUniswapV3, reviewedAerodromeSlipstream] =
+    await Promise.all([
+      referenceEvidencePromise ?? Promise.resolve({ chainlink: null, cex: null, redstone: null }),
+      knownManipulationCost === undefined
+        ? fetchManipCostAdvisorySafe(input.asset, input.chainId)
+        : Promise.resolve(knownManipulationCost ?? undefined),
+      reviewedUniswapV3Promise ?? Promise.resolve(null),
+      reviewedAerodromeSlipstreamPromise ?? Promise.resolve(null),
+    ]);
+
+  const assessment = assessDecisionInput({
+    asset: input.asset,
+    destinationAsset: input.destinationAsset,
+    chainId: input.chainId,
+    action: input.action,
+    tradeAmountUsd: input.tradeAmountUsd,
+    request: input.decisionInput,
+    chainlink: referenceEvidence.chainlink,
+    redstone: referenceEvidence.redstone,
+    cex: referenceEvidence.cex,
+    dex: manipulationCost ?? null,
+    reviewedUniswapV3,
+    reviewedAerodromeSlipstream,
+  });
+  const attestation = await signDecisionInputAssessment(assessment, result.attestation?.uid);
+  if (attestation) {
+    assessment.attestation = attestation;
+  } else {
+    logger.warn('Decision-input assessment signature unavailable', {
+      asset: input.asset,
+      chainId: input.chainId,
+    });
+    assessment.caveats.push(
+      'The decision-input integrity signature is unavailable; this assessment cannot be independently verified.'
+    );
+  }
+  result.decisionInputAssessment = assessment;
+}
+
+// ---------------------------------------------------------------------------
+// Decision-input context evidence (token-security lane, advisory only)
+// ---------------------------------------------------------------------------
+
+/**
+ * Built-in symbol→address map for the token-security evidence lane (Ethereum
+ * mainnet only — address resolution is chain-specific and a mainnet address
+ * must never be presented as another chain's token). ETH resolves to its WETH
+ * contract because that is the token contract scanners cover.
+ */
+const TOKEN_ADDRESS_BY_SYMBOL: Record<string, string> = {
+  ETH: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+  WETH: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+  USDC: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+  WBTC: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
+};
+
+function resolveTokenSecurityAddress(
+  input: PreTradeSafetyInput
+): { chainId: number; address: string } | null {
+  if (input.tokenAddress) {
+    const address = input.tokenAddress.toLowerCase();
+    if (!/^0x[0-9a-f]{40}$/.test(address)) return null;
+    if (!Number.isInteger(input.chainId) || input.chainId <= 0) return null;
+    return { chainId: input.chainId, address };
+  }
+  // Symbol fallback: Ethereum mainnet (chainId 1) covered symbols only.
+  if (input.chainId !== 1) return null;
+  const address = TOKEN_ADDRESS_BY_SYMBOL[input.asset.toUpperCase()];
+  return address ? { chainId: 1, address } : null;
+}
+
+/**
+ * Kick off the raw third-party token-security fetch without awaiting it, so
+ * the ~sub-second GoPlus call overlaps the oracle consensus work instead of
+ * extending tail latency. Returns null when no address resolves (fields will
+ * be omitted). Any downstream failure also resolves to null.
+ */
+function startTokenSecurityFetch(
+  input: PreTradeSafetyInput,
+  onOutcome?: (outcome: GoPlusLaneOutcome) => void
+): Promise<GoPlusRawResult | null> {
+  const resolved = resolveTokenSecurityAddress(input);
+  if (!resolved) {
+    // Explicit param that fails resolution is a caller-visible config issue —
+    // log it so a silently stripped/invalid tokenAddress is diagnosable.
+    if (input.tokenAddress) {
+      logger.warn('tokenSecurity lane skipped: tokenAddress failed resolution', {
+        tokenAddressHead: input.tokenAddress.slice(0, 12),
+        chainId: input.chainId,
+      });
+    }
+    onOutcome?.('unresolved_address');
+    return Promise.resolve(null);
+  }
+  return fetchGoPlusTokenSecurity(resolved.chainId, resolved.address, globalThis.fetch, onOutcome);
+}
+
+/**
+ * Load per-symbol observed-cadence baselines (single indexed query).
+ * NON-BLOCKING by contract: on any failure we fall back to an empty map → no
+ * cadence CAUTION, but the 7-day absolute hard-block backstop still applies.
+ */
+async function loadStalenessBaselines(asset: string): Promise<Map<string, number | null>> {
+  try {
+    const { createServiceRoleClient } = await import('@/lib/supabase/server');
+    const supabase = createServiceRoleClient();
+    const fetched = await getFeedStalenessBaselineMap(supabase, asset);
+    return fetched instanceof Map ? fetched : new Map();
+  } catch (e) {
+    logger.warn('Failed to load staleness baselines; staleness will use absolute backstop only', {
+      error: e instanceof Error ? e.message : String(e),
+    });
+    return new Map();
+  }
+}
+
+/**
+ * Bundle the lane fetch with its outcome capture so the main flow stays flat:
+ * `fetch` starts immediately (overlapping consensus work), `getOutcome` reports
+ * the terminal lane state for the opt-in debugTokenSec response surface.
+ */
+function createTokenSecurityLane(input: PreTradeSafetyInput): {
+  fetch: Promise<GoPlusRawResult | null>;
+  getOutcome: () => GoPlusLaneOutcome;
+} {
+  let outcome: GoPlusLaneOutcome = 'not_requested';
+  const fetchPromise = startTokenSecurityFetch(input, (o) => {
+    outcome = o;
+  });
+  return { fetch: fetchPromise, getOutcome: () => outcome };
+}
+
+/**
+ * Build and sign the contextAttestation from the fetched raw evidence and the
+ * exact normalized view returned alongside it. Transaction context pins the
+ * issued verdict attestation uid when one exists. On ANY
+ * failure — fetch null, signing unavailable, signing error — both fields stay
+ * undefined: we never emit an unsigned evidence lookalike, and never let this
+ * lane affect the verdict or throw.
+ */
+async function attachTokenSecurityEvidence(
+  input: PreTradeSafetyInput,
+  result: PreTradeSafetyResult,
+  fetchPromise: Promise<GoPlusRawResult | null>,
+  getOutcome: () => GoPlusLaneOutcome
+): Promise<void> {
+  const debugOn = Boolean(input.debugTokenSecurity);
+  try {
+    const raw = await fetchPromise;
+    if (debugOn) {
+      result.tokenSecurityDebug = {
+        requested: true,
+        outcome: getOutcome(),
+        latencyMs: raw?.latencyMs,
+        keyed: Boolean(process.env.GOPLUS_APP_KEY?.trim() && process.env.GOPLUS_APP_SECRET?.trim()),
+      };
+    }
+    if (!raw) return;
+
+    const resolved = resolveTokenSecurityAddress(input);
+    if (!resolved) return;
+
+    const capturedAt = new Date().toISOString();
+    const rawHash = rawBodySha256(raw.rawBody);
+    const tokenSecurity = normalizeTokenSecurityView({
+      schema: 'insight.token-security-view.v1',
+      sourcedFrom: 'gopluslabs',
+      rawHash,
+      advisory: true,
+      ...parseTokenSecurityViewFields(raw.record),
+    });
+    if (!tokenSecurity) return;
+
+    const entry = {
+      kind: 'third_party_token_scan',
+      source: 'gopluslabs',
+      request: {
+        chainId: resolved.chainId,
+        contractAddress: raw.contractAddress,
+      },
+      rawResponseSha256: rawHash,
+      normalizedResultSha256: tokenSecurityViewSha256(tokenSecurity),
+      retrievedAt: raw.fetchedAt,
+      toolVersion: 'goplus.token_security.v1',
+      authorization: 'public-source.advisory-only.v1',
+      latencyMs: raw.latencyMs,
+      ...(result.attestation?.uid ? { transactionContext: result.attestation.uid } : {}),
+    };
+
+    const attestation = await signContextAttestation({
+      entries: [entry],
+      capturedAt,
+      transactionContext: entry.transactionContext,
+    });
+    if (!attestation) return; // fail-closed: omit both fields, stay advisory
+
+    result.contextAttestation = attestation;
+    result.tokenSecurity = tokenSecurity;
+  } catch (e) {
+    logger.warn('Token-security evidence lane failed; advisory omitted', {
+      error: e instanceof Error ? e.message : String(e),
+    });
+  }
+}
+
+/**
  * Run a pre-trade oracle safety check.
  *
  * @param input Trade intent (asset, chain, action, amount).
  * @param meta  Optional audit metadata (api key id for attribution).
  */
+async function buildUnavailablePreTradeResult(
+  input: PreTradeSafetyInput,
+  meta: AuditMeta,
+  chain: Blockchain | undefined,
+  depegWarnings: DepegWarning[],
+  depegAvailable: boolean,
+  warnings: string[],
+  contributingFactors: ContributingFactor[],
+  startedAt: number,
+  decisionInputReferenceEvidence: Promise<DecisionInputReferenceEvidence> | undefined,
+  reviewedUniswapV3Promise: Promise<ReviewedUniswapV3PreTradeEvidence | null> | undefined,
+  reviewedAerodromeSlipstreamPromise:
+    | Promise<ReviewedAerodromeSlipstreamPreTradeEvidence | null>
+    | undefined
+): Promise<PreTradeSafetyResult> {
+  const result = buildUnavailableSafetyResult(
+    input,
+    depegWarnings,
+    depegAvailable,
+    warnings,
+    contributingFactors,
+    startedAt
+  );
+  try {
+    result.attestation = await issueAttestation(
+      input,
+      result,
+      emptyConsensusResponse(input.asset, chain),
+      { maxAge: 0, worstDepegPct: 0, meta }
+    );
+  } catch (error) {
+    logger.warn('Failed to issue attestation for zero-coverage BLOCK', {
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+  await attachDecisionInputAssessment(
+    input,
+    result,
+    decisionInputReferenceEvidence,
+    reviewedUniswapV3Promise,
+    reviewedAerodromeSlipstreamPromise
+  );
+  await logAudit(input, result, meta);
+  return result;
+}
+
+/** Cadence-relative staleness CAUTION plus the consensus-aware hard backstop.
+ *  Extracted from preTradeSafetyCheck to keep it within its lint budget; the
+ *  rule semantics live here. */
+function evaluateStalenessRules(params: {
+  providerPrices: Record<string, ProviderPriceDetail>;
+  stalenessBaselines: Map<string, number | null>;
+  maxAge: number;
+  staleProviders: string[];
+  staleRisk: boolean;
+}): { verdict: SafetyVerdict | null; factors: ContributingFactor[]; warnings: string[] } {
+  const factors: ContributingFactor[] = [];
+  const warnings: string[] = [];
+  let verdict: SafetyVerdict | null = null;
+  const escalate = (next: SafetyVerdict) => {
+    verdict = verdict === null ? next : pickWorst(verdict, next);
+  };
+
+  // Cadence-relative staleness: a SOFT CAUTION only — never blocks. A feed is
+  // stale only vs its own observed cadence (feedCadence.isCadenceStale), so
+  // naturally-slow sources are never falsely flagged and never blocked. The
+  // absolute 7-day threshold (THRESHOLDS.dataStaleSeconds.block) is the only
+  // hard-block backstop, for feeds that are genuinely stuck.
+  if (params.staleRisk) {
+    escalate('CAUTION');
+    // Representative effective threshold: K × the tightest stale baseline.
+    const staleBaselines = params.staleProviders
+      .map((p) => params.stalenessBaselines.get(p) ?? 0)
+      .filter((b) => b > 0);
+    const effectiveThreshold =
+      staleBaselines.length > 0
+        ? CAUTION_STALE_MULTIPLIER * Math.min(...staleBaselines)
+        : STALE_FLOOR_SECONDS;
+    factors.push({
+      rule: 'data_stale_seconds',
+      value: params.maxAge,
+      threshold: effectiveThreshold,
+      triggeredVerdict: 'CAUTION',
+      message: `Stale oracle data: ${params.staleProviders.join(', ')} exceed their observed update cadence (max age ${params.maxAge}s).`,
+    });
+    warnings.push(`Oracle data is stale vs its own cadence (max age ${params.maxAge}s).`);
+  }
+
+  // Hard backstop (consensus-aware): a feed is only BLOCKED as "extremely stale"
+  // when it is BOTH >= the absolute backstop age AND its price diverges from the
+  // fresh consensus (proving the data is genuinely dead, not just a stale
+  // timestamp). A stale timestamp whose price still agrees with consensus is a
+  // timestamp-source anomaly (e.g. API3 communal dAPIs report 7-120d-old
+  // `updatedAt` while serving current prices) and must NOT hard-block — it
+  // surfaces as a soft CAUTION instead. When NO provider is fresh (total oracle
+  // outage) we cannot corroborate and fall back to the absolute age -> BLOCK.
+  const hardStale = classifyStalenessHardBlock(params.providerPrices);
+  for (const [provider, detail] of Object.entries(params.providerPrices)) {
+    detail.timestampAnomaly = hardStale.timestampAnomalyProviders.includes(provider);
+  }
+  if (hardStale.hardBlock) {
+    escalate('BLOCK');
+    factors.push({
+      rule: 'data_stale_seconds',
+      value: params.maxAge,
+      threshold: THRESHOLDS.dataStaleSeconds.block,
+      triggeredVerdict: 'BLOCK',
+      message: `Oracle data extremely stale AND diverges from consensus: ${hardStale.hardStaleProviders.join(', ')} (max age ${params.maxAge}s >= ${THRESHOLDS.dataStaleSeconds.block}s absolute backstop).`,
+    });
+    warnings.push(`Oracle data is extremely stale (max age ${params.maxAge}s).`);
+  }
+  if (hardStale.timestampAnomalyProviders.length > 0) {
+    escalate('CAUTION');
+    factors.push({
+      rule: 'data_stale_timestamp_anomaly',
+      value: params.maxAge,
+      threshold: THRESHOLDS.dataStaleSeconds.block,
+      triggeredVerdict: 'CAUTION',
+      message: `Stale timestamp but price in consensus: ${hardStale.timestampAnomalyProviders.join(', ')} (max age ${params.maxAge}s) — likely a timestamp-source anomaly, not dead data.`,
+    });
+    warnings.push(
+      `Stale timestamp reported by ${hardStale.timestampAnomalyProviders.join(', ')} but price agrees with consensus (possible timestamp-source anomaly).`
+    );
+  }
+
+  return { verdict, factors, warnings };
+}
+
+/** Depeg rule: take the worst active depeg warning across the pair. */
+function evaluateDepegRule(params: { depegWarnings: DepegWarning[] }): {
+  verdict: SafetyVerdict | null;
+  factors: ContributingFactor[];
+  warnings: string[];
+} {
+  const factors: ContributingFactor[] = [];
+  const warnings: string[] = [];
+
+  const worstDepeg = params.depegWarnings.reduce<number>(
+    (max, w) => (Math.abs(w.deviationPct) > max ? Math.abs(w.deviationPct) : max),
+    0
+  );
+  const depegVerdict = evaluateHighIsBad(worstDepeg, THRESHOLDS.stablecoinDepegPct);
+  if (depegVerdict) {
+    const worstCoin = params.depegWarnings.reduce<string | null>(
+      (pick, w) => (Math.abs(w.deviationPct) >= worstDepeg ? w.stablecoin : pick),
+      null
+    );
+    factors.push({
+      rule: 'stablecoin_depeg_pct',
+      value: roundTo(worstDepeg, 4),
+      threshold:
+        THRESHOLDS.stablecoinDepegPct[depegVerdict.toLowerCase() as 'caution' | 'danger' | 'block'],
+      triggeredVerdict: depegVerdict,
+      message: `Stablecoin ${worstCoin ?? ''} depeg ${worstDepeg.toFixed(2)}% exceeds ${depegVerdict.toLowerCase()} threshold.`,
+    });
+    warnings.push(`Active stablecoin depeg detected (${worstDepeg.toFixed(2)}%).`);
+  }
+  return { verdict: depegVerdict, factors, warnings };
+}
+
 export async function preTradeSafetyCheck(
   input: PreTradeSafetyInput,
-  meta: AuditMeta = {}
+  meta: AuditMeta = {},
+  options: { signal?: AbortSignal } = {}
 ): Promise<PreTradeSafetyResult> {
+  throwIfAborted(options.signal);
   const startedAt = Date.now();
   const warnings: string[] = [];
   const contributingFactors: ContributingFactor[] = [];
@@ -1388,17 +2288,26 @@ export async function preTradeSafetyCheck(
     );
   }
 
+  // 0. Operator kill switch (see haltedCheckResult). Read before any upstream
+  // call: while halted, every surface receives a signed BLOCK and no upstream
+  // data is consulted. See src/lib/ops/issuanceControl.ts for the deliberate
+  // (and loudly logged) fail-open behaviour when the switch is unreadable.
+  const halted = await haltedCheckResult(input, meta, chain, startedAt);
+  throwIfAborted(options.signal);
+  if (halted) return halted;
+
+  assertSingleReviewedDexLane(input);
+  const decisionInputReferenceEvidence = startDecisionInputReferenceFetch(input);
+  const reviewedUniswapV3Evidence = startReviewedUniswapV3Fetch(input);
+  const reviewedAerodromeSlipstreamEvidence = startReviewedAerodromeSlipstreamFetch(input);
+
   // 1. Cross-oracle consensus price (also embeds reputation + agreement).
   let consensus: ConsensusPriceResponse | undefined;
   let consensusFailed = false;
   try {
-    consensus = await getConsensusPrice(
-      input.asset,
-      chain,
-      undefined,
-      input.targetProviders as OracleProvider[] | undefined
-    );
+    consensus = await fetchConsensusForPreTrade(input, chain, options.signal);
   } catch (error) {
+    throwIfAborted(options.signal);
     if (error instanceof UnsupportedSymbolError) {
       // No oracle coverage for this asset/chain — cannot verify, treat as BLOCK.
       consensusFailed = true;
@@ -1419,79 +2328,45 @@ export async function preTradeSafetyCheck(
   }
 
   // 2. Stablecoin depeg warnings (non-blocking).
-  const depeg = await fetchDepegWarnings(input.asset);
+  const depeg = await fetchDepegWarnings(input.asset, input.destinationAsset, options.signal);
+  throwIfAborted(options.signal);
   const depegWarnings = depeg.warnings;
   if (!depeg.available)
     warnings.push(
       'Stablecoin peg monitor unavailable; absence of a depeg warning is not a verified healthy peg.'
     );
 
-  const startedAtMs = Date.now();
-
   // If consensus failed, short-circuit to BLOCK.
   if (consensusFailed || !consensus) {
-    const result = buildUnavailableSafetyResult(
+    return buildUnavailablePreTradeResult(
       input,
+      meta,
+      chain,
       depegWarnings,
       depeg.available,
       warnings,
       contributingFactors,
-      startedAt
+      startedAt,
+      decisionInputReferenceEvidence,
+      reviewedUniswapV3Evidence,
+      reviewedAerodromeSlipstreamEvidence
     );
-
-    // Even for zero-coverage BLOCKs, sign the attestation. The signed
-    // attestation proves Insight issued the BLOCK, making it provable
-    // downstream. An empty consensus (no providers) is used since no
-    // oracle data was available — the CAIP-19 resolution and remaining
-    // fields still produce a valid, verifiable attestation.
-    try {
-      const emptyConsensus = {
-        symbol: input.asset,
-        chain: chain,
-        consensusPrice: 0,
-        method: 'reference' as ConsensusMethod,
-        recommendedMethod: 'reference' as ConsensusMethod,
-        confidence: 0,
-        confidenceLevel: 'very_low' as const,
-        agreement: 0,
-        participantCount: 0,
-        excludedCount: 0,
-        excludedProviders: [],
-        priceRange: { min: 0, max: 0 },
-        methodResults: {} as Record<ConsensusMethod, number>,
-        providers: [],
-        recommendedProvider: null,
-      };
-      result.attestation = await issueAttestation(input, result, emptyConsensus, {
-        maxAge: 0,
-        worstDepegPct: 0,
-        meta,
-      });
-    } catch (error) {
-      logger.warn('Failed to issue attestation for zero-coverage BLOCK', {
-        error: error instanceof Error ? error.message : String(error),
-      });
-    }
-
-    await logAudit(input, result, meta);
-    return result;
   }
 
   // 3. Build per-provider detail map.
   // Fetch observed-cadence baselines for this symbol (single indexed query).
   // NON-BLOCKING: on any failure we fall back to an empty map → no cadence
   // CAUTION, but the 7-day absolute hard-block backstop still applies.
-  let stalenessBaselines: Map<string, number | null> = new Map();
-  try {
-    const { createServiceRoleClient } = await import('@/lib/supabase/server');
-    const supabase = createServiceRoleClient();
-    const fetched = await getFeedStalenessBaselineMap(supabase, input.asset);
-    if (fetched instanceof Map) stalenessBaselines = fetched;
-  } catch (e) {
-    logger.warn('Failed to load staleness baselines; staleness will use absolute backstop only', {
-      error: e instanceof Error ? e.message : String(e),
-    });
-  }
+  // 3b. These reads are all independent, advisory/context inputs. Start them
+  // together so a pre-trade request pays the longest read once rather than
+  // serial database latency. None is a verdict gate.
+  const manipulationCostPromise = fetchManipCostAdvisorySafe(input.asset, input.chainId);
+  const tokenSecurityLane = createTokenSecurityLane(input);
+  const stalenessBaselinesPromise = loadStalenessBaselines(input.asset);
+  const [manipulationCost, stalenessBaselines] = await Promise.all([
+    manipulationCostPromise,
+    stalenessBaselinesPromise,
+  ]);
 
   const providerPrices = buildProviderPrices(consensus, stalenessBaselines);
 
@@ -1505,6 +2380,7 @@ export async function preTradeSafetyCheck(
   const agreement = consensus.agreement;
 
   const reputationScores = Object.values(providerPrices)
+    .filter((d) => d.countsTowardOracleQuorum)
     .map((d) => d.reputationScore)
     .filter((s): s is number => s !== null);
   const minReputation = reputationScores.length > 0 ? Math.min(...reputationScores) : 75;
@@ -1584,66 +2460,18 @@ export async function preTradeSafetyCheck(
     warnings.push(`Price spread between oracles ${spreadPct.toFixed(2)}% is elevated.`);
   }
 
-  // Cadence-relative staleness: a SOFT CAUTION only — never blocks. A feed is
-  // stale only vs its own observed cadence (feedCadence.isCadenceStale), so
-  // naturally-slow sources are never falsely flagged and never blocked. The
-  // absolute 7-day threshold (THRESHOLDS.dataStaleSeconds.block) is the only
-  // hard-block backstop, for feeds that are genuinely stuck.
-  if (staleRisk) {
-    verdict = pickWorst(verdict, 'CAUTION');
-    // Representative effective threshold: K × the tightest stale baseline.
-    const staleBaselines = staleProviders
-      .map((p) => stalenessBaselines.get(p) ?? 0)
-      .filter((b) => b > 0);
-    const effectiveThreshold =
-      staleBaselines.length > 0
-        ? CAUTION_STALE_MULTIPLIER * Math.min(...staleBaselines)
-        : STALE_FLOOR_SECONDS;
-    contributingFactors.push({
-      rule: 'data_stale_seconds',
-      value: maxAge,
-      threshold: effectiveThreshold,
-      triggeredVerdict: 'CAUTION',
-      message: `Stale oracle data: ${staleProviders.join(', ')} exceed their observed update cadence (max age ${maxAge}s).`,
-    });
-    warnings.push(`Oracle data is stale vs its own cadence (max age ${maxAge}s).`);
-  }
-  // Hard backstop (consensus-aware): a feed is only BLOCKED as "extremely stale"
-  // when it is BOTH >= the absolute backstop age AND its price diverges from the
-  // fresh consensus (proving the data is genuinely dead, not just a stale
-  // timestamp). A stale timestamp whose price still agrees with consensus is a
-  // timestamp-source anomaly (e.g. API3 communal dAPIs report 7-120d-old
-  // `updatedAt` while serving current prices) and must NOT hard-block — it
-  // surfaces as a soft CAUTION instead. When NO provider is fresh (total oracle
-  // outage) we cannot corroborate and fall back to the absolute age -> BLOCK.
-  const hardStale = classifyStalenessHardBlock(providerPrices);
-  for (const [provider, detail] of Object.entries(providerPrices)) {
-    detail.timestampAnomaly = hardStale.timestampAnomalyProviders.includes(provider);
-  }
-  if (hardStale.hardBlock) {
-    verdict = pickWorst(verdict, 'BLOCK');
-    contributingFactors.push({
-      rule: 'data_stale_seconds',
-      value: maxAge,
-      threshold: THRESHOLDS.dataStaleSeconds.block,
-      triggeredVerdict: 'BLOCK',
-      message: `Oracle data extremely stale AND diverges from consensus: ${hardStale.hardStaleProviders.join(', ')} (max age ${maxAge}s >= ${THRESHOLDS.dataStaleSeconds.block}s absolute backstop).`,
-    });
-    warnings.push(`Oracle data is extremely stale (max age ${maxAge}s).`);
-  }
-  if (hardStale.timestampAnomalyProviders.length > 0) {
-    verdict = pickWorst(verdict, 'CAUTION');
-    contributingFactors.push({
-      rule: 'data_stale_timestamp_anomaly',
-      value: maxAge,
-      threshold: THRESHOLDS.dataStaleSeconds.block,
-      triggeredVerdict: 'CAUTION',
-      message: `Stale timestamp but price in consensus: ${hardStale.timestampAnomalyProviders.join(', ')} (max age ${maxAge}s) — likely a timestamp-source anomaly, not dead data.`,
-    });
-    warnings.push(
-      `Stale timestamp reported by ${hardStale.timestampAnomalyProviders.join(', ')} but price agrees with consensus (possible timestamp-source anomaly).`
-    );
-  }
+  // Staleness rules (cadence CAUTION + consensus-aware hard backstop), extracted
+  // into evaluateStalenessRules; see that helper for the full semantics.
+  const stalenessRules = evaluateStalenessRules({
+    providerPrices,
+    stalenessBaselines,
+    maxAge,
+    staleProviders,
+    staleRisk,
+  });
+  if (stalenessRules.verdict) verdict = pickWorst(verdict, stalenessRules.verdict);
+  contributingFactors.push(...stalenessRules.factors);
+  warnings.push(...stalenessRules.warnings);
 
   const agreementVerdict = evaluateLowIsBad(agreement, THRESHOLDS.crossProviderAgreement);
   if (agreementVerdict) {
@@ -1661,28 +2489,11 @@ export async function preTradeSafetyCheck(
     warnings.push(`Oracle providers disagree (agreement ${(agreement * 100).toFixed(1)}%).`);
   }
 
-  // Depeg: take the worst active depeg warning.
-  const worstDepeg = depegWarnings.reduce<number>(
-    (max, w) => (Math.abs(w.deviationPct) > max ? Math.abs(w.deviationPct) : max),
-    0
-  );
-  const depegVerdict = evaluateHighIsBad(worstDepeg, THRESHOLDS.stablecoinDepegPct);
-  if (depegVerdict) {
-    verdict = pickWorst(verdict, depegVerdict);
-    const worstCoin = depegWarnings.reduce<string | null>(
-      (pick, w) => (Math.abs(w.deviationPct) >= worstDepeg ? w.stablecoin : pick),
-      null
-    );
-    contributingFactors.push({
-      rule: 'stablecoin_depeg_pct',
-      value: roundTo(worstDepeg, 4),
-      threshold:
-        THRESHOLDS.stablecoinDepegPct[depegVerdict.toLowerCase() as 'caution' | 'danger' | 'block'],
-      triggeredVerdict: depegVerdict,
-      message: `Stablecoin ${worstCoin ?? ''} depeg ${worstDepeg.toFixed(2)}% exceeds ${depegVerdict.toLowerCase()} threshold.`,
-    });
-    warnings.push(`Active stablecoin depeg detected (${worstDepeg.toFixed(2)}%).`);
-  }
+  // Depeg rule, extracted into evaluateDepegRule; see that helper.
+  const depegRule = evaluateDepegRule({ depegWarnings });
+  if (depegRule.verdict) verdict = pickWorst(verdict, depegRule.verdict);
+  contributingFactors.push(...depegRule.factors);
+  warnings.push(...depegRule.warnings);
 
   // Protocol buffer rule (lending actions only): escalate + freeze based on
   // how much cross-oracle dispersion consumes the protocol's max-LTV buffer.
@@ -1740,8 +2551,18 @@ export async function preTradeSafetyCheck(
   const anomalyScore = risk.anomalyScore;
   const manipulationRiskScore = risk.manipulationRiskScore;
 
-  // 7. Recommended max position.
-  const recommendedMaxPositionUsd = computeRecommendedMaxPosition(maxDeviationPct, protocolSafety);
+  // 7. Recommended max position. Oracle dispersion sets the advisory base; when
+  // the caller supplied a reviewed DEX evidence lane, that lane's exact quote
+  // and live pool balances calibrate the cap with real venue depth (see the
+  // helper for promise-timing and cap semantics).
+  const { recommendedMaxPositionUsd, liquidityBasis } = await resolveRecommendedPositionCap(
+    maxDeviationPct,
+    protocolSafety,
+    consensus.consensusPrice,
+    reviewedUniswapV3Evidence,
+    reviewedAerodromeSlipstreamEvidence,
+    warnings
+  );
 
   // 8. Amount vs recommended position sanity.
   if (input.tradeAmountUsd > recommendedMaxPositionUsd * 3) {
@@ -1751,11 +2572,9 @@ export async function preTradeSafetyCheck(
       value: input.tradeAmountUsd,
       threshold: recommendedMaxPositionUsd * 3,
       triggeredVerdict: 'DANGER',
-      message: `Trade size $${input.tradeAmountUsd.toLocaleString()} far exceeds oracle-condition advisory cap (not venue liquidity) $${recommendedMaxPositionUsd.toLocaleString()}.`,
+      message: `Trade size $${input.tradeAmountUsd.toLocaleString()} far exceeds ${liquidityBasis}.`,
     });
-    warnings.push(
-      `Trade size far exceeds oracle-condition advisory cap; venue liquidity was not assessed ($${recommendedMaxPositionUsd.toLocaleString()}).`
-    );
+    warnings.push(`Trade size far exceeds ${liquidityBasis}.`);
   } else if (input.tradeAmountUsd > recommendedMaxPositionUsd * 1.5) {
     verdict = pickWorst(verdict, 'CAUTION');
     contributingFactors.push({
@@ -1763,16 +2582,14 @@ export async function preTradeSafetyCheck(
       value: input.tradeAmountUsd,
       threshold: recommendedMaxPositionUsd * 1.5,
       triggeredVerdict: 'CAUTION',
-      message: `Trade size $${input.tradeAmountUsd.toLocaleString()} exceeds oracle-condition advisory cap (not venue liquidity) $${recommendedMaxPositionUsd.toLocaleString()}.`,
+      message: `Trade size $${input.tradeAmountUsd.toLocaleString()} exceeds ${liquidityBasis}.`,
     });
-    warnings.push(
-      `Trade size exceeds oracle-condition advisory cap; venue liquidity was not assessed ($${recommendedMaxPositionUsd.toLocaleString()}).`
-    );
+    warnings.push(`Trade size exceeds ${liquidityBasis}.`);
   }
 
   // 9. Outlier provider warning (informational).
   const outliers = Object.entries(providerPrices)
-    .filter(([, d]) => d.isOutlier)
+    .filter(([, d]) => d.countsTowardOracleQuorum && d.isOutlier)
     .map(([provider]) => provider);
   if (outliers.length > 0) {
     warnings.push(`Outlier providers detected: ${outliers.join(', ')}.`);
@@ -1808,8 +2625,6 @@ export async function preTradeSafetyCheck(
     if (indep) verdict = pickWorst(verdict, indep);
   }
 
-  void startedAtMs; // marker for future per-phase timing
-
   const result: PreTradeSafetyResult = {
     assessmentScope: buildAssessmentScope(
       input,
@@ -1842,6 +2657,9 @@ export async function preTradeSafetyCheck(
     mlHighThreshold,
     mlFeatureVector,
     anomalyScore,
+    // Advisory only (see ManipCostAdvisory). undefined drops out of the JSON
+    // response entirely — the field is absent, not null, for uncovered assets.
+    manipulationCost,
     // Non-blocking: sign the verdict as an EIP-712 offchain attestation. null
     // when no attester key is configured — never affects the verdict itself.
     attestation: null,
@@ -1860,6 +2678,24 @@ export async function preTradeSafetyCheck(
       error: error instanceof Error ? error.message : String(error),
     });
   }
+
+  await attachDecisionInputAssessment(
+    input,
+    result,
+    decisionInputReferenceEvidence,
+    reviewedUniswapV3Evidence,
+    reviewedAerodromeSlipstreamEvidence,
+    manipulationCost ?? null
+  );
+
+  // 7. Advisory evidence lanes (see attachTokenSecurityEvidence): signed
+  // third-party capture + parsed view, omitted on any failure.
+  await attachTokenSecurityEvidence(
+    input,
+    result,
+    tokenSecurityLane.fetch,
+    tokenSecurityLane.getOutcome
+  );
 
   // Do not issue a safety verdict that cannot be accounted for later.
   await logAudit(input, result, meta);

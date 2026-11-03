@@ -49,6 +49,7 @@ import {
   RECHECK_V3_PRIMARY_TYPE,
   type OracleSafetyRecheckV3,
 } from '@/lib/attestations/oracleSafetyRecheckV3';
+import { verifyTestAttestation, TEST_PRIMARY_TYPE } from '@/lib/testing/oracleScenario/attestation';
 
 /** Loose envelope accepted by the router. v1 carries 11 fields, v2/v3 carry
  *  more; the crypto layer re-derives the hash from the schema constants and
@@ -118,12 +119,21 @@ function toUnified(
  *                                            threshold)
  *   - v3 OracleSafetyRecheck (schemaVersion=3, primaryType 'OracleSafetyRecheck')
  *                                          → v3 recheck domain/types (29 fields)
+ *   - OracleScenarioRun (schemaVersion=1, primaryType 'OracleScenarioRun')
+ *                                          → test domain/types (13 fields); the
+ *                                            scenario-testing harness line. It
+ *                                            shares schemaVersion=1 with plain v1,
+ *                                            so it is routed by primaryType FIRST.
  *
  * The recheck carries schemaVersion=2 (v2 family) but a distinct primaryType,
  * so it MUST be routed before the plain-v2 branch — otherwise it would be
  * verified against the 26-field type (ignoring originalUid + originalRequestHash)
  * and always fail UID recovery. Extracted as a pure, exported helper so the
  * routing decision is unit-testable without the API middleware stack.
+ *
+ * The same ordering constraint applies to OracleScenarioRun v1, with the added
+ * complication that its schemaVersion collides with the plain v1 pre-trade
+ * receipt. primaryType is the only thing separating them.
  *
  * Unknown schema versions / primaryTypes return an invalid result rather than
  * throwing, so the public endpoint can respond with a structured `valid: false`.
@@ -137,6 +147,32 @@ export async function verifyAttestationBySchema(
   // — check both so a recheck routes correctly even if one is missing.
   const primaryType = attestation.eip712?.primaryType;
   const isRecheck = attestation.type === RECHECK_TYPE || primaryType === RECHECK_PRIMARY_TYPE;
+  // A scenario-test receipt also carries schemaVersion=1, colliding with the
+  // plain v1 pre-trade receipt. Its primaryType is the only reliable
+  // discriminator, so it must be routed BEFORE the v1 branch below.
+  const isTestRun = attestation.type === TEST_PRIMARY_TYPE || primaryType === TEST_PRIMARY_TYPE;
+
+  if (isTestRun) {
+    const t = await verifyTestAttestation(attestation as never);
+    // A scenario-test receipt anchors its start time with `ranAt`, not
+    // `checkedAt`; the unified shape keeps the same field name so callers do
+    // not need a per-schema branch.
+    const ranAt = typeof attestation.data?.ranAt === 'number' ? attestation.data.ranAt : null;
+    const testValidUntil =
+      typeof attestation.data?.validUntil === 'number' ? attestation.data.validUntil : null;
+    return toUnified(
+      {
+        valid: t.valid,
+        attester: t.attester,
+        uid: t.uid ?? null,
+        checkedAt: ranAt,
+        expired: t.expired,
+        reason: t.reason,
+      },
+      1,
+      { validUntil: testValidUntil, ageSeconds: null }
+    );
+  }
 
   if (schemaVersion === V3_SCHEMA_VERSION && isRecheck) {
     const rc = await verifyRecheckV3(attestation as unknown as OracleSafetyRecheckV3);
@@ -175,7 +211,7 @@ export async function verifyAttestationBySchema(
     ageSeconds: null,
     expired: false,
     schemaVersion,
-    reason: `Unsupported schemaVersion ${schemaVersion}; supported: 1 (v1), 2 (v2), 3 (v3).`,
+    reason: `Unsupported schemaVersion ${schemaVersion}; supported: 1 (v1), 2 (v2), 3 (v3). OracleScenarioRun v1 is routed by primaryType, not by this number.`,
   };
 }
 

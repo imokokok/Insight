@@ -81,7 +81,7 @@ describe('POST /api/billing/checkout', () => {
     expect(response.status).toBe(200);
     expect(mockCreateInvoice).toHaveBeenCalledWith(
       expect.objectContaining({
-        priceAmount: 39,
+        priceAmount: 99,
         priceCurrency: 'usd',
         ipnCallbackUrl: 'https://www.oracleinsight.xyz/api/billing/webhook',
       })
@@ -91,7 +91,7 @@ describe('POST /api/billing/checkout', () => {
       expect.objectContaining({
         user_id: USER_ID,
         credits: 25_000,
-        price_usd: 39,
+        price_usd: 99,
         status: 'incomplete',
       })
     );
@@ -119,8 +119,28 @@ describe('POST /api/billing/checkout', () => {
         status: 'incomplete',
       })
     );
+    expect(mockCreateInvoice).toHaveBeenCalledWith(
+      expect.objectContaining({ priceAmount: 229, priceCurrency: 'usd' })
+    );
     expect(mockUpdate).toHaveBeenCalledWith(
       expect.objectContaining({ nowpayments_invoice_id: 'invoice_1' })
+    );
+  });
+
+  it('uses the configured annual subscription price for the invoice', async () => {
+    const response = await callPost({
+      type: 'subscription',
+      plan: 'developer',
+      interval: 'year',
+    });
+
+    expect(response.status).toBe(200);
+    expect(mockCreateInvoice).toHaveBeenCalledWith(
+      expect.objectContaining({ priceAmount: 2519, priceCurrency: 'usd' })
+    );
+    expect(mockFrom).toHaveBeenCalledWith('subscriptions');
+    expect(mockInsert).toHaveBeenCalledWith(
+      expect.objectContaining({ plan: 'developer', interval: 'year' })
     );
   });
 

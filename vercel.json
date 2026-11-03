@@ -8,6 +8,12 @@
     "src/app/api/v1/rwa/robinhood/context/route.ts": {
       "maxDuration": 30
     },
+    "src/app/api/v1/safety/pre-trade/route.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/v1/safety/swap-intent/route.ts": {
+      "maxDuration": 30
+    },
     "src/app/api/oracles/[provider]/route.ts": {
       "maxDuration": 30
     },
@@ -21,6 +27,9 @@
       "maxDuration": 60
     },
     "src/app/api/cron/sync-feeds/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/cron/monad-dex-market/route.ts": {
       "maxDuration": 60
     },
     "src/app/api/cron/daily-report/route.ts": {

@@ -4,8 +4,8 @@ Describe the user-visible outcome and any API, database, billing, or data-pipeli
 
 ## Verification
 
-- [ ] `npm run validate:ci`
-- [ ] Relevant Playwright smoke/interaction tests
+- [ ] The `pre-push` CI preflight passed with the pinned Node version
+- [ ] Relevant extra Playwright interaction tests passed
 - [ ] Public and authenticated data responses remain compatible
 - [ ] No secret, production credential, or customer data is included
 - [ ] Migration/RLS impact reviewed, or no database change

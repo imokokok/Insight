@@ -5,11 +5,14 @@ import { Database, Globe } from 'lucide-react';
 
 const providers = [
   { name: 'Chainlink', type: 'On-chain', chains: 'EVM L1s & L2s' },
+  { name: 'Pyth Core', type: 'On-chain push', chains: 'Monad' },
+  { name: 'Stork', type: 'On-chain push', chains: 'Monad' },
+  { name: 'Chronicle', type: 'On-chain push', chains: 'Monad' },
   { name: 'API3', type: 'On-chain dAPIs', chains: 'Ethereum, Arbitrum, Base, Polygon, others' },
   { name: 'RedStone', type: 'API / On-chain', chains: 'EVM L1s & L2s' },
   { name: 'DIA', type: 'API / On-chain', chains: 'EVM L1s & L2s' },
   { name: 'WINkLink', type: 'On-chain', chains: 'TRON' },
-  { name: 'Supra', type: 'API / On-chain', chains: 'EVM, Move, Cosmos ecosystems' },
+  { name: 'Supra DORA Push', type: 'On-chain push', chains: 'Monad; API coverage elsewhere' },
   { name: 'TWAP', type: 'On-chain', chains: 'DEX TWAP oracles' },
   { name: 'Reflector', type: 'On-chain', chains: 'Stellar / Soroban' },
   { name: 'Flare', type: 'On-chain', chains: 'Flare Network' },
@@ -17,7 +20,7 @@ const providers = [
 ];
 
 const highlights = [
-  { label: 'Oracle Providers', value: '10' },
+  { label: 'Oracle Providers', value: '13' },
   { label: 'Supported Chains', value: '40+' },
   { label: 'Data Type', value: 'On-chain & API' },
 ];
@@ -63,7 +66,9 @@ export default function DataSourcesSection() {
           </div>
           <p className="text-slate-600 leading-relaxed max-w-3xl">
             Insight aggregates price data from leading oracle providers across 40+ blockchain
-            networks, normalizing every feed into a common format for comparison and analysis.
+            networks, normalizing every feed into a common format for comparison and analysis. It
+            also maintains a separate CEX spot-market reference for oracle divergence and decision
+            input context.
           </p>
         </motion.div>
 
@@ -136,6 +141,54 @@ export default function DataSourcesSection() {
                 </tbody>
               </table>
             </div>
+          </motion.div>
+
+          {/* Independent centralized-exchange references are separate from oracle providers. */}
+          <motion.div
+            variants={itemVariants}
+            className="border-l-2 border-emerald-600 bg-emerald-50/70 p-6"
+          >
+            <h3 className="font-semibold text-slate-900 mb-2">
+              Independent CEX spot-market references
+            </h3>
+            <p className="text-sm text-slate-600 leading-relaxed">
+              Coinbase, Kraken, and Gemini provide direct USD spot references for their supported
+              pairs; Crypto.com adds a direct WBTC/USD market. Bitstamp and Bitfinex are optional
+              direct USD spot sources for their supported pairs. Binance currently adds a WBTC
+              reference derived from its WBTC/USDT and USDT/USD spot markets, so its quote-currency
+              conversion remains explicit.
+            </p>
+            <p className="mt-3 text-sm text-slate-600 leading-relaxed">
+              Solana-native assets (the CAIP-19 Solana registry) are priced by three Solana sources:
+              Jupiter Lite (the documented free tier of Jupiter&apos;s price API, serving as the
+              aggregated-liquidity baseline), plus DexScreener and GeckoTerminal, which aggregate
+              public on-chain Solana liquidity pools — one batch request each per collection run.
+              These quotes give every registered Solana asset a three-source cross-checkable market
+              reference; as pool-derived prices they are treated as consensus inputs, not
+              authoritative prints. DexScreener additionally fail-closes any pair its indexer has
+              not seen trade in over 24 hours, so a silent pool never writes a stale reference.
+            </p>
+            <p className="mt-3 text-sm text-slate-600 leading-relaxed">
+              Optional Bitstamp, Bitfinex, and Binance collection is enabled only when the intended
+              commercial use is covered by written data permissions and the deployment is
+              configured. These market references are evidence for comparison; they are not counted
+              among the 13 oracle providers and do not enter oracle consensus.
+            </p>
+          </motion.div>
+
+          <motion.div
+            variants={itemVariants}
+            className="border-l-2 border-violet-600 bg-violet-50/70 p-6"
+          >
+            <h3 className="font-semibold text-slate-900 mb-2">Monad DEX market evidence</h3>
+            <p className="text-sm text-slate-600 leading-relaxed">
+              The reviewed Uniswap V3 WMON/USDC market on Monad contributes block-pinned spot and
+              15-minute TWAP observations, in-range liquidity, and Quoter V2 execution quotes at
+              fixed MON sizes. Finalized Swap events are indexed separately for rolling source-local
+              volume, and the API reports a warming state until 24 hours of contiguous coverage
+              exists. This is execution and manipulation-context evidence, not an oracle provider
+              and never an oracle-consensus vote.
+            </p>
           </motion.div>
 
           {/* Verification note */}

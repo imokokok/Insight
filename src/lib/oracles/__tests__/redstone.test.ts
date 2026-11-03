@@ -99,7 +99,8 @@ describe('RedStoneClient', () => {
     });
 
     it('should have correct number of supported chains', () => {
-      expect(client.supportedChains.length).toBe(12);
+      expect(client.supportedChains.length).toBe(13);
+      expect(client.supportedChains).toContain(Blockchain.MONAD);
     });
   });
 
@@ -685,7 +686,7 @@ describe('RedStoneClient', () => {
         symbol: 'BTC',
         price: mockPriceData.value,
         decimals: 8,
-        supportedChainsCount: 12,
+        supportedChainsCount: 13,
         updateIntervalMinutes: 10,
         provider: 'redstone-rapid',
       });

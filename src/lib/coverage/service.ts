@@ -4,6 +4,7 @@ import { getConsensusPrice } from '@/lib/api/services/consensusPriceService';
 import { ValidationError } from '@/lib/errors';
 import { getBlockchainByChainId } from '@/lib/oracles/constants/chainMapping';
 import { getAllActiveFeedsByProviderWithStatus } from '@/lib/oracles/utils/dynamicFeedResolver';
+import { throwIfAborted } from '@/lib/utils/requestDeadline';
 
 import {
   buildCoverageReport,
@@ -18,19 +19,26 @@ import { toCoverageObservation } from './observations';
 
 export const COVERAGE_POLICY_ID = coveragePolicyId(STRICT_COVERAGE_POLICY);
 
-export async function assessCoverage(input: {
-  asset: string;
-  chainId: number;
-  policyId: string;
-}): Promise<SignedCoverageReport> {
+export async function assessCoverage(
+  input: {
+    asset: string;
+    chainId: number;
+    policyId: string;
+  },
+  options: { signal?: AbortSignal } = {}
+): Promise<SignedCoverageReport> {
+  throwIfAborted(options.signal);
   if (input.policyId !== COVERAGE_POLICY_ID) throw new ValidationError('Unknown coverage policyId');
   const chain = getBlockchainByChainId(input.chainId);
   if (!chain || input.chainId <= 0) throw new ValidationError('Unsupported evidence chainId');
   const registry = await getAllActiveFeedsByProviderWithStatus();
+  throwIfAborted(options.signal);
   if (registry.errored) throw new Error('COVERAGE_REGISTRY_UNAVAILABLE');
   const consensus = await getConsensusPrice(input.asset, chain, undefined, undefined, {
     allowUnavailable: true,
+    signal: options.signal,
   });
+  throwIfAborted(options.signal);
   const now = Math.floor(Date.now() / 1000);
   const observations = consensus.providers.map((p) => toCoverageObservation(p, input, chain));
   const report = buildCoverageReport(

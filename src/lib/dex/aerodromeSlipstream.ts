@@ -1,0 +1,934 @@
+import {
+  decodeFunctionResult,
+  encodeFunctionData,
+  getAddress,
+  isAddress,
+  keccak256,
+  parseAbi,
+} from 'viem';
+
+import { CHAINLINK_RPC_CONFIG } from '@/lib/oracles/services/chainlinkDataSources/rpcConfig';
+
+import {
+  uniswapV3ArithmeticMeanTick,
+  uniswapV3Token1PerToken0FromTick,
+  UniswapV3MarketRpcClient,
+  type UniswapV3Hex,
+  type UniswapV3QuoteDirection,
+} from './uniswapV3Market';
+
+/** Base mainnet's immutable EVM chain id. */
+export const AERODROME_SLIPSTREAM_CHAIN_ID = 8453;
+export const AERODROME_SLIPSTREAM_FACTORY = '0x5e7BB104d84c7CB9B682AaC2F3d509f5F406809A' as const;
+export const AERODROME_SLIPSTREAM_QUOTER_V2 = '0x254cF9E1E6e233aa1AC962CB9B05b2cfeAaE15b0' as const;
+/** Runtime bytecode pins read from the reviewed Base deployment. */
+export const AERODROME_SLIPSTREAM_FACTORY_CODE_HASH =
+  '0x7340cf80843bd721bcaefbfc050e38304cb4174c239e6e914e3056f27f39b11c' as const;
+export const AERODROME_SLIPSTREAM_QUOTER_V2_CODE_HASH =
+  '0xfb0ab713266d089d5b6ac48d50455c4fadc9cd49a1efcc83a091e7c2e48dad0e' as const;
+/**
+ * Router from Aerodrome's initial Slipstream deployment.  This integration
+ * deliberately targets only the reviewed pool from that same factory; it does
+ * not guess a route through a later factory or an aggregation router.
+ */
+export const AERODROME_SLIPSTREAM_SWAP_ROUTER =
+  '0xBE6D8f0d05cC4be24d5167a3eF062215bE6D18a5' as const;
+/** Runtime bytecode pin for the reviewed router, read from Base mainnet. */
+export const AERODROME_SLIPSTREAM_SWAP_ROUTER_CODE_HASH =
+  '0x8ca2876cc2c509da1648ef2ad21a8849c261cf7316b675119b98ba298c8657e7' as const;
+export const BASE_WETH = '0x4200000000000000000000000000000000000006' as const;
+export const BASE_USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' as const;
+export const BASE_USDT = '0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2' as const;
+
+/**
+ * Reviewed Aerodrome Slipstream WETH/USDC CL100 pool.  Unlike Uniswap V3,
+ * Slipstream identifies a pool and its QuoterV2 route with tickSpacing, not a
+ * fee tier.  The pool's live fee is therefore reported from `fee()` at the
+ * pinned block rather than assumed from the spacing.
+ */
+export const AERODROME_SLIPSTREAM_WETH_USDC = {
+  pool: '0xb2cc224c1c9feE385f8ad6a55b4d94E92359DC59' as const,
+  poolCodeHash: '0xacd6710f7037ad095b1e4d5f8ee5b2681069cb4dd316e77e4e0cb8f85716a2a1' as const,
+  tickSpacing: 100,
+  token0Symbol: 'WETH',
+  token0Decimals: 18,
+  token1Symbol: 'USDC',
+  token1Decimals: 6,
+  twapWindowSeconds: 1_800,
+} as const;
+
+/**
+ * Reviewed Aerodrome Slipstream USDC/USDT CL1 stable pool, resolved and
+ * bytecode-pinned on Base mainnet (factory `getPool(USDC, USDT, 1)`). The
+ * pool shares the Slipstream CL pool implementation, so its runtime-code hash
+ * matches the WETH/USDC pin; the pool's live fee (8 pips at review time) is
+ * read from `fee()` at every pinned block rather than assumed.
+ */
+export const AERODROME_SLIPSTREAM_USDC_USDT = {
+  pool: '0xa41Bc0AFfbA7Fd420d186b84899d7ab2aC57fcD1' as const,
+  poolCodeHash: '0xacd6710f7037ad095b1e4d5f8ee5b2681069cb4dd316e77e4e0cb8f85716a2a1' as const,
+  tickSpacing: 1,
+  token0Symbol: 'USDC',
+  token0Decimals: 6,
+  token1Symbol: 'USDT',
+  token1Decimals: 6,
+  twapWindowSeconds: 1_800,
+} as const;
+
+export interface AerodromeSlipstreamMarketToken {
+  address: UniswapV3Hex;
+  symbol: string;
+  decimals: number;
+}
+
+/** Runtime-bytecode identities of every DEX contract used for a pool quote. */
+export interface AerodromeSlipstreamCodeIdentity {
+  factory: UniswapV3Hex;
+  quoterV2: UniswapV3Hex;
+  pool: UniswapV3Hex;
+}
+
+/** A reviewed single-pool Slipstream profile, never an arbitrary route proxy. */
+export interface AerodromeSlipstreamMarketProfile {
+  id: string;
+  chainId: number;
+  venue: 'aerodrome-slipstream';
+  market: string;
+  factory: UniswapV3Hex;
+  quoterV2: UniswapV3Hex;
+  pool: UniswapV3Hex;
+  /**
+   * Audited runtime-code hashes. A snapshot re-reads every target at its
+   * pinned block and rejects a mismatch before using any quote.
+   */
+  codeIdentity: AerodromeSlipstreamCodeIdentity;
+  token0: AerodromeSlipstreamMarketToken;
+  token1: AerodromeSlipstreamMarketToken;
+  tickSpacing: number;
+  twapWindowSeconds: number;
+  /** Exact-input quote ladder expressed in whole token0 units. */
+  quoteAmountsToken0?: readonly number[];
+  /**
+   * Exact-input quote ladder expressed in token0 base units. This is reserved
+   * for reviewed, strictly parsed pre-trade and transaction-preparation paths;
+   * callers cannot submit this value directly at an HTTP boundary.
+   */
+  quoteAmountsToken0Raw?: readonly bigint[];
+  /**
+   * Exact-input quote ladder expressed in token1 base units, quoting token1 →
+   * token0. Same trust boundary as `quoteAmountsToken0Raw` and mutually
+   * exclusive with both token0 ladders.
+   */
+  quoteAmountsToken1Raw?: readonly bigint[];
+  rpcEndpoints: readonly string[];
+  maxSourceAgeSeconds: number;
+  cacheTtlMs: number;
+}
+
+export interface AerodromeSlipstreamMarketSnapshot {
+  source: 'dex-market';
+  venue: 'aerodrome-slipstream';
+  chainId: number;
+  market: string;
+  sourceFreshnessSeconds: number;
+  observedAt: string;
+  block: {
+    number: string;
+    hash: UniswapV3Hex;
+    timestamp: string;
+  };
+  contracts: {
+    factory: UniswapV3Hex;
+    quoterV2: UniswapV3Hex;
+    pool: UniswapV3Hex;
+    token0: UniswapV3Hex;
+    token1: UniswapV3Hex;
+    tickSpacing: number;
+    /** Current swap fee in pips (1e-6) read at the pinned block. */
+    feePips: number;
+    /** Runtime bytecode hashes re-read at the same pinned block. */
+    codeIdentity: AerodromeSlipstreamCodeIdentity;
+  };
+  spot: {
+    tick: number;
+    token1PerToken0: number;
+  };
+  twap: {
+    windowSeconds: number;
+    tick: number;
+    token1PerToken0: number;
+    deviationBpsFromSpot: number;
+  };
+  activeLiquidityRaw: string;
+  poolBalances: {
+    token0Raw: string;
+    token0: number;
+    token1Raw: string;
+    token1: number;
+  };
+  quotes: Array<{
+    direction: UniswapV3QuoteDirection;
+    amountIn: number;
+    amountInRaw: string;
+    amountOut: number;
+    amountOutRaw: string;
+    /** Forward quotes: token1 received per token0 submitted. */
+    effectiveToken1PerToken0?: number;
+    /** Reverse quotes: token0 received per token1 submitted. */
+    effectiveToken0PerToken1?: number;
+    initializedTicksCrossed: number;
+    priceImpactBps: number;
+  }>;
+}
+
+export class AerodromeSlipstreamMarketError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'AerodromeSlipstreamMarketError';
+  }
+}
+
+const FACTORY_ABI = parseAbi([
+  'function getPool(address tokenA,address tokenB,int24 tickSpacing) view returns (address)',
+]);
+const POOL_ABI = parseAbi([
+  'function factory() view returns (address)',
+  'function token0() view returns (address)',
+  'function token1() view returns (address)',
+  'function tickSpacing() view returns (int24)',
+  'function fee() view returns (uint24)',
+  'function liquidity() view returns (uint128)',
+  'function slot0() view returns (uint160 sqrtPriceX96, int24 tick, uint16 observationIndex, uint16 observationCardinality, uint16 observationCardinalityNext, bool unlocked)',
+  'function observe(uint32[] secondsAgos) view returns (int56[] tickCumulatives, uint160[] secondsPerLiquidityCumulativeX128s)',
+]);
+const ERC20_ABI = parseAbi(['function balanceOf(address) view returns (uint256)']);
+const QUOTER_V2_ABI = parseAbi([
+  'function quoteExactInputSingle((address tokenIn,address tokenOut,uint256 amountIn,int24 tickSpacing,uint160 sqrtPriceLimitX96) params) returns (uint256 amountOut,uint160 sqrtPriceX96After,uint32 initializedTicksCrossed,uint256 gasEstimate)',
+]);
+const MAX_UINT32 = 2 ** 32 - 1;
+const MAX_FEE_PIPS = 100_000;
+const CODE_HASH_PATTERN = /^0x[0-9a-fA-F]{64}$/;
+
+function baseRpcEndpoints(): string[] {
+  const configured = CHAINLINK_RPC_CONFIG[AERODROME_SLIPSTREAM_CHAIN_ID]?.endpoints ?? [];
+  const valid = configured.filter((endpoint) => {
+    try {
+      return new URL(endpoint).protocol === 'https:';
+    } catch {
+      return false;
+    }
+  });
+  return [...new Set(valid)];
+}
+
+/**
+ * The only pool identifiers callable through the reviewed Aerodrome surfaces.
+ *
+ * Adding a pool is intentionally a code review event: it requires its token
+ * order, tick spacing, factory/quoter/pool bytecode pins, and per-pool test
+ * coverage. No request can supply an arbitrary address or route.
+ */
+export const REVIEWED_AERODROME_SLIPSTREAM_PROFILE_IDS = [
+  'base-aerodrome-slipstream-weth-usdc-cl100',
+  'base-aerodrome-slipstream-usdc-usdt-cl1',
+] as const;
+
+export type ReviewedAerodromeSlipstreamProfileId =
+  (typeof REVIEWED_AERODROME_SLIPSTREAM_PROFILE_IDS)[number];
+
+export function isReviewedAerodromeSlipstreamProfileId(
+  value: string
+): value is ReviewedAerodromeSlipstreamProfileId {
+  return (REVIEWED_AERODROME_SLIPSTREAM_PROFILE_IDS as readonly string[]).includes(value);
+}
+
+function baseAerodromeSlipstreamWethUsdcProfile(): AerodromeSlipstreamMarketProfile {
+  return {
+    id: 'base-aerodrome-slipstream-weth-usdc-cl100',
+    chainId: AERODROME_SLIPSTREAM_CHAIN_ID,
+    venue: 'aerodrome-slipstream',
+    market: 'WETH/USDC',
+    factory: AERODROME_SLIPSTREAM_FACTORY,
+    quoterV2: AERODROME_SLIPSTREAM_QUOTER_V2,
+    pool: AERODROME_SLIPSTREAM_WETH_USDC.pool,
+    codeIdentity: {
+      factory: AERODROME_SLIPSTREAM_FACTORY_CODE_HASH,
+      quoterV2: AERODROME_SLIPSTREAM_QUOTER_V2_CODE_HASH,
+      pool: AERODROME_SLIPSTREAM_WETH_USDC.poolCodeHash,
+    },
+    token0: {
+      address: BASE_WETH,
+      symbol: AERODROME_SLIPSTREAM_WETH_USDC.token0Symbol,
+      decimals: AERODROME_SLIPSTREAM_WETH_USDC.token0Decimals,
+    },
+    token1: {
+      address: BASE_USDC,
+      symbol: AERODROME_SLIPSTREAM_WETH_USDC.token1Symbol,
+      decimals: AERODROME_SLIPSTREAM_WETH_USDC.token1Decimals,
+    },
+    tickSpacing: AERODROME_SLIPSTREAM_WETH_USDC.tickSpacing,
+    twapWindowSeconds: AERODROME_SLIPSTREAM_WETH_USDC.twapWindowSeconds,
+    quoteAmountsToken0: [1, 10, 100],
+    rpcEndpoints: baseRpcEndpoints(),
+    maxSourceAgeSeconds: 120,
+    cacheTtlMs: 10_000,
+  };
+}
+
+/** The reviewed stable lane for the Slipstream USDC/USDT CL1 pool. */
+function baseAerodromeSlipstreamUsdcUsdtProfile(): AerodromeSlipstreamMarketProfile {
+  return {
+    id: 'base-aerodrome-slipstream-usdc-usdt-cl1',
+    chainId: AERODROME_SLIPSTREAM_CHAIN_ID,
+    venue: 'aerodrome-slipstream',
+    market: 'USDC/USDT',
+    factory: AERODROME_SLIPSTREAM_FACTORY,
+    quoterV2: AERODROME_SLIPSTREAM_QUOTER_V2,
+    pool: AERODROME_SLIPSTREAM_USDC_USDT.pool,
+    codeIdentity: {
+      factory: AERODROME_SLIPSTREAM_FACTORY_CODE_HASH,
+      quoterV2: AERODROME_SLIPSTREAM_QUOTER_V2_CODE_HASH,
+      pool: AERODROME_SLIPSTREAM_USDC_USDT.poolCodeHash,
+    },
+    token0: {
+      address: BASE_USDC,
+      symbol: AERODROME_SLIPSTREAM_USDC_USDT.token0Symbol,
+      decimals: AERODROME_SLIPSTREAM_USDC_USDT.token0Decimals,
+    },
+    token1: {
+      address: BASE_USDT,
+      symbol: AERODROME_SLIPSTREAM_USDC_USDT.token1Symbol,
+      decimals: AERODROME_SLIPSTREAM_USDC_USDT.token1Decimals,
+    },
+    tickSpacing: AERODROME_SLIPSTREAM_USDC_USDT.tickSpacing,
+    twapWindowSeconds: AERODROME_SLIPSTREAM_USDC_USDT.twapWindowSeconds,
+    quoteAmountsToken0: [1_000, 10_000, 100_000],
+    rpcEndpoints: baseRpcEndpoints(),
+    maxSourceAgeSeconds: 120,
+    cacheTtlMs: 10_000,
+  };
+}
+
+const reviewedProfileFactories: Record<
+  ReviewedAerodromeSlipstreamProfileId,
+  () => AerodromeSlipstreamMarketProfile
+> = {
+  'base-aerodrome-slipstream-weth-usdc-cl100': baseAerodromeSlipstreamWethUsdcProfile,
+  'base-aerodrome-slipstream-usdc-usdt-cl1': baseAerodromeSlipstreamUsdcUsdtProfile,
+};
+
+/** Return fresh copies so callers cannot mutate the reviewed registry in memory. */
+export function listReviewedAerodromeSlipstreamProfiles(): AerodromeSlipstreamMarketProfile[] {
+  return REVIEWED_AERODROME_SLIPSTREAM_PROFILE_IDS.map((id) => reviewedProfileFactories[id]());
+}
+
+/** Resolve one allowlisted pool identity; unrecognized identifiers fail closed. */
+export function reviewedAerodromeSlipstreamProfile(id: string): AerodromeSlipstreamMarketProfile {
+  if (!isReviewedAerodromeSlipstreamProfileId(id)) {
+    throw new AerodromeSlipstreamMarketError(
+      'Aerodrome Slipstream profile is not in the reviewed pool allowlist.'
+    );
+  }
+  return reviewedProfileFactories[id]();
+}
+
+/**
+ * Find a unique allowlisted exact-input route. Ambiguous routes deliberately
+ * return undefined, forcing a future caller to name a reviewed profile rather
+ * than silently selecting between multiple pools for the same pair.
+ */
+export function findReviewedAerodromeSlipstreamProfile(input: {
+  chainId: number;
+  tokenInSymbol: string;
+  tokenOutSymbol: string;
+}): AerodromeSlipstreamMarketProfile | undefined {
+  const tokenIn = input.tokenInSymbol.trim().toUpperCase();
+  const tokenOut = input.tokenOutSymbol.trim().toUpperCase();
+  const matches = listReviewedAerodromeSlipstreamProfiles().filter(
+    (profile) =>
+      profile.chainId === input.chainId &&
+      profile.token0.symbol.toUpperCase() === tokenIn &&
+      profile.token1.symbol.toUpperCase() === tokenOut
+  );
+  return matches.length === 1 ? matches[0] : undefined;
+}
+
+/** The original convenience accessor for the default reviewed Base pool. */
+export function aerodromeSlipstreamWethUsdcProfile(): AerodromeSlipstreamMarketProfile {
+  return reviewedAerodromeSlipstreamProfile('base-aerodrome-slipstream-weth-usdc-cl100');
+}
+
+/** Base RPC reader used only for the reviewed Aerodrome profile. */
+export class AerodromeSlipstreamRpcClient extends UniswapV3MarketRpcClient {
+  constructor(endpoints: readonly string[] = baseRpcEndpoints()) {
+    super(AERODROME_SLIPSTREAM_CHAIN_ID, endpoints);
+  }
+}
+
+function isSafePositiveInteger(value: number): boolean {
+  return Number.isSafeInteger(value) && value > 0;
+}
+
+/** Validate every runtime-controlled profile field before making RPC requests. */
+export function assertAerodromeSlipstreamMarketProfile(
+  profile: AerodromeSlipstreamMarketProfile
+): void {
+  if (!profile.id || !profile.market || !isSafePositiveInteger(profile.chainId)) {
+    throw new AerodromeSlipstreamMarketError(
+      'Aerodrome Slipstream profile has invalid identity metadata.'
+    );
+  }
+  if (profile.venue !== 'aerodrome-slipstream') {
+    throw new AerodromeSlipstreamMarketError(
+      'Aerodrome Slipstream profile has an unsupported venue.'
+    );
+  }
+  for (const [label, address] of [
+    ['factory', profile.factory],
+    ['quoterV2', profile.quoterV2],
+    ['pool', profile.pool],
+    ['token0', profile.token0.address],
+    ['token1', profile.token1.address],
+  ] as const) {
+    if (!isAddress(address)) {
+      throw new AerodromeSlipstreamMarketError(
+        `Aerodrome Slipstream profile has an invalid ${label} address.`
+      );
+    }
+  }
+  for (const [label, codeHash] of [
+    ['factory', profile.codeIdentity.factory],
+    ['quoterV2', profile.codeIdentity.quoterV2],
+    ['pool', profile.codeIdentity.pool],
+  ] as const) {
+    if (!CODE_HASH_PATTERN.test(codeHash)) {
+      throw new AerodromeSlipstreamMarketError(
+        `Aerodrome Slipstream profile has an invalid ${label} runtime code hash.`
+      );
+    }
+  }
+  if (profile.token0.address.toLowerCase() === profile.token1.address.toLowerCase()) {
+    throw new AerodromeSlipstreamMarketError(
+      'Aerodrome Slipstream profile reuses one token address.'
+    );
+  }
+  if (
+    !profile.token0.symbol ||
+    !profile.token1.symbol ||
+    !Number.isSafeInteger(profile.token0.decimals) ||
+    !Number.isSafeInteger(profile.token1.decimals) ||
+    profile.token0.decimals < 0 ||
+    profile.token0.decimals > 36 ||
+    profile.token1.decimals < 0 ||
+    profile.token1.decimals > 36 ||
+    !isSafePositiveInteger(profile.tickSpacing) ||
+    profile.tickSpacing > 16_383 ||
+    !isSafePositiveInteger(profile.twapWindowSeconds) ||
+    profile.twapWindowSeconds > MAX_UINT32 ||
+    !isSafePositiveInteger(profile.maxSourceAgeSeconds) ||
+    !isSafePositiveInteger(profile.cacheTtlMs) ||
+    ((!profile.quoteAmountsToken0 || profile.quoteAmountsToken0.length === 0) &&
+      (!profile.quoteAmountsToken0Raw || profile.quoteAmountsToken0Raw.length === 0) &&
+      (!profile.quoteAmountsToken1Raw || profile.quoteAmountsToken1Raw.length === 0)) ||
+    (profile.quoteAmountsToken0 !== undefined &&
+      (profile.quoteAmountsToken0Raw !== undefined ||
+        profile.quoteAmountsToken1Raw !== undefined)) ||
+    (profile.quoteAmountsToken0Raw !== undefined && profile.quoteAmountsToken1Raw !== undefined) ||
+    (profile.quoteAmountsToken0 !== undefined &&
+      profile.quoteAmountsToken0.some(
+        (amount, index) =>
+          !Number.isSafeInteger(amount) ||
+          amount <= 0 ||
+          (index > 0 && amount <= profile.quoteAmountsToken0![index - 1]!)
+      )) ||
+    (profile.quoteAmountsToken0Raw !== undefined &&
+      profile.quoteAmountsToken0Raw.some(
+        (amount, index) =>
+          amount <= 0n || (index > 0 && amount <= profile.quoteAmountsToken0Raw![index - 1]!)
+      )) ||
+    (profile.quoteAmountsToken1Raw !== undefined &&
+      profile.quoteAmountsToken1Raw.some(
+        (amount, index) =>
+          amount <= 0n || (index > 0 && amount <= profile.quoteAmountsToken1Raw![index - 1]!)
+      ))
+  ) {
+    throw new AerodromeSlipstreamMarketError(
+      'Aerodrome Slipstream profile has invalid numeric configuration.'
+    );
+  }
+  if (
+    profile.rpcEndpoints.length === 0 ||
+    profile.rpcEndpoints.some((endpoint) => {
+      try {
+        return new URL(endpoint).protocol !== 'https:';
+      } catch {
+        return true;
+      }
+    })
+  ) {
+    throw new AerodromeSlipstreamMarketError(
+      'Aerodrome Slipstream profile has no valid HTTPS RPC endpoint.'
+    );
+  }
+}
+
+function verifyRuntimeCodeIdentity(
+  profile: AerodromeSlipstreamMarketProfile,
+  runtimeCode: AerodromeSlipstreamCodeIdentity
+): void {
+  for (const [label, expectedCodeHash, code] of [
+    ['factory', profile.codeIdentity.factory, runtimeCode.factory],
+    ['quoterV2', profile.codeIdentity.quoterV2, runtimeCode.quoterV2],
+    ['pool', profile.codeIdentity.pool, runtimeCode.pool],
+  ] as const) {
+    if (code === '0x' || keccak256(code).toLowerCase() !== expectedCodeHash.toLowerCase()) {
+      throw new AerodromeSlipstreamMarketError(
+        `Aerodrome Slipstream ${label} runtime code does not match the reviewed pool identity.`
+      );
+    }
+  }
+}
+
+function encodeFactoryGetPool(profile: AerodromeSlipstreamMarketProfile): UniswapV3Hex {
+  return encodeFunctionData({
+    abi: FACTORY_ABI,
+    functionName: 'getPool',
+    args: [profile.token0.address, profile.token1.address, profile.tickSpacing],
+  });
+}
+
+function encodePoolCall(
+  functionName: 'factory' | 'token0' | 'token1' | 'tickSpacing' | 'fee' | 'liquidity' | 'slot0'
+): UniswapV3Hex {
+  return encodeFunctionData({ abi: POOL_ABI, functionName });
+}
+
+function encodeObserve(profile: AerodromeSlipstreamMarketProfile): UniswapV3Hex {
+  return encodeFunctionData({
+    abi: POOL_ABI,
+    functionName: 'observe',
+    args: [[profile.twapWindowSeconds, 0]],
+  });
+}
+
+function encodeBalanceOf(owner: UniswapV3Hex): UniswapV3Hex {
+  return encodeFunctionData({ abi: ERC20_ABI, functionName: 'balanceOf', args: [owner] });
+}
+
+function encodeQuote(
+  profile: AerodromeSlipstreamMarketProfile,
+  amountIn: bigint,
+  direction: UniswapV3QuoteDirection
+): UniswapV3Hex {
+  return encodeFunctionData({
+    abi: QUOTER_V2_ABI,
+    functionName: 'quoteExactInputSingle',
+    args: [
+      {
+        tokenIn: direction === 'token0-to-token1' ? profile.token0.address : profile.token1.address,
+        tokenOut:
+          direction === 'token0-to-token1' ? profile.token1.address : profile.token0.address,
+        amountIn,
+        tickSpacing: profile.tickSpacing,
+        sqrtPriceLimitX96: 0n,
+      },
+    ],
+  });
+}
+
+function decodeAddressResult(
+  data: UniswapV3Hex,
+  functionName: 'getPool' | 'factory' | 'token0' | 'token1'
+): UniswapV3Hex {
+  const abi = functionName === 'getPool' ? FACTORY_ABI : POOL_ABI;
+  const result = decodeFunctionResult({ abi, functionName: functionName as never, data });
+  const address = String(result);
+  if (!isAddress(address)) {
+    throw new AerodromeSlipstreamMarketError(
+      'Aerodrome Slipstream contract returned an invalid address.'
+    );
+  }
+  return getAddress(address) as UniswapV3Hex;
+}
+
+function decodeUnsignedResult(
+  data: UniswapV3Hex,
+  functionName: 'fee' | 'liquidity' | 'balanceOf',
+  abi: typeof POOL_ABI | typeof ERC20_ABI = POOL_ABI
+): bigint {
+  const result = decodeFunctionResult({ abi, functionName: functionName as never, data });
+  if (typeof result === 'number') {
+    if (!Number.isSafeInteger(result) || result < 0) {
+      throw new AerodromeSlipstreamMarketError(
+        'Aerodrome Slipstream contract returned an invalid unsigned value.'
+      );
+    }
+    return BigInt(result);
+  }
+  if (typeof result !== 'bigint' || result < 0n) {
+    throw new AerodromeSlipstreamMarketError(
+      'Aerodrome Slipstream contract returned an invalid unsigned value.'
+    );
+  }
+  return result;
+}
+
+function decodeInt24Result(data: UniswapV3Hex): number {
+  const result = decodeFunctionResult({ abi: POOL_ABI, functionName: 'tickSpacing', data });
+  const value = typeof result === 'bigint' ? Number(result) : result;
+  if (!Number.isSafeInteger(value) || value <= 0 || value > 16_383) {
+    throw new AerodromeSlipstreamMarketError(
+      'Aerodrome Slipstream pool returned an invalid tick spacing.'
+    );
+  }
+  return value;
+}
+
+function unitsToNumber(raw: bigint, decimals: number): number {
+  const value = Number(raw) / 10 ** decimals;
+  if (!Number.isFinite(value) || value < 0) {
+    throw new AerodromeSlipstreamMarketError(
+      'Aerodrome Slipstream contract returned an out-of-range balance.'
+    );
+  }
+  return value;
+}
+
+function boundedBps(numerator: number, denominator: number): number {
+  const value = (numerator / denominator) * 10_000;
+  if (!Number.isFinite(value) || value < 0 || value > 1_000_000) {
+    throw new AerodromeSlipstreamMarketError(
+      'Aerodrome Slipstream quote returned an invalid price impact.'
+    );
+  }
+  return value;
+}
+
+async function fetchSnapshot(
+  profile: AerodromeSlipstreamMarketProfile,
+  rpc: AerodromeSlipstreamRpcClient,
+  nowMs: number,
+  signal?: AbortSignal
+): Promise<AerodromeSlipstreamMarketSnapshot> {
+  const blockNumber = await rpc.getBlockNumber(signal);
+  const block = await rpc.getBlock(blockNumber, signal);
+  const direction: UniswapV3QuoteDirection =
+    profile.quoteAmountsToken1Raw !== undefined ? 'token1-to-token0' : 'token0-to-token1';
+  const quoteInputs =
+    profile.quoteAmountsToken1Raw ??
+    profile.quoteAmountsToken0Raw ??
+    profile.quoteAmountsToken0!.map(
+      (amount) => BigInt(amount) * 10n ** BigInt(profile.token0.decimals)
+    );
+  const [
+    factoryRuntimeCode,
+    quoterRuntimeCode,
+    poolRuntimeCode,
+    factoryPoolData,
+    poolFactoryData,
+    token0Data,
+    token1Data,
+    tickSpacingData,
+    feeData,
+    liquidityData,
+    slot0Data,
+    observeData,
+    token0BalanceData,
+    token1BalanceData,
+    ...quoteData
+  ] = await Promise.all([
+    rpc.getCode(profile.factory, block.number, signal),
+    rpc.getCode(profile.quoterV2, block.number, signal),
+    rpc.getCode(profile.pool, block.number, signal),
+    rpc.call(profile.factory, encodeFactoryGetPool(profile), block.number, signal),
+    rpc.call(profile.pool, encodePoolCall('factory'), block.number, signal),
+    rpc.call(profile.pool, encodePoolCall('token0'), block.number, signal),
+    rpc.call(profile.pool, encodePoolCall('token1'), block.number, signal),
+    rpc.call(profile.pool, encodePoolCall('tickSpacing'), block.number, signal),
+    rpc.call(profile.pool, encodePoolCall('fee'), block.number, signal),
+    rpc.call(profile.pool, encodePoolCall('liquidity'), block.number, signal),
+    rpc.call(profile.pool, encodePoolCall('slot0'), block.number, signal),
+    rpc.call(profile.pool, encodeObserve(profile), block.number, signal),
+    rpc.call(profile.token0.address, encodeBalanceOf(profile.pool), block.number, signal),
+    rpc.call(profile.token1.address, encodeBalanceOf(profile.pool), block.number, signal),
+    ...quoteInputs.map((amount) =>
+      rpc.call(profile.quoterV2, encodeQuote(profile, amount, direction), block.number, signal)
+    ),
+  ]);
+
+  const factoryPool = decodeAddressResult(factoryPoolData, 'getPool');
+  const poolFactory = decodeAddressResult(poolFactoryData, 'factory');
+  const token0 = decodeAddressResult(token0Data, 'token0');
+  const token1 = decodeAddressResult(token1Data, 'token1');
+  const tickSpacing = decodeInt24Result(tickSpacingData);
+  const feePips = decodeUnsignedResult(feeData, 'fee');
+  const activeLiquidity = decodeUnsignedResult(liquidityData, 'liquidity');
+  const token0Balance = decodeUnsignedResult(token0BalanceData, 'balanceOf', ERC20_ABI);
+  const token1Balance = decodeUnsignedResult(token1BalanceData, 'balanceOf', ERC20_ABI);
+
+  verifyRuntimeCodeIdentity(profile, {
+    factory: factoryRuntimeCode,
+    quoterV2: quoterRuntimeCode,
+    pool: poolRuntimeCode,
+  });
+
+  if (
+    factoryPool.toLowerCase() !== profile.pool.toLowerCase() ||
+    poolFactory.toLowerCase() !== profile.factory.toLowerCase() ||
+    token0.toLowerCase() !== profile.token0.address.toLowerCase() ||
+    token1.toLowerCase() !== profile.token1.address.toLowerCase() ||
+    tickSpacing !== profile.tickSpacing ||
+    feePips <= 0n ||
+    feePips > BigInt(MAX_FEE_PIPS) ||
+    activeLiquidity <= 0n
+  ) {
+    throw new AerodromeSlipstreamMarketError(
+      'Aerodrome Slipstream pool provenance, fee, or liquidity validation failed.'
+    );
+  }
+
+  const slot0 = decodeFunctionResult({ abi: POOL_ABI, functionName: 'slot0', data: slot0Data });
+  const spotTick = Number(slot0[1]);
+  if (!Number.isSafeInteger(spotTick) || spotTick < -887_272 || spotTick > 887_272) {
+    throw new AerodromeSlipstreamMarketError(
+      'Aerodrome Slipstream pool returned an invalid spot tick.'
+    );
+  }
+  const observe = decodeFunctionResult({
+    abi: POOL_ABI,
+    functionName: 'observe',
+    data: observeData,
+  });
+  const tickCumulatives = observe[0];
+  const olderCumulative = tickCumulatives[0];
+  const currentCumulative = tickCumulatives[1];
+  if (
+    !Array.isArray(tickCumulatives) ||
+    tickCumulatives.length !== 2 ||
+    typeof olderCumulative !== 'bigint' ||
+    typeof currentCumulative !== 'bigint'
+  ) {
+    throw new AerodromeSlipstreamMarketError(
+      'Aerodrome Slipstream pool returned an invalid TWAP observation.'
+    );
+  }
+  const twapTick = uniswapV3ArithmeticMeanTick(
+    olderCumulative,
+    currentCumulative,
+    profile.twapWindowSeconds
+  );
+  const spotPrice = uniswapV3Token1PerToken0FromTick(
+    spotTick,
+    profile.token0.decimals,
+    profile.token1.decimals
+  );
+  const twapPrice = uniswapV3Token1PerToken0FromTick(
+    twapTick,
+    profile.token0.decimals,
+    profile.token1.decimals
+  );
+
+  const inputDecimals =
+    direction === 'token0-to-token1' ? profile.token0.decimals : profile.token1.decimals;
+  const outputDecimals =
+    direction === 'token0-to-token1' ? profile.token1.decimals : profile.token0.decimals;
+  const decodedQuotes = quoteData.map((data, index) => {
+    const quote = decodeFunctionResult({
+      abi: QUOTER_V2_ABI,
+      functionName: 'quoteExactInputSingle',
+      data,
+    });
+    const amountOut = quote[0];
+    const ticksCrossed = quote[2];
+    if (typeof amountOut !== 'bigint' || amountOut <= 0n || typeof ticksCrossed !== 'number') {
+      throw new AerodromeSlipstreamMarketError(
+        'Aerodrome Slipstream QuoterV2 returned an invalid quote.'
+      );
+    }
+    const amountInRaw = quoteInputs[index];
+    if (amountInRaw === undefined) {
+      throw new AerodromeSlipstreamMarketError(
+        'Aerodrome Slipstream quote ladder is inconsistent.'
+      );
+    }
+    const amountIn = unitsToNumber(amountInRaw, inputDecimals);
+    const amountOutNumber = unitsToNumber(amountOut, outputDecimals);
+    const effective = amountOutNumber / amountIn;
+    const entry: Omit<AerodromeSlipstreamMarketSnapshot['quotes'][number], 'priceImpactBps'> = {
+      direction,
+      amountIn,
+      amountInRaw: amountInRaw.toString(),
+      amountOut: amountOutNumber,
+      amountOutRaw: amountOut.toString(),
+      initializedTicksCrossed: ticksCrossed,
+    };
+    if (direction === 'token0-to-token1') entry.effectiveToken1PerToken0 = effective;
+    else entry.effectiveToken0PerToken1 = effective;
+    return entry;
+  });
+  const referencePrice =
+    direction === 'token0-to-token1'
+      ? decodedQuotes[0]?.effectiveToken1PerToken0
+      : decodedQuotes[0]?.effectiveToken0PerToken1;
+  if (!referencePrice || !Number.isFinite(referencePrice) || referencePrice <= 0) {
+    throw new AerodromeSlipstreamMarketError(
+      'Aerodrome Slipstream QuoterV2 returned an invalid reference quote.'
+    );
+  }
+
+  const observedAtMs = Math.max(nowMs, Date.now());
+  const rawSourceFreshnessSeconds = (observedAtMs - block.timestamp * 1000) / 1000;
+  if (
+    !Number.isFinite(rawSourceFreshnessSeconds) ||
+    rawSourceFreshnessSeconds < -60 ||
+    rawSourceFreshnessSeconds > profile.maxSourceAgeSeconds
+  ) {
+    throw new AerodromeSlipstreamMarketError(
+      'Aerodrome Slipstream market block is outside the freshness limit.'
+    );
+  }
+
+  return {
+    source: 'dex-market',
+    venue: 'aerodrome-slipstream',
+    chainId: profile.chainId,
+    market: profile.market,
+    sourceFreshnessSeconds: Math.max(0, rawSourceFreshnessSeconds),
+    observedAt: new Date(observedAtMs).toISOString(),
+    block: {
+      number: block.number.toString(),
+      hash: block.hash,
+      timestamp: new Date(block.timestamp * 1000).toISOString(),
+    },
+    contracts: {
+      factory: profile.factory,
+      quoterV2: profile.quoterV2,
+      pool: profile.pool,
+      token0,
+      token1,
+      tickSpacing,
+      feePips: Number(feePips),
+      codeIdentity: {
+        factory: keccak256(factoryRuntimeCode),
+        quoterV2: keccak256(quoterRuntimeCode),
+        pool: keccak256(poolRuntimeCode),
+      },
+    },
+    spot: { tick: spotTick, token1PerToken0: spotPrice },
+    twap: {
+      windowSeconds: profile.twapWindowSeconds,
+      tick: twapTick,
+      token1PerToken0: twapPrice,
+      deviationBpsFromSpot: boundedBps(Math.abs(twapPrice - spotPrice), spotPrice),
+    },
+    activeLiquidityRaw: activeLiquidity.toString(),
+    poolBalances: {
+      token0Raw: token0Balance.toString(),
+      token0: unitsToNumber(token0Balance, profile.token0.decimals),
+      token1Raw: token1Balance.toString(),
+      token1: unitsToNumber(token1Balance, profile.token1.decimals),
+    },
+    quotes: decodedQuotes.map((quote) => ({
+      ...quote,
+      priceImpactBps: boundedBps(
+        Math.max(
+          0,
+          referencePrice -
+            (quote.direction === 'token0-to-token1'
+              ? quote.effectiveToken1PerToken0!
+              : quote.effectiveToken0PerToken1!)
+        ),
+        referencePrice
+      ),
+    })),
+  };
+}
+
+const cachedSnapshots = new Map<
+  string,
+  { value: AerodromeSlipstreamMarketSnapshot; expiresAt: number }
+>();
+const inFlightSnapshots = new Map<string, Promise<AerodromeSlipstreamMarketSnapshot>>();
+
+/** Test hook for the short, per-profile live-data cache. */
+export function resetAerodromeSlipstreamMarketCacheForTests(profileId?: string): void {
+  if (profileId) {
+    cachedSnapshots.delete(profileId);
+    inFlightSnapshots.delete(profileId);
+    return;
+  }
+  cachedSnapshots.clear();
+  inFlightSnapshots.clear();
+}
+
+/**
+ * Read fresh, block-pinned evidence from the reviewed Aerodrome CL100 market.
+ * It never prepares, signs, simulates, or broadcasts a swap.
+ */
+export async function getAerodromeSlipstreamMarketSnapshotForProfile(
+  profile: AerodromeSlipstreamMarketProfile,
+  options: {
+    rpc?: AerodromeSlipstreamRpcClient;
+    nowMs?: number;
+    signal?: AbortSignal;
+    cache?: boolean;
+  } = {}
+): Promise<AerodromeSlipstreamMarketSnapshot> {
+  assertAerodromeSlipstreamMarketProfile(profile);
+  const nowMs = options.nowMs ?? Date.now();
+  const cacheEnabled = !options.rpc && options.cache !== false;
+  if (cacheEnabled) {
+    const cached = cachedSnapshots.get(profile.id);
+    if (cached && cached.expiresAt > nowMs) return cached.value;
+    const inFlight = inFlightSnapshots.get(profile.id);
+    if (inFlight) return inFlight;
+  }
+
+  const rpc = options.rpc ?? new AerodromeSlipstreamRpcClient(profile.rpcEndpoints);
+  const request = fetchSnapshot(profile, rpc, nowMs, options.signal);
+  if (cacheEnabled) inFlightSnapshots.set(profile.id, request);
+  try {
+    const value = await request;
+    if (cacheEnabled) {
+      cachedSnapshots.set(profile.id, { value, expiresAt: nowMs + profile.cacheTtlMs });
+    }
+    return value;
+  } finally {
+    if (cacheEnabled) inFlightSnapshots.delete(profile.id);
+  }
+}
+
+/**
+ * Read evidence for one named allowlisted pool. This is the public selection
+ * boundary for multi-pool callers; arbitrary profile objects stay out of MCP
+ * and HTTP request paths.
+ */
+export async function getReviewedAerodromeSlipstreamMarketSnapshot(
+  profileId: ReviewedAerodromeSlipstreamProfileId,
+  options: {
+    rpc?: AerodromeSlipstreamRpcClient;
+    nowMs?: number;
+    signal?: AbortSignal;
+    cache?: boolean;
+  } = {}
+): Promise<AerodromeSlipstreamMarketSnapshot> {
+  return getAerodromeSlipstreamMarketSnapshotForProfile(
+    reviewedAerodromeSlipstreamProfile(profileId),
+    options
+  );
+}
+
+/** Read fresh evidence from the default reviewed Aerodrome WETH/USDC pool. */
+export async function getAerodromeSlipstreamMarketSnapshot(
+  options: {
+    rpc?: AerodromeSlipstreamRpcClient;
+    nowMs?: number;
+    signal?: AbortSignal;
+    cache?: boolean;
+  } = {}
+): Promise<AerodromeSlipstreamMarketSnapshot> {
+  return getReviewedAerodromeSlipstreamMarketSnapshot(
+    'base-aerodrome-slipstream-weth-usdc-cl100',
+    options
+  );
+}

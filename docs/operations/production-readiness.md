@@ -101,8 +101,15 @@ being disabled on a table reachable through the Data API.
 `main` is protected: updates must arrive through a pull request with current
 `validate`, `smoke`, and `analyze` checks. Force pushes, branch deletion, and
 non-linear history are disabled. Scheduled npm synchronization and ML promotion
-therefore publish reviewable branches and explicitly dispatch the required
-checks instead of writing to `main`.
+publish reviewable branches instead of writing to `main`. Because those pull
+requests are created with `GITHUB_TOKEN`, GitHub leaves their native PR runs in
+`action_required` until an owner approves them. The separately dispatched runs
+verify the branch but do not fill the required PR check slots. Approve the
+native runs on the pull request before merging; a green dispatch alone is not
+merge readiness.
+The scheduled npm sync checks for an existing open release PR before doing
+another update, so one unresolved release does not create duplicate PRs every
+six hours.
 
 Dependabot npm updates are also checked with `npm ci`. A known upstream npm
 optional-peer lockfile bug can make Dependabot emit an inconsistent lockfile.
@@ -111,8 +118,9 @@ workflow verifies the bot identity, repository, branch, immutable head SHA, and
 the two allowed manifest files; it then rebuilds the lockfile with package
 scripts disabled and refreshes the committed cron bundles. GitHub marks the
 native pull-request runs for that repaired commit as `action_required`; the
-repair approves those exact-SHA runs so branch protection sees the real PR
-checks, without launching duplicate dispatch runs. It never handles a
+repair attempts to approve those exact-SHA runs so branch protection sees the
+real PR checks, without launching duplicate dispatch runs. If GitHub rejects
+that approval, an owner must approve the native runs. It never handles a
 human-authored PR or a workflow-file change.
 
 Prettier minor updates are intentionally excluded from the grouped development
@@ -120,7 +128,11 @@ dependency update because 3.9 changes the formatting of existing sources. Treat
 that upgrade as a dedicated formatting migration rather than mixing it into an
 otherwise mechanical dependency PR.
 
-1. Use the Node.js version pinned in `.node-version` and run `npm ci`.
+1. Use the Node.js version pinned in `.node-version` and run `npm ci`. The
+   `pre-push` hook runs the offline verifier, full CI validation, production
+   build, and Chromium smoke suite with inert CI configuration against the
+   branch's merge base with `origin/main`. It fails early if the pinned Node
+   version or `origin/main` is unavailable.
 2. Run `npm run validate:ci`; it checks linting, formatting, types, unit and
    contract coverage, unused code, SDK compatibility, RWA registry and execution
    profiles, committed cron bundles, production build, and the homepage
@@ -179,3 +191,29 @@ staging test, including `429`, `Retry-After`, and recovery after the window.
 6. Close only after availability, error rate, latency, and freshness have stayed
    healthy for 30 minutes. Write a blameless follow-up with an owner and date for
    every action item.
+
+### Operator kill switch (issuance halt)
+
+`/ops/issuance` halts pre-trade verdict issuance without a deployment. The halt
+is read on the hot path _before_ any upstream oracle call, so it takes effect on
+the next request and never depends on the data sources that may be implicated in
+the incident. While it is engaged every pre-trade surface (REST, MCP, partner and
+demo) returns a signed `BLOCK` carrying the recorded reason, and each refusal is
+audited like any other check.
+
+Use the halt when the oracle inputs themselves are suspect and authorising trades
+must stop immediately. Use a rollback when the defect is in the application and
+normal operation can be restored by reverting.
+
+- Engage or release it from `/ops/issuance`. A reason is mandatory; it is written
+  to `ops_admin_actions` together with the operator id and the before/after state.
+- The switch is read fresh on every request — it is not cached, so engaging it
+  takes effect immediately and releasing it does too.
+- If the control row cannot be read, issuance continues and the failure is logged
+  at error level: a genuinely unreadable database already fails closed at the
+  pre-trade audit write, and halting on a transient read error would turn a
+  partial failure into a total outage. Any `/ops` page shows a banner when the
+  state is halted or unreadable.
+- A halt left engaged is easy to miss, because pre-trade keeps answering
+  normally — just with `BLOCK`s. Recheck the banner before closing an incident,
+  and roll the migration back only after confirming the switch is released.

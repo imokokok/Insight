@@ -215,8 +215,8 @@ function ReputationContentInner({ initialData }: { initialData?: ReputationListD
                 can still inspect the latest price evidence and dated network reports.
               </p>
               <div className="reputation-empty-actions">
-                <Link href="/price-query">
-                  Explore prices <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+                <Link href="/price-insight?stage=observe">
+                  Inspect source evidence <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
                 </Link>
                 <Link href="/reports">
                   Read daily reports <ArrowUpRight className="h-4 w-4" aria-hidden="true" />

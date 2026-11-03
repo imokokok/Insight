@@ -56,6 +56,11 @@ import {
   RECHECK_V3_TYPES,
 } from '@/lib/attestations/oracleSafetyRecheckV3';
 import { verifyAttestationBySchema } from '@/lib/attestations/verifyAttestationBySchema';
+import {
+  TEST_DOMAIN,
+  TEST_PRIMARY_TYPE,
+  TEST_TYPES,
+} from '@/lib/testing/oracleScenario/attestation';
 
 import * as verifierExecution from '../../../../verifier/src/execution';
 import {
@@ -200,6 +205,26 @@ function recheckV3Data(checkedAt: number) {
   return { ...v3Data(checkedAt), originalUid: H_ORIGINAL_UID, originalRequestHash: H2 };
 }
 
+/** A scenario-test run. Note `schemaVersion: 1` — the SAME number plain v1
+ *  pre-trade carries, which is exactly why primaryType must route it. */
+function testRunData(ranAt: number) {
+  return {
+    scenarioId: 'euler-stale-price',
+    scenarioKind: 'stale_price',
+    verdict: 'caught',
+    harnessVersion: '1.0.0',
+    stepCount: 12,
+    caughtStepCount: 4,
+    falsePositiveCount: 0,
+    detectionRate: 10_000,
+    scenarioHash: H1,
+    reasonCodesHash: H2,
+    ranAt,
+    validUntil: ranAt + 3600,
+    schemaVersion: 1,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // 1. Layout parity
 // ---------------------------------------------------------------------------
@@ -211,6 +236,7 @@ describe('verifier layout parity', () => {
     ['v3', V3_TYPES, verifierSchemas.V3_TYPES],
     ['recheck', RECHECK_TYPES, verifierSchemas.RECHECK_TYPES],
     ['recheckV3', RECHECK_V3_TYPES, verifierSchemas.RECHECK_V3_TYPES],
+    ['testRun', TEST_TYPES, verifierSchemas.TEST_TYPES],
     ['executionV1', EXECUTION_TYPES_V1, verifierExecution.EXECUTION_TYPES_V1],
     ['executionV2', EXECUTION_TYPES_V2, verifierExecution.EXECUTION_TYPES_V2],
     ['executionV3', EXECUTION_TYPES_V3, verifierExecution.EXECUTION_TYPES_V3],
@@ -242,8 +268,15 @@ describe('verifier layout parity', () => {
       'recheckV3',
       RECHECK_V3_DOMAIN,
       verifierSchemas.RECHECK_V3_DOMAIN,
-      RECHECK_PRIMARY_TYPE,
+      RECHECK_V3_PRIMARY_TYPE,
       verifierSchemas.RECHECK_V3_PRIMARY_TYPE,
+    ],
+    [
+      'testRun',
+      TEST_DOMAIN,
+      verifierSchemas.TEST_DOMAIN,
+      TEST_PRIMARY_TYPE,
+      verifierSchemas.TEST_PRIMARY_TYPE,
     ],
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ] as Array<[string, any, any, string, string]>)(
@@ -436,6 +469,18 @@ describe('verifier verdict parity', () => {
             envelopeType: 'OracleSafetyRecheck',
           }),
       ],
+      [
+        'testRun',
+        () =>
+          signEnvelope({
+            domain: TEST_DOMAIN as unknown as Record<string, unknown>,
+            types: TEST_TYPES as unknown as Record<string, unknown>,
+            primaryType: TEST_PRIMARY_TYPE,
+            data: testRunData(now),
+            schemaVersion: 1,
+            envelopeType: TEST_PRIMARY_TYPE,
+          }),
+      ],
     ];
 
     for (const [name, build] of cases) {
@@ -529,6 +574,45 @@ describe('verifier verdict parity', () => {
     expect(prod.valid).toBe(false);
     expect(prod.reason).toContain('recheck_binding_mismatch');
     expect(ver.code).toBe('recheck_binding_mismatch');
+  });
+
+  it('agrees that a tampered scenario-test run is rejected, not routed as v1', async () => {
+    // Regression guard for the schemaVersion collision: a test receipt reads
+    // schemaVersion 1, so if the primaryType branch were removed it would be
+    // hashed against the 11-field v1 layout and fail UID recovery anyway —
+    // but with the WRONG reason. Pin both verifiers to the same code.
+    const now = nowSec();
+    const envelope = await signEnvelope({
+      domain: TEST_DOMAIN as unknown as Record<string, unknown>,
+      types: TEST_TYPES as unknown as Record<string, unknown>,
+      primaryType: TEST_PRIMARY_TYPE,
+      data: testRunData(now),
+      schemaVersion: 1,
+      envelopeType: TEST_PRIMARY_TYPE,
+    });
+    envelope.data = { ...envelope.data, detectionRate: 9_999 };
+
+    const { prod, ver } = await bothVerdicts(envelope);
+    expect(prod.valid).toBe(false);
+    expect(ver.valid).toBe(false);
+    expect(ver.code).toBe('uid_mismatch');
+  });
+
+  it('agrees on an expired scenario-test run', async () => {
+    const stale = nowSec() - 7200;
+    const envelope = await signEnvelope({
+      domain: TEST_DOMAIN as unknown as Record<string, unknown>,
+      types: TEST_TYPES as unknown as Record<string, unknown>,
+      primaryType: TEST_PRIMARY_TYPE,
+      data: testRunData(stale),
+      schemaVersion: 1,
+      envelopeType: TEST_PRIMARY_TYPE,
+    });
+
+    const { prod, ver } = await expectSameVerdict(envelope);
+    expect(prod.expired).toBe(true);
+    expect(ver.code).toBe('expired');
+    expect(ver.valid).toBe(false);
   });
 
   it('agrees on an unsupported schema version', async () => {

@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 2,
+  "capturedAt": "2026-10-13T02:00:00.000Z",
+  "entries": [
+    {
+      "kind": "third_party_token_scan",
+      "source": "gopluslabs",
+      "request": {
+        "chainId": 1,
+        "contractAddress": "0x0000000000000000000000000000000000000001"
+      },
+      "rawResponseSha256": "0xa565eb0987b204d7467738b0e084464a7b3219dc65aba91d5fba3f0a7ad5d4a6",
+      "normalizedResultSha256": "0xe0e47d69174d09a76c8507eeb934ce56db0c9d2337828ddf4c37d2185203c5fe",
+      "retrievedAt": "2026-10-13T02:00:00.000Z",
+      "toolVersion": "synthetic-demo.v1",
+      "authorization": "synthetic-fixture.not-production.v1",
+      "latencyMs": 0,
+      "transactionContext": "demo.synthetic.risk.v1",
+      "priorSeal": {
+        "manifest": "context-attestation.v2",
+        "signature": "0xed04e2164b2a56d7a0915440d5d3f8b8294ed0dcabd34182bf8e549bdaa8b100393f109419d67e29acba65a9b7dba6e5c18bb61fbf35d1a6d5cdc6a93f28c7141c",
+        "keyId": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
+      }
+    }
+  ]
+}

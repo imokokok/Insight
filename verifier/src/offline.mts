@@ -8,10 +8,11 @@ import {
   verifyExecutionPair,
   type RoutableAttestation,
   type ExecutionReceipt,
+  verifyContextAttestation,
 } from './index.js';
 
 const help =
-  'Usage: verify-insight-offline --registry registry.json --registry-sha256 HEX (--receipt receipt.json | --pre-trade source.json --execution execution.json [--destination destination.json])';
+  'Usage: verify-insight-offline --registry registry.json --registry-sha256 HEX (--receipt receipt.json | --pre-trade source.json --execution execution.json [--destination destination.json] | --context-attestation attestation.json [--token-security-view view.json])';
 const known = new Set([
   '--registry',
   '--registry-sha256',
@@ -19,14 +20,16 @@ const known = new Set([
   '--pre-trade',
   '--execution',
   '--destination',
+  '--context-attestation',
+  '--token-security-view',
 ]);
-async function json(path: string): Promise<RoutableAttestation> {
+async function json(path: string): Promise<unknown> {
   const raw = await readFile(path);
   if (raw.byteLength > 1048576) throw new Error('Receipt exceeds 1 MiB');
   const value: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(raw));
   if (!value || typeof value !== 'object' || Array.isArray(value))
     throw new Error('Receipt must be a JSON object');
-  return value as RoutableAttestation;
+  return value;
 }
 async function main() {
   const args = process.argv.slice(2),
@@ -45,11 +48,21 @@ async function main() {
   const receiptPath = options.get('--receipt'),
     sourcePath = options.get('--pre-trade'),
     executionPath = options.get('--execution'),
-    destinationPath = options.get('--destination');
+    destinationPath = options.get('--destination'),
+    contextAttestationPath = options.get('--context-attestation'),
+    tokenSecurityViewPath = options.get('--token-security-view');
+  const modeCount =
+    Number(Boolean(receiptPath)) +
+    Number(Boolean(sourcePath || executionPath || destinationPath)) +
+    Number(Boolean(contextAttestationPath));
   if (
     !registryPath ||
     !pin ||
-    (receiptPath ? sourcePath || executionPath || destinationPath : !sourcePath || !executionPath)
+    modeCount !== 1 ||
+    (receiptPath && (sourcePath || executionPath || destinationPath || tokenSecurityViewPath)) ||
+    (contextAttestationPath && (sourcePath || executionPath || destinationPath)) ||
+    (!contextAttestationPath && tokenSecurityViewPath) ||
+    (!receiptPath && !contextAttestationPath && (!sourcePath || !executionPath))
   )
     throw new Error(help);
   const snapshot = parsePinnedKeyRegistry(await readFile(registryPath), pin);
@@ -57,11 +70,13 @@ async function main() {
   let result: unknown, accepted: boolean;
   if (receiptPath) {
     const receipt = await json(receiptPath);
+    const receiptRecord = receipt as RoutableAttestation;
     const execution =
-      receipt.eip712?.primaryType === 'ExecutionReceipt' || receipt.type === 'ExecutionReceipt';
+      receiptRecord.eip712?.primaryType === 'ExecutionReceipt' ||
+      receiptRecord.type === 'ExecutionReceipt';
     const verified = execution
-      ? await verifyExecutionReceipt(receipt as ExecutionReceipt, trust)
-      : await verifyReceipt(receipt, trust);
+      ? await verifyExecutionReceipt(receiptRecord as ExecutionReceipt, trust)
+      : await verifyReceipt(receiptRecord, trust);
     const key = snapshot.registry.keys!.find(
       (k) => k.public_key.toLowerCase() === verified.attester.toLowerCase()
     );
@@ -71,11 +86,27 @@ async function main() {
       verified.keyStatus === 'valid' &&
       key?.role !== 'sample';
     result = verified;
+  } else if (contextAttestationPath) {
+    const verified = await verifyContextAttestation(
+      await json(contextAttestationPath),
+      tokenSecurityViewPath ? await json(tokenSecurityViewPath) : undefined,
+      trust
+    );
+    const key = snapshot.registry.keys!.find(
+      (k) => k.public_key.toLowerCase() === (verified.attester ?? '').toLowerCase()
+    );
+    accepted =
+      verified.valid &&
+      verified.code === 'ok' &&
+      verified.resultLinked &&
+      verified.keyStatus === 'valid' &&
+      key?.role !== 'sample';
+    result = verified;
   } else {
     const paired = await verifyExecutionPair(
-      await json(sourcePath!),
+      (await json(sourcePath!)) as RoutableAttestation,
       (await json(executionPath!)) as ExecutionReceipt,
-      destinationPath ? await json(destinationPath) : null,
+      destinationPath ? ((await json(destinationPath)) as RoutableAttestation) : null,
       trust
     );
     accepted = paired.pairedValid;

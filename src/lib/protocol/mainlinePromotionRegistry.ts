@@ -25,6 +25,16 @@ import promotionRwaVerifierRefactorJson from '../../../protocol/mainline/promoti
 import promotionVeritas1800Json from '../../../protocol/mainline/promotions/2026-09-29-veritas-one-time-1800-activation.json';
 import promotionVeritasWindow5ActivationJson from '../../../protocol/mainline/promotions/2026-10-01-veritas-window-five-activation.json';
 import promotionVeritasWindow5CandidateJson from '../../../protocol/mainline/promotions/2026-10-01-veritas-window-five-candidate.json';
+import promotionOracleScenarioRunVerifierJson from '../../../protocol/mainline/promotions/2026-10-04-oracle-scenario-run-verifier.json';
+import promotionVeritasWindow6ActivationJson from '../../../protocol/mainline/promotions/2026-10-06-veritas-window-six-activation.json';
+import promotionVeritasWindow6CandidateJson from '../../../protocol/mainline/promotions/2026-10-06-veritas-window-six-candidate.json';
+import promotionContextAttestationV2Json from '../../../protocol/mainline/promotions/2026-10-13-context-attestation-v2.json';
+import promotionRwaActionPreflightJson from '../../../protocol/mainline/promotions/2026-10-13-rwa-action-preflight.json';
+import promotionDecisionInputSwapRiskJson from '../../../protocol/mainline/promotions/2026-10-14-decision-input-swap-risk-sdk.json';
+import promotionDecisionEvidencePackJson from '../../../protocol/mainline/promotions/2026-10-16-decision-evidence-pack.json';
+import promotionDecisionInputDataRightsGateJson from '../../../protocol/mainline/promotions/2026-10-17-decision-input-data-rights-gate.json';
+import promotionInterAiD8EconomicEvidenceAdmissionJson from '../../../protocol/mainline/promotions/2026-10-18-interai-d8-economic-evidence-admission.json';
+import promotionPaidSwapIntentJourneysJson from '../../../protocol/mainline/promotions/2026-10-25-paid-swap-intent-journeys.json';
 
 import { bodyWithoutId, keccakContentId } from './contentAddress';
 
@@ -81,6 +91,16 @@ const rawPromotions = [
   promotionVeritas1800Json,
   promotionVeritasWindow5CandidateJson,
   promotionVeritasWindow5ActivationJson,
+  promotionOracleScenarioRunVerifierJson,
+  promotionVeritasWindow6CandidateJson,
+  promotionVeritasWindow6ActivationJson,
+  promotionContextAttestationV2Json,
+  promotionRwaActionPreflightJson,
+  promotionDecisionInputSwapRiskJson,
+  promotionDecisionEvidencePackJson,
+  promotionDecisionInputDataRightsGateJson,
+  promotionInterAiD8EconomicEvidenceAdmissionJson,
+  promotionPaidSwapIntentJourneysJson,
 ] as unknown as MainlineProtocolPromotion[];
 
 for (const promotion of rawPromotions) {

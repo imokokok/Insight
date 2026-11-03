@@ -8,7 +8,15 @@ import {
   chainlinkOnChainService,
   type ChainlinkPriceData,
 } from '@/lib/oracles/services/chainlinkOnChainService';
+import {
+  chainlinkSolanaOnChainService,
+  type ChainlinkSolanaPriceData,
+} from '@/lib/oracles/services/chainlinkSolanaOnChainService';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
+import {
+  type SnapshotBatchPriceRequest,
+  type SnapshotBatchPriceResult,
+} from '@/lib/oracles/utils/snapshotBatch';
 import { buildEvmVerification } from '@/lib/oracles/utils/verificationUtils';
 import { roundTo } from '@/lib/utils/format';
 import { createLogger } from '@/lib/utils/logger';
@@ -29,7 +37,7 @@ const CHAINLINK_QUALITY_CONFIG = {
     [Blockchain.AVALANCHE]: 0.96,
     [Blockchain.BNB_CHAIN]: 0.95,
     [Blockchain.BASE]: 0.97,
-    [Blockchain.SOLANA]: 0.0,
+    [Blockchain.SOLANA]: 0.97,
     [Blockchain.FANTOM]: 0.94,
     [Blockchain.CRONOS]: 0.93,
     [Blockchain.JUNO]: 0.0,
@@ -58,6 +66,11 @@ const CHAINLINK_QUALITY_CONFIG = {
     [Blockchain.STARKEX]: 0.0,
     [Blockchain.STELLAR]: 0.0,
     [Blockchain.FLARE]: 0.0,
+    [Blockchain.SUPRA_CHAIN]: 0.0,
+    [Blockchain.BANDCHAIN]: 0.0,
+    // New chain (mainnet 2025-11, feeds since 2025-11-24). Conservative
+    // reliability until an observed track record justifies raising it.
+    [Blockchain.MONAD]: 0.93,
   } as Record<Blockchain, number>,
   defaultConfidence: 0.98,
   minConfidence: 0.9,
@@ -67,9 +80,11 @@ export class ChainlinkClient extends BaseOracleClient {
   name = OracleProvider.CHAINLINK;
   // Chains ChainlinkClient can actually serve. This MUST stay in sync with
   // CHAINLINK_RPC_CONFIG (rpcConfig.ts): a chain only works here if it has an
-  // RPC endpoint and a deployed Feed Registry. Solana/Starknet are excluded —
-  // they are non-EVM and the EVM Feed Registry/aggregator path cannot query
-  // them. Scroll/zkSync Era/Linea are intentionally NOT listed: Chainlink does
+  // RPC endpoint and a deployed Feed Registry. Solana is the one non-EVM
+  // exception: its OCR2 Transmissions accounts are read by the dedicated native
+  // reader below, with owner/layout/pair/freshness validation. Starknet is
+  // excluded because the EVM Feed Registry/aggregator path cannot query it.
+  // Scroll/zkSync Era/Linea are intentionally NOT listed: Chainlink does
   // not deploy a Feed Registry on those L2s (the on-chain registry is Mainnet-
   // only), and our CHAINLINK_PRICE_FEEDS fallback only covers the 7 chains
   // below — so any feed request to them would fail regardless.
@@ -85,6 +100,11 @@ export class ChainlinkClient extends BaseOracleClient {
     Blockchain.AVALANCHE,
     Blockchain.BNB_CHAIN,
     Blockchain.BASE,
+    Blockchain.SOLANA,
+    // Monad: catalog-resolved proxy reads over the official public RPC. Unlike
+    // the chains above there is no Feed Registry on Monad — resolution relies
+    // on the committed catalog (network "143") and feedAddressOverride paths.
+    Blockchain.MONAD,
   ];
 
   private useRealData: boolean;
@@ -96,6 +116,7 @@ export class ChainlinkClient extends BaseOracleClient {
 
   private getChainId(chain?: Blockchain): number {
     if (!chain) return ETHEREUM_CHAIN_ID;
+    if (chain === Blockchain.SOLANA) return BLOCKCHAIN_TO_CHAIN_ID[Blockchain.SOLANA];
     const chainId = BLOCKCHAIN_TO_CHAIN_ID[chain];
     if (!chainId || chainId === 0) {
       throw this.createError(
@@ -122,7 +143,11 @@ export class ChainlinkClient extends BaseOracleClient {
     return roundTo(adjustedConfidence, 4);
   }
 
-  private convertToPriceData(chainlinkData: ChainlinkPriceData, chain?: Blockchain): PriceData {
+  private convertToPriceData(
+    chainlinkData: ChainlinkPriceData,
+    chain?: Blockchain,
+    verificationFeedAddress?: `0x${string}`
+  ): PriceData {
     let confidence = this.calculateConfidence(chain);
 
     if (chainlinkData.decimalsIsFallback) {
@@ -142,7 +167,9 @@ export class ChainlinkClient extends BaseOracleClient {
     const startedAt = chainlinkData.startedAt;
 
     const chainId = this.getChainId(chain);
-    const feed = getChainlinkPriceFeed(chainlinkData.symbol, chainId);
+    const feed = verificationFeedAddress
+      ? { address: verificationFeedAddress }
+      : getChainlinkPriceFeed(chainlinkData.symbol, chainId);
 
     logger.debug('Converting Chainlink data to PriceData', {
       symbol: chainlinkData.symbol,
@@ -201,6 +228,11 @@ export class ChainlinkClient extends BaseOracleClient {
   ): Promise<PriceData> {
     this.validateGetPriceParams(symbol, options);
 
+    const targetChain = chain ?? Blockchain.ETHEREUM;
+    if (targetChain === Blockchain.SOLANA) {
+      return this.getSolanaPrice(symbol, options?.signal);
+    }
+
     const chainId = this.getChainId(chain);
 
     if (this.useRealData && this.isPriceFeedSupported(symbol, chain)) {
@@ -243,7 +275,114 @@ export class ChainlinkClient extends BaseOracleClient {
     );
   }
 
+  /**
+   * Snapshot-collector fast path. It is intentionally not part of the normal
+   * request API: only a registry-authenticated background batch may coalesce
+   * reads. Any aggregate or sub-result problem falls back to the established
+   * single-price method with its retry and validation behaviour.
+   */
+  async getSnapshotPricesBatch(
+    requests: readonly SnapshotBatchPriceRequest[],
+    signal?: AbortSignal
+  ): Promise<SnapshotBatchPriceResult[]> {
+    if (requests.length === 0) return [];
+    if (requests.every((request) => request.chain === Blockchain.SOLANA)) {
+      return this.getSolanaSnapshotPricesBatch(requests, signal);
+    }
+    if (requests.some((request) => request.chain === Blockchain.SOLANA)) {
+      return requests.map((request) => ({
+        id: request.id,
+        price: null,
+        error: new Error('Chainlink snapshot batch must contain exactly one chain'),
+      }));
+    }
+    const raw = await chainlinkOnChainService.getSnapshotPricesBatch(
+      requests.map((request) => ({
+        id: request.id,
+        symbol: request.symbol,
+        chainId: this.getChainId(request.chain),
+        feedAddressOverride: request.feedAddress,
+      })),
+      signal
+    );
+    const requestsById = new Map(requests.map((request) => [request.id, request]));
+    return Promise.all(
+      raw.map(async (result): Promise<SnapshotBatchPriceResult> => {
+        const request = requestsById.get(result.id);
+        if (!request) {
+          return {
+            id: result.id,
+            price: null,
+            error: new Error('Unknown Chainlink batch request'),
+          };
+        }
+        if (result.data && !result.error) {
+          try {
+            return {
+              id: result.id,
+              price: this.validatePriceData(
+                this.convertToPriceData(result.data, request.chain, request.feedAddress),
+                'snapshot-batch'
+              ),
+              error: null,
+            };
+          } catch (error) {
+            return {
+              id: result.id,
+              price: null,
+              error: error instanceof Error ? error : new Error(String(error)),
+            };
+          }
+        }
+
+        try {
+          // A Multicall response is an optimization, never a new dependency.
+          // The established path remains the safety net for an outer failure,
+          // a failed subcall, malformed ABI output, or a phase transition.
+          const fallbackData = await withOracleRetry(
+            () =>
+              chainlinkOnChainService.getPrice(
+                request.symbol,
+                this.getChainId(request.chain),
+                signal,
+                request.feedAddress
+              ),
+            'chainlink:snapshot-batch-fallback',
+            { ...ORACLE_RETRY_PRESETS.standard, timeout: 30000 },
+            signal
+          );
+          if (!fallbackData) {
+            throw this.createNoDataError(
+              request.symbol,
+              request.chain,
+              'Chainlink Multicall fallback returned no price'
+            );
+          }
+          return {
+            id: result.id,
+            price: this.validatePriceData(
+              this.convertToPriceData(fallbackData, request.chain, request.feedAddress),
+              'snapshot-batch-fallback'
+            ),
+            error: null,
+          };
+        } catch (error) {
+          return {
+            id: result.id,
+            price: null,
+            error: error instanceof Error ? error : new Error(String(error)),
+          };
+        }
+      })
+    );
+  }
+
   private isPriceFeedSupported(symbol: string, chain?: Blockchain): boolean {
+    // Solana's roster is the official live Reference Data Directory rather
+    // than an EVM catalog. Registry-gated callers load the row before this
+    // fallback is consulted; a direct getPrice performs its own directory and
+    // account validation below.
+    if (chain === Blockchain.SOLANA) return false;
     const chainId = this.getChainId(chain);
     return isPriceFeedSupportedSync(symbol, chainId);
   }
@@ -274,8 +413,150 @@ export class ChainlinkClient extends BaseOracleClient {
   }
 
   getSupportedSymbolsForChain(chain: Blockchain): string[] {
+    if (chain === Blockchain.SOLANA) return [];
     const chainId = this.getChainId(chain);
     const allSymbols = this.getSupportedSymbols();
     return allSymbols.filter((symbol) => isPriceFeedSupportedSync(symbol, chainId));
+  }
+
+  private async getSolanaPrice(symbol: string, signal?: AbortSignal): Promise<PriceData> {
+    try {
+      const reading = await withOracleRetry(
+        () => chainlinkSolanaOnChainService.getPrice(symbol, signal),
+        'chainlink-solana:getPrice',
+        ORACLE_RETRY_PRESETS.standard,
+        signal
+      );
+      return this.toSolanaPriceData(reading);
+    } catch (error) {
+      this.handleGetPriceError(error, 'Chainlink on Solana', 'CHAINLINK_PRICE_ERROR');
+    }
+  }
+
+  private async getSolanaSnapshotPricesBatch(
+    requests: readonly SnapshotBatchPriceRequest[],
+    signal?: AbortSignal
+  ): Promise<SnapshotBatchPriceResult[]> {
+    const feedById = new Map<
+      string,
+      Awaited<ReturnType<typeof chainlinkSolanaOnChainService.getOfficialFeeds>>[number]
+    >();
+    const failures = new Map<string, Error>();
+    try {
+      const officialFeeds = await withOracleRetry(
+        () => chainlinkSolanaOnChainService.getOfficialFeeds(signal),
+        'chainlink-solana:snapshot-directory',
+        ORACLE_RETRY_PRESETS.standard,
+        signal
+      );
+      const byAlias = new Map(officialFeeds.map((feed) => [feed.alias, feed]));
+      for (const request of requests) {
+        const base = request.symbol.trim().toUpperCase().split('/')[0];
+        const feed = byAlias.get(`${base}/USD`);
+        if (feed) feedById.set(request.id, feed);
+        else
+          failures.set(request.id, new Error(`No official Chainlink Solana USD feed for ${base}`));
+      }
+    } catch {
+      // The per-request fallback below retains the established retry path.
+    }
+
+    const readingsByAddress = new Map<string, ChainlinkSolanaPriceData>();
+    if (feedById.size > 0) {
+      try {
+        const uniqueFeeds = [
+          ...new Map(
+            [...feedById.values()].map((feed) => [feed.accountAddress.toLowerCase(), feed])
+          ).values(),
+        ];
+        const readings = await withOracleRetry(
+          () => chainlinkSolanaOnChainService.getPrices(uniqueFeeds, signal),
+          'chainlink-solana:snapshot-batch',
+          ORACLE_RETRY_PRESETS.standard,
+          signal
+        );
+        for (const reading of readings) {
+          readingsByAddress.set(reading.accountAddress.toLowerCase(), reading);
+        }
+      } catch {
+        // A successful directory lookup must not turn an RPC batch issue into
+        // a data loss; each feed still receives its legacy individual read.
+      }
+    }
+
+    return Promise.all(
+      requests.map(async (request): Promise<SnapshotBatchPriceResult> => {
+        const initialFailure = failures.get(request.id);
+        if (initialFailure) return { id: request.id, price: null, error: initialFailure };
+        const feed = feedById.get(request.id);
+        try {
+          const reading = feed && readingsByAddress.get(feed.accountAddress.toLowerCase());
+          return {
+            id: request.id,
+            price: reading
+              ? this.toSolanaPriceData(reading)
+              : await this.getSolanaPrice(request.symbol, signal),
+            error: null,
+          };
+        } catch (error) {
+          return {
+            id: request.id,
+            price: null,
+            error: error instanceof Error ? error : new Error(String(error)),
+          };
+        }
+      })
+    );
+  }
+
+  private toSolanaPriceData(reading: ChainlinkSolanaPriceData): PriceData {
+    const ageSeconds = Math.max(
+      0,
+      Math.floor(Date.now() / 1000) - Math.floor(reading.timestamp / 1000)
+    );
+    const data: PriceData = {
+      provider: this.name,
+      chain: Blockchain.SOLANA,
+      symbol: reading.symbol,
+      price: reading.price,
+      timestamp: reading.timestamp,
+      decimals: reading.decimals,
+      confidence: this.calculateConfidence(Blockchain.SOLANA),
+      confidenceSource: 'estimated',
+      change24h: 0,
+      change24hPercent: 0,
+      source: `Chainlink OCR2 Solana:${reading.description}`,
+      roundId: reading.roundId,
+      answeredInRound: reading.roundId,
+      startedAt: reading.timestamp,
+      dataAge: ageSeconds,
+      dataSource: 'real',
+      ingestionTimestamp: Date.now(),
+      failureMode: FailureMode.NONE,
+      signalVector: buildSignalVector({
+        dataAgeSeconds: ageSeconds,
+        isOnChain: true,
+        hasVerification: true,
+        providerUptime: CHAINLINK_QUALITY_CONFIG.chainReliability[Blockchain.SOLANA] * 100,
+        hasConfidence: true,
+        hasTimestamp: true,
+        hasDecimals: true,
+        hasSource: true,
+        verificationMethod: 'getMultipleAccounts+OCR2-owner/layout/pair/heartbeat gates',
+      }),
+      verification: {
+        type: 'on-chain',
+        contractAddress: reading.accountAddress,
+        chainId: BLOCKCHAIN_TO_CHAIN_ID[Blockchain.SOLANA],
+        explorerUrl: `https://solscan.io/account/${reading.accountAddress}`,
+        method: 'getMultipleAccounts(base64)+OCR2-Transmissions/owner/pair/heartbeat gates',
+        blockNumber: reading.observationSlot,
+        rawValue: reading.answer,
+        sourceTimestamp: Math.floor(reading.timestamp / 1000),
+        valueExponent: -reading.decimals,
+        assetId: reading.accountDataHash,
+      },
+    };
+    return this.validatePriceData(data, 'chainlink-solana:getPrice');
   }
 }

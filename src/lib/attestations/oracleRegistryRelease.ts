@@ -41,6 +41,13 @@ import {
   EXECUTION_REQUIRED_SOURCE_GROUP_COUNT,
 } from './executionReceipt';
 import {
+  INTERAI_ECONOMIC_EVIDENCE_COMMITMENT_ADMISSION,
+  INTERAI_ECONOMIC_EVIDENCE_COMMITMENT_DOMAIN,
+  INTERAI_ECONOMIC_EVIDENCE_COMMITMENT_PRIMARY_TYPE,
+  INTERAI_ECONOMIC_EVIDENCE_COMMITMENT_SCHEMA,
+  INTERAI_ECONOMIC_EVIDENCE_COMMITMENT_TYPES,
+} from './interaiEconomicEvidenceCommitment';
+import {
   ATTESTATION_DOMAIN,
   ATTESTATION_PRIMARY_TYPE,
   ATTESTATION_SCHEMA_VERSION,
@@ -289,6 +296,32 @@ export const ORACLE_REGISTRY_RELEASE_2026_09_11_1 = {
   },
 } as const;
 
+/** D8's trust-root publication. It admits only the separately versioned
+ * InterAI companion descriptor; no issuance path, v3 payload, partner
+ * activation, Stage 2 policy, or decision authority changes here. */
+export const ORACLE_REGISTRY_RELEASE_2026_10_18_1 = {
+  ...ORACLE_REGISTRY_RELEASE_2026_09_11_1,
+  registryRevision: '2026-10-18.1',
+  effectiveFrom: '2026-10-18',
+  predecessorReleaseId: '0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b',
+  changes: [
+    'The InterAI D8 experimental EconomicEvidenceCommitment EIP-712 domain is published as an explicit registry admission.',
+    'Admission is descriptor-only: issuance remains disabled until bilateral acceptance and the D8 capture-freeze gates are independently satisfied.',
+    'OracleSafetyCheck v3 keeps its exact 27-field signed payload and its existing domain unchanged.',
+    'No partner activation, production decision authority, Stage 2 policy, attester key, or legacy verification behavior changes.',
+  ],
+  schemaCatalog: {
+    ...ORACLE_REGISTRY_RELEASE_2026_09_11_1.schemaCatalog,
+    InterAIEconomicEvidenceCommitment: {
+      schema: INTERAI_ECONOMIC_EVIDENCE_COMMITMENT_SCHEMA,
+      domain: INTERAI_ECONOMIC_EVIDENCE_COMMITMENT_DOMAIN,
+      types: INTERAI_ECONOMIC_EVIDENCE_COMMITMENT_TYPES,
+      primaryType: INTERAI_ECONOMIC_EVIDENCE_COMMITMENT_PRIMARY_TYPE,
+      admission: INTERAI_ECONOMIC_EVIDENCE_COMMITMENT_ADMISSION,
+    },
+  },
+} as const;
+
 function canonicalJson(value: unknown): string {
   if (value === null || typeof value === 'boolean' || typeof value === 'number') {
     return JSON.stringify(value);
@@ -348,15 +381,26 @@ if (computedReleaseLineageId !== ORACLE_REGISTRY_RELEASE_2026_09_11_1_ID) {
   );
 }
 
+export const ORACLE_REGISTRY_RELEASE_2026_10_18_1_ID =
+  '0xc90709876d4210c521d36a27171d4f45bca4a7b48e67658fac9c76c04ef50831' as const;
+
+const computedInterAiD8ReleaseId = releaseDigest(ORACLE_REGISTRY_RELEASE_2026_10_18_1);
+if (computedInterAiD8ReleaseId !== ORACLE_REGISTRY_RELEASE_2026_10_18_1_ID) {
+  throw new Error(
+    `Oracle registry release is immutable: expected ${ORACLE_REGISTRY_RELEASE_2026_10_18_1_ID}, computed ${computedInterAiD8ReleaseId}`
+  );
+}
+
 export const ORACLE_REGISTRY_RELEASES = Object.freeze({
   [ORACLE_REGISTRY_RELEASE_2026_09_08_1_ID]: ORACLE_REGISTRY_RELEASE_2026_09_08_1,
   [ORACLE_REGISTRY_RELEASE_2026_09_09_1_ID]: ORACLE_REGISTRY_RELEASE_2026_09_09_1,
   [ORACLE_REGISTRY_RELEASE_2026_09_10_1_ID]: ORACLE_REGISTRY_RELEASE_2026_09_10_1,
   [ORACLE_REGISTRY_RELEASE_2026_09_11_1_ID]: ORACLE_REGISTRY_RELEASE_2026_09_11_1,
+  [ORACLE_REGISTRY_RELEASE_2026_10_18_1_ID]: ORACLE_REGISTRY_RELEASE_2026_10_18_1,
 });
 
 /** The only pointer edited during an explicit protocol promotion. */
-export const CURRENT_ORACLE_REGISTRY_RELEASE_ID = ORACLE_REGISTRY_RELEASE_2026_09_11_1_ID;
+export const CURRENT_ORACLE_REGISTRY_RELEASE_ID = ORACLE_REGISTRY_RELEASE_2026_10_18_1_ID;
 export const CURRENT_ORACLE_REGISTRY_RELEASE =
   ORACLE_REGISTRY_RELEASES[CURRENT_ORACLE_REGISTRY_RELEASE_ID];
 

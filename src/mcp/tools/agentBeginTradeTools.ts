@@ -17,18 +17,238 @@
  * `preTradeUid` + `requestHash`. Together the two tools close the loop:
  *   pre_trade_safety_check (certify)  →  agent executes  →  execution_receipt (prove).
  *
- * If the oracle verdict is DANGER or BLOCK, or no pre-trade attestation could
- * be signed, this tool refuses to issue a handle — there is nothing to bind an
- * Execution Receipt to, so the agent must not trade.
+ * If either oracle verdict or either operation-input assessment fails, or no
+ * pre-trade attestation could be signed, this tool refuses to issue a handle.
  */
+
+import { type z } from 'zod';
 
 import { preTradeSafetyCheck } from '@/lib/api/services/preTradeSafetyService';
 import type { PreTradeSafetyResult } from '@/lib/api/services/preTradeSafetyService';
 import { resolveCaip19 } from '@/lib/attestations/caip19';
+import { verifyDecisionInputAssessment } from '@/lib/decisionInputTrust/attestation';
+import {
+  recordDecisionInputExecutionGate,
+  type DecisionInputExecutionGateAudit,
+} from '@/lib/decisionInputTrust/audit';
+import {
+  getOnchainRouteQuote,
+  OnchainRouteQuoteError,
+  type OnchainRouteQuote,
+} from '@/lib/decisionInputTrust/onchainRouteQuote';
 
 import { AgentBeginTradeInputSchema } from './schemas';
 
 import type { McpToolDefinition } from './types';
+
+const RECEIPT_MAX_SLIPPAGE_BPS = 50;
+type AgentBeginTradeArgs = z.infer<typeof AgentBeginTradeInputSchema>;
+
+interface RouteQuoteGateMetrics {
+  routeQuoteAgeSeconds: number;
+  routeQuoteDeviationBps: number;
+  callerRouteQuoteDeviationBps: number;
+  routeQuoteMaxDeviationBps: number;
+}
+
+type RouteQuoteGateResult =
+  | { ok: true; metrics: RouteQuoteGateMetrics }
+  | { ok: false; refusal: string };
+
+function describeAssessmentFailure(
+  label: string,
+  check: PreTradeSafetyResult,
+  verification: Awaited<ReturnType<typeof verifyDecisionInputAssessment>>
+): string | null {
+  const assessment = check.decisionInputAssessment;
+  if (!assessment) {
+    return `${label} operation-input assessment is missing; no execution handle was issued.`;
+  }
+  if (assessment.status === 'SUFFICIENT') {
+    if (!assessment.attestation) {
+      return `${label} operation-input assessment has no integrity attestation; no execution handle was issued.`;
+    }
+    const preTradeUid = check.attestation?.uid;
+    if (!verification.valid) {
+      return `${label} operation-input integrity attestation failed verification (${verification.reason}); no execution handle was issued.`;
+    }
+    if (
+      !preTradeUid ||
+      verification.linkedPreTradeUid?.toLowerCase() !== preTradeUid.toLowerCase()
+    ) {
+      return `${label} operation-input integrity attestation is not linked to its pre-trade attestation; no execution handle was issued.`;
+    }
+    return null;
+  }
+  const reasons = assessment.reasons.map((reason) => reason.code).join(', ');
+  return `${label} operation-input assessment is ${assessment.status}${reasons ? ` (${reasons})` : ''}; no execution handle was issued.`;
+}
+
+async function evaluateAndPersistRouteQuoteGate(
+  args: AgentBeginTradeArgs,
+  sourceCheck: PreTradeSafetyResult,
+  destinationCheck: PreTradeSafetyResult,
+  trustedRouteQuote: OnchainRouteQuote,
+  oracleCrossRate: number,
+  sourcePreTradeUid: string,
+  destinationPreTradeUid: string
+): Promise<RouteQuoteGateResult> {
+  const nowMs = Date.now();
+  const routeQuoteAgeSeconds = (nowMs - Date.parse(trustedRouteQuote.observedAt)) / 1000;
+  const callerRouteQuoteAgeSeconds =
+    (nowMs - Date.parse(args.decisionInput.routeQuoteObservedAt)) / 1000;
+  const routeQuoteDeviationBps =
+    (Math.abs(trustedRouteQuote.price - oracleCrossRate) / oracleCrossRate) * 10_000;
+  const callerRouteQuoteDeviationBps =
+    (Math.abs(args.decisionInput.routeQuotePrice - trustedRouteQuote.price) /
+      trustedRouteQuote.price) *
+    10_000;
+  const routeQuoteMaxDeviationBps = Math.min(
+    RECEIPT_MAX_SLIPPAGE_BPS,
+    args.decisionInput.source.maxReferenceDeviationBps,
+    args.decisionInput.destination.maxReferenceDeviationBps,
+    args.decisionInput.source.maxSlippageBps,
+    args.decisionInput.destination.maxSlippageBps
+  );
+  const routeQuoteMaxAgeSeconds = Math.min(
+    args.decisionInput.source.maxQuoteAgeSeconds,
+    args.decisionInput.destination.maxQuoteAgeSeconds
+  );
+  const routeQuoteFresh =
+    Number.isFinite(routeQuoteAgeSeconds) &&
+    routeQuoteAgeSeconds >= 0 &&
+    routeQuoteAgeSeconds <= routeQuoteMaxAgeSeconds &&
+    Number.isFinite(callerRouteQuoteAgeSeconds) &&
+    callerRouteQuoteAgeSeconds >= 0 &&
+    callerRouteQuoteAgeSeconds <= routeQuoteMaxAgeSeconds;
+  const trustedRouteWithinPolicy =
+    Number.isFinite(routeQuoteDeviationBps) && routeQuoteDeviationBps <= routeQuoteMaxDeviationBps;
+  const callerRouteWithinPolicy =
+    Number.isFinite(callerRouteQuoteDeviationBps) &&
+    callerRouteQuoteDeviationBps <= routeQuoteMaxDeviationBps;
+  const routeQuoteWithinPolicy = trustedRouteWithinPolicy && callerRouteWithinPolicy;
+  const sourceInputStatus = sourceCheck.decisionInputAssessment?.status ?? null;
+  const destinationInputStatus = destinationCheck.decisionInputAssessment?.status ?? null;
+  const [sourceAssessmentVerification, destinationAssessmentVerification] = await Promise.all([
+    verifyDecisionInputAssessment(sourceCheck.decisionInputAssessment),
+    verifyDecisionInputAssessment(destinationCheck.decisionInputAssessment),
+  ]);
+  const sourceAssessmentLinked =
+    Boolean(sourceCheck.attestation?.uid) &&
+    sourceAssessmentVerification.linkedPreTradeUid?.toLowerCase() ===
+      sourceCheck.attestation?.uid.toLowerCase();
+  const destinationAssessmentLinked =
+    Boolean(destinationCheck.attestation?.uid) &&
+    destinationAssessmentVerification.linkedPreTradeUid?.toLowerCase() ===
+      destinationCheck.attestation?.uid.toLowerCase();
+  const inputAssessmentPasses =
+    sourceInputStatus === 'SUFFICIENT' &&
+    destinationInputStatus === 'SUFFICIENT' &&
+    sourceAssessmentVerification.valid &&
+    destinationAssessmentVerification.valid &&
+    sourceAssessmentLinked &&
+    destinationAssessmentLinked;
+  const gateStatus: DecisionInputExecutionGateAudit['status'] =
+    sourceInputStatus === 'BLOCK' ||
+    destinationInputStatus === 'BLOCK' ||
+    (routeQuoteFresh && !routeQuoteWithinPolicy)
+      ? 'BLOCK'
+      : !inputAssessmentPasses || !routeQuoteFresh
+        ? 'INSUFFICIENT_EVIDENCE'
+        : 'SUFFICIENT';
+  const gateAudit: DecisionInputExecutionGateAudit = {
+    schemaVersion: 1,
+    status: gateStatus,
+    evaluatedAt: new Date().toISOString(),
+    sourceAssessmentStatus: sourceInputStatus,
+    destinationAssessmentStatus: destinationInputStatus,
+    routeQuote: {
+      price: trustedRouteQuote.price,
+      observedAt: trustedRouteQuote.observedAt,
+      ageSeconds: Number.isFinite(routeQuoteAgeSeconds) ? routeQuoteAgeSeconds : null,
+      oracleCrossRate,
+      deviationBps: Number.isFinite(routeQuoteDeviationBps) ? routeQuoteDeviationBps : null,
+      callerReportedPrice: args.decisionInput.routeQuotePrice,
+      callerReportedAt: args.decisionInput.routeQuoteObservedAt,
+      callerDeviationBps: Number.isFinite(callerRouteQuoteDeviationBps)
+        ? callerRouteQuoteDeviationBps
+        : null,
+      maxDeviationBps: routeQuoteMaxDeviationBps,
+      source: trustedRouteQuote.evidence.provider,
+      blockNumber: trustedRouteQuote.evidence.blockNumber,
+      blockHash: trustedRouteQuote.evidence.blockHash,
+    },
+  };
+  try {
+    await recordDecisionInputExecutionGate(sourcePreTradeUid, destinationPreTradeUid, gateAudit);
+  } catch {
+    return {
+      ok: false,
+      refusal: [
+        '**Execution certification REFUSED — operation-input audit could not be persisted.**',
+        'No execution handle was issued because both pre-trade UIDs must durably record the combined input gate before the agent executes.',
+      ].join('\n'),
+    };
+  }
+
+  const sourceAssessmentFailure = describeAssessmentFailure(
+    'Source',
+    sourceCheck,
+    sourceAssessmentVerification
+  );
+  if (sourceAssessmentFailure) {
+    return {
+      ok: false,
+      refusal: [
+        '**Execution certification REFUSED — operation-input evidence is insufficient.**',
+        sourceAssessmentFailure,
+        'Do NOT execute this trade. Refresh the input data or use an asset and chain with supported reference coverage.',
+      ].join('\n'),
+    };
+  }
+  const destinationAssessmentFailure = describeAssessmentFailure(
+    'Destination',
+    destinationCheck,
+    destinationAssessmentVerification
+  );
+  if (destinationAssessmentFailure) {
+    return {
+      ok: false,
+      refusal: [
+        '**Execution certification REFUSED — operation-input evidence is insufficient.**',
+        destinationAssessmentFailure,
+        'Do NOT execute this trade. Refresh the input data or use an asset and chain with supported reference coverage.',
+      ].join('\n'),
+    };
+  }
+  if (!routeQuoteFresh) {
+    return {
+      ok: false,
+      refusal: [
+        '**Execution certification REFUSED — route quote is stale or has an invalid timestamp.**',
+        `The route quote age must be between 0 and ${routeQuoteMaxAgeSeconds} seconds. No execution handle was issued.`,
+      ].join('\n'),
+    };
+  }
+  if (!routeQuoteWithinPolicy) {
+    const title = trustedRouteWithinPolicy
+      ? '**Execution certification REFUSED — caller route quote diverges from the on-chain quote.**'
+      : '**Execution certification REFUSED — on-chain route quote diverges from the oracle cross-rate.**';
+    const detail = trustedRouteWithinPolicy
+      ? `The caller-reported route quote differs from the on-chain quote by ${callerRouteQuoteDeviationBps.toFixed(1)} bps; the limit is ${routeQuoteMaxDeviationBps} bps.`
+      : `The on-chain route quote differs from the oracle cross-rate by ${routeQuoteDeviationBps.toFixed(1)} bps; the limit is ${routeQuoteMaxDeviationBps} bps.`;
+    return { ok: false, refusal: [title, `${detail} No execution handle was issued.`].join('\n') };
+  }
+  return {
+    ok: true,
+    metrics: {
+      routeQuoteAgeSeconds,
+      routeQuoteDeviationBps,
+      callerRouteQuoteDeviationBps,
+      routeQuoteMaxDeviationBps,
+    },
+  };
+}
 
 export const agentBeginTradeTool: McpToolDefinition<typeof AgentBeginTradeInputSchema> = {
   name: 'agent_begin_trade',
@@ -37,6 +257,11 @@ export const agentBeginTradeTool: McpToolDefinition<typeof AgentBeginTradeInputS
     'Insight runs the oracle safety check and, if the verdict is PASS/CAUTION, returns a',
     'machine-readable "execution certification handle": preTradeUid, requestHash, CAIP-19',
     'asset ids, the certified price (destination per source) and maxSlippageBps, plus',
+    'a required operation-input check for both asset legs and a fresh Uniswap V3 on-chain',
+    'route quote cross-checked by two Ethereum RPCs. If either input assessment is not',
+    'SUFFICIENT, either route quote is stale or outside policy,',
+    'or either oracle gate blocks, no execution handle is issued. The assessments are',
+    'independently EIP-712 signed and linked to the receipt through both pre-trade UIDs.',
     'participant/source-group counts and the pre-trade signing time. Execute the trade with',
     'YOUR wallet, then call execution_receipt with this handle + txHash to obtain the signed,',
     'verifiable Execution Receipt. If the verdict is DANGER or BLOCK this tool refuses (do not',
@@ -45,6 +270,39 @@ export const agentBeginTradeTool: McpToolDefinition<typeof AgentBeginTradeInputS
   ].join(' '),
   parameters: AgentBeginTradeInputSchema,
   handler: async (args) => {
+    const routeQuoteMaxAgeSeconds = Math.min(
+      args.decisionInput.source.maxQuoteAgeSeconds,
+      args.decisionInput.destination.maxQuoteAgeSeconds
+    );
+    let trustedRouteQuote: OnchainRouteQuote;
+    try {
+      trustedRouteQuote = await getOnchainRouteQuote({
+        asset: args.asset,
+        destinationAsset: args.destinationAsset,
+        chainId: args.chainId,
+        tradeAmountUsd: args.tradeAmountUsd,
+        maxAgeSeconds: routeQuoteMaxAgeSeconds,
+      });
+    } catch (error) {
+      const message =
+        error instanceof OnchainRouteQuoteError
+          ? error.message
+          : 'Independent route quote verification failed.';
+      return [
+        '**Execution certification REFUSED — no independently verified route quote.**',
+        `${message} No execution handle was issued.`,
+      ].join('\n');
+    }
+    const operationRouteQuote = {
+      price: trustedRouteQuote.price,
+      observedAt: trustedRouteQuote.observedAt,
+      callerReported: {
+        price: args.decisionInput.routeQuotePrice,
+        observedAt: args.decisionInput.routeQuoteObservedAt,
+      },
+      onchainEvidence: trustedRouteQuote.evidence,
+    } as const;
+
     const sourceCheck = await preTradeSafetyCheck({
       asset: args.asset,
       chainId: args.chainId,
@@ -54,6 +312,11 @@ export const agentBeginTradeTool: McpToolDefinition<typeof AgentBeginTradeInputS
       protocolId: args.protocolId,
       schemaVersion: 3,
       destinationAsset: args.destinationAsset,
+      decisionInput: {
+        ...args.decisionInput.source,
+        requireQuoteProvenance: true,
+        operationRouteQuote,
+      },
     });
 
     if (sourceCheck.verdict === 'DANGER' || sourceCheck.verdict === 'BLOCK') {
@@ -87,6 +350,7 @@ export const agentBeginTradeTool: McpToolDefinition<typeof AgentBeginTradeInputS
     // only moment that holds both at once.
     let destinationConsensus: number;
     let destinationVerdict: PreTradeSafetyResult['verdict'];
+    let destinationCheck: PreTradeSafetyResult | null = null;
     let destinationAttestation = undefined as typeof sourceCheck.attestation | undefined;
     try {
       const destCheck = await preTradeSafetyCheck({
@@ -98,7 +362,13 @@ export const agentBeginTradeTool: McpToolDefinition<typeof AgentBeginTradeInputS
         protocolId: args.protocolId,
         schemaVersion: 3,
         destinationAsset: args.asset,
+        decisionInput: {
+          ...args.decisionInput.destination,
+          requireQuoteProvenance: true,
+          operationRouteQuote,
+        },
       });
+      destinationCheck = destCheck;
       destinationConsensus = destCheck.consensusPrice;
       destinationVerdict = destCheck.verdict;
       destinationAttestation = destCheck.attestation;
@@ -116,9 +386,13 @@ export const agentBeginTradeTool: McpToolDefinition<typeof AgentBeginTradeInputS
         'Do NOT execute this trade. Both swap legs must pass the pre-trade gate before a certification handle can be issued.',
       ].join('\n');
     }
+    if (!destinationCheck) {
+      return 'agent_begin_trade failed: destination pre-trade result is unavailable.';
+    }
+    const destCheck = destinationCheck;
 
     const sourceConsensus = sourceCheck.consensusPrice;
-    if (!(sourceConsensus > 0)) {
+    if (!(sourceConsensus > 0) || !Number.isFinite(sourceConsensus)) {
       return `agent_begin_trade failed: source asset "${args.asset}" has no usable consensus price.`;
     }
     if (!(destinationConsensus > 0) || !Number.isFinite(destinationConsensus)) {
@@ -128,6 +402,26 @@ export const agentBeginTradeTool: McpToolDefinition<typeof AgentBeginTradeInputS
     // executedPrice convention and the execution receipt's slippage math. With
     // USD consensus prices this is sourceUSD / destUSD.
     const quotedPrice = sourceConsensus / destinationConsensus;
+    if (!(quotedPrice > 0) || !Number.isFinite(quotedPrice)) {
+      return 'agent_begin_trade failed: the oracle cross-rate is outside the supported numeric range.';
+    }
+
+    const routeQuoteGate = await evaluateAndPersistRouteQuoteGate(
+      args,
+      sourceCheck,
+      destCheck,
+      trustedRouteQuote,
+      quotedPrice,
+      attestation.uid,
+      destinationAttestation.uid
+    );
+    if (!routeQuoteGate.ok) return routeQuoteGate.refusal;
+    const {
+      routeQuoteAgeSeconds,
+      routeQuoteDeviationBps,
+      callerRouteQuoteDeviationBps,
+      routeQuoteMaxDeviationBps,
+    } = routeQuoteGate.metrics;
 
     let sourceAssetId: string;
     let destinationAssetId: string;
@@ -151,6 +445,7 @@ export const agentBeginTradeTool: McpToolDefinition<typeof AgentBeginTradeInputS
 
     const handle = {
       preTradeUid: attestation.uid,
+      destinationPreTradeUid: destinationAttestation.uid,
       requestHash: data.requestHash,
       sourceAssetId,
       destinationAssetId,
@@ -164,6 +459,24 @@ export const agentBeginTradeTool: McpToolDefinition<typeof AgentBeginTradeInputS
       action: args.action.toUpperCase(),
       verdict: sourceCheck.verdict,
       destinationVerdict,
+      decisionInput: {
+        source: sourceCheck.decisionInputAssessment,
+        destination: destCheck.decisionInputAssessment,
+        routeQuote: {
+          price: trustedRouteQuote.price,
+          observedAt: trustedRouteQuote.observedAt,
+          ageSeconds: routeQuoteAgeSeconds,
+          oracleCrossRate: quotedPrice,
+          deviationBps: routeQuoteDeviationBps,
+          maxDeviationBps: routeQuoteMaxDeviationBps,
+          callerReported: {
+            price: args.decisionInput.routeQuotePrice,
+            observedAt: args.decisionInput.routeQuoteObservedAt,
+            deviationBps: callerRouteQuoteDeviationBps,
+          },
+          source: trustedRouteQuote.evidence,
+        },
+      },
       preTradeVerifyUrl: attestation.verifyUrl,
       // The two signed pre-trade originals. Passing these to execution_receipt
       // upgrades the Execution Receipt to a VERIFIED binding: every bound field
@@ -183,7 +496,8 @@ export const agentBeginTradeTool: McpToolDefinition<typeof AgentBeginTradeInputS
       '```',
       '',
       `Oracle verdict at certification: ${sourceCheck.verdict}. Certified price (destination per source): ${quotedPrice}.`,
-      `Tolerance band: ±${args.maxSlippageBps} bps. Oracle participant providers: ${sourceCheck.participantCount}.`,
+      `Operation-input assessments: source ${sourceCheck.decisionInputAssessment?.status}, destination ${destCheck.decisionInputAssessment?.status}. On-chain route deviation: ${routeQuoteDeviationBps.toFixed(1)} bps; caller quote vs on-chain: ${callerRouteQuoteDeviationBps.toFixed(1)} bps (limit ${routeQuoteMaxDeviationBps} bps).`,
+      `Execution receipt tolerance band: ±${args.maxSlippageBps} bps. Oracle participant providers: ${sourceCheck.participantCount}.`,
       '',
       'Next step: execute the trade with YOUR wallet, then call `execution_receipt` with the',
       'handle above plus the settlement txHash. Crucially, pass `preTradeAttestations` back too —',

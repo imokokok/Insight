@@ -42,6 +42,21 @@ describe('.well-known/oracle-keys.json route', () => {
     expect(body.schemas.OracleSafetyCheck.eip712.primaryType).toBe('OracleSafetyCheck');
     expect(body.schemas.OracleSafetyRecheck.eip712.primaryType).toBe('OracleSafetyRecheck');
     expect(body.schemas.CanonicalPreTradeRequest).toBeDefined();
+    expect(body.schemas.InterAIEconomicEvidenceCommitment).toEqual(
+      expect.objectContaining({
+        schema: 'insight.interai-economic-commitment/v1-proposed',
+        admission: expect.objectContaining({
+          partnerId: 'interai',
+          signingAdmission: 'registry-admitted-but-not-enabled-for-issuance',
+        }),
+      })
+    );
+    expect(body.schemas.InterAIEconomicEvidenceCommitment.eip712).toEqual(
+      expect.objectContaining({
+        primaryType: 'EconomicEvidenceCommitment',
+        domain: expect.objectContaining({ chainId: 84532 }),
+      })
+    );
 
     // Pointers to verify + sample so one URL is enough to integrate.
     expect(body.verify).toContain('/api/v1/safety/attestation/verify');
@@ -138,8 +153,8 @@ describe('.well-known/oracle-keys.json route', () => {
 
     // Product deployments and protocol publications are separate. A verifier
     // can pin the content-addressed release and see when it became effective.
-    expect(body.registryRevision).toBe('2026-09-11.1');
-    expect(body.effectiveFrom).toBe('2026-09-11');
+    expect(body.registryRevision).toBe('2026-10-18.1');
+    expect(body.effectiveFrom).toBe('2026-10-18');
     expect(body.registryRelease.releaseId).toMatch(/^0x[0-9a-f]{64}$/);
     expect(body.registryRelease.immutable).toContain(body.registryRelease.releaseId);
     expect(body.protocolPromotion.promotionId).toMatch(/^0x[0-9a-f]{64}$/);

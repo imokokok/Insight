@@ -9,7 +9,7 @@
  */
 export type ExportFormat = 'csv' | 'json' | 'excel' | 'pdf';
 
-export type ExportDataSource = 'price-query' | 'price-insight' | 'oracle-detail' | 'custom';
+export type ExportDataSource = 'source-record' | 'price-insight' | 'oracle-detail' | 'custom';
 
 /**
  * Export field definition

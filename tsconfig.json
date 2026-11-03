@@ -41,7 +41,9 @@
     "**/*.test.tsx",
     "**/*.spec.ts",
     "**/*.spec.tsx",
+    "sdk/test/**",
     "scripts/**",
-    "supabase/functions/**"
+    "supabase/functions/**",
+    "integrations/**"
   ]
 }

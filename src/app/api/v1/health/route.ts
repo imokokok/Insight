@@ -5,6 +5,10 @@ import { ApiResponseBuilder } from '@/lib/api/response';
 
 export const OPTIONS = createOptionsHandler();
 
+// This liveness probe must remain available when Supabase is degraded. It is a
+// constant public response, so it intentionally bypasses database-backed
+// quota and rate-limit middleware; edge infrastructure remains the outer
+// traffic control.
 export const GET = createApiHandler(
   async () => {
     return NextResponse.json(
@@ -19,8 +23,6 @@ export const GET = createApiHandler(
     middlewares: {
       logging: true,
       auth: false,
-      rateLimit: { preset: 'lenient' },
-      quota: true,
       cors: true,
     },
   }

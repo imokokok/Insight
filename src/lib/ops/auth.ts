@@ -42,8 +42,12 @@ export function isOpsOwner(userId?: string | null): boolean {
  * SECURITY: in production, if OPS_OWNER_USER_IDS is unset this DENIES access
  * (fail-closed) so the internal console is never world-readable to any logged-in
  * user. See `isOpsOwner` for the full rationale.
+ *
+ * Returns the verified email alongside the id: privileged console writes record
+ * both on their audit row, and the email is what makes the record readable to a
+ * human reviewing it later.
  */
-export async function requireOpsOwner(): Promise<{ userId: string }> {
+export async function requireOpsOwner(): Promise<{ userId: string; email: string | null }> {
   const cookieStore = await cookies();
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -86,5 +90,5 @@ export async function requireOpsOwner(): Promise<{ userId: string }> {
     email: user.email,
     ownerLockEnabled: (process.env.OPS_OWNER_USER_IDS ?? '').trim().length > 0,
   });
-  return { userId: user.id };
+  return { userId: user.id, email: user.email ?? null };
 }

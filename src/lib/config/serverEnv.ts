@@ -6,6 +6,7 @@ import { isDomainOrSubdomain } from '@/lib/utils/urlHost';
 const logger = createLogger('ServerEnv');
 
 const alchemyRpcSchema = z.object({
+  solana: z.string().url().optional().default(''),
   ethereum: z.string().url().optional().default(''),
   arbitrum: z.string().url().optional().default(''),
   polygon: z.string().url().optional().default(''),
@@ -14,6 +15,11 @@ const alchemyRpcSchema = z.object({
   bnb: z.string().url().optional().default(''),
   avalanche: z.string().url().optional().default(''),
   linea: z.string().url().optional().default(''),
+  monad: z.string().url().optional().default(''),
+});
+
+const heliusRpcSchema = z.object({
+  solana: z.string().url().optional().default(''),
 });
 
 // Alchemy API keys are appended as the last URL path segment
@@ -45,6 +51,7 @@ function sanitizeAlchemyUrl(network: string, url: string): string {
 
 function parseAlchemyRpc() {
   const raw = {
+    solana: process.env.ALCHEMY_SOLANA_RPC || undefined,
     ethereum: process.env.ALCHEMY_ETHEREUM_RPC || undefined,
     arbitrum: process.env.ALCHEMY_ARBITRUM_RPC || undefined,
     polygon: process.env.ALCHEMY_POLYGON_RPC || undefined,
@@ -53,6 +60,7 @@ function parseAlchemyRpc() {
     bnb: process.env.ALCHEMY_BNB_RPC || undefined,
     avalanche: process.env.ALCHEMY_AVALANCHE_RPC || undefined,
     linea: process.env.ALCHEMY_LINEA_RPC || undefined,
+    monad: process.env.ALCHEMY_MONAD_RPC || undefined,
   };
   const result = alchemyRpcSchema.safeParse(raw);
   if (!result.success) {
@@ -71,6 +79,21 @@ function parseAlchemyRpc() {
       sanitizeAlchemyUrl(network, url as string),
     ])
   ) as typeof parsed;
+}
+
+function parseHeliusRpc() {
+  const raw = {
+    solana: process.env.HELIUS_SOLANA_RPC || undefined,
+  };
+  const result = heliusRpcSchema.safeParse(raw);
+  if (!result.success) {
+    const errors = result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`);
+    logger.warn('Helius RPC config validation warnings:', { errors });
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error(`Helius RPC config validation failed: ${errors.join(', ')}`);
+    }
+  }
+  return result.success ? result.data : heliusRpcSchema.parse({});
 }
 
 const tronConfigSchema = z.object({
@@ -92,6 +115,9 @@ function parseTronConfig() {
 }
 
 export const ALCHEMY_RPC = parseAlchemyRpc();
+
+/** Server-only Solana RPC endpoint. Prefer it over the multi-chain provider. */
+export const HELIUS_RPC = parseHeliusRpc();
 
 export const TRON_CONFIG = parseTronConfig();
 

@@ -37,6 +37,9 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          TURSO_PRICE_DATABASE_URL: libsql://insight-imokokok.aws-ap-southeast-1.turso.io
+          TURSO_PRICE_AUTH_TOKEN: ${{ secrets.TURSO_PRICE_AUTH_TOKEN }}
+          TURSO_PRICE_WRITE_MODE: ${{ vars.TURSO_PRICE_WRITE_MODE || 'legacy' }}
           # Alchemy RPC keys (optional — public RPC fallbacks exist).
           ALCHEMY_ETHEREUM_RPC: ${{ secrets.ALCHEMY_ETHEREUM_RPC }}
           ALCHEMY_ARBITRUM_RPC: ${{ secrets.ALCHEMY_ARBITRUM_RPC }}
@@ -49,6 +52,7 @@ jobs:
           ALCHEMY_SCROLL_RPC: ${{ secrets.ALCHEMY_SCROLL_RPC }}
           ALCHEMY_MANTLE_RPC: ${{ secrets.ALCHEMY_MANTLE_RPC }}
           ALCHEMY_LINEA_RPC: ${{ secrets.ALCHEMY_LINEA_RPC }}
+          ALCHEMY_MONAD_RPC: ${{ secrets.ALCHEMY_MONAD_RPC }}
           ALCHEMY_SOLANA_RPC: ${{ secrets.ALCHEMY_SOLANA_RPC }}
           TRON_RPC_URL: ${{ secrets.TRON_RPC_URL }}
           TRON_SOLIDITY_RPC: ${{ secrets.TRON_SOLIDITY_RPC }}

@@ -19,7 +19,7 @@ import {
 } from '@/lib/protocol/partnerIntegrationRegistry';
 
 const VERITAS_V2_POLICY_ID = '0x162d3fe744acc2041a959daf40dc3fe9242b654aef58acbb991acbf605885085';
-const VERITAS_V4_POLICY_ID = '0xad711736aa60459299c94f0b6cdc7fd51d5ace20024f9fbd23344e4e03de47da';
+const VERITAS_V5_POLICY_ID = '0x55fbfb17fbab461ff237cad4b19f8fba71411461d19f8e99af103910ae47ae63';
 const VERITAS_V2_CANDIDATE_ACTIVATION_SET_ID =
   '0xc83feebc5fe8722129a27c015192e6583cd166e0cd149dd6a7d99564474728db';
 
@@ -91,6 +91,14 @@ describe('content-addressed oracle registry routes', () => {
       'sha256',
       'byteLength',
     ]);
+    expect(releaseBody.release.schemaCatalog.InterAIEconomicEvidenceCommitment).toEqual(
+      expect.objectContaining({
+        schema: 'insight.interai-economic-commitment/v1-proposed',
+        admission: expect.objectContaining({
+          signingAdmission: 'registry-admitted-but-not-enabled-for-issuance',
+        }),
+      })
+    );
   });
 
   it('serves an immutable activation set and independently addressable partner policy', async () => {
@@ -161,11 +169,11 @@ describe('content-addressed oracle registry routes', () => {
 
     const activeVeritas = await policyRoute.GET(
       new Request('https://example.test/active-veritas-policy') as never,
-      { params: Promise.resolve({ policyId: VERITAS_V4_POLICY_ID }) }
+      { params: Promise.resolve({ policyId: VERITAS_V5_POLICY_ID }) }
     );
     expect(activeVeritas.status).toBe(200);
     expect((await activeVeritas.json()).policy).toEqual(
-      expect.objectContaining({ partnerId: 'veritas', policyVersion: 4 })
+      expect.objectContaining({ partnerId: 'veritas', policyVersion: 5 })
     );
   });
 

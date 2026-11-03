@@ -47,6 +47,8 @@ function provider(overrides: Partial<OracleWatchProvider> = {}): OracleWatchProv
     price: 2436.97,
     timestamp: NOW_MS,
     dataAgeSeconds: 8,
+    feedId: '0xchainlinkfeed',
+    countsTowardOracleQuorum: true,
     source: 'chainlink-feed',
     ...overrides,
   };
@@ -148,6 +150,25 @@ describe('oracleWatchAttestation — message construction', () => {
       })
     );
     expect(dirty.providerObservationsHash).not.toBe(clean.providerObservationsHash);
+  });
+
+  it('binds a shadow-only feed ID while excluding it from strict Watch evidence', async () => {
+    const clean = await buildWatchMessage(input());
+    const withShadow = await buildWatchMessage(
+      input({
+        providers: [
+          provider(),
+          provider({
+            provider: 'stork',
+            feedId: '0xstorketh',
+            price: 2500,
+            isOutlier: true,
+            countsTowardOracleQuorum: false,
+          }),
+        ],
+      })
+    );
+    expect(withShadow.providerObservationsHash).not.toBe(clean.providerObservationsHash);
   });
 
   it('binds the (symbol, chain) subject so a receipt cannot be replayed', async () => {

@@ -62,7 +62,10 @@ jobs:
             echo "::error::repair changed files outside the lockfile and cron bundles: $unexpected"
             exit 1
           fi
-          git diff --check -- package-lock.json .github/cron-dist
+          # Bundled third-party template literals can contain intentional line-end
+          # whitespace. Check the hand-edited lockfile and verify bundles by rebuild.
+          git diff --check -- package-lock.json
+          npm run validate:generated
           echo 'changed=true' >> "$GITHUB_OUTPUT"
 
       - name: Publish the repaired lockfile to the existing pull request

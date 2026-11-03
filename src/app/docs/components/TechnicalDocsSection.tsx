@@ -48,7 +48,7 @@ const docs: DocCard[] = [
     icon: <Layers className="w-6 h-6" />,
     title: 'Architecture',
     description:
-      'Next.js App Router with Supabase, React Query, Zustand, and 10 oracle client implementations.',
+      'Next.js App Router with Supabase, React Query, Zustand, and 13 oracle client implementations.',
     href: '#architecture',
     tags: ['Next.js', 'Supabase', 'TypeScript'],
     accent: 'blue',
@@ -58,9 +58,9 @@ const docs: DocCard[] = [
     icon: <Database className="w-6 h-6" />,
     title: 'Data Sources',
     description:
-      '10 oracle providers including Chainlink, API3, RedStone, DIA, WINkLink, Supra, TWAP, Reflector, Flare, and Band Protocol.',
+      '13 oracle providers, independent CEX references, and separate Monad DEX execution-market evidence.',
     href: '#data-sources',
-    tags: ['10 Oracles', '40+ Chains', 'On-chain Data'],
+    tags: ['13 Oracle Providers', 'DEX Evidence', '40+ Chains'],
     accent: 'amber',
     anchor: true,
   },
@@ -79,7 +79,7 @@ const docs: DocCard[] = [
     description:
       'Connect Claude, Cursor, and other MCP clients to oracle prices, risk summaries, pre-trade safety checks, Oracle Watch monitoring, liquidation stress tests, and more.',
     href: '/ai',
-    tags: ['AI Agents', '40 Tools', 'MCP', 'Pre-Trade Safety'],
+    tags: ['AI Agents', '40+ Tools', 'MCP', 'Execution Preflight'],
     accent: 'blue',
   },
   {

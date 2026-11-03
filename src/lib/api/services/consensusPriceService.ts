@@ -29,6 +29,10 @@ const pendingPrices = new Map<string, Promise<FetchProviderPriceResult>>();
 // asset produced from the original request.
 const PRICE_REFERENCE_ALIASES: Readonly<Record<string, string>> = {
   WETH: 'ETH',
+  // Same 1:1 canonical-wrap argument on BNB Smart Chain: the pinned PancakeSwap
+  // router WBNB is the canonical BNB wrapper, so USD price discovery routes
+  // through the BNB oracle set while binding stays chain-specific.
+  WBNB: 'BNB',
 };
 
 export interface ConsensusProviderPrice {
@@ -44,6 +48,12 @@ export interface ConsensusProviderPrice {
   fetchDurationMs?: number;
   timestampProvenance?: 'provider_age' | 'provider_timestamp' | 'unknown';
   dataAgeSeconds: number | null;
+  /**
+   * Canonical feed identifier from the provider response. This is distinct
+   * from `source` (a human-readable provenance label) and is carried into
+   * signed pre-trade / Watch observation commitments.
+   */
+  feedId?: string;
   source?: string;
   verification?: PriceData['verification'];
   verificationLevel?: PriceData['verificationLevel'];
@@ -142,8 +152,20 @@ export async function resolveProvidersForSymbol(
     // silently dropped from consensus / pre-trade quorum.
     try {
       const client = getDefaultFactory().getClient(provider);
+      const clientSupportsSymbol = client.isSymbolSupported(baseSymbol, chain);
+      // The Pyth Core sponsored registries are versioned, first-party catalogs
+      // bundled with Insight and read from the native chain-owned account. They
+      // remain available while the operational `oracle_feeds` mirror is empty
+      // or catching up. Keeping this exception limited to the two reviewed
+      // Pyth deployments preserves the normal rule that a successful empty DB
+      // registry deactivates ordinary providers.
+      const isPinnedNativePyth =
+        provider === OracleProvider.PYTH &&
+        (chain === Blockchain.MONAD || chain === Blockchain.SOLANA) &&
+        clientSupportsSymbol;
+
       if (
-        (client.isSymbolSupported(baseSymbol, chain) && (hasActiveFeed || feedRegistry.errored)) ||
+        (clientSupportsSymbol && (hasActiveFeed || feedRegistry.errored || isPinnedNativePyth)) ||
         hasSpecificChainFeed
       ) {
         providers.push(provider);
@@ -165,15 +187,74 @@ interface FetchProviderPriceResult {
   errorMessage?: string;
 }
 
-async function readProviderPrice(
-  provider: OracleProvider,
+/**
+ * A caller that explicitly scopes native Monad or Solana consensus to Pyth is
+ * asking for that chain's pinned, on-chain Pyth Core feed. Do not make that single RPC read
+ * wait on the operational feed mirror, reputation table, or price-cache
+ * persistence: each of those is useful for multi-provider consensus but none
+ * changes whether the Core contract returned a fresh, verified observation.
+ *
+ * This path is intentionally narrow. A one-provider result remains subject to
+ * the v2/v3 quorum gate in pre-trade safety and therefore cannot produce an
+ * execution ALLOW on its own.
+ */
+function isPinnedNativePythOnlyRequest(
+  chain: Blockchain | undefined,
+  targetProviders: readonly OracleProvider[] | undefined
+): boolean {
+  return (
+    (chain === Blockchain.MONAD || chain === Blockchain.SOLANA) &&
+    targetProviders?.length === 1 &&
+    targetProviders[0] === OracleProvider.PYTH
+  );
+}
+
+async function readPinnedPythPrice(
   symbol: string,
-  chain?: Blockchain
+  chain: Blockchain.MONAD | Blockchain.SOLANA,
+  signal?: AbortSignal
 ): Promise<FetchProviderPriceResult> {
   const startedAt = performance.now();
   const duration = () => Math.round(performance.now() - startedAt);
   try {
-    const priceData = await fetchPriceWithDatabase(provider, symbol, chain, true, false);
+    const client = getDefaultFactory().getClient(OracleProvider.PYTH);
+    const priceData = await (signal
+      ? client.getPrice(symbol, chain, { signal })
+      : client.getPrice(symbol, chain));
+    return {
+      provider: OracleProvider.PYTH,
+      priceData,
+      retrievedAt: Date.now(),
+      fetchDurationMs: duration(),
+      status: 'success',
+    };
+  } catch (error) {
+    if (error instanceof UnsupportedSymbolError) {
+      return { provider: OracleProvider.PYTH, status: 'unsupported', fetchDurationMs: duration() };
+    }
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.warn(`Pinned ${chain} Pyth Core fetch failed for ${symbol}`, { errorMessage });
+    return {
+      provider: OracleProvider.PYTH,
+      status: 'error',
+      errorMessage,
+      fetchDurationMs: duration(),
+    };
+  }
+}
+
+async function readProviderPrice(
+  provider: OracleProvider,
+  symbol: string,
+  chain?: Blockchain,
+  signal?: AbortSignal
+): Promise<FetchProviderPriceResult> {
+  const startedAt = performance.now();
+  const duration = () => Math.round(performance.now() - startedAt);
+  try {
+    const priceData = await (signal
+      ? fetchPriceWithDatabase(provider, symbol, chain, true, false, signal)
+      : fetchPriceWithDatabase(provider, symbol, chain, true, false));
     return {
       provider,
       priceData,
@@ -191,7 +272,15 @@ async function readProviderPrice(
   }
 }
 
-function fetchProviderPrice(provider: OracleProvider, symbol: string, chain?: Blockchain) {
+function fetchProviderPrice(
+  provider: OracleProvider,
+  symbol: string,
+  chain?: Blockchain,
+  signal?: AbortSignal
+) {
+  // In-flight de-duplication cannot safely share a caller-owned cancellation
+  // signal: one cancelled request would otherwise abort unrelated callers.
+  if (signal) return readProviderPrice(provider, symbol, chain, signal);
   const key = JSON.stringify([provider, symbol, chain ?? null]);
   const existing = pendingPrices.get(key);
   if (existing) return existing;
@@ -261,6 +350,7 @@ function buildProviderPrice(
           ? 'provider_age'
           : 'provider_timestamp',
     dataAgeSeconds,
+    feedId: priceData?.feedId ?? priceData?.priceId ?? priceData?.verification?.feedHash,
     source: priceData?.source,
     verification: priceData?.verification,
     verificationLevel: priceData?.verificationLevel,
@@ -306,13 +396,24 @@ export async function getConsensusPrice(
   chain?: string,
   method?: ConsensusMethod,
   targetProviders?: readonly OracleProvider[],
-  options: { allowUnavailable?: boolean } = {}
+  options: { allowUnavailable?: boolean; signal?: AbortSignal } = {}
 ): Promise<ConsensusPriceResponse> {
   const baseSymbol = normalizeSymbol(symbol);
   const resolvedChain = resolveChain(chain);
+  const pinnedPythChain =
+    resolvedChain === Blockchain.MONAD || resolvedChain === Blockchain.SOLANA
+      ? resolvedChain
+      : undefined;
+  const pinnedNativePythOnly = isPinnedNativePythOnlyRequest(pinnedPythChain, targetProviders);
 
   const [prices, reputationsList] = await Promise.all([
     (async () => {
+      if (pinnedNativePythOnly && pinnedPythChain) {
+        return {
+          providers: [OracleProvider.PYTH],
+          fetchResults: [await readPinnedPythPrice(baseSymbol, pinnedPythChain, options.signal)],
+        };
+      }
       const resolvedProviders = await resolveProvidersForSymbol(baseSymbol, resolvedChain);
       const requestedProviders =
         targetProviders && targetProviders.length > 0 ? new Set(targetProviders) : null;
@@ -322,11 +423,14 @@ export async function getConsensusPrice(
       const fetchResults = await mapWithConcurrency(
         providers,
         CONSENSUS_FETCH_CONCURRENCY,
-        (provider) => fetchProviderPrice(provider, baseSymbol, resolvedChain)
+        (provider) => fetchProviderPrice(provider, baseSymbol, resolvedChain, options.signal)
       );
       return { providers, fetchResults };
     })(),
-    reputationService.getReputations(),
+    // Pyth Core's verification and freshness are embedded in PriceData. A
+    // reputation lookup cannot turn this one-provider fast path into quorum,
+    // so skip an unrelated network hop and leave its score as null.
+    pinnedNativePythOnly ? Promise.resolve([]) : reputationService.getReputations(),
   ]);
   const { providers, fetchResults } = prices;
 

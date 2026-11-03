@@ -33,8 +33,12 @@ export const REPORT_SCHEMA_VERSION = 1;
 export interface VerificationReport {
   v: number;
   schemaVersion: number;
-  /** 'recheck' when the receipt was a recheck, otherwise 'check'. */
-  kind: 'check' | 'recheck';
+  /** 'recheck' for a recheck, 'test' for an OracleScenarioRun harness receipt,
+   *  otherwise 'check'. The value set widened when the test line was added;
+   *  the field itself is unchanged, so REPORT_SCHEMA_VERSION is NOT bumped.
+   *  A consumer that switches exhaustively on `kind` should treat 'test' as a
+   *  member of the 'check' family. */
+  kind: 'check' | 'recheck' | 'test';
   /** Terminal outcome of the verification. */
   code: string;
   /** Attester-key standing, or 'not_checked' when no registry was supplied. */

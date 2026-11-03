@@ -4,7 +4,13 @@ import {
   CAUTION_STALE_MULTIPLIER,
   STALE_FLOOR_SECONDS,
   HARD_STALE_BLOCK_SECONDS,
+  getFeedStalenessBaselineMap,
+  resetFeedStalenessBaselineCacheForTests,
 } from '@/lib/oracles/feedCadence';
+
+afterEach(() => {
+  resetFeedStalenessBaselineCacheForTests();
+});
 
 describe('isCadenceCautionEnabled', () => {
   const prev = process.env.ENABLE_CADENCE_CAUTION;
@@ -100,5 +106,63 @@ describe('isCadenceStale (CAUTION switch DISABLED)', () => {
 describe('HARD_STALE_BLOCK_SECONDS', () => {
   it('is 7 days', () => {
     expect(HARD_STALE_BLOCK_SECONDS).toBe(604800);
+  });
+});
+
+describe('getFeedStalenessBaselineMap', () => {
+  function baselineClient(
+    result:
+      | Promise<{ data: unknown; error: { message: string } | null }>
+      | {
+          data: unknown;
+          error: { message: string } | null;
+        }
+  ) {
+    const query = {
+      eq: jest.fn(),
+    };
+    query.eq.mockReturnValueOnce(query).mockReturnValueOnce(result);
+    const select = jest.fn(() => query);
+    const from = jest.fn(() => ({ select }));
+    return { client: { from } as never, from };
+  }
+
+  it('caches a non-empty baseline briefly and returns defensive maps', async () => {
+    const { client, from } = baselineClient({
+      data: [
+        { provider: 'chainlink', observed_data_age_p90_s: 900 },
+        { provider: 'chainlink', observed_data_age_p90_s: 1200 },
+      ],
+      error: null,
+    });
+
+    const first = await getFeedStalenessBaselineMap(client, 'ETH');
+    first.set('chainlink', 1);
+    const second = await getFeedStalenessBaselineMap(client, 'ETH');
+
+    expect(from).toHaveBeenCalledTimes(1);
+    expect(second.get('chainlink')).toBe(1200);
+  });
+
+  it('coalesces concurrent reads for the same symbol', async () => {
+    let resolveQuery!: (value: { data: unknown; error: null }) => void;
+    const pending = new Promise<{ data: unknown; error: null }>((resolve) => {
+      resolveQuery = resolve;
+    });
+    const { client, from } = baselineClient(pending);
+
+    const first = getFeedStalenessBaselineMap(client, 'ETH');
+    const second = getFeedStalenessBaselineMap(client, 'ETH');
+
+    expect(from).toHaveBeenCalledTimes(1);
+    resolveQuery({
+      data: [{ provider: 'chainlink', observed_data_age_p90_s: 900 }],
+      error: null,
+    });
+
+    await expect(Promise.all([first, second])).resolves.toEqual([
+      new Map([['chainlink', 900]]),
+      new Map([['chainlink', 900]]),
+    ]);
   });
 });

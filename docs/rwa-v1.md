@@ -87,9 +87,19 @@ in npm version 0.4.0.
 6. Consumers call `verifyRwaReport(proof, trust, nowSeconds)`. Trust must come from
    out-of-band configuration, not from the same untrusted evidence attachment.
 
+For a transaction-specific flow that collects policy-pinned application adapters and decodes the
+actual proposed call before evaluation, use [`preflightRwaAction`](./rwa-action-preflight.md). Its
+result remains unsigned and non-authorizing.
+
 `normalizeRwaChainlinkRound` supports admitted on-chain latestRoundData reads;
 it rejects nonpositive/incomplete rounds and retains updatedAt. Authenticate the
 proxy, chain, RPC provenance, actual decimals and instrument mapping separately.
+
+For Robinhood tokenized-equity feeds, use the opt-in
+`createRobinhoodChainlinkPriceProvider` adapter in the local action-preflight SDK flow. Chainlink's
+feed is a multiplier-adjusted total-return token value, not raw underlying spot; the adapter reads
+the multiplier from the token at the same block and converts it to the registered price basis.
+Address pinning, market session and source-group independence remain consumer policy inputs.
 
 `normalizeRwaChainlinkV11` supports **already authenticated and decoded** Data
 Streams mid reports, nanosecond mid timestamps and marketStatus 0–5. It does not

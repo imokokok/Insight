@@ -1,3 +1,4 @@
+import { isJsonRecord } from '@/lib/api/client/responseValidation';
 import { TRON_CONFIG } from '@/lib/config/serverEnv';
 import { resolveOracleAgeSeconds } from '@/lib/oracles/oracleAge';
 import { stringToPrice } from '@/lib/oracles/utils/oracleDataUtils';
@@ -370,18 +371,25 @@ class WINkLinkRealDataService {
           continue;
         }
 
-        const data = await response.json();
+        const payload: unknown = await response.json();
+        if (!isJsonRecord(payload)) {
+          lastError = new Error(`TRON RPC ${rpcUrl} returned an invalid JSON response`);
+          continue;
+        }
+        const data = payload;
         logger.debug(`TRON contract response`, { method, data });
 
-        if (data.result && data.result.result === true) {
-          const hexValue = data.constant_result?.[0];
-          if (hexValue && hexValue !== '0x') {
+        const result = isJsonRecord(data.result) ? data.result : null;
+        const constantResult = Array.isArray(data.constant_result) ? data.constant_result : [];
+        if (result?.result === true) {
+          const hexValue = constantResult[0];
+          if (typeof hexValue === 'string' && hexValue !== '0x') {
             return hexValue;
           }
         }
 
-        if (data.result && data.result.message) {
-          const errorMessage = decodeHex(data.result.message);
+        if (typeof result?.message === 'string') {
+          const errorMessage = decodeHex(result.message);
           logger.warn(`TRON contract call failed`, { method, error: errorMessage, rpcUrl });
         }
 

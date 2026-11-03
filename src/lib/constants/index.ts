@@ -6,6 +6,9 @@ import { OracleProvider, Blockchain } from '@/types/oracle';
 
 export const providerNames: Record<OracleProvider, string> = {
   [OracleProvider.CHAINLINK]: 'Chainlink',
+  [OracleProvider.PYTH]: 'Pyth',
+  [OracleProvider.STORK]: 'Stork',
+  [OracleProvider.CHRONICLE]: 'Chronicle',
   [OracleProvider.API3]: 'API3',
   [OracleProvider.REDSTONE]: 'RedStone',
   [OracleProvider.DIA]: 'DIA',
@@ -59,6 +62,7 @@ export const chainNames: Record<Blockchain, string> = {
   [Blockchain.FLARE]: 'Flare',
   [Blockchain.SUPRA_CHAIN]: 'Supra',
   [Blockchain.BANDCHAIN]: 'BandChain',
+  [Blockchain.MONAD]: 'Monad',
 };
 
 export const chainColors: Record<Blockchain, string> = {
@@ -103,10 +107,14 @@ export const chainColors: Record<Blockchain, string> = {
   [Blockchain.FLARE]: configChainColors.flare,
   [Blockchain.SUPRA_CHAIN]: configChainColors.supra,
   [Blockchain.BANDCHAIN]: configChainColors.bandchain,
+  [Blockchain.MONAD]: configChainColors.monad,
 };
 
 export const oracleColors: Record<OracleProvider, string> = {
   [OracleProvider.CHAINLINK]: configChartColors.oracle.chainlink,
+  [OracleProvider.PYTH]: configChartColors.oracle.pyth,
+  [OracleProvider.STORK]: configChartColors.oracle.stork,
+  [OracleProvider.CHRONICLE]: configChartColors.oracle.chronicle,
   [OracleProvider.API3]: configChartColors.oracle.api3,
   [OracleProvider.REDSTONE]: configChartColors.oracle.redstone,
   [OracleProvider.DIA]: configChartColors.oracle.dia,
@@ -126,6 +134,9 @@ export const ORACLE_EXPECTED_INTERVALS: Record<string, number> = {
   twap: 600,
   winklink: 1800,
   chainlink: 3600,
+  pyth: 3600,
+  stork: 3600,
+  chronicle: 1800,
   api3: 3600,
   dia: 3600,
   band: 120,

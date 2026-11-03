@@ -1,3 +1,6 @@
+import Link from 'next/link';
+
+import { readIssuanceControl } from '@/lib/ops/issuanceControl';
 import { getOverviewStats } from '@/lib/ops/opsQueries';
 
 import { TONE_DOT, type Tone } from './ui';
@@ -6,9 +9,15 @@ import { TONE_DOT, type Tone } from './ui';
  * Persistent, cross-tab system-health strip. Renders on every /ops page so the
  * operator always sees the headline status (signing rate / unsigned BLOCKs /
  * stale pipelines / 7d incidents) without switching tabs.
+ *
+ * It also surfaces the issuance kill switch, because a halt left engaged is
+ * invisible by design: pre-trade keeps answering normally, just with BLOCKs. A
+ * persistent reminder is the difference between a deliberate halt and a stuck
+ * one nobody notices.
  */
 export default async function HealthStrip() {
-  const s = await getOverviewStats(24);
+  const [s, issuance] = await Promise.all([getOverviewStats(24), readIssuanceControl()]);
+  const halted = issuance.state?.halted === true;
 
   const items: { label: string; value: string; tone: Tone }[] = [
     {
@@ -27,6 +36,29 @@ export default async function HealthStrip() {
 
   return (
     <div className="ops-health-strip mx-auto mb-6 max-w-6xl px-6 pt-8">
+      {halted && (
+        <Link
+          href="/ops/issuance"
+          className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 border-l-2 border-danger-500 bg-danger-50 px-4 py-3 text-sm text-danger-700"
+        >
+          <strong className="font-semibold">签发已熔断</strong>
+          <span className="min-w-0 break-words">
+            {issuance.state?.reason ?? '未填写理由'} · 所有预交易检查返回签名 BLOCK
+          </span>
+          <span className="ml-auto whitespace-nowrap font-mono text-xs">前往签发控制 ↗</span>
+        </Link>
+      )}
+      {issuance.errored && (
+        <Link
+          href="/ops/issuance"
+          className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 border-l-2 border-warning-500 bg-warning-50 px-4 py-3 text-sm text-warning-700"
+        >
+          <strong className="font-semibold">签发熔断状态不可读</strong>
+          <span className="min-w-0 break-words">
+            无法确认 issuance 是否处于熔断；当前按“未熔断”继续。请检查 ops_issuance_control。
+          </span>
+        </Link>
+      )}
       <div className="grid border-y border-slate-900/15 bg-white/45 sm:grid-cols-2 lg:grid-cols-4 lg:divide-x lg:divide-slate-900/10">
         {items.map((it, index) => (
           <div

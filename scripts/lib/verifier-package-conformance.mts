@@ -4,7 +4,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { concat, hashTypedData, keccak256 } from 'viem';
+import { concat, hashTypedData, keccak256, sha256, toBytes } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import type { KeyRegistry, RoutableAttestation, ExecutionReceipt } from '../../verifier/src/index';
 
@@ -248,6 +248,93 @@ assert.equal(
   ).pairedValid,
   false
 );
+
+// Context-attestation V2 is part of the packed public API and the offline CLI.
+// Keep this synthetic signed fixture independent of Insight's signing module.
+const contextCapturedAt = new Date(now * 1000).toISOString();
+const contextView = {
+  schema: api.TOKEN_SECURITY_VIEW_SCHEMA,
+  sourcedFrom: 'gopluslabs',
+  rawHash: `0x${'cd'.repeat(32)}`,
+  advisory: true,
+  isHoneypot: false,
+  buyTaxPct: 0,
+  tokenSymbol: 'SYNTH',
+};
+async function signedContextAttestation(version: 1 | 2) {
+  const manifest = `context-attestation.v${version}`;
+  const unsignedEntry = {
+    kind: 'third_party_token_scan',
+    source: 'gopluslabs',
+    request: {
+      chainId: 1,
+      contractAddress: `0x${'34'.repeat(20)}`,
+    },
+    rawResponseSha256: contextView.rawHash,
+    ...(version === 2
+      ? { normalizedResultSha256: sha256(toBytes(api.canonicalContextJson(contextView))) }
+      : {}),
+    retrievedAt: contextCapturedAt,
+  };
+  const domain = { name: 'InsightContextAttestation', version: String(version) };
+  const contextSigningTypes = {
+    ContextAttestationManifest: [
+      { name: 'manifest', type: 'string' },
+      { name: 'schemaVersion', type: 'uint256' },
+      { name: 'capturedAt', type: 'string' },
+      { name: 'entriesDigest', type: 'bytes32' },
+      { name: 'transactionContext', type: 'string' },
+    ],
+  } as const;
+  const message = {
+    manifest,
+    schemaVersion: BigInt(version),
+    capturedAt: contextCapturedAt,
+    entriesDigest: keccak256(toBytes(api.canonicalContextJson([unsignedEntry]))),
+    transactionContext: '',
+  };
+  const signArgs = {
+    domain,
+    types: contextSigningTypes,
+    primaryType: 'ContextAttestationManifest',
+    message,
+  } as Parameters<typeof account.signTypedData>[0];
+  const signature = await account.signTypedData(signArgs);
+  return {
+    schemaVersion: version,
+    capturedAt: contextCapturedAt,
+    entries: [
+      {
+        ...unsignedEntry,
+        priorSeal: { manifest, signature, keyId: account.address },
+      },
+    ],
+  };
+}
+const contextV2 = await signedContextAttestation(2);
+const contextVerified = await api.verifyContextAttestation(contextV2, contextView, {
+  keyRegistry: registry,
+});
+assert.equal(contextVerified.valid, true, JSON.stringify(contextVerified));
+assert.equal(contextVerified.accepted, true);
+assert.equal(contextVerified.resultLinked, true);
+assert.equal(contextVerified.keyStatus, 'valid');
+assert.equal(contextVerified.sourceBodyRecomputed, false);
+const contextTampered = await api.verifyContextAttestation(
+  contextV2,
+  { ...contextView, tokenSymbol: 'TAMPERED' },
+  { keyRegistry: registry }
+);
+assert.equal(contextTampered.code, 'result_digest_mismatch');
+assert.equal(contextTampered.accepted, false);
+const legacyContext = await signedContextAttestation(1);
+const legacyContextVerified = await api.verifyContextAttestation(legacyContext, undefined, {
+  keyRegistry: registry,
+});
+assert.equal(legacyContextVerified.valid, true);
+assert.equal(legacyContextVerified.accepted, false);
+assert.equal(legacyContextVerified.code, 'legacy_result_unlinked');
+
 const clock = Date.now;
 try {
   Date.now = () => (now + 600) * 1000;
@@ -286,8 +373,111 @@ const bad = spawnSync(
 );
 assert.equal(bad.status, 1);
 assert.match(bad.stderr, /HASH_MISMATCH/);
+await writeFile('context-attestation.json', JSON.stringify(contextV2));
+await writeFile('token-security-view.json', JSON.stringify(contextView));
+const contextArgs = [
+  '--registry',
+  'registry.json',
+  '--registry-sha256',
+  pin,
+  '--context-attestation',
+  'context-attestation.json',
+  '--token-security-view',
+  'token-security-view.json',
+];
+const contextGood = spawnSync(process.execPath, [cli, ...contextArgs], { encoding: 'utf8' });
+assert.equal(contextGood.status, 0, contextGood.stderr);
+assert.equal(JSON.parse(contextGood.stdout).accepted, true);
+await writeFile(
+  'token-security-view.json',
+  JSON.stringify({ ...contextView, tokenSymbol: 'TAMPERED' })
+);
+const contextBadView = spawnSync(process.execPath, [cli, ...contextArgs], { encoding: 'utf8' });
+assert.equal(contextBadView.status, 1);
+assert.equal(JSON.parse(contextBadView.stdout).result.code, 'result_digest_mismatch');
+const sampleRegistry = structuredClone(registry);
+sampleRegistry.keys![0].role = 'sample';
+const sampleRegistryBytes = Buffer.from(JSON.stringify(sampleRegistry, null, 2) + '\n');
+const samplePin = createHash('sha256').update(sampleRegistryBytes).digest('hex');
+await writeFile('registry.json', sampleRegistryBytes);
+await writeFile('token-security-view.json', JSON.stringify(contextView));
+const contextSample = spawnSync(
+  process.execPath,
+  [cli, ...contextArgs.map((value) => (value === pin ? samplePin : value))],
+  { encoding: 'utf8' }
+);
+assert.equal(contextSample.status, 1);
+assert.equal(JSON.parse(contextSample.stdout).result.code, 'ok');
+assert.equal(JSON.parse(contextSample.stdout).result.accepted, false);
+await writeFile('registry.json', bytes);
+// OracleScenarioRun v1 must work in the PACKED build, not just in workspace
+// source. It shares schemaVersion 1 with the v1 pre-trade receipt, so this also
+// pins that the two families stay distinguishable after packaging.
+{
+  const z = `0x${'00'.repeat(32)}`,
+    ranAt = Math.floor(Date.now() / 1000);
+  const data = {
+    scenarioId: 'synthetic-conformance-scenario',
+    scenarioKind: 'stale_price',
+    verdict: 'caught',
+    harnessVersion: '1.0.0',
+    stepCount: 4,
+    caughtStepCount: 2,
+    falsePositiveCount: 0,
+    detectionRate: 10_000,
+    scenarioHash: z,
+    reasonCodesHash: z,
+    ranAt,
+    validUntil: ranAt + 3600,
+    schemaVersion: 1,
+  };
+  // TEST_TYPES is a readonly tuple, so it cannot be asserted straight to a
+  // mutable array type; go through unknown first.
+  const types = (
+    cjs.TEST_TYPES as unknown as Record<string, Array<{ name: string; type: string }>>
+  )[cjs.TEST_PRIMARY_TYPE];
+  assert.equal(types.length, 13, 'TEST_TYPES must carry the 13 signed fields');
+  assert.deepEqual(cjs.TEST_DOMAIN, { name: 'Insight Oracle Test', version: '1', chainId: 1 });
+  const message: Record<string, unknown> = {};
+  for (const field of types) {
+    const v = data[field.name as keyof typeof data];
+    message[field.name] = field.type === 'uint256' ? BigInt(v as number) : v;
+  }
+  const args = {
+    domain: cjs.TEST_DOMAIN,
+    types: cjs.TEST_TYPES,
+    primaryType: cjs.TEST_PRIMARY_TYPE,
+    message,
+  };
+  const receipt = {
+    uid: hashTypedData(args as never),
+    schemaVersion: 1,
+    attester: account.address,
+    signature: await account.signTypedData(args as never),
+    data,
+    eip712: { primaryType: cjs.TEST_PRIMARY_TYPE },
+  };
+
+  const verified = await api.verifyReceipt(receipt as RoutableAttestation, {
+    keyRegistry: registry,
+  });
+  assert.equal(verified.code, 'ok');
+  assert.equal(verified.valid, true);
+  assert.equal(verified.kind, 'test');
+  assert.equal(verified.checkedAt, ranAt, 'ranAt must anchor checkedAt for this family');
+
+  // A tampered payload must fail, proving the packed layout actually binds.
+  const tampered = await api.verifyReceipt(
+    { ...receipt, data: { ...data, detectionRate: 9999 } } as RoutableAttestation,
+    { keyRegistry: registry }
+  );
+  assert.equal(tampered.code, 'uid_mismatch');
+  assert.equal(tampered.valid, false);
+}
 const pkg = JSON.parse(await readFile('node_modules/verify-insight-receipt/package.json', 'utf8'));
-assert.equal(pkg.version, '0.3.1');
+const expectedVersion = process.env.VERIFY_INSIGHT_RECEIPT_EXPECTED_VERSION;
+assert.match(expectedVersion ?? '', /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/);
+assert.equal(pkg.version, expectedVersion, 'packed version must match verifier/package.json');
 process.stdout.write(
   JSON.stringify({
     version: pkg.version,
@@ -295,6 +485,7 @@ process.stdout.write(
       cjs: true,
       esm: true,
       preTradeSchemas: [1, 2, 3],
+      scenarioTestRunSchema: 1,
       recheckSchemas: [2, 3],
       executionSchemas: [1, 2, 3, 4, 5],
       pinnedSnapshot: true,
@@ -305,6 +496,11 @@ process.stdout.write(
       malformedPairRejected: true,
       historicalPairVerified: true,
       offlineCli: true,
+      contextAttestationV2: true,
+      legacyContextAttestationUnlinked: true,
+      contextViewTamperRejected: true,
+      contextOfflineCli: true,
+      contextSampleKeyRejected: true,
     },
     browserFixture: { source, execution: current, registry, pin },
   })

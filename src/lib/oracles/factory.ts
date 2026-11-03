@@ -6,10 +6,13 @@ import { OracleProvider } from '@/types/oracle';
 import { API3Client } from './clients/api3';
 import { BandClient } from './clients/band';
 import { ChainlinkClient } from './clients/chainlink';
+import { ChronicleMonadClient } from './clients/chronicleMonad';
 import { DIAClient } from './clients/dia';
 import { FlareClient } from './clients/flare';
+import { PythClient } from './clients/pyth';
 import { RedStoneClient } from './clients/redstone';
 import { ReflectorClient } from './clients/reflector';
+import { StorkMonadClient } from './clients/storkMonad';
 import { SupraClient } from './clients/supra';
 import { TWAPClient } from './clients/twap';
 import { WINkLinkClient } from './clients/winklink';
@@ -51,6 +54,12 @@ class OracleClientFactory {
     switch (provider) {
       case OracleProvider.CHAINLINK:
         return new ChainlinkClient({ useRealData: FEATURE_FLAGS.useRealChainlinkData });
+      case OracleProvider.PYTH:
+        return new PythClient();
+      case OracleProvider.STORK:
+        return new StorkMonadClient();
+      case OracleProvider.CHRONICLE:
+        return new ChronicleMonadClient();
       case OracleProvider.API3:
         return new API3Client();
       case OracleProvider.REDSTONE:

@@ -1,0 +1,17 @@
+{
+  "schema": "insight.token-security-view.v1",
+  "sourcedFrom": "gopluslabs",
+  "rawHash": "0x983713789f15c68aa70452d47a483202c353d15a393965ce0a04a32e5022f83b",
+  "advisory": true,
+  "isHoneypot": false,
+  "buyTaxPct": 0,
+  "sellTaxPct": 0,
+  "isOpenSource": true,
+  "isProxy": false,
+  "isMintable": false,
+  "hiddenOwner": false,
+  "holderCount": 1000,
+  "isInCex": false,
+  "trustList": false,
+  "tokenSymbol": "DEMO"
+}

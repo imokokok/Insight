@@ -1,0 +1,116 @@
+{
+  "protocolVersion": "0.2.9",
+  "name": "Insight",
+  "description": "Decision-input integrity for onchain AI agents: is the price or action trustworthy before it is signed? Oracle-manipulation-aware PASS/WARN/BLOCK verdicts, pre-signing guard families (lending, perps, swaps) on Base, Monad, multichain EVM, Solana, and Hyperliquid, 24h Oracle Watch windows and Position Lifecycle bundles, with verifiable EIP-712 attestations. Pay-per-call: $0.02 per C3 decision USDC via x402 v2 on Base, Polygon PoS, Arbitrum One, Monad, HyperEVM, BNB Chain, or Solana mainnet, or via MPP; settlement happens only after the check succeeds. Endpoint is MCP over Streamable HTTP.",
+  "url": "https://www.oracleinsight.xyz/api/mcp",
+  "provider": {
+    "organization": "Insight",
+    "url": "https://www.oracleinsight.xyz"
+  },
+  "version": "1.2.0",
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": false,
+    "extensions": [
+      {
+        "uri": "https://github.com/google-agentic-commerce/a2a-x402/blob/main/spec/v0.2",
+        "description": "Supports payments using the x402 protocol for on-chain settlement. Every paid call returns an HTTP 402 challenge advertising USDC acceptance on eip155:8453 (Base), eip155:137 (Polygon), eip155:42161 (Arbitrum One), eip155:143 (Monad), eip155:999 (HyperEVM), eip155:56 (BNB Chain via AEON) and solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp (Solana mainnet).",
+        "required": true
+      }
+    ]
+  },
+  "defaultInputModes": ["application/json"],
+  "defaultOutputModes": ["application/json"],
+  "skills": [
+    {
+      "id": "pre_trade_safety_check",
+      "name": "Pre-trade safety check",
+      "description": "Oracle-manipulation-aware PASS/WARN/BLOCK verdict for a single trade (asset, chainId, action, tradeAmountUsd). Returns consensus price, max deviation %, manipulation-risk score and provider quorum; optionally a verifiable EIP-712 attestation. $0.02 USDC via x402 v2 or MPP, settled only after success.",
+      "tags": [
+        "defi",
+        "trading",
+        "risk",
+        "oracle",
+        "safety",
+        "pre-trade",
+        "price-integrity",
+        "agent-safety",
+        "trust"
+      ],
+      "examples": [
+        "Before my agent swaps USDC for ETH on Base, tell it whether the price feed it just read is currently trustworthy",
+        "Check whether swapping 1000 USD of ETH on mainnet is exposed to oracle manipulation",
+        "Get a manipulation-risk verdict before executing a trade"
+      ]
+    },
+    {
+      "id": "execution_preflight",
+      "name": "Execution preflight",
+      "description": "Chain-neutral ALLOW/CAUTION/BLOCK data-sufficiency decision for one declared action over the strict oracle assessment and an optional fresh venue quote. A supplied decision-input quote is required for ALLOW. $0.02 USDC via x402 v2, settled only after success.",
+      "tags": ["defi", "safety", "preflight", "decision", "agent-safety"],
+      "examples": [
+        "My agent has a swap intent and a fresh venue quote — is the decision input sufficient to proceed?",
+        "Decide allow/caution/block for borrowing USDC against WETH on Monad before signing"
+      ]
+    },
+    {
+      "id": "lending_guards",
+      "name": "Lending guards (Base, Monad, multichain EVM, Solana)",
+      "description": "Read-only, pre-signing ALLOW/CAUTION/BLOCK decisions for one direct lending call: Aave V3, Morpho Blue, Compound V3, Moonwell (Base); Aave V3, Morpho Blue (Monad); Aave V3, Venus Core, Lista Moolah, Compound V3, Dolomite, Euler v2, Fluid T1 (Polygon/Arbitrum/BNB/Base); Kamino, Marginfi v2, Jupiter Lend, Save, Loopscale (Solana). POST binds the exact unsigned call and may return a signed decision attestation; never authorizes or broadcasts a transaction. $0.02 USDC per complete decision.",
+      "tags": [
+        "defi",
+        "lending",
+        "risk",
+        "pre-signing",
+        "agent-safety",
+        "aave",
+        "morpho",
+        "kamino"
+      ],
+      "examples": [
+        "Before my agent signs this Aave V3 borrow on Base, check the projected LTV and oracle integrity",
+        "Validate one unsigned Kamino deposit instruction before my Solana agent submits it"
+      ]
+    },
+    {
+      "id": "perp_guards",
+      "name": "Perp guards (Base Synthetix V3, Hyperliquid)",
+      "description": "Pre-trade decision-input integrity gates for opening a perp position: Synthetix Perps V3 on Base (oracle integrity for underlying and USDC margin, leverage vs reviewed market caps) and Hyperliquid HyperCore orders (underlying oracle integrity, leverage vs margin requirements, exact unsigned exchange-envelope binding). POST may return an EIP-712 decision attestation; never signs or broadcasts an order. $0.02 USDC per complete decision.",
+      "tags": ["defi", "perps", "trading", "risk", "hyperliquid", "synthetix", "agent-safety"],
+      "examples": [
+        "My agent wants to open a 5x ETH long on Hyperliquid — is the price input trustworthy and is the leverage safe?",
+        "Check the oracle evidence for a Synthetix Perps V3 ETH long before the commitOrder call is signed"
+      ]
+    },
+    {
+      "id": "base_agent_swap_guard",
+      "name": "Base Agent Swap Guard",
+      "description": "Pre-signing guard for one reviewed Base-mainnet direct Aerodrome Slipstream WETH→USDC CL100 or PancakeSwap V3 USDC→USDT 0.01% swap: validates decision prices, pinned venue quote, price impact, TWAP, slippage, route contracts, and byte-exact unsigned calldata. Returns ALLOW, CAUTION, or BLOCK; only ALLOW includes calls for human confirmation. Never signs, routes, relays, or broadcasts a trade. $0.02 USDC.",
+      "tags": ["defi", "swap", "base", "aerodrome", "pancakeswap", "pre-signing", "agent-safety"],
+      "examples": [
+        "Review this exact Aerodrome Slipstream swap calldata my Base agent is about to sign",
+        "Verify the quoted price impact and TWAP for a 0.25 WETH→USDC swap before signing"
+      ]
+    },
+    {
+      "id": "oracle_watch_window",
+      "name": "Oracle Watch Monitored Window (24h)",
+      "description": "One $0.50 settlement pre-pays 24 hours of continuous Oracle Watch halt/proceed signal coverage for one (symbol, chain) position. The purchase returns a one-time window token; in-window signal polls are token-authenticated and never charged per call. Assessment and evidence only — no custody, no execution authority.",
+      "tags": ["oracle", "monitoring", "position", "recurring", "agent-safety"],
+      "examples": [
+        "Watch my ETH position on Base for 24 hours and tell my agent when to halt",
+        "Buy a monitored window so my agent gets halt/proceed signals without per-call charges"
+      ]
+    },
+    {
+      "id": "position_lifecycle_bundle",
+      "name": "Position Lifecycle Bundle (24h)",
+      "description": "One $0.55 settlement pre-pays a full monitored lifecycle for one (symbol, chain) position: an embedded 24h Oracle Watch window (300 free signal polls), 4 bundled guard assessments across any position-guard family, and 1 attested execution receipt. Bundled calls are token-authenticated and never charged per call. Assessment and evidence only — no custody, no execution authority.",
+      "tags": ["oracle", "monitoring", "lifecycle", "bundle", "recurring", "agent-safety"],
+      "examples": [
+        "Cover my new BTC perp position for 24 hours: monitoring, four guard checks, and a signed execution receipt",
+        "Buy one lifecycle bundle instead of paying per call while my agent manages this position"
+      ]
+    }
+  ]
+}

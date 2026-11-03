@@ -1,9 +1,11 @@
 import type { OracleProvider } from '@/types/oracle';
+import { FailureMode } from '@/types/oracle/signals';
 
 import {
   buildProviderConsensusInputs,
   dedupeHourlySnapshotInputs,
   resolveSnapshotSlot,
+  selectPriceRecordsForPersistence,
 } from '../snapshotCollector';
 
 import type { HourlySnapshotInput } from '../types';
@@ -136,7 +138,94 @@ describe('resolveSnapshotSlot', () => {
   });
 });
 
+describe('selectPriceRecordsForPersistence', () => {
+  const normal = {
+    provider: 'redstone' as OracleProvider,
+    symbol: 'ETH',
+    chain: 'ethereum' as const,
+    price: 3000,
+    timestamp: Date.parse('2026-09-13T12:15:00.000Z'),
+    failureMode: FailureMode.NONE,
+  };
+
+  it('keeps the complete rich sample set at the hourly checkpoint', () => {
+    const prices = [normal, { ...normal, symbol: 'BTC', price: 100_000 }];
+    expect(selectPriceRecordsForPersistence(prices, new Date('2026-09-13T12:00:00.000Z'))).toEqual(
+      prices
+    );
+  });
+
+  it('skips normal rich records between hourly checkpoints', () => {
+    expect(
+      selectPriceRecordsForPersistence([normal], new Date('2026-09-13T12:15:00.000Z'))
+    ).toEqual([]);
+  });
+
+  it('persists audit-relevant degradations immediately between checkpoints', () => {
+    const fallbackMetadata = {
+      ...normal,
+      symbol: 'BTC',
+      metadataFallback: true,
+      failureMode: FailureMode.FALLBACK_METADATA,
+    };
+    const stale = {
+      ...normal,
+      symbol: 'SOL',
+      failureMode: FailureMode.STALE_TIMESTAMP,
+    };
+    const fallbackSource = {
+      ...normal,
+      symbol: 'USDC',
+      dataSource: 'fallback' as const,
+    };
+
+    expect(
+      selectPriceRecordsForPersistence(
+        [normal, fallbackMetadata, stale, fallbackSource],
+        new Date('2026-09-13T12:15:00.000Z')
+      )
+    ).toEqual([fallbackMetadata, stale, fallbackSource]);
+  });
+});
+
 describe('buildProviderConsensusInputs', () => {
+  it('keeps a shadow-only Stork observation in collection but out of strict consensus', () => {
+    const now = Date.now();
+    const out = buildProviderConsensusInputs([
+      {
+        provider: 'pyth',
+        symbol: 'ETH',
+        feedChainId: 143,
+        price: {
+          provider: 'pyth',
+          symbol: 'ETH/USD',
+          chain: 'monad',
+          price: 100,
+          timestamp: now,
+        },
+        error: null,
+        skipped: false,
+      },
+      {
+        provider: 'stork',
+        symbol: 'ETH',
+        feedChainId: 143,
+        price: {
+          provider: 'stork',
+          symbol: 'ETH/USD',
+          chain: 'monad',
+          price: 101,
+          timestamp: now,
+          countsTowardOracleQuorum: false,
+        },
+        error: null,
+        skipped: false,
+      },
+    ]);
+
+    expect(out).toEqual([expect.objectContaining({ provider: 'pyth', price: 100 })]);
+  });
+
   it('collapses multiple chains from the same provider into one consensus vote', () => {
     const now = Date.now();
     const result = buildProviderConsensusInputs([

@@ -19,7 +19,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'BTC',
     aliases: ['bitcoin', 'btc'],
     category: 'layer1',
-    path: '/price-query?symbol=BTC',
+    path: '/price-insight?stage=observe&symbol=BTC',
   },
   {
     id: 'token-eth',
@@ -28,7 +28,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'ETH',
     aliases: ['ethereum', 'eth'],
     category: 'layer1',
-    path: '/price-query?symbol=ETH',
+    path: '/price-insight?stage=observe&symbol=ETH',
   },
   {
     id: 'token-sol',
@@ -37,7 +37,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'SOL',
     aliases: ['solana', 'sol'],
     category: 'layer1',
-    path: '/price-query?symbol=SOL',
+    path: '/price-insight?stage=observe&symbol=SOL',
   },
   {
     id: 'token-avax',
@@ -46,7 +46,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'AVAX',
     aliases: ['avalanche', 'avax'],
     category: 'layer1',
-    path: '/price-query?symbol=AVAX',
+    path: '/price-insight?stage=observe&symbol=AVAX',
   },
   {
     id: 'token-near',
@@ -55,7 +55,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'NEAR',
     aliases: ['near', 'near protocol'],
     category: 'layer1',
-    path: '/price-query?symbol=NEAR',
+    path: '/price-insight?stage=observe&symbol=NEAR',
   },
   {
     id: 'token-matic',
@@ -64,7 +64,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'MATIC',
     aliases: ['polygon', 'matic'],
     category: 'layer1',
-    path: '/price-query?symbol=MATIC',
+    path: '/price-insight?stage=observe&symbol=MATIC',
   },
   {
     id: 'token-arb',
@@ -73,7 +73,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'ARB',
     aliases: ['arbitrum', 'arb'],
     category: 'layer2',
-    path: '/price-query?symbol=ARB',
+    path: '/price-insight?stage=observe&symbol=ARB',
   },
   {
     id: 'token-op',
@@ -82,7 +82,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'OP',
     aliases: ['optimism', 'op'],
     category: 'layer2',
-    path: '/price-query?symbol=OP',
+    path: '/price-insight?stage=observe&symbol=OP',
   },
   {
     id: 'token-dot',
@@ -91,7 +91,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'DOT',
     aliases: ['polkadot', 'dot'],
     category: 'layer1',
-    path: '/price-query?symbol=DOT',
+    path: '/price-insight?stage=observe&symbol=DOT',
   },
   {
     id: 'token-ada',
@@ -100,7 +100,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'ADA',
     aliases: ['cardano', 'ada'],
     category: 'layer1',
-    path: '/price-query?symbol=ADA',
+    path: '/price-insight?stage=observe&symbol=ADA',
   },
   {
     id: 'token-atom',
@@ -109,7 +109,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'ATOM',
     aliases: ['cosmos', 'atom'],
     category: 'layer1',
-    path: '/price-query?symbol=ATOM',
+    path: '/price-insight?stage=observe&symbol=ATOM',
   },
   {
     id: 'token-ftm',
@@ -118,7 +118,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'FTM',
     aliases: ['fantom', 'ftm'],
     category: 'layer1',
-    path: '/price-query?symbol=FTM',
+    path: '/price-insight?stage=observe&symbol=FTM',
   },
   {
     id: 'token-link',
@@ -127,7 +127,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'LINK',
     aliases: ['chainlink', 'link', 'oracle'],
     category: 'defi',
-    path: '/price-query?symbol=LINK',
+    path: '/price-insight?stage=observe&symbol=LINK',
   },
   {
     id: 'token-uni',
@@ -136,7 +136,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'UNI',
     aliases: ['uniswap', 'uni'],
     category: 'defi',
-    path: '/price-query?symbol=UNI',
+    path: '/price-insight?stage=observe&symbol=UNI',
   },
   {
     id: 'token-aave',
@@ -145,7 +145,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'AAVE',
     aliases: ['aave'],
     category: 'defi',
-    path: '/price-query?symbol=AAVE',
+    path: '/price-insight?stage=observe&symbol=AAVE',
   },
   {
     id: 'token-mkr',
@@ -154,7 +154,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'MKR',
     aliases: ['maker', 'mkr', 'makerdao'],
     category: 'defi',
-    path: '/price-query?symbol=MKR',
+    path: '/price-insight?stage=observe&symbol=MKR',
   },
   {
     id: 'token-snx',
@@ -163,7 +163,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'SNX',
     aliases: ['synthetix', 'snx'],
     category: 'defi',
-    path: '/price-query?symbol=SNX',
+    path: '/price-insight?stage=observe&symbol=SNX',
   },
   {
     id: 'token-comp',
@@ -172,7 +172,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'COMP',
     aliases: ['compound', 'comp'],
     category: 'defi',
-    path: '/price-query?symbol=COMP',
+    path: '/price-insight?stage=observe&symbol=COMP',
   },
   {
     id: 'token-yfi',
@@ -181,7 +181,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'YFI',
     aliases: ['yearn', 'yfi', 'yearn finance'],
     category: 'defi',
-    path: '/price-query?symbol=YFI',
+    path: '/price-insight?stage=observe&symbol=YFI',
   },
   {
     id: 'token-crv',
@@ -190,7 +190,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'CRV',
     aliases: ['curve', 'crv'],
     category: 'defi',
-    path: '/price-query?symbol=CRV',
+    path: '/price-insight?stage=observe&symbol=CRV',
   },
   {
     id: 'token-ldo',
@@ -199,7 +199,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'LDO',
     aliases: ['lido', 'ldo'],
     category: 'defi',
-    path: '/price-query?symbol=LDO',
+    path: '/price-insight?stage=observe&symbol=LDO',
   },
   {
     id: 'token-sushi',
@@ -208,7 +208,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'SUSHI',
     aliases: ['sushi', 'sushiswap'],
     category: 'defi',
-    path: '/price-query?symbol=SUSHI',
+    path: '/price-insight?stage=observe&symbol=SUSHI',
   },
   {
     id: 'token-1inch',
@@ -217,7 +217,7 @@ const searchableItems: SearchableItem[] = [
     symbol: '1INCH',
     aliases: ['1inch'],
     category: 'defi',
-    path: '/price-query?symbol=1INCH',
+    path: '/price-insight?stage=observe&symbol=1INCH',
   },
   {
     id: 'token-bal',
@@ -226,7 +226,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'BAL',
     aliases: ['balancer', 'bal'],
     category: 'defi',
-    path: '/price-query?symbol=BAL',
+    path: '/price-insight?stage=observe&symbol=BAL',
   },
   {
     id: 'token-fxs',
@@ -235,7 +235,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'FXS',
     aliases: ['frax', 'fxs', 'frax share'],
     category: 'defi',
-    path: '/price-query?symbol=FXS',
+    path: '/price-insight?stage=observe&symbol=FXS',
   },
   {
     id: 'token-rpl',
@@ -244,7 +244,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'RPL',
     aliases: ['rocketpool', 'rpl', 'rocket pool'],
     category: 'defi',
-    path: '/price-query?symbol=RPL',
+    path: '/price-insight?stage=observe&symbol=RPL',
   },
   {
     id: 'token-gmx',
@@ -253,7 +253,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'GMX',
     aliases: ['gmx'],
     category: 'defi',
-    path: '/price-query?symbol=GMX',
+    path: '/price-insight?stage=observe&symbol=GMX',
   },
   {
     id: 'token-dydx',
@@ -262,7 +262,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'DYDX',
     aliases: ['dydx', 'd y d x'],
     category: 'defi',
-    path: '/price-query?symbol=DYDX',
+    path: '/price-insight?stage=observe&symbol=DYDX',
   },
   {
     id: 'token-usdc',
@@ -271,7 +271,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'USDC',
     aliases: ['usdc', 'usd coin'],
     category: 'stablecoin',
-    path: '/price-query?symbol=USDC',
+    path: '/price-insight?stage=observe&symbol=USDC',
   },
   {
     id: 'token-usdt',
@@ -280,7 +280,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'USDT',
     aliases: ['usdt', 'tether'],
     category: 'stablecoin',
-    path: '/price-query?symbol=USDT',
+    path: '/price-insight?stage=observe&symbol=USDT',
   },
   {
     id: 'token-dai',
@@ -289,7 +289,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'DAI',
     aliases: ['dai'],
     category: 'stablecoin',
-    path: '/price-query?symbol=DAI',
+    path: '/price-insight?stage=observe&symbol=DAI',
   },
 
   // Oracles

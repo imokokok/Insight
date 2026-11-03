@@ -1,0 +1,47 @@
+{
+  "schema": "x402-quality/v0",
+  "issued_at": 1791571934,
+  "subject": {
+    "bound_receipt": {
+      "kind": "execution",
+      "uid": "0xdf77bba001b7a2e3a4ef89c1f34567901e28a58182c5c8d8771d30055e32f47e",
+      "schema_version": 5,
+      "primary_type": "ExecutionReceipt"
+    }
+  },
+  "measurement": {
+    "profile": "oracle-execution/v5",
+    "algorithm_version": "insight-execution@5",
+    "observed_at": 1791571934,
+    "verdict": "UNDETERMINED",
+    "metrics": {
+      "priceDeltaBps": 5,
+      "maxSlippageBps": 50,
+      "slippageSatisfied": true,
+      "fillStatus": "FULL",
+      "participantCount": 4,
+      "requiredParticipantCount": 3,
+      "sourceGroupCount": 3,
+      "requiredSourceGroupCount": 2,
+      "independenceSatisfied": true,
+      "mevRiskBps": 500,
+      "attestationAgeAtExecSeconds": 30
+    },
+    "inputs": {
+      "measuredFieldsHash": "0x32a65a48f09c33b3493834bff3ed9197376092ec616e7ec57daf1d7cd40aa0bc",
+      "preTradeUidsHash": "0xb10e2d527612073b26eecdfd717e6a320cf44b4afac2b0732d9fcbe2b7fa0cf6",
+      "requestHash": "0x0000000000000000000000000000000000000000000000000000000000000002"
+    },
+    "valid_until": 1791572534
+  },
+  "attester": [
+    {
+      "address": "0xa41d5Ee795d95B87B3AA988150fC2d5e5fE5A534",
+      "signature": "0x0775330ebf78e4a59e925f5aed65ea3973e34de9cb348557390636ed09fff03a1242a2b435c7c13fc666f9f2c16b2ddee111c4aa2c987810340137a2dbd435091b",
+      "signature_scheme": "eip712",
+      "covers": "bound-receipt",
+      "bound_receipt_uid": "0xdf77bba001b7a2e3a4ef89c1f34567901e28a58182c5c8d8771d30055e32f47e",
+      "role": "sample"
+    }
+  ]
+}

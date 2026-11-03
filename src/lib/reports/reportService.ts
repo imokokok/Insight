@@ -1,5 +1,7 @@
 import { getMlOutcomeMetrics } from '@/lib/api/services/mlOutcomeMetrics';
 import { getModelStatus } from '@/lib/ml/inference';
+import { listEvidencePacks } from '@/lib/settlementEvidence/repository';
+import { retryIdempotentSupabaseWrite } from '@/lib/supabase/idempotentWrite';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -34,6 +36,7 @@ import type {
   ProviderRanking,
   ReportSummary,
   RiskImpact,
+  SettlementEvidenceReportSection,
   StablecoinDepegSummary,
   WrappedAssetPegSummary,
 } from './types';
@@ -78,20 +81,29 @@ class ReportService {
       error_message: input.errorMessage ?? null,
     }));
 
-    const { error } = await supabase.from('hourly_price_snapshots').upsert(rows, {
-      onConflict: 'snapshot_hour,provider,symbol,chain_id',
-    });
+    const written = await retryIdempotentSupabaseWrite(async () => {
+      // A given feed/hour is sampled four times.  The database function only
+      // writes the first result, unless it needs to replace a failure with a
+      // later success.  That keeps the hourly evidence useful without turning
+      // three ordinary repeat samples into table and index churn.
+      const { data, error } = await supabase.rpc('upsert_hourly_price_snapshots', {
+        p_rows: rows,
+      });
 
-    if (error) {
-      logger.error('Failed to upsert hourly snapshots', error);
-      // Supabase PostgrestError is not a standard Error instance; normalize it
-      // so upstream catch blocks get a readable message instead of [object Object].
-      throw new Error(
-        typeof error.message === 'string' ? error.message : 'Failed to upsert hourly snapshots'
-      );
-    }
+      if (error) {
+        logger.error('Failed to persist hourly snapshots', error);
+        // Supabase PostgrestError is not a standard Error instance; normalize it
+        // so the retry layer can identify its HTTP status and callers receive a
+        // readable message instead of [object Object].
+        throw new Error(
+          typeof error.message === 'string' ? error.message : 'Failed to persist hourly snapshots'
+        );
+      }
 
-    return rows.length;
+      return typeof data === 'number' && Number.isFinite(data) ? data : 0;
+    }, 'upsert hourly price snapshots');
+
+    return written;
   }
 
   async generateDailyReport(dateStr: string): Promise<DailyReportData> {
@@ -133,6 +145,7 @@ class ReportService {
     const protocolLiquidationRisks = await calculateProtocolLiquidationRisks(snapshots);
     const stablecoinDepeg = calculateStablecoinDepegSummary(snapshots);
     const wrappedAssetPeg = calculateWrappedAssetPegSummary(snapshots);
+    const settlementEvidence = await buildSettlementEvidenceSection(dateStr);
     const recommendations = generateRecommendations(
       metrics,
       providerRankings,
@@ -142,6 +155,11 @@ class ReportService {
       stablecoinDepeg,
       wrappedAssetPeg
     );
+    if (settlementEvidence && settlementEvidence.inconsistent.length > 0) {
+      recommendations.push(
+        `Settlement review needed: ${settlementEvidence.inconsistent.length} prediction-market window(s) resolved against Insight's independent verdict — see the settlement-evidence section and /settlement-evidence for the signed packs.`
+      );
+    }
     const summary = generateSummary(
       dateStr,
       metrics,
@@ -176,6 +194,7 @@ class ReportService {
       protocolLiquidationRisks,
       stablecoinDepeg,
       wrappedAssetPeg,
+      settlementEvidence,
     };
 
     logger.info(
@@ -405,4 +424,48 @@ async function buildMlModelHealth(): Promise<NonNullable<DailyReportMetrics['mlM
     // realized stays null — the report still carries the model status.
   }
   return base;
+}
+
+/**
+ * Settlement-evidence packs created during the report day (UTC), with
+ * inconsistent windows surfaced for review. A degraded or unconfigured
+ * settlement store omits the section entirely — the business report must not
+ * fail because of it.
+ */
+export async function buildSettlementEvidenceSection(
+  dateStr: string
+): Promise<SettlementEvidenceReportSection | undefined> {
+  const dayStartMs = Date.parse(`${dateStr}T00:00:00.000Z`);
+  if (!Number.isFinite(dayStartMs)) return undefined;
+  const dayEndMs = dayStartMs + 24 * 60 * 60 * 1000;
+  try {
+    const packs = (await listEvidencePacks(100)).filter(
+      (pack) => pack.createdAtMs >= dayStartMs && pack.createdAtMs < dayEndMs
+    );
+    if (packs.length === 0) return undefined;
+    const grades: Record<string, number> = {};
+    for (const pack of packs) {
+      grades[pack.grade] = (grades[pack.grade] ?? 0) + 1;
+    }
+    return {
+      packsCreated: packs.length,
+      grades,
+      inconsistent: packs
+        .filter((pack) => pack.grade === 'inconsistent')
+        .map((pack) => ({
+          marketSlug: pack.payload.marketSlug,
+          asset: pack.payload.asset,
+          declaredOutcome: pack.payload.declaredOutcome,
+          independentOutcome: pack.payload.independentOutcome,
+          priceChangeBps: pack.payload.priceChangeBps,
+          windowStartMs: pack.payload.windowStartMs,
+          windowEndMs: pack.payload.windowEndMs,
+        })),
+    };
+  } catch (error) {
+    logger.warn('Settlement-evidence section omitted; store unavailable', {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return undefined;
+  }
 }

@@ -1,0 +1,621 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Insight Pre-Trade Safety API",
+    "version": "1.0.0",
+    "contact": {
+      "name": "YuTao Peng (Insight)",
+      "email": "imokokok123@gmail.com"
+    },
+    "description": "Oracle-immune-system pre-trade safety checks with verifiable EIP-712 attestation support. The REST pre-trade endpoint supports x402 and optional MPP; the MPP MCP pilot exposes pre_trade_safety_check on a dedicated endpoint. The full MCP tool catalog remains on /api/mcp.",
+    "x-guidance": "REST: GET /api/v1/safety/pre-trade with asset, chainId, action, and tradeAmountUsd. The full MCP catalog uses POST /api/mcp (x402 or API key). The MPP MCP pilot uses POST /api/mcp/mpp and only accepts pre_trade_safety_check. MPP is shown only when enabled; its challenge is authoritative. Every paid result is settled only after the tool succeeds."
+  },
+  "servers": [
+    {
+      "url": "https://www.oracleinsight.xyz",
+      "description": "Production"
+    }
+  ],
+  "x-service-info": {
+    "categories": ["ai", "data"],
+    "docs": {
+      "homepage": "https://www.oracleinsight.xyz/docs/x402",
+      "llms": "https://www.oracleinsight.xyz/llms.txt",
+      "apiReference": "https://www.oracleinsight.xyz/openapi.yaml"
+    }
+  },
+  "paths": {
+    "/api/v1/safety/decision-input/verify": {
+      "get": {
+        "operationId": "decisionInputAttestationDescriptor",
+        "summary": "Get the decision-input attester and EIP-712 schema",
+        "tags": ["Safety"],
+        "responses": {
+          "200": {
+            "description": "Published attester identity, EIP-712 descriptor, and signer readiness (READY, UNCONFIGURED, or UNTRUSTED_SIGNER)"
+          }
+        }
+      },
+      "post": {
+        "operationId": "verifyDecisionInputAssessment",
+        "summary": "Verify a signed decision-input assessment",
+        "tags": ["Safety"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["assessment"],
+                "properties": {
+                  "assessment": {
+                    "type": "object",
+                    "description": "Exact decisionInputAssessment object returned by the pre-trade endpoint, including its nested attestation"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Strict assessment schema, digest, UID, signature, trusted key window, and expiry verification result. Returns the signed linked pre-trade UID for the caller to compare with the corresponding pre-trade attestation."
+          },
+          "400": { "description": "Malformed verification request" }
+        }
+      }
+    },
+    "/api/v1/safety/pre-trade": {
+      "get": {
+        "operationId": "preTradeSafetyCheck",
+        "summary": "Pre-trade safety check with verifiable attestation",
+        "tags": ["Safety"],
+        "parameters": [
+          {
+            "name": "asset",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "examples": ["ETH"] },
+            "description": "Asset symbol, e.g. ETH, BTC, USDC"
+          },
+          {
+            "name": "chainId",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "integer", "examples": [1] },
+            "description": "Chain ID, e.g. 1=Ethereum, 0=chain-agnostic"
+          },
+          {
+            "name": "action",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["swap", "borrow", "lend", "liquidate", "repay"]
+            },
+            "description": "Type of DeFi operation"
+          },
+          {
+            "name": "tradeAmountUsd",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "number", "exclusiveMinimum": 0, "examples": [1000] },
+            "description": "Trade size in USD"
+          },
+          {
+            "name": "targetProviders",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" },
+            "description": "Comma-separated list of oracle providers to restrict the check to"
+          },
+          {
+            "name": "protocolId",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "examples": ["aave-v3-ethereum"] },
+            "description": "Optional lending protocol id to evaluate against"
+          },
+          {
+            "name": "schemaVersion",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "enum": [1, 2, 3] },
+            "description": "Attestation schema version: 1 (default, 11-field), 2 (26-field, CAIP-19 + quorum gate), 3 (27-field: v2 + signed independence threshold)"
+          },
+          {
+            "name": "destinationAsset",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" },
+            "description": "Optional destination asset symbol (v2 binds it as destinationAssetId)"
+          },
+          {
+            "name": "decisionInputCheck",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "enum": ["0", "1"] },
+            "description": "Set to 1 to request a separate input-sufficiency result. Requires all decisionPriceUsd, quotePriceUsd, quoteObservedAt, maxReferenceDeviationBps, maxSlippageBps, and maxQuoteAgeSeconds parameters. Does not alter the oracle safety verdict or authorize a transaction."
+          },
+          {
+            "name": "decisionPriceUsd",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "number", "exclusiveMinimum": 0 },
+            "description": "Application or agent price input in USD per asset; required when decisionInputCheck=1"
+          },
+          {
+            "name": "quotePriceUsd",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "number", "exclusiveMinimum": 0 },
+            "description": "Caller-supplied venue quote in USD per asset; required when decisionInputCheck=1"
+          },
+          {
+            "name": "quoteObservedAt",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "format": "date-time" },
+            "description": "Timezone-qualified timestamp for the venue quote; required when decisionInputCheck=1"
+          },
+          {
+            "name": "maxReferenceDeviationBps",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 0, "maximum": 10000 },
+            "description": "Caller policy limit for decision-price divergence from Chainlink and the CEX median, and for CEX spread; required when decisionInputCheck=1"
+          },
+          {
+            "name": "maxSlippageBps",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 0, "maximum": 10000 },
+            "description": "Caller policy limit for venue-quote divergence from decisionPriceUsd; required when decisionInputCheck=1"
+          },
+          {
+            "name": "maxQuoteAgeSeconds",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 1, "maximum": 300 },
+            "description": "Caller policy limit for venue quote age; required when decisionInputCheck=1"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Safety verdict returned (paid via x402 or MPP, or authorized by API key)",
+            "headers": {
+              "PAYMENT-RESPONSE": {
+                "description": "x402 settlement receipt for x402-paid calls.",
+                "schema": { "type": "string" }
+              },
+              "Payment-Receipt": {
+                "description": "MPP settlement receipt for MPP-paid calls.",
+                "schema": { "type": "string" }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "verdict": { "type": "string" },
+                        "consensusPrice": { "type": "number" },
+                        "maxDeviationPct": { "type": "number" },
+                        "manipulationRiskScore": { "type": "number" },
+                        "crossProviderAgreement": { "type": "number" },
+                        "recommendedMaxPositionUsd": { "type": "number" },
+                        "staleDataRisk": { "type": "boolean" },
+                        "participantCount": { "type": "integer" },
+                        "decisionInputAssessment": {
+                          "type": "object",
+                          "description": "Returned only when decisionInputCheck=1. Separate assessment with an optional nested EIP-712 integrity attestation; never changes the oracle verdict or authorizes a transaction. Its signature commits to caller-supplied per-asset quotes but does not authenticate their source. A fresh RedStone API USD reference is also compared against the decision price when available; its absence or staleness is optional. agent_begin_trade adds a separately simulated, block-pinned Uniswap V3 route quote for its supported Ethereum pairs.",
+                          "properties": {
+                            "schemaVersion": { "type": "integer", "const": 1 },
+                            "status": {
+                              "type": "string",
+                              "enum": ["SUFFICIENT", "BLOCK", "INSUFFICIENT_EVIDENCE"]
+                            },
+                            "eligibleToProceed": { "type": "boolean" },
+                            "asset": { "type": "string" },
+                            "chainId": { "type": "integer" },
+                            "operationRouteQuote": {
+                              "type": ["object", "null"],
+                              "description": "Route quote included by the MCP execution workflow. When onchainEvidence is present, price and observedAt come from a Uniswap V3 Quoter V2 call pinned to the agreed canonical Ethereum block hash; callerReported is retained for comparison.",
+                              "properties": {
+                                "price": { "type": "number" },
+                                "observedAt": { "type": "string", "format": "date-time" },
+                                "callerReported": {
+                                  "type": "object",
+                                  "properties": {
+                                    "price": { "type": "number" },
+                                    "observedAt": { "type": "string", "format": "date-time" }
+                                  }
+                                },
+                                "onchainEvidence": {
+                                  "type": "object",
+                                  "properties": {
+                                    "provider": {
+                                      "type": "string",
+                                      "const": "uniswap-v3-quoter-v2"
+                                    },
+                                    "chainId": { "type": "integer", "const": 1 },
+                                    "blockNumber": { "type": "string" },
+                                    "blockHash": { "type": "string" },
+                                    "quoterAddress": { "type": "string" },
+                                    "path": { "type": "string" },
+                                    "routeSymbols": {
+                                      "type": "array",
+                                      "items": { "type": "string" }
+                                    },
+                                    "routeTokens": {
+                                      "type": "array",
+                                      "items": { "type": "string" }
+                                    },
+                                    "feeTiers": { "type": "array", "items": { "type": "integer" } },
+                                    "amountInRaw": { "type": "string" },
+                                    "amountOutRaw": { "type": "string" },
+                                    "rpcWitnessCount": { "type": "integer", "const": 2 },
+                                    "rpcWitnessHosts": {
+                                      "type": "array",
+                                      "items": { "type": "string" },
+                                      "minItems": 2,
+                                      "maxItems": 2
+                                    },
+                                    "notionalPrice": {
+                                      "type": "object",
+                                      "properties": {
+                                        "provider": {
+                                          "type": "string",
+                                          "const": "chainlink-data-feed"
+                                        },
+                                        "assetSymbol": { "type": "string" },
+                                        "priceReferenceSymbol": {
+                                          "type": "string",
+                                          "enum": ["ETH", "USDC", "BTC"]
+                                        },
+                                        "pricingBasis": {
+                                          "type": "string",
+                                          "enum": [
+                                            "chainlink-usd",
+                                            "chainlink-btc-usd-wbtc-peg-assumption"
+                                          ]
+                                        },
+                                        "priceUsd": { "type": "number" },
+                                        "feedAddress": { "type": "string" },
+                                        "roundId": { "type": "string" },
+                                        "updatedAt": { "type": "string", "format": "date-time" },
+                                        "heartbeatSeconds": { "type": "integer" }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            "quoteInputHash": {
+                              "type": "string",
+                              "description": "Keccak-256 digest over the asset, action, trade amount, decision price, venue quote, timestamps, and optional route quote"
+                            },
+                            "action": {
+                              "type": "string",
+                              "enum": ["swap", "borrow", "lend", "liquidate", "repay"]
+                            },
+                            "tradeAmountUsd": { "type": "number" },
+                            "reasons": { "type": "array", "items": { "type": "object" } },
+                            "prices": { "type": "object" },
+                            "evidence": { "type": "object" },
+                            "caveats": { "type": "array", "items": { "type": "string" } },
+                            "attestation": {
+                              "type": "object",
+                              "description": "Optional Insight EIP-712 signature over the canonical assessment JSON with this attestation property omitted. Verify the exact assessment at /api/v1/safety/decision-input/verify.",
+                              "properties": {
+                                "type": { "type": "string", "const": "DecisionInputAssessment" },
+                                "schemaVersion": { "type": "integer", "const": 1 },
+                                "uid": {
+                                  "type": "string",
+                                  "pattern": "^0x[0-9a-fA-F]{64}$"
+                                },
+                                "attester": {
+                                  "type": "string",
+                                  "pattern": "^0x[0-9a-fA-F]{40}$"
+                                },
+                                "attesterLabel": {
+                                  "type": "string",
+                                  "const": "Insight Decision Input Assessment attester"
+                                },
+                                "signedAt": { "type": "string", "format": "date-time" },
+                                "validForSeconds": { "type": "integer", "const": 300 },
+                                "signature": {
+                                  "type": "string",
+                                  "pattern": "^0x[0-9a-fA-F]{130}$"
+                                },
+                                "verifyUrl": { "type": "string", "format": "uri" },
+                                "data": {
+                                  "type": "object",
+                                  "properties": {
+                                    "assessmentHash": {
+                                      "type": "string",
+                                      "pattern": "^0x[0-9a-fA-F]{64}$"
+                                    },
+                                    "linkedPreTradeUid": {
+                                      "type": "string",
+                                      "pattern": "^0x[0-9a-fA-F]{64}$"
+                                    },
+                                    "verifyUrlHash": {
+                                      "type": "string",
+                                      "pattern": "^0x[0-9a-fA-F]{64}$"
+                                    },
+                                    "issuedAt": { "type": "integer" },
+                                    "validUntil": { "type": "integer" },
+                                    "schemaVersion": { "type": "integer", "const": 1 }
+                                  },
+                                  "required": [
+                                    "assessmentHash",
+                                    "linkedPreTradeUid",
+                                    "verifyUrlHash",
+                                    "issuedAt",
+                                    "validUntil",
+                                    "schemaVersion"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                "eip712": {
+                                  "type": "object",
+                                  "description": "EIP-712 descriptor; the verifier derives the trusted domain and field list locally."
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "schemaVersion",
+                                "uid",
+                                "attester",
+                                "attesterLabel",
+                                "signedAt",
+                                "validForSeconds",
+                                "signature",
+                                "verifyUrl",
+                                "data",
+                                "eip712"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "additionalProperties": true
+                        }
+                      },
+                      "additionalProperties": true
+                    },
+                    "requestId": { "type": "string" }
+                  },
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameters"
+          },
+          "401": {
+            "description": "Unauthorized (paid tier disarmed and no API key supplied)"
+          },
+          "402": {
+            "description": "Payment Required: x402 v2 quote in PAYMENT-REQUIRED. MPP is discoverable through x-payment-info only when enabled and is available on the dedicated MPP MCP endpoint. API-key callers may also receive 402 when their credit balance is insufficient.",
+            "headers": {
+              "PAYMENT-REQUIRED": {
+                "description": "x402 v2 payment quote.",
+                "schema": { "type": "string" }
+              },
+              "WWW-Authenticate": {
+                "description": "MPP challenge for the REST pre-trade endpoint when MPP_ENABLED is active.",
+                "schema": { "type": "string" }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        }
+      }
+    },
+    "/api/v1/safety/preflight": {
+      "get": {
+        "operationId": "executionPreflight",
+        "summary": "Chain-neutral execution preflight decision",
+        "tags": ["Safety"],
+        "description": "Returns an action-facing ALLOW, CAUTION, or BLOCK result by combining the strict oracle safety assessment with an optional caller-supplied venue quote. The result covers data sufficiency only, not contract security, custody, MEV outcome, execution, or profitability. Monad requests surface Pyth Core evidence when available.",
+        "parameters": [
+          {
+            "name": "asset",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "examples": ["MON"] },
+            "description": "Asset symbol, e.g. MON, ETH, BTC"
+          },
+          {
+            "name": "chainId",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "integer", "examples": [143] },
+            "description": "Execution chain ID; Monad mainnet is 143"
+          },
+          {
+            "name": "action",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "enum": ["swap", "borrow", "lend", "liquidate", "repay"] }
+          },
+          {
+            "name": "tradeAmountUsd",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "number", "exclusiveMinimum": 0, "examples": [1000] }
+          },
+          {
+            "name": "targetProviders",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "examples": ["pyth"] },
+            "description": "Optional comma-separated provider scope. On Monad, targetProviders=pyth reads the pinned Pyth Core fast path; one provider remains insufficient for ALLOW."
+          },
+          {
+            "name": "destinationAsset",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "examples": ["USDC"] }
+          },
+          {
+            "name": "decisionInputCheck",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "enum": ["0", "1"] },
+            "description": "Set to 1 with a fresh venue quote and explicit thresholds to become eligible for ALLOW. Without it, a healthy oracle result remains CAUTION."
+          },
+          {
+            "name": "decisionPriceUsd",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "number", "exclusiveMinimum": 0 }
+          },
+          {
+            "name": "quotePriceUsd",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "number", "exclusiveMinimum": 0 }
+          },
+          {
+            "name": "quoteObservedAt",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "format": "date-time" }
+          },
+          {
+            "name": "maxReferenceDeviationBps",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 0, "maximum": 10000 }
+          },
+          {
+            "name": "maxSlippageBps",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 0, "maximum": 10000 }
+          },
+          {
+            "name": "maxQuoteAgeSeconds",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 1, "maximum": 300 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Preflight decision completed; x402 settlement occurs only after this response is successful.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": {
+                      "type": "object",
+                      "required": ["verdict", "recommendation", "gates", "assessment"],
+                      "properties": {
+                        "verdict": { "type": "string", "enum": ["allow", "caution", "block"] },
+                        "recommendation": {
+                          "type": "string",
+                          "enum": ["proceed", "review_before_execution", "do_not_execute"]
+                        },
+                        "gates": { "type": "object" },
+                        "assessment": {
+                          "type": "object",
+                          "description": "Underlying strict pre-trade oracle assessment and optional attestation."
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid query parameters" },
+          "401": { "description": "API key required when keyless payment is not enabled" },
+          "402": {
+            "description": "x402 payment required; challenge is carried in PAYMENT-REQUIRED"
+          }
+        }
+      }
+    },
+    "/api/mcp": {
+      "post": {
+        "operationId": "mcpToolCall",
+        "summary": "MCP tools/call over JSON-RPC 2.0 (streamable HTTP), x402 pay-per-call",
+        "tags": ["MCP"],
+        "description": "Pay-per-call access to the Insight oracle tool catalog (40+ tools: prices, consensus, peg risk, lending safety) for x402 agents without an API key. Price scales with the tool metering class (C1=$0.002, C2=$0.004, C3=$0.02, C4=$0.04). tools/list and initialize are free. Every paid response carries a verifiable EIP-712 attestation receipt.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "jsonrpc": { "type": "string", "const": "2.0" },
+                  "id": { "type": ["integer", "string"] },
+                  "method": {
+                    "type": "string",
+                    "enum": ["tools/call", "tools/list", "initialize"]
+                  },
+                  "params": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "examples": ["get_symbols", "pre_trade_safety_check", "get_risk_summary"]
+                      },
+                      "arguments": {
+                        "type": "object",
+                        "additionalProperties": true
+                      }
+                    },
+                    "required": ["name"],
+                    "additionalProperties": true
+                  }
+                },
+                "required": ["jsonrpc", "method", "params"],
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "JSON-RPC response (paid via x402 or free method); paid tools/call responses include the EIP-712 attestation receipt in the tool result content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "jsonrpc": { "type": "string", "const": "2.0" },
+                    "id": { "type": ["integer", "string"] },
+                    "result": { "type": "object", "additionalProperties": true },
+                    "error": { "type": "object", "additionalProperties": true }
+                  },
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "x402 v2 challenge in the PAYMENT-REQUIRED response header (base64 JSON with USDC requirements and Bazaar metadata). Amount in the challenge reflects the requested tool's metering class."
+          },
+          "429": {
+            "description": "Rate limited (paid tier 60/min/IP)"
+          }
+        }
+      }
+    }
+  }
+}

@@ -29,6 +29,51 @@ const queryQueue = new RequestQueue({
 // below this.
 const ORACLE_FEEDS_PAGE_SIZE = 500;
 
+// A registry refresh is a recoverable metadata read: the resolver has
+// committed fallbacks and a five-minute in-process cache. Do not let one
+// saturated PostgREST request occupy a worker (and add more Disk I/O) for the
+// default 30-second queue deadline.
+const ORACLE_FEEDS_QUERY_TIMEOUT_MS = 5_000;
+
+// This is an internal helper, but it is shared by cache-backed history paths.
+// Keep a missing/oversized caller limit from becoming an unbounded PostgREST
+// scan and response. Public export endpoints apply their own tighter policy.
+const MAX_PRICE_RECORDS_QUERY_LIMIT = 1_000;
+
+// Core projection for every active-registry read. The resolver hot path
+// (price fetches, consensus, snapshot collection) and the feed-health
+// surfaces only consume these columns; the lifecycle/audit columns
+// (created_at, updated_at, last_discovery_at, deactivated_reason,
+// deactivated_at, absent_discovery_runs) are written here but only ever
+// READ by ops diagnostics that query oracle_feeds directly. Selecting them
+// on every cold-start cron read cost ~31% of the wire: the registry is
+// re-fetched by fresh GitHub Actions processes (96 snapshot + 48 oracle
+// watch + 24 reputation runs/day) where the 5-minute in-memory cache never
+// warms, and that repeat read was the dominant Supabase egress driver
+// (2.29 MB -> ~1.6 MB per full registry read).
+const ORACLE_FEEDS_CORE_COLUMNS =
+  'id,provider,symbol,chain_id,address,name,decimals,category,is_active,source,metadata,consecutive_failures,last_success_at,last_failure_at';
+
+/** Validate the JSONB payload returned by the atomic feed-health RPC. */
+function parseFeedHealthLifecycleSummary(
+  value: unknown
+): { updated: number; deactivated: number } | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const record = value as Record<string, unknown>;
+  const { updated, deactivated } = record;
+  if (
+    typeof updated !== 'number' ||
+    !Number.isSafeInteger(updated) ||
+    updated < 0 ||
+    typeof deactivated !== 'number' ||
+    !Number.isSafeInteger(deactivated) ||
+    deactivated < 0
+  ) {
+    return null;
+  }
+  return { updated, deactivated };
+}
+
 export interface PriceRecord {
   id?: string;
   provider: string;
@@ -97,6 +142,16 @@ export interface OracleFeed {
   last_discovery_at?: string | null;
   created_at?: string;
   updated_at?: string;
+}
+
+/**
+ * A registry read must distinguish an authoritative empty result from an
+ * unavailable database. Callers that operate the live price path can safely
+ * fall back to their reviewed static catalog only in the latter case.
+ */
+export interface OracleFeedsReadResult {
+  feeds: OracleFeed[];
+  errored: boolean;
 }
 
 export interface OracleFeedInsert {
@@ -302,12 +357,16 @@ export class DatabaseQueries {
         query = query.lte('timestamp', endTimeStr);
       }
 
-      if (filters.offset && filters.limit) {
-        query = query.range(filters.offset, filters.offset + filters.limit - 1);
-      } else if (filters.offset) {
-        query = query.range(filters.offset, filters.offset + 99);
-      } else if (filters.limit) {
-        query = query.limit(filters.limit);
+      const offset = Number.isFinite(filters.offset) ? Math.max(0, Math.floor(filters.offset!)) : 0;
+      const requestedLimit = Number.isFinite(filters.limit)
+        ? Math.floor(filters.limit!)
+        : MAX_PRICE_RECORDS_QUERY_LIMIT;
+      const limit = Math.min(Math.max(1, requestedLimit), MAX_PRICE_RECORDS_QUERY_LIMIT);
+
+      if (filters.offset !== undefined) {
+        query = query.range(offset, offset + limit - 1);
+      } else {
+        query = query.limit(limit);
       }
 
       const { data, error } = await query;
@@ -349,6 +408,17 @@ export class DatabaseQueries {
   // ─── Oracle Feeds ──────────────────────────────────────────────────
 
   async getOracleFeeds(provider: string, chainId?: number): Promise<OracleFeed[]> {
+    return (await this.getOracleFeedsWithStatus(provider, chainId)).feeds;
+  }
+
+  /**
+   * Same bounded, paged registry read as {@link getOracleFeeds}, with the
+   * database-failure bit preserved for availability-sensitive callers.
+   */
+  async getOracleFeedsWithStatus(
+    provider: string,
+    chainId?: number
+  ): Promise<OracleFeedsReadResult> {
     return queryQueue.add(async () => {
       const feeds: OracleFeed[] = [];
       let offset = 0;
@@ -377,7 +447,7 @@ export class DatabaseQueries {
       for (;;) {
         let query = this.client
           .from('oracle_feeds')
-          .select('*', offset === 0 ? { count: 'exact' } : undefined)
+          .select(ORACLE_FEEDS_CORE_COLUMNS, offset === 0 ? { count: 'exact' } : undefined)
           .eq('is_active', true)
           .order('symbol', { ascending: true })
           .order('chain_id', { ascending: true })
@@ -392,7 +462,9 @@ export class DatabaseQueries {
           query = query.eq('chain_id', chainId);
         }
 
-        const { data, error, count } = await query;
+        const { data, error, count } = await query.abortSignal(
+          AbortSignal.timeout(ORACLE_FEEDS_QUERY_TIMEOUT_MS)
+        );
 
         if (error) {
           logger.error('Failed to get oracle feeds', normalizeError(error), {
@@ -402,9 +474,9 @@ export class DatabaseQueries {
           // Fail closed. Returning the pages collected so far would silently
           // truncate the registry — the exact failure mode this paging exists
           // to recover — and the partial list would be cached for the 5-minute
-          // TTL. An empty list instead triggers the documented hardcoded
-          // fallback in the cache layers.
-          return [];
+          // TTL. Preserve the failure bit so cache layers can choose their
+          // reviewed fallback rather than treating this as an empty registry.
+          return { feeds: [], errored: true };
         }
 
         const page = data || [];
@@ -432,10 +504,10 @@ export class DatabaseQueries {
             pageSize: ORACLE_FEEDS_PAGE_SIZE,
           }
         );
-        return [];
+        return { feeds: [], errored: true };
       }
 
-      return feeds;
+      return { feeds, errored: false };
     });
   }
 
@@ -536,15 +608,29 @@ export class DatabaseQueries {
           };
 
       if (isSuccess) {
-        const { error } = await this.client
-          .from('oracle_feeds')
-          .update(update)
-          .eq('provider', provider)
-          .eq('symbol', symbol)
-          .eq('chain_id', chainId);
+        // Live API traffic can observe the same healthy feed repeatedly in a
+        // few seconds. The RPC only writes on recovery or once per hour,
+        // keeping the two-hour stale-health contract while avoiding a wide
+        // registry-row rewrite for every successful request.
+        const { error } = await this.client.rpc('touch_oracle_feed_success', {
+          p_provider: provider,
+          p_symbol: symbol,
+          p_chain_id: chainId,
+          p_success_at: now,
+        });
 
         if (error) {
-          logger.error('Failed to update feed health (success)', normalizeError(error));
+          // Preserve health tracking during a rolling migration or a partial
+          // deployment. This fallback is deliberately the former direct write.
+          const { error: fallbackError } = await this.client
+            .from('oracle_feeds')
+            .update(update)
+            .eq('provider', provider)
+            .eq('symbol', symbol)
+            .eq('chain_id', chainId);
+          if (fallbackError) {
+            logger.error('Failed to update feed health (success)', normalizeError(fallbackError));
+          }
         }
       } else {
         // Increment consecutive_failures atomically
@@ -608,26 +694,86 @@ export class DatabaseQueries {
   ): Promise<{ updated: number }> {
     if (results.length === 0) return { updated: 0 };
 
+    return queryQueue.add(() => this.batchUpdateFeedHealthInQueue(results));
+  }
+
+  /**
+   * Atomically apply one collector batch and deactivate feeds that crossed the
+   * threshold. This replaces two PostgREST transactions with one database
+   * transaction: the registry writes themselves are unchanged, but every
+   * collection slot now needs one fewer commit/WAL flush and round trip.
+   */
+  async applyFeedHealthAndDeactivate(
+    results: Array<{
+      provider: string;
+      symbol: string;
+      chainId: number;
+      isSuccess: boolean;
+    }>,
+    threshold: number = 3
+  ): Promise<{ updated: number; deactivated: number }> {
     return queryQueue.add(async () => {
-      const successes = results
-        .filter((r) => r.isSuccess)
-        .map(({ provider, symbol, chainId }) => ({ provider, symbol, chainId }));
-      const failures = results
-        .filter((r) => !r.isSuccess)
-        .map(({ provider, symbol, chainId }) => ({ provider, symbol, chainId }));
-
-      // Single RPC call processes all successes and failures in one round-trip
-      const { data, error } = await this.client.rpc('batch_update_feed_health', {
+      const { successes, failures } = this.splitFeedHealthResults(results);
+      const { data, error } = await this.client.rpc('apply_feed_health_batch', {
         p_results: { successes, failures },
+        p_failure_threshold: threshold,
       });
+      const summary = parseFeedHealthLifecycleSummary(data);
+      if (!error && summary) return summary;
 
-      if (error) {
-        // Fallback to individual updates if RPC is not available (e.g. migration not applied)
-        return this.batchUpdateFeedHealthFallback(results);
-      }
-
-      return { updated: data ?? results.length };
+      // Preserve the old two-step lifecycle during a rolling migration, or if
+      // a malformed response is returned by the RPC boundary. The collector
+      // must keep recording failures and removing broken feeds even when this
+      // I/O optimisation is temporarily unavailable.
+      logger.warn(
+        'Atomic feed-health lifecycle RPC unavailable; using compatibility path',
+        error ? normalizeError(error) : new Error('Invalid feed-health lifecycle summary')
+      );
+      const { updated } = await this.batchUpdateFeedHealthInQueue(results);
+      const deactivated = await this.deactivateStaleFeedsInQueue(threshold);
+      return { updated, deactivated };
     });
+  }
+
+  private splitFeedHealthResults(
+    results: Array<{
+      provider: string;
+      symbol: string;
+      chainId: number;
+      isSuccess: boolean;
+    }>
+  ) {
+    const successes = results
+      .filter((r) => r.isSuccess)
+      .map(({ provider, symbol, chainId }) => ({ provider, symbol, chainId }));
+    const failures = results
+      .filter((r) => !r.isSuccess)
+      .map(({ provider, symbol, chainId }) => ({ provider, symbol, chainId }));
+    return { successes, failures };
+  }
+
+  private async batchUpdateFeedHealthInQueue(
+    results: Array<{
+      provider: string;
+      symbol: string;
+      chainId: number;
+      isSuccess: boolean;
+    }>
+  ): Promise<{ updated: number }> {
+    if (results.length === 0) return { updated: 0 };
+    const { successes, failures } = this.splitFeedHealthResults(results);
+
+    // Single RPC call processes all successes and failures in one round-trip.
+    const { data, error } = await this.client.rpc('batch_update_feed_health', {
+      p_results: { successes, failures },
+    });
+
+    if (error) {
+      // Fallback to individual updates if RPC is not available (e.g. migration not applied).
+      return this.batchUpdateFeedHealthFallback(results);
+    }
+
+    return { updated: typeof data === 'number' && Number.isFinite(data) ? data : results.length };
   }
 
   /**
@@ -710,32 +856,34 @@ export class DatabaseQueries {
    * and returning the exact affected-row count.
    */
   async deactivateStaleFeeds(threshold: number = 3): Promise<number> {
-    return queryQueue.add(async () => {
-      const now = new Date().toISOString();
+    return queryQueue.add(() => this.deactivateStaleFeedsInQueue(threshold));
+  }
 
-      const { data: deactivated, error } = await this.client
-        .from('oracle_feeds')
-        .update({
-          is_active: false,
-          updated_at: now,
-          deactivated_reason: 'health_failed',
-          deactivated_at: now,
-        })
-        .eq('is_active', true)
-        .gte('consecutive_failures', threshold)
-        .select('provider, symbol, chain_id');
+  private async deactivateStaleFeedsInQueue(threshold: number): Promise<number> {
+    const now = new Date().toISOString();
 
-      if (error) {
-        logger.error('Failed to deactivate stale feeds', normalizeError(error));
-        return 0;
-      }
+    const { data: deactivated, error } = await this.client
+      .from('oracle_feeds')
+      .update({
+        is_active: false,
+        updated_at: now,
+        deactivated_reason: 'health_failed',
+        deactivated_at: now,
+      })
+      .eq('is_active', true)
+      .gte('consecutive_failures', threshold)
+      .select('provider, symbol, chain_id');
 
-      const count = deactivated?.length ?? 0;
-      if (count > 0) {
-        logger.info(`Auto-deactivated ${count} feeds with >= ${threshold} consecutive failures`);
-      }
-      return count;
-    });
+    if (error) {
+      logger.error('Failed to deactivate stale feeds', normalizeError(error));
+      return 0;
+    }
+
+    const count = deactivated?.length ?? 0;
+    if (count > 0) {
+      logger.info(`Auto-deactivated ${count} feeds with >= ${threshold} consecutive failures`);
+    }
+    return count;
   }
 
   /**

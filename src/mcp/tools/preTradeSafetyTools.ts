@@ -1,10 +1,12 @@
 /**
  * pre_trade_safety_check MCP tool.
  *
- * The oracle risk assessment entry point. Applications and agents SHOULD call
- * this tool before a swap/borrow/lend/liquidation to assess cross-oracle
- * deviation, freshness, and other risk signals. PASS/CAUTION/DANGER/BLOCK is
- * a policy assessment, not a guarantee of price correctness or economic safety.
+ * The decision-input integrity entry point for agents: before acting on a
+ * price, assess whether that price can be trusted. Oracle feeds are the first
+ * assessment domain — applications and agents SHOULD call this tool before a
+ * swap/borrow/lend/liquidation to assess cross-oracle deviation, freshness,
+ * and other risk signals. PASS/CAUTION/DANGER/BLOCK is a policy assessment,
+ * not a guarantee of price correctness or economic safety.
  *
  * Agents MUST NOT execute trades when the verdict is DANGER or BLOCK.
  */
@@ -52,12 +54,16 @@ function formatContributingFactors(result: PreTradeSafetyResult): string[] {
 export const preTradeSafetyCheckTool: McpToolDefinition<typeof PreTradeSafetyInputSchema> = {
   name: 'pre_trade_safety_check',
   description: [
-    'Pre-trade oracle safety checkpoint for AI agents. Call this BEFORE executing any on-chain',
-    'swap/borrow/lend/liquidation/repay to assess oracle risk. Aggregates cross-oracle',
-    'consensus prices, per-provider deviation, data freshness, stablecoin peg status, and reputation',
-    'into a single verdict: PASS / CAUTION / DANGER / BLOCK. AI agents MUST NOT execute trades when',
-    'the verdict is DANGER or BLOCK. Also returns a recommended maximum position size. A PASS',
-    'is not principal authorization or a guarantee of price correctness or economic safety.',
+    'Pre-trade decision-input integrity checkpoint for AI agents. Call this BEFORE executing any',
+    'on-chain swap/borrow/lend/liquidation/repay to verify that the price the action relies on can',
+    'be trusted. First assessment domain: oracle risk — aggregates cross-oracle consensus prices,',
+    'per-provider deviation, data freshness, stablecoin peg status, and reputation into a single',
+    'verdict. An optional decisionInput object adds a separate Chainlink/CEX/DEX input-sufficiency',
+    'assessment against the caller-supplied venue quote and explicit limits, with an independently',
+    'verifiable EIP-712 signature when signing is enabled; it never changes the verdict.',
+    'Verdicts are PASS / CAUTION / DANGER / BLOCK. AI agents MUST NOT execute trades when the verdict',
+    'is DANGER or BLOCK. Also returns a recommended maximum position size. A PASS is not principal',
+    'authorization or a guarantee of price correctness or economic safety.',
   ].join(' '),
   parameters: PreTradeSafetyInputSchema,
   handler: async (args) => {
@@ -68,6 +74,8 @@ export const preTradeSafetyCheckTool: McpToolDefinition<typeof PreTradeSafetyInp
       tradeAmountUsd: args.tradeAmountUsd,
       targetProviders: args.targetProviders,
       protocolId: args.protocolId,
+      tokenAddress: args.tokenAddress,
+      ...(args.decisionInput ? { decisionInput: args.decisionInput } : {}),
     };
 
     const result = await preTradeSafetyCheck(input);
@@ -92,6 +100,43 @@ export const preTradeSafetyCheckTool: McpToolDefinition<typeof PreTradeSafetyInp
       '**Provider breakdown:**',
       ...formatProviderBreakdown(result),
     ];
+
+    if (result.decisionInputAssessment) {
+      const assessment = result.decisionInputAssessment;
+      lines.push(
+        '',
+        '**Decision-input sufficiency (separate advisory):**',
+        `- Status: ${assessment.status} (eligibleToProceed=${assessment.eligibleToProceed})`,
+        `- Quote input hash: ${assessment.quoteInputHash}`,
+        `- Decision price: $${formatPrice(assessment.prices.decisionPriceUsd, 4)}; venue quote: $${formatPrice(assessment.prices.quotePriceUsd, 4)}; quote age: ${assessment.prices.quoteAgeSeconds?.toFixed(1) ?? 'unknown'}s`,
+        `- Reference deviation: Chainlink ${assessment.prices.chainlinkDeviationBps?.toFixed(1) ?? 'unknown'} bps; CEX ${assessment.prices.cexDeviationBps?.toFixed(1) ?? 'unknown'} bps; quote ${assessment.prices.quoteDeviationBps?.toFixed(1) ?? 'unknown'} bps`,
+        `- DEX depth evidence: ${assessment.evidence.dexManipulationCost ? `${assessment.evidence.dexManipulationCost.poolCount} Ethereum pool(s); ≈$${assessment.evidence.dexManipulationCost.cheapestMove1PctUsd?.toLocaleString() ?? 'unknown'} to move the reference by 1%` : 'unavailable'}`
+      );
+      lines.push(
+        ...assessment.reasons.map(
+          (reason) => `- [${reason.severity}] ${reason.code}: ${reason.message}`
+        )
+      );
+      lines.push(...assessment.caveats.map((caveat) => `- Scope: ${caveat}`));
+      if (assessment.attestation) {
+        lines.push(
+          '',
+          '**Decision-input integrity attestation:**',
+          `- Attester: ${assessment.attestation.attester}`,
+          `- UID: ${assessment.attestation.uid}`,
+          `- Valid for: ${assessment.attestation.validForSeconds}s`,
+          `- Verify at: POST ${assessment.attestation.verifyUrl} with body { "assessment": <full assessment object> }`,
+          '- The signature binds the exact assessment JSON but does not authenticate caller-supplied quote sources.',
+          '```json',
+          JSON.stringify(assessment),
+          '```'
+        );
+      } else {
+        lines.push(
+          '- Integrity attestation unavailable; this assessment cannot be independently verified.'
+        );
+      }
+    }
 
     // ML + unsupervised anomaly signals. The anomaly layer is model-free — it
     // catches novel manipulation patterns the supervised ML has never seen, so an
@@ -118,6 +163,30 @@ export const preTradeSafetyCheckTool: McpToolDefinition<typeof PreTradeSafetyInp
     ) {
       lines.push(
         '- ⚠️ Novel-manipulation signal: anomaly layer flags an outlier the supervised ML does not. Treat oracle data as suspect.'
+      );
+    }
+    if (result.manipulationCost) {
+      const mc = result.manipulationCost;
+      const cheap =
+        mc.cheapestMove1PctUsd !== null
+          ? `$${Math.round(mc.cheapestMove1PctUsd).toLocaleString()}`
+          : 'n/a';
+      lines.push(
+        `- Manipulation cost (advisory, DEX ${mc.referenceChain} v0): min ≈ ${cheap} to move ${mc.symbol} ±1% (lower bound; advisory only — not a verdict input)`
+      );
+    }
+
+    if (result.tokenSecurity && result.contextAttestation) {
+      const ts = result.tokenSecurity;
+      // One-line advisory render. V2 links the normalized view to the signed
+      // capture statement; the statement is not a source-truth guarantee.
+      lines.push(
+        `- Token security (advisory, ${ts.sourcedFrom} · signed · not a verdict input):` +
+          ` honeypot=${ts.isHoneypot ?? 'unreported'}` +
+          ` tax=${ts.buyTaxPct ?? '?'}%/${ts.sellTaxPct ?? '?'}%` +
+          ` open_source=${ts.isOpenSource ?? 'unreported'}` +
+          ` trust_list=${ts.trustList ?? 'unreported'}` +
+          ` raw=${ts.rawHash.slice(0, 18)}… (offline-verifiable via contextAttestation)`
       );
     }
 

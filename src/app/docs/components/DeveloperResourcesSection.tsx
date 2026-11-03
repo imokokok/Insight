@@ -9,6 +9,7 @@ import {
   Bot,
   ChevronDown,
   Code2,
+  Coins,
   ExternalLink,
   FileCode,
   HelpCircle,
@@ -28,6 +29,14 @@ interface Resource {
 }
 
 const resources: Resource[] = [
+  {
+    icon: <Coins className="w-6 h-6" />,
+    title: 'x402 Pay-per-Call',
+    description:
+      'No account, no API key: pay per call in USDC on configured Base or optional Solana x402 networks. MPP remains available on EVM. Copy-paste quickstarts for REST and MCP.',
+    href: '/docs/x402',
+    accent: 'emerald',
+  },
   {
     icon: <Terminal className="w-6 h-6" />,
     title: 'API Reference',
@@ -78,7 +87,7 @@ const faqs = [
   {
     question: 'What oracle providers are supported?',
     answer:
-      'We support 10 oracle providers: chainlink, api3, redstone, dia, winklink, supra, twap, reflector, flare, and band. Band uses the v3 Concurrent Price Stream and exposes its source timestamp to the same freshness and coverage checks used across Insight.',
+      'We support 13 oracle providers: chainlink, pyth, stork, chronicle, api3, redstone, dia, winklink, supra, twap, reflector, flare, and band. Pyth, Stork, Chronicle, and Supra DORA Push are direct Monad reads with source-timestamp freshness gates; Stork, Chronicle, and Supra remain observation-only until their source-overlap reviews are complete. Band uses the v3 Concurrent Price Stream and exposes its source timestamp to the same freshness and coverage checks used across Insight.',
   },
   {
     question: 'What consensus algorithms are available?',

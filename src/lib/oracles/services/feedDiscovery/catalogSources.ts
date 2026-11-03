@@ -30,13 +30,54 @@ interface ChainlinkDirectoryEntry {
   };
 }
 
+const HTML_ENTITY_DECODINGS: Readonly<Record<string, string>> = {
+  '&quot;': '"',
+  '&#x27;': "'",
+  '&#39;': "'",
+  '&lt;': '<',
+  '&gt;': '>',
+  '&amp;': '&',
+};
+
+/**
+ * Decode the HTML entities used by vendor directory pages.
+ *
+ * Substitution is a single pass over the original string: text produced by a
+ * replacement is never re-scanned. Chained `String.replace` calls double-unescape,
+ * so a literal `&amp;lt;` collapses to `<` and markup that survives one pass
+ * becomes a tag delimiter in the next (CodeQL js/double-escaping).
+ */
 function decodeHtmlEntities(value: string): string {
-  return value
-    .replace(/&quot;/g, '"')
-    .replace(/&#x27;|&#39;/g, "'")
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>');
+  return value.replace(/&(?:quot|#x27|#39|lt|gt|amp);/g, (entity) => HTML_ENTITY_DECODINGS[entity]);
+}
+
+/**
+ * Reduce one vendor HTML cell to plain text.
+ *
+ * Entities are decoded first so markup that arrives encoded (`&lt;script&gt;`)
+ * is still visible to the stripper. A single left-to-right scan then drops
+ * everything from a `<` to the closing `>` and discards an unterminated tail,
+ * which is the case a tag-only pattern leaves behind (CodeQL
+ * js/incomplete-multi-character-sanitization). Because the scan never
+ * re-examines its own output, a delimiter cannot be reintroduced and no second
+ * pass is needed.
+ */
+function stripMarkup(value: string): string {
+  const decoded = decodeHtmlEntities(value);
+  let text = '';
+  let insideTag = false;
+  for (const char of decoded) {
+    if (insideTag) {
+      if (char === '>') insideTag = false;
+      continue;
+    }
+    if (char === '<') {
+      insideTag = true;
+      continue;
+    }
+    text += char;
+  }
+  return text.replace(/\s+/g, ' ').trim();
 }
 
 function readBalancedJsonArray(text: string, start: number): string | null {
@@ -180,12 +221,7 @@ export function parseSupraPairPage(html: string): SupraDirectoryFeed[] {
   const bySymbol = new Map<string, SupraDirectoryFeed & { priority: number }>();
   for (const row of rows) {
     const cells = Array.from(row.matchAll(/<td\b[^>]*>([\s\S]*?)<\/td>/gi)).map((m) =>
-      decodeHtmlEntities(
-        m[1]
-          .replace(/<[^>]+>/g, '')
-          .replace(/\s+/g, ' ')
-          .trim()
-      )
+      stripMarkup(m[1])
     );
     if (cells.length < 2) continue;
     const rawPair = cells[0];

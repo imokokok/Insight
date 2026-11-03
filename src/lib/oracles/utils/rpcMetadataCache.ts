@@ -4,7 +4,13 @@ import { createServiceRoleClient } from '@/lib/supabase/server';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
 
 const logger = createLogger('RpcMetadataCache');
-export const RPC_METADATA_TTL_MS = 60 * 60 * 1000;
+/**
+ * Contract metadata is static across ordinary price rounds. Chainlink verifies
+ * the cached phase against every live latestRoundData response and refreshes it
+ * on an aggregator change, so a longer TTL avoids repeat ABI reads without
+ * making the price itself stale.
+ */
+export const RPC_METADATA_TTL_MS = 24 * 60 * 60 * 1000;
 const MAX_ENTRIES = 4096;
 const decimals = z.number().int().min(0).max(255);
 const identity = {

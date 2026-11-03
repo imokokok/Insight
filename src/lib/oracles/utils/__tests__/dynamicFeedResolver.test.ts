@@ -32,11 +32,11 @@ describe('dynamicFeedResolver cache invalidation', () => {
   });
 
   it('distinguishes a successful empty registry from a database failure', async () => {
-    const getOracleFeeds = jest
+    const getOracleFeedsWithStatus = jest
       .fn()
-      .mockResolvedValueOnce([])
-      .mockRejectedValueOnce(new Error('db'));
-    mockedGetAdminQueries.mockReturnValue({ getOracleFeeds } as never);
+      .mockResolvedValueOnce({ feeds: [], errored: false })
+      .mockResolvedValueOnce({ feeds: [], errored: true });
+    mockedGetAdminQueries.mockReturnValue({ getOracleFeedsWithStatus } as never);
 
     await expect(getAllActiveFeedsByProviderWithStatus()).resolves.toEqual({
       feeds: new Map(),
@@ -48,19 +48,39 @@ describe('dynamicFeedResolver cache invalidation', () => {
       errored: true,
     });
   });
+
+  it('backs off provider reads after an aggregate registry outage', async () => {
+    const getOracleFeeds = jest.fn();
+    const getOracleFeedsWithStatus = jest.fn().mockResolvedValue({ feeds: [], errored: true });
+    mockedGetAdminQueries.mockReturnValue({ getOracleFeeds, getOracleFeedsWithStatus } as never);
+
+    await expect(getAllActiveFeedsByProviderWithStatus()).resolves.toEqual({
+      feeds: new Map(),
+      errored: true,
+    });
+    await expect(getActiveFeedsMap('redstone')).resolves.toEqual(new Map());
+    expect(getOracleFeeds).not.toHaveBeenCalled();
+  });
   it('reuses one complete registry read for every provider', async () => {
     const getOracleFeeds = jest.fn().mockResolvedValue([
       { provider: 'redstone', symbol: 'etrUSD_FUNDAMENTAL', chain_id: 0, address: 'a' },
       { provider: 'dia', symbol: 'BTC', chain_id: 1, address: 'b' },
     ]);
-    mockedGetAdminQueries.mockReturnValue({ getOracleFeeds } as never);
+    const getOracleFeedsWithStatus = jest.fn().mockResolvedValue({
+      feeds: [
+        { provider: 'redstone', symbol: 'etrUSD_FUNDAMENTAL', chain_id: 0, address: 'a' },
+        { provider: 'dia', symbol: 'BTC', chain_id: 1, address: 'b' },
+      ],
+      errored: false,
+    });
+    mockedGetAdminQueries.mockReturnValue({ getOracleFeeds, getOracleFeedsWithStatus } as never);
     await getAllActiveFeedsByProviderWithStatus();
     expect(Array.from((await getActiveFeedsMap('redstone')).values())[0].symbol).toBe(
       'etrUSD_FUNDAMENTAL'
     );
     expect((await getActiveFeedsMap('dia')).size).toBe(1);
     expect((await getActiveFeedsMap('api3')).size).toBe(0);
-    expect(getOracleFeeds).toHaveBeenCalledTimes(1);
+    expect(getOracleFeedsWithStatus).toHaveBeenCalledTimes(1);
   });
 
   it('does not resurrect an obsolete provider cache after complete registry refresh', async () => {
@@ -68,10 +88,12 @@ describe('dynamicFeedResolver cache invalidation', () => {
       .fn()
       .mockResolvedValueOnce([{ provider: 'dia', symbol: 'ETH', chain_id: 1, address: 'a' }])
       .mockResolvedValueOnce([]);
-    mockedGetAdminQueries.mockReturnValue({ getOracleFeeds } as never);
+    const getOracleFeedsWithStatus = jest.fn().mockResolvedValue({ feeds: [], errored: false });
+    mockedGetAdminQueries.mockReturnValue({ getOracleFeeds, getOracleFeedsWithStatus } as never);
     await getActiveFeedsMap('dia');
     await getAllActiveFeedsByProviderWithStatus();
     expect((await getActiveFeedsMap('dia')).size).toBe(0);
-    expect(getOracleFeeds).toHaveBeenCalledTimes(2);
+    expect(getOracleFeeds).toHaveBeenCalledTimes(1);
+    expect(getOracleFeedsWithStatus).toHaveBeenCalledTimes(1);
   });
 });

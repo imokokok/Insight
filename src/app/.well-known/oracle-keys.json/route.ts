@@ -41,6 +41,13 @@ import {
   EXECUTION_REQUIRED_PARTICIPANT_COUNT,
   EXECUTION_REQUIRED_SOURCE_GROUP_COUNT,
 } from '@/lib/attestations/executionReceipt';
+import {
+  INTERAI_ECONOMIC_EVIDENCE_COMMITMENT_ADMISSION,
+  INTERAI_ECONOMIC_EVIDENCE_COMMITMENT_DOMAIN,
+  INTERAI_ECONOMIC_EVIDENCE_COMMITMENT_PRIMARY_TYPE,
+  INTERAI_ECONOMIC_EVIDENCE_COMMITMENT_SCHEMA,
+  INTERAI_ECONOMIC_EVIDENCE_COMMITMENT_TYPES,
+} from '@/lib/attestations/interaiEconomicEvidenceCommitment';
 import { buildKeyRegistryConfig } from '@/lib/attestations/keyRegistryConfig';
 import {
   CURRENT_ORACLE_REGISTRY_RELEASE,
@@ -231,6 +238,18 @@ export async function GET(request: NextRequest) {
           CANONICAL_REQUEST_TYPES as never,
           CANONICAL_REQUEST_PRIMARY_TYPE
         ),
+      },
+      /** D8's separate experimental companion. Publication admits the typed
+       * domain for independent pinning; it neither enables signing nor changes
+       * the existing OracleSafetyCheck v3 payload or Stage 2. */
+      InterAIEconomicEvidenceCommitment: {
+        schema: INTERAI_ECONOMIC_EVIDENCE_COMMITMENT_SCHEMA,
+        eip712: descriptor(
+          INTERAI_ECONOMIC_EVIDENCE_COMMITMENT_DOMAIN,
+          INTERAI_ECONOMIC_EVIDENCE_COMMITMENT_TYPES as never,
+          INTERAI_ECONOMIC_EVIDENCE_COMMITMENT_PRIMARY_TYPE
+        ),
+        admission: INTERAI_ECONOMIC_EVIDENCE_COMMITMENT_ADMISSION,
       },
       /**
        * Oracle Watch — the always-on cross-oracle trust signal. v2 is the

@@ -26,6 +26,16 @@ export {
 export { resolveKeyStatus } from './keyRegistry';
 export { parsePinnedKeyRegistry, type PinnedKeyRegistry } from './snapshot';
 export {
+  verifyContextAttestation,
+  CONTEXT_ATTESTATION_V1_MANIFEST,
+  CONTEXT_ATTESTATION_V2_MANIFEST,
+  TOKEN_SECURITY_VIEW_SCHEMA,
+  canonicalContextJson,
+  type ContextAttestationVerifyOptions,
+  type ContextAttestationVerification,
+  type ContextTokenSecurityView,
+} from './contextAttestation';
+export {
   verifyExecutionReceipt,
   verifyExecutionPair,
   executionTypesForSchemaVersion,
@@ -53,6 +63,10 @@ export {
   RECHECK_V3_PRIMARY_TYPE,
   RECHECK_V3_TYPES,
   TYPES_BY_SCHEMA,
+  TEST_DOMAIN,
+  TEST_PRIMARY_TYPE,
+  TEST_TYPE,
+  TEST_TYPES,
   V1_DOMAIN,
   V1_PRIMARY_TYPE,
   V1_TYPES,
@@ -65,12 +79,14 @@ export {
   layoutFingerprint,
   toRecheckMessage,
   toRecheckV3Message,
+  toTestRunMessage,
   toV1Message,
   toV2Message,
   toV3Message,
   type RecheckMessage,
   type RecheckV3Message,
   type SchemaId,
+  type TestRunMessage,
   type V1Message,
   type V2Message,
   type V3Message,

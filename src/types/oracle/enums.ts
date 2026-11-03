@@ -1,5 +1,8 @@
 export enum OracleProvider {
   CHAINLINK = 'chainlink',
+  PYTH = 'pyth',
+  STORK = 'stork',
+  CHRONICLE = 'chronicle',
   API3 = 'api3',
   REDSTONE = 'redstone',
   DIA = 'dia',
@@ -53,6 +56,7 @@ export enum Blockchain {
   FLARE = 'flare',
   SUPRA_CHAIN = 'supra-chain',
   BANDCHAIN = 'bandchain',
+  MONAD = 'monad',
 }
 
 export const ORACLE_PROVIDER_VALUES: readonly OracleProvider[] = Object.values(OracleProvider);

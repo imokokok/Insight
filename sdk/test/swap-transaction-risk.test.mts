@@ -13,6 +13,8 @@ import {
 import { InsightGuard } from '../src/guard';
 import {
   V3_SINGLE_SWAP_ABI,
+  V3_ROUTER02_SINGLE_SWAP_ABI,
+  V3_ROUTER02_MULTICALL_ABI,
   assessV3SwapTransaction,
   v3SwapRiskCommitment,
   type SwapRiskReader,
@@ -20,7 +22,7 @@ import {
 
 import type { PriorSealFlowOptions, SwapAssessment } from '../src/types.ts';
 
-const now = 1_800_000_000;
+const now = Math.floor(Date.now() / 1000);
 const from = '0x1111111111111111111111111111111111111111';
 const router = '0x2222222222222222222222222222222222222222';
 const tokenIn = '0x3333333333333333333333333333333333333333';
@@ -45,6 +47,28 @@ const call = (minOut = 995_000n, receiving: Hex = recipient) =>
       },
     ],
   });
+const router02Call = (minOut = 995_000n, deadline = BigInt(now + 120)) => {
+  const inner = encodeFunctionData({
+    abi: V3_ROUTER02_SINGLE_SWAP_ABI,
+    functionName: 'exactInputSingle',
+    args: [
+      {
+        tokenIn,
+        tokenOut,
+        fee: 500,
+        recipient,
+        amountIn: 1_000_000n,
+        amountOutMinimum: minOut,
+        sqrtPriceLimitX96: 0n,
+      },
+    ],
+  });
+  return encodeFunctionData({
+    abi: V3_ROUTER02_MULTICALL_ABI,
+    functionName: 'multicall',
+    args: [deadline, [inner]],
+  });
+};
 const transaction = {
   chainId: 1,
   from,
@@ -135,8 +159,64 @@ test('assesses exact swap amount, route, oracle price and simulated output at a 
   assert.equal(result.evidence?.actualTradeAmountUsdMicros, '1000000');
   assert.equal(result.evidence?.tradeAmountDeviationBps, 0);
   assert.equal(result.transaction?.recipient, recipient);
-  assert.equal(result.validUntil, now + 90);
+  assert.equal(result.transaction?.router, router);
+  assert.equal(result.transaction?.calldata, transaction.data);
+  assert.equal(result.validUntil, result.evidence!.blockTimestamp + 30);
   assert.match(v3SwapRiskCommitment(result).digest, /^0x[0-9a-f]{64}$/);
+  const wrongRouter = await assessV3SwapTransaction(request({ routerAddress: recipient }));
+  assert.equal(wrongRouter.status, 'UNASSESSABLE');
+  assert.deepEqual(wrongRouter.reasonCodes, ['TRANSACTION_OR_PROFILE_INVALID']);
+});
+
+test('assesses SwapRouter02 only through a one-call deadline multicall', async () => {
+  const data = router02Call();
+  const wrappedResult = encodeFunctionResult({
+    abi: V3_ROUTER02_MULTICALL_ABI,
+    functionName: 'multicall',
+    result: [
+      encodeFunctionResult({
+        abi: V3_ROUTER02_SINGLE_SWAP_ABI,
+        functionName: 'exactInputSingle',
+        result: 997_000n,
+      }),
+    ],
+  });
+  const result = await assessV3SwapTransaction(
+    request({
+      transaction: { ...transaction, data },
+      reader: reader(997_000n, { call: async () => ({ data: wrappedResult }) }),
+    })
+  );
+  assert.equal(result.status, 'ACCEPTABLE', JSON.stringify(result));
+  assert.equal(result.transaction?.callProfile, 'UNISWAP_V3_SWAP_ROUTER02_DEADLINE_MULTICALL');
+  assert.equal(result.transaction?.deadline, now + 120);
+  assert.equal(result.evidence?.simulatedAmountOut, '997000');
+
+  const inner = encodeFunctionData({
+    abi: V3_ROUTER02_SINGLE_SWAP_ABI,
+    functionName: 'exactInputSingle',
+    args: [
+      {
+        tokenIn,
+        tokenOut,
+        fee: 500,
+        recipient,
+        amountIn: 1_000_000n,
+        amountOutMinimum: 995_000n,
+        sqrtPriceLimitX96: 0n,
+      },
+    ],
+  });
+  const multiSwap = encodeFunctionData({
+    abi: V3_ROUTER02_MULTICALL_ABI,
+    functionName: 'multicall',
+    args: [BigInt(now + 120), [inner, inner]],
+  });
+  const rejected = await assessV3SwapTransaction(
+    request({ transaction: { ...transaction, data: multiSwap } })
+  );
+  assert.equal(rejected.status, 'UNASSESSABLE');
+  assert.deepEqual(rejected.reasonCodes, ['UNSUPPORTED_SWAP_CALL']);
 });
 
 test('rejects an adverse quote, loose minimum output and changed receiver', async () => {
@@ -310,6 +390,7 @@ test('Guard fetches both oracle legs, simulates the call and binds risk review i
   };
   const result = await guard.authorizeAssessedV3Swap(workflow);
   assert.equal(result.transactionRisk.status, 'ACCEPTABLE');
+  assert.equal(Number(prepared?.expiresAt), result.transactionRisk.validUntil);
   assert.equal(apiCalls.length, 2);
   const contexts = (prepared?.intent as { contextCommitments: { namespace: string }[] })
     .contextCommitments;

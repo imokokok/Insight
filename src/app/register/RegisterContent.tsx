@@ -10,6 +10,7 @@ import { Mail, User, UserPlus, Loader2, CheckCircle, AlertCircle, Coins } from '
 import { AuthPageLayout, AuthResultCard, GoToLoginButton } from '@/app/auth/shared/AuthComponents';
 import { getSafeRedirectPath } from '@/app/auth/shared/isValidRedirectPath';
 import { PasswordInput } from '@/components/ui/PasswordInput';
+import { CREDIT_PACKS, PLANS } from '@/lib/billing/plans';
 import { announceNavigationStart } from '@/lib/navigation/progress';
 import { validatePassword, getPasswordStrength } from '@/lib/security/passwordValidation';
 import { useUser, useSession, useAuthActions, useAuthError } from '@/stores/authStore';
@@ -124,9 +125,7 @@ export default function RegisterContent() {
           <div className="mb-4 flex items-start gap-2 border-l-2 border-amber-500 bg-amber-50 p-3">
             <Coins className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
             <p className="text-sm text-amber-800">
-              API access is credit-metered. New users get 100 free trial credits after email
-              verification — enough to sample the endpoints. After that, subscribe (Developer from
-              $49/mo — 60,000 credits) or top up a prepaid pack in{' '}
+              {`API access is credit-metered. New users get 100 free trial credits after email verification — enough to sample the endpoints. After that, subscribe (Developer from $${PLANS.developer.priceMonthly}/mo — 60,000 credits) or top up a prepaid pack from $${CREDIT_PACKS.starter.priceUsd} in `}
               <Link href="/settings?tab=billing" className="font-semibold underline">
                 Settings → Billing
               </Link>{' '}
