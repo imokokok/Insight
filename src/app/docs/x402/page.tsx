@@ -318,6 +318,15 @@ const GUARD_QUICKSTARTS = [
     price: '$0.02 (C3)',
   },
   {
+    family: 'Solana Swap Guard',
+    path: '/api/v1/safety/solana-swap-guard',
+    method: 'POST',
+    query: '(POST body: exact unsigned Orca Whirlpool USDC/USDT swap message)',
+    mcp: 'solana_swap_guard · settle/verify_solana_swap_guard_settlement',
+    decides: 'One reviewed Orca Whirlpool USDC/USDT swap, priced against oracle consensus',
+    price: '$0.02 (C3); settlement C4',
+  },
+  {
     family: 'Verified Swap Intent',
     path: '/api/v1/safety/swap-intent',
     method: 'GET',

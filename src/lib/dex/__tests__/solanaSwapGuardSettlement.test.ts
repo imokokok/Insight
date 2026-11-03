@@ -1,13 +1,33 @@
-import type { SolanaExecutionFacts } from '@/lib/execution/solanaExecutionCollector';
+import { ed25519 } from '@noble/curves/ed25519';
 
+import type { SolanaExecutionFacts } from '@/lib/execution/solanaExecutionCollector';
+import { encodeUnsignedSolanaLendingMessage } from '@/lib/lending/solanaLendingAction';
+
+import {
+  reviewedSolanaSwapProfile,
+  SOLANA_USDC_MINT,
+  SOLANA_USDT_MINT,
+} from '../solanaOrcaWhirlpool';
 import { createSolanaSwapGuardDecision } from '../solanaSwapGuardAttestation';
 import {
   settleSolanaSwapGuard,
+  verifyExecutedMessageBinding,
   verifySolanaSwapGuardSettlement,
   type SolanaSwapGuardSettlementDependencies,
 } from '../solanaSwapGuardSettlement';
 
-import { AMOUNT, assessWith, FEE_PAYER, makeSwapTransaction, MIN_OUT } from './solanaSwapFixtures';
+import {
+  AMOUNT,
+  assessWith,
+  b58Encode,
+  FEE_PAYER,
+  makeSwapTransaction,
+  makeDeps,
+  MIN_OUT,
+  ASSESS_INPUT,
+  USER_USDC_TOKEN_ACCOUNT,
+  USER_USDT_TOKEN_ACCOUNT,
+} from './solanaSwapFixtures';
 
 const SEED = '13'.repeat(32);
 const SIGNATURE = '5'.repeat(87);
@@ -58,6 +78,9 @@ function settleDependencies(
 ): SolanaSwapGuardSettlementDependencies {
   return {
     collectFacts: jest.fn(async () => ({ ok: true, facts: factsResult })),
+    // Fixture signatures are synthetic base58 strings, not real Ed25519
+    // signatures; the real cryptographic binding is exercised in its own test.
+    verifyMessageBinding: jest.fn(() => true),
     now: () => NOW,
     ...overrides,
   };
@@ -184,5 +207,87 @@ describe('settleSolanaSwapGuard', () => {
     expect(verifySolanaSwapGuardSettlement(tampered).valid).toBe(false);
     expect(verifySolanaSwapGuardSettlement(tampered).reason).toBe('INVALID_SIGNATURE');
     expect(verifySolanaSwapGuardSettlement(null).reason).toBe('UNTRUSTED_ATTESTER');
+  });
+
+  it('rejects an on-chain signature that does not bind the attested message', async () => {
+    const decision = await signedDecision();
+    const dependencies = settleDependencies(facts());
+    // Only collectFacts and now are stubbed, so the real (default) Ed25519
+    // message binding runs and the synthetic fixture signature must fail it.
+    const result = await settleSolanaSwapGuard(
+      { decision, signature: SIGNATURE },
+      { collectFacts: dependencies.collectFacts, now: dependencies.now }
+    );
+    expect(result).toMatchObject({ ok: false, code: 'EXECUTED_MESSAGE_MISMATCH' });
+    expect(dependencies.collectFacts).not.toHaveBeenCalled();
+  });
+
+  it('closes a real Ed25519-bound execution to SETTLED end to end', async () => {
+    const seed = Uint8Array.from({ length: 32 }, (_, index) => index + 1);
+    const publicKey = ed25519.getPublicKey(seed);
+    const taker = b58Encode(publicKey);
+    const profile = reviewedSolanaSwapProfile('solana-orca-whirlpool-usdc-usdt-1');
+    const base = makeSwapTransaction({ amount: AMOUNT, minOut: MIN_OUT });
+    const transaction = {
+      ...base,
+      feePayer: taker,
+      accountKeys: [taker, ...base.accountKeys.slice(1)],
+    };
+    const readSplTokenAccount = jest.fn(async (address: string) => {
+      if (address === profile.vaultA) return { owner: profile.pool, mint: SOLANA_USDC_MINT };
+      if (address === profile.vaultB) return { owner: profile.pool, mint: SOLANA_USDT_MINT };
+      if (address === USER_USDC_TOKEN_ACCOUNT) return { owner: taker, mint: SOLANA_USDC_MINT };
+      if (address === USER_USDT_TOKEN_ACCOUNT) return { owner: taker, mint: SOLANA_USDT_MINT };
+      throw new Error(`unexpected token account read: ${address}`);
+    });
+    const guard = await assessWith(
+      transaction,
+      ASSESS_INPUT,
+      makeDeps(transaction, { readSplTokenAccount: readSplTokenAccount as never })
+    );
+    const decision = createSolanaSwapGuardDecision(guard, transaction, {
+      now: () => new Date(NOW * 1_000),
+    });
+    expect(decision.attestation).not.toBeNull();
+    const signature = b58Encode(
+      ed25519.sign(encodeUnsignedSolanaLendingMessage(transaction), seed)
+    );
+    expect(verifyExecutedMessageBinding({ signature, transaction })).toBe(true);
+    const stubbed = settleDependencies(facts({ signature, taker }), {});
+    const result = await settleSolanaSwapGuard(
+      { decision, signature },
+      { collectFacts: stubbed.collectFacts, now: stubbed.now }
+    );
+    expect(result.ok).toBe(true);
+    expect(result.settlement?.payload).toMatchObject({
+      status: 'SETTLED',
+      reconciliation: 'AMOUNTS_AND_MIN_OUT_RECONCILED',
+      taker,
+      signature,
+    });
+  });
+
+  it('binds nothing when the signature verifies over a different message', async () => {
+    const seed = Uint8Array.from({ length: 32 }, (_, index) => index + 1);
+    const publicKey = ed25519.getPublicKey(seed);
+    const taker = b58Encode(publicKey);
+    const transaction = makeSwapTransaction({ amount: AMOUNT, minOut: MIN_OUT });
+    const withTaker = {
+      ...transaction,
+      feePayer: taker,
+      accountKeys: [taker, ...transaction.accountKeys.slice(1)],
+    };
+    const signature = b58Encode(ed25519.sign(encodeUnsignedSolanaLendingMessage(withTaker), seed));
+    expect(verifyExecutedMessageBinding({ signature, transaction: withTaker })).toBe(true);
+    // The same key over a different message (the original fixture message) fails.
+    expect(verifyExecutedMessageBinding({ signature, transaction })).toBe(false);
+    // A tampered amount changes the message bytes and breaks the binding.
+    const tampered = makeSwapTransaction({ amount: AMOUNT + 1n, minOut: MIN_OUT });
+    const tamperedWithTaker = {
+      ...tampered,
+      feePayer: taker,
+      accountKeys: [taker, ...tampered.accountKeys.slice(1)],
+    };
+    expect(verifyExecutedMessageBinding({ signature, transaction: tamperedWithTaker })).toBe(false);
   });
 });
