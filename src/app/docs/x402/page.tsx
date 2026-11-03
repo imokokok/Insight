@@ -88,12 +88,9 @@ const curlCode = `# Call without credentials: HTTP 402 with a PAYMENT-REQUIRED q
 curl -sD - -o /dev/null -H 'X-Insight-Entry-Source: docs' "${ENDPOINT}" \\
   | grep -i '^payment-required' | cut -d' ' -f2- | base64 --decode | jq
 
-# Example Base option from the decoded quote:
-#   scheme "exact", network "eip155:8453" (Base),
-#   USDC 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913, 20000 atomic units ($0.02),
-#   payTo 0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231.
-# The quote lists each configured EVM network; an enabled Solana option is listed too.
-# The registered x402 scheme signs the selected option, retries, and returns the verdict.`;
+# Do not hard-code a payment network, asset, or payTo address from an example.
+# The decoded live accepts[] list is the payment contract for this deployment.
+# Register the scheme required by the option you select, sign it, retry, and read the verdict.`;
 
 const tsCode = `// npm i @x402/fetch @x402/evm viem
 import { wrapFetchWithPayment, x402Client } from '@x402/fetch';
