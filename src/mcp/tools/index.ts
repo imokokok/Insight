@@ -91,6 +91,11 @@ import {
   OracleSetupRecommendationJsonSchema,
   OracleWatchHistoryJsonSchema,
   OracleWatchJsonSchema,
+  PositionLifecycleGuardJsonSchema,
+  PositionLifecycleReceiptJsonSchema,
+  LifecycleTokenJsonSchema,
+  ProductBeginJsonSchema,
+  ProductTokenJsonSchema,
   PositionSafetyJsonSchema,
   PreTradeSafetyJsonSchema,
   PriceHistoryJsonSchema,
@@ -119,7 +124,18 @@ import {
 } from './oracleTools';
 import { oracleWatchHistoryTool } from './oracleWatchHistoryTools';
 import { oracleWatchTool } from './oracleWatchTools';
+import {
+  oracleWatchWindowBeginTool,
+  oracleWatchWindowCloseTool,
+  oracleWatchWindowPollTool,
+} from './oracleWatchWindowTools';
 import { preparePancakeSwapV3SwapTool } from './pancakeSwapV3Tools';
+import {
+  positionLifecycleBeginTool,
+  positionLifecycleCloseTool,
+  positionLifecycleGuardTool,
+  positionLifecycleReceiptTool,
+} from './positionLifecycleTools';
 import { preTradeSafetyCheckTool } from './preTradeSafetyTools';
 import { getProtocolOracleExposureTool, getProtocolsTool } from './protocolTools';
 import { getDailyReportTool, getIncidentsTool } from './reportTools';
@@ -142,7 +158,7 @@ import { getStablecoinListTool, getSymbolsTool, recommendOracleSetupTool } from 
 import { verifyExecutionPairTool } from './verifyExecutionPairTools';
 import { getWrappedAssetPegTool } from './wrappedAssetTools';
 
-import type { McpToolCallResult, McpToolDefinition } from './types';
+import type { McpToolCallContext, McpToolCallResult, McpToolDefinition } from './types';
 
 const logger = createLogger('mcp-tools');
 
@@ -215,6 +231,13 @@ const MCP_TOOLS: McpToolDefinition[] = [
   preTradeSafetyCheckTool,
   oracleWatchTool,
   oracleWatchHistoryTool,
+  oracleWatchWindowBeginTool,
+  oracleWatchWindowPollTool,
+  oracleWatchWindowCloseTool,
+  positionLifecycleBeginTool,
+  positionLifecycleGuardTool,
+  positionLifecycleReceiptTool,
+  positionLifecycleCloseTool,
   executionReceiptTool,
   executionPreflightTool,
   agentBeginTradeTool,
@@ -592,6 +615,41 @@ const JSON_SCHEMA_MAP: Record<
     properties?: Record<string, unknown>;
     required?: string[];
   },
+  oracle_watch_window_begin: ProductBeginJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  oracle_watch_window_poll: ProductTokenJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  oracle_watch_window_close: ProductTokenJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  position_lifecycle_begin: ProductBeginJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  position_lifecycle_guard: PositionLifecycleGuardJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  position_lifecycle_receipt: PositionLifecycleReceiptJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  position_lifecycle_close: LifecycleTokenJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
   execution_receipt: ExecutionReceiptJsonSchema.toJSONSchema() as {
     type: 'object';
     properties?: Record<string, unknown>;
@@ -635,7 +693,11 @@ export function getToolDefinitions() {
   }));
 }
 
-export async function executeTool(name: string, args: unknown): Promise<McpToolCallResult> {
+export async function executeTool(
+  name: string,
+  args: unknown,
+  context?: McpToolCallContext
+): Promise<McpToolCallResult> {
   const tool = MCP_TOOLS.find((t) => t.name === name);
 
   if (!tool) {
@@ -647,7 +709,7 @@ export async function executeTool(name: string, args: unknown): Promise<McpToolC
 
   try {
     const validatedArgs = tool.parameters.parse(args);
-    const result = await tool.handler(validatedArgs);
+    const result = await tool.handler(validatedArgs, context);
     return {
       content: [{ type: 'text', text: result }],
     };

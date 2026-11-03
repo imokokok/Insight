@@ -320,6 +320,72 @@ describe('handleMcpPaidToolCall settlement gating', () => {
   });
 });
 
+describe('product-priced tools (monitored window / position lifecycle)', () => {
+  beforeEach(() => {
+    mockedServerFactory
+      .mockReset()
+      .mockResolvedValue(fakeServer as unknown as Awaited<ReturnType<typeof getMcpX402HttpServer>>);
+    mockedRecord.mockReset();
+    fakeServer.processHTTPRequest.mockReset().mockResolvedValue({
+      type: 'payment-verified',
+      paymentPayload: { x402Version: 2 },
+      paymentRequirements: {
+        network: 'eip155:8453',
+        asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+        amount: '500000',
+      },
+    });
+    fakeServer.processSettlement.mockReset().mockResolvedValue({
+      success: true,
+      transaction: `0x${'a'.repeat(64)}`,
+      payer: `0x${'b'.repeat(40)}`,
+      amount: '500000',
+      headers: {},
+    });
+  });
+
+  it('quotes a begin tool at the plan list price, not a per-call class price', async () => {
+    const { priceAtomicForTool } = await import('../mcpBridge');
+    // $0.50 window / $0.55 lifecycle, in USDC atomic units.
+    expect(priceAtomicForTool('oracle_watch_window_begin')).toBe('500000');
+    expect(priceAtomicForTool('position_lifecycle_begin')).toBe('550000');
+  });
+
+  it('dispatches an in-window tool without any x402 lifecycle', async () => {
+    const res = await handleMcpPaidToolCall(
+      input(
+        async () => jsonRpcResult({ content: [{ type: 'text', text: 'signal' }] }),
+        undefined,
+        'oracle_watch_window_poll'
+      )
+    );
+
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toMatchObject({
+      result: { content: [{ type: 'text', text: 'signal' }] },
+    });
+    // No quote, no verify, no settle: the window token is the entitlement.
+    expect(mockedServerFactory).not.toHaveBeenCalled();
+    expect(fakeServer.processHTTPRequest).not.toHaveBeenCalled();
+    expect(fakeServer.processSettlement).not.toHaveBeenCalled();
+    expect(mockedRecord).not.toHaveBeenCalled();
+  });
+
+  it('dispatches lifecycle bundled tools without payment as well', async () => {
+    const res = await handleMcpPaidToolCall(
+      input(
+        async () => jsonRpcResult({ content: [{ type: 'text', text: 'guard' }] }),
+        undefined,
+        'position_lifecycle_guard'
+      )
+    );
+
+    expect(res.status).toBe(200);
+    expect(mockedServerFactory).not.toHaveBeenCalled();
+    expect(fakeServer.processSettlement).not.toHaveBeenCalled();
+  });
+});
+
 describe('toResponse 402 body compat', () => {
   it('mirrors a header-encoded challenge into the body while keeping the header', async () => {
     const challenge = {

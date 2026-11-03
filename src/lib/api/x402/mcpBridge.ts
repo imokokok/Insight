@@ -3,6 +3,10 @@ import { after } from 'next/server';
 import { type HTTPAdapter, type HTTPResponseInstructions } from '@x402/core/server';
 
 import { getToolCreditCost } from '@/lib/billing/metering';
+import {
+  isEntitlementCoveredMcpTool,
+  PRODUCT_MCP_TOOL_USD_PRICES,
+} from '@/lib/billing/productPricing';
 import { enqueueReputationAnchor } from '@/lib/erc8004/reputationAnchor';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -11,7 +15,7 @@ import {
   x402PaymentScopeForMcpTool,
   type X402PaymentScope,
 } from './capabilityPayment';
-import { type X402Config, X402_CREDIT_USD, X402_MCP_ROUTE } from './config';
+import { type X402Config, usdToAtomicUnits, X402_CREDIT_USD, X402_MCP_ROUTE } from './config';
 import {
   atomicUnitsToUsdc,
   logBazaarExtensionStatus,
@@ -110,13 +114,20 @@ export function toResponse(instructions: HTTPResponseInstructions): Response {
 }
 
 /**
- * USDC atomic units (6 decimals) for one call of `toolName`: credit cost ×
- * the per-credit USD factor, floored onto the micro-dollar grid with integer
- * math. A zero/negative result can only come from a zero cost, which the
- * metering table never produces (C1 = 0.5); still guarded so a misconfigured
- * table can never mint a free-quote.
+ * USDC atomic units (6 decimals) for one call of `toolName`: the product list
+ * price for a product begin tool, otherwise credit cost × the per-credit USD
+ * factor, floored onto the micro-dollar grid with integer math. A zero/negative
+ * result can only come from a zero cost, which the metering table never
+ * produces (C1 = 0.5); still guarded so a misconfigured table can never mint a
+ * free-quote.
  */
 export function priceAtomicForTool(toolName: string): string {
+  const productUsd = PRODUCT_MCP_TOOL_USD_PRICES[toolName];
+  if (productUsd !== undefined) {
+    // Product purchases quote the plan's USD list price directly — the same
+    // value the REST begin route charges — never a per-call class price.
+    return usdToAtomicUnits(productUsd);
+  }
   const microUsd = Math.round(getToolCreditCost(toolName) * X402_CREDIT_USD * 1_000_000);
   return String(Math.max(1, microUsd));
 }
@@ -286,6 +297,13 @@ export async function handleMcpPaidToolCall({
   runBusiness,
 }: McpPaidCallInput): Promise<Response> {
   const requestId = newRequestId();
+  // In-window product tools (poll/close/guard/receipt/close-summary) are
+  // covered by the purchase that returned their one-time token; the token in
+  // the tool arguments is the entitlement check and fails closed without it.
+  // No x402 lifecycle runs, so a window buyer is never re-charged per call.
+  if (isEntitlementCoveredMcpTool(toolName)) {
+    return attachRequestId(await runBusiness(), requestId);
+  }
   const priceAtomic = priceAtomicForTool(toolName);
   const paymentScope = x402PaymentScopeForMcpTool(toolName, await extractMcpToolArguments(request));
   const paymentConfig = paymentScope ? x402ConfigForPaymentScope(cfg, paymentScope) : null;

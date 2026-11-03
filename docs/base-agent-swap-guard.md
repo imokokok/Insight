@@ -32,6 +32,7 @@ prepared call.
 | `base-aerodrome-slipstream-usdc-usdt-cl1`   | Base mainnet (8453)  | Aerodrome Slipstream | USDC ↔ USDT (two-way) |
 | `base-pancakeswap-v3-usdc-usdt-100`         | Base mainnet (8453)  | PancakeSwap V3       | USDC ↔ USDT (two-way) |
 | `bnb-pancakeswap-v3-usdt-usdc-100`          | BNB Smart Chain (56) | PancakeSwap V3       | USDT ↔ USDC (two-way) |
+| `bnb-pancakeswap-v3-usdt-wbnb-100`          | BNB Smart Chain (56) | PancakeSwap V3       | USDT ↔ WBNB (two-way) |
 
 Each profile names one reviewed chain, one fixed pool, factory, quoter, router,
 and token order. Every lane is a single-pool, single-hop direction of one
@@ -51,6 +52,18 @@ Per-chain review notes:
 - Router/quoter/pool bytecodes are pinned per chain. The BNB pool bytecode
   differs from the Base pool; a prepared call that presents one chain's code
   hash for another chain's profile fails closed.
+- The `bnb-pancakeswap-v3-usdt-wbnb-100` volatile lane reuses the pinned BNB
+  deployment identities (router/quoter/factory code hashes were re-verified
+  live and match), so only the pool bytecode hash is new. The pool was selected
+  by a live fee-tier scan at BSC block 131435862: the 0.01% pool
+  (`0x172fcD41E0913e95784454622d1c3724f546f849`) held more in-range liquidity
+  than its 0.05%/0.25%/1% siblings. USDT sorts before WBNB there, so `token0`
+  is USDT — the same ordering as the reviewed BNB stable lane — and both tokens
+  use 18 decimals.
+- Canonical wrapped natives price against their native reference: WBNB USD
+  price discovery routes through the BNB oracle set (consensus-level alias,
+  mirroring WETH→ETH), while attestation and settlement identities stay the
+  chain-specific WBNB CAIP-19 asset.
 
 The following are intentionally out of scope in v1 and fail closed rather than
 being treated as equivalent swaps:

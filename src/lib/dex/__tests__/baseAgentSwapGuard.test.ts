@@ -706,3 +706,155 @@ describe('Base Agent Swap Guard — BNB lane', () => {
     expect(deps.preTrade).not.toHaveBeenCalled();
   });
 });
+
+describe('Base Agent Swap Guard — BNB USDT/WBNB lane', () => {
+  const wbnbInput: BaseAgentSwapGuardInput = {
+    ...input,
+    profileId: 'bnb-pancakeswap-v3-usdt-wbnb-100',
+    // Declared prices must match the mocked oracle consensus (1 USD) for the
+    // deviation gates to pass; economics of the pair are irrelevant here.
+    sourceDecisionPriceUsd: 1,
+  };
+
+  const preparedPancakeWbnb = {
+    kind: 'pancakeswap-v3-exact-input-v1',
+    chainId: 56,
+    transaction: {
+      to: '0x1b81D678ffb9C0263b24A97847620C99d213eB14',
+      data: encodeFunctionData({
+        abi: PANCAKE_EXACT_INPUT_SINGLE_ABI,
+        functionName: 'exactInputSingle',
+        args: [
+          {
+            // token0=USDT sorts before token1=WBNB on the reviewed pool.
+            tokenIn: '0x55d398326f99059fF775485246999027B3197955',
+            tokenOut: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c',
+            fee: 100,
+            recipient: input.recipient,
+            deadline: 1_700_000_060n,
+            amountIn: 1_250_000_000_000_000_000n,
+            amountOutMinimum: 1_155_443_750_000_000n,
+            sqrtPriceLimitX96: 0n,
+          },
+        ],
+      }),
+      value: '0x0',
+    },
+    approval: {
+      token: '0x55d398326f99059fF775485246999027B3197955',
+      spender: '0x1b81D678ffb9C0263b24A97847620C99d213eB14',
+      amountRaw: '1250000000000000000',
+      data: encodeFunctionData({
+        abi: ERC20_APPROVE_ABI,
+        functionName: 'approve',
+        args: ['0x1b81D678ffb9C0263b24A97847620C99d213eB14', 1_250_000_000_000_000_000n],
+      }),
+    },
+    exactInput: {
+      profileId: 'bnb-pancakeswap-v3-usdt-wbnb-100',
+      tokenIn: '0x55d398326f99059fF775485246999027B3197955',
+      tokenOut: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c',
+      feeTier: 100,
+      amountInRaw: '1250000000000000000',
+      quotedAmountOutRaw: '1161250000000000',
+      amountOutMinimumRaw: '1155443750000000',
+      recipient: input.recipient,
+      deadlineUnixSeconds: input.deadlineUnixSeconds,
+      maxSlippageBps: 50,
+    },
+    quote: {
+      venue: 'pancakeswap-v3',
+      market: 'USDT/WBNB',
+      sourceFreshnessSeconds: 2,
+      observedAt: '2023-11-14T22:13:20.000Z',
+      block: {
+        number: '123',
+        hash: `0x${'55'.repeat(32)}`,
+        timestamp: '2023-11-14T22:13:20.000Z',
+      },
+      contracts: {
+        factory: '0x0BFbCF9fa4f9C56B0F40a671Ad40E0805A091865',
+        quoterV2: '0xB048Bbc1Ee6b733FFfCFb9e9CeF7375518e25997',
+        pool: '0x172fcD41E0913e95784454622d1c3724f546f849',
+      },
+      quote: {
+        direction: 'token0-to-token1',
+        amountIn: 1.25,
+        amountInRaw: '1250000000000000000',
+        amountOut: 0.00116125,
+        amountOutRaw: '1161250000000000',
+        effectiveToken1PerToken0: 0.000929,
+        priceImpactBps: 8,
+      },
+      twap: { deviationBpsFromSpot: 6 },
+    },
+    router: {
+      address: '0x1b81D678ffb9C0263b24A97847620C99d213eB14',
+      codeHash: '0x61002a11263b2c38ff8d5ded90a655987ed98f171a31840ee0014dd7052bccda',
+      factory: '0x0BFbCF9fa4f9C56B0F40a671Ad40E0805A091865',
+      weth9: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c',
+    },
+    caveats: [],
+  } as const;
+
+  function wbnbDependencies(): BaseAgentSwapGuardDependencies {
+    const deps = dependencies(check('PASS', 'SUFFICIENT', 1), check('PASS', null, 1));
+    (deps.preparePancake as jest.Mock).mockResolvedValue(preparedPancakeWbnb);
+    return deps;
+  }
+
+  it('admits the reviewed BNB USDT/WBNB lane with chain 56 scope and binding', async () => {
+    const deps = wbnbDependencies();
+    const result = await prepareBaseAgentSwapGuard(wbnbInput, deps);
+
+    expect(result).toMatchObject({
+      verdict: 'ALLOW',
+      scope: { chainId: 56, profileId: 'bnb-pancakeswap-v3-usdt-wbnb-100' },
+      binding: { chainId: 56 },
+      market: { venue: 'pancakeswap-v3', sourceAsset: 'USDT', destinationAsset: 'WBNB' },
+    });
+    expect(result.transactionsToSign?.swap.to).toBe(preparedPancakeWbnb.transaction.to);
+    expect(deps.preTrade).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        asset: 'WBNB',
+        destinationAsset: 'USDT',
+        chainId: 56,
+      })
+    );
+    expect(deps.preTrade).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        asset: 'USDT',
+        destinationAsset: 'WBNB',
+        chainId: 56,
+        decisionInput: expect.objectContaining({
+          reviewedUniswapV3: expect.objectContaining({ amountIn: '1.25' }),
+        }),
+      })
+    );
+  });
+
+  it('rejects WBNB-lane calldata prepared against a different reviewed pool', async () => {
+    const deps = wbnbDependencies();
+    (deps.preparePancake as jest.Mock).mockResolvedValueOnce({
+      ...preparedPancakeWbnb,
+      quote: {
+        ...preparedPancakeWbnb.quote,
+        contracts: {
+          ...preparedPancakeWbnb.quote.contracts,
+          pool: '0x92b7807bf19b7dddf89b706143896d05228f3121',
+        },
+      },
+    });
+
+    const result = await prepareBaseAgentSwapGuard(wbnbInput, deps);
+
+    expect(result).toMatchObject({
+      verdict: 'BLOCK',
+      reasonCodes: ['PREPARED_CALL_BINDING_INVALID'],
+      transactionsToSign: null,
+    });
+    expect(deps.preTrade).not.toHaveBeenCalled();
+  });
+});

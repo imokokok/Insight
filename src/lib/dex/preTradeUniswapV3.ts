@@ -16,7 +16,8 @@ export type ReviewedUniswapV3PreTradeProfile =
   | 'base-weth-usdc'
   | 'base-uniswap-v3-weth-usdc-500'
   | 'base-pancakeswap-v3-usdc-usdt'
-  | 'bnb-pancakeswap-v3-usdt-usdc';
+  | 'bnb-pancakeswap-v3-usdt-usdc'
+  | 'bnb-pancakeswap-v3-usdt-wbnb';
 
 /**
  * Explicit pool selection for the Base WETH→USDC route, which now has two
@@ -122,6 +123,28 @@ function selectProfile(request: ReviewedUniswapV3PreTradeRequest): SelectedProfi
     return {
       profile: 'bnb-pancakeswap-v3-usdt-usdc',
       definition: reviewedPancakeSwapV3Profile('bnb-pancakeswap-v3-usdt-usdc-100'),
+      direction: 'token1-to-token0',
+    };
+  }
+  // BNB volatile major lane: the reviewed USDT/WBNB pool, quoted USDT→WBNB
+  // (USDT is token0 there) and the reverse WBNB→USDT direction. The wrapped
+  // native is admitted under either its WBNB symbol or the native BNB name,
+  // mirroring how the Base lane admits ETH alongside WETH.
+  if (
+    request.chainId === 56 &&
+    asset === 'USDT' &&
+    (destination === 'WBNB' || destination === 'BNB')
+  ) {
+    return {
+      profile: 'bnb-pancakeswap-v3-usdt-wbnb',
+      definition: reviewedPancakeSwapV3Profile('bnb-pancakeswap-v3-usdt-wbnb-100'),
+      direction: 'token0-to-token1',
+    };
+  }
+  if (request.chainId === 56 && (asset === 'WBNB' || asset === 'BNB') && destination === 'USDT') {
+    return {
+      profile: 'bnb-pancakeswap-v3-usdt-wbnb',
+      definition: reviewedPancakeSwapV3Profile('bnb-pancakeswap-v3-usdt-wbnb-100'),
       direction: 'token1-to-token0',
     };
   }

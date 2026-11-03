@@ -1,3 +1,4 @@
+import { isEntitlementCoveredMcpTool } from '@/lib/billing/productPricing';
 import catalog from '@/mcp/tools/generatedCatalog.json';
 
 import {
@@ -9,6 +10,8 @@ import {
   X402_REST_PAYMENT_SCOPE_BY_PATH,
 } from '../capabilityPayment';
 import { getX402PaymentOptions, parseX402Config } from '../config';
+
+const CATALOG_ALL_TOOL_NAMES: string[] = catalog.map((tool) => tool.name);
 
 const EVM_ENV = {
   X402_ENABLED: 'true',
@@ -125,12 +128,28 @@ describe('x402 capability payment bindings', () => {
       'get_pancakeswap_v3_market',
       'prepare_pancakeswap_v3_swap',
     ]);
-    const catalogNames = catalog.map((tool) => tool.name).sort();
+    // In-window product tools are covered by the purchase that returned their
+    // one-time token — they are deliberately absent from every payment-scope
+    // registry (no per-call payment realm applies to them).
+    const entitlementCoveredTools = CATALOG_ALL_TOOL_NAMES.filter((name) =>
+      isEntitlementCoveredMcpTool(name)
+    );
+    const catalogNames = catalog
+      .map((tool) => tool.name)
+      .filter((name) => !entitlementCoveredTools.includes(name))
+      .sort();
     const boundNames = Object.keys(X402_MCP_PAYMENT_SCOPE_BY_TOOL)
       .concat([...dynamicTools])
       .sort();
 
     expect(boundNames).toEqual(catalogNames);
+    expect(entitlementCoveredTools).toEqual([
+      'oracle_watch_window_poll',
+      'oracle_watch_window_close',
+      'position_lifecycle_guard',
+      'position_lifecycle_receipt',
+      'position_lifecycle_close',
+    ]);
   });
 
   it('derives guard prepare scopes from the profileId prefix and fails closed on unknown ones', () => {

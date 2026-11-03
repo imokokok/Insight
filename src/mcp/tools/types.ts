@@ -1,5 +1,11 @@
 import type { z } from 'zod';
 
+/** Caller context threaded from the transport into product tools. */
+export interface McpToolCallContext {
+  /** Present when the caller authenticated with an API key (credits rail). */
+  apiKeyId?: string | null;
+}
+
 export interface McpToolDefinition<Args extends z.ZodTypeAny = z.ZodTypeAny> {
   name: string;
   description: string;
@@ -10,7 +16,7 @@ export interface McpToolDefinition<Args extends z.ZodTypeAny = z.ZodTypeAny> {
    * that cannot be represented in JSON Schema (zod v4 limitation).
    */
   inputSchema?: { type: 'object'; properties?: Record<string, unknown>; required?: string[] };
-  handler: (args: z.infer<Args>) => Promise<string> | string;
+  handler: (args: z.infer<Args>, context?: McpToolCallContext) => Promise<string> | string;
 }
 
 export interface McpToolCallResult {
