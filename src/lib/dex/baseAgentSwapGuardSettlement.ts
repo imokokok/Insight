@@ -40,7 +40,6 @@
 import { hashTypedData, keccak256, toBytes, verifyTypedData, type Hex } from 'viem';
 
 import { getAttesterAccount, type AttesterAccount } from '@/lib/attestations/attesterAccount';
-import { DECIMALS_SELECTOR, parseDecimalsResult } from '@/lib/execution/events';
 import { collectExecutionFacts, type ExecutionFacts } from '@/lib/execution/executionCollector';
 import { getRpcEndpoints } from '@/lib/execution/rpcEndpoints';
 import { RpcClientWithFallback } from '@/lib/oracles/utils/rpcClientWithFallback';
@@ -48,8 +47,11 @@ import { canonicalJsonString } from '@/lib/utils/canonicalJson';
 import { createLogger } from '@/lib/utils/logger';
 import { nowInSeconds } from '@/lib/utils/time';
 
-import { type BaseAgentSwapGuardResult } from './baseAgentSwapGuard';
-import { baseAgentSwapGuardDestinationToken } from './baseAgentSwapGuard';
+import {
+  baseAgentSwapGuardDestinationToken,
+  type BaseAgentSwapGuardChainId,
+  type BaseAgentSwapGuardResult,
+} from './baseAgentSwapGuard';
 import {
   isPublishedBaseAgentSwapGuardAttester,
   verifyBaseAgentSwapGuardDecision,
@@ -66,7 +68,8 @@ export const BASE_AGENT_SWAP_GUARD_SETTLEMENT_DOMAIN = {
   name: 'Insight Base Agent Swap Guard Settlement',
   version: '1',
   // Chain-separated from the settlement it attests, mirroring the decision
-  // domain; the signed message commits to Base chain ID 8453 explicitly.
+  // domain; the signed message commits to the reviewed execution chain
+  // (8453 or 56) explicitly inside the struct.
   chainId: 1,
 } as const;
 export const BASE_AGENT_SWAP_GUARD_SETTLEMENT_TYPES = {
@@ -94,7 +97,9 @@ const HASH = /^0x[0-9a-fA-F]{64}$/;
 const ZERO_HASH = `0x${'0'.repeat(64)}` as Hex;
 /** Raw amounts and prices are signed as exact decimal strings; '' = unmeasured. */
 const EMPTY = '';
-const SETTLEMENT_RECIPIENT_CHAIN_ID = 8453;
+/** The chains a settlement closure may be issued on, mirroring the reviewed
+ *  guard profiles. Any other chain id is rejected before any RPC work. */
+const SETTLEMENT_CHAIN_IDS = new Set<number>([8453, 56]);
 
 export interface BaseAgentSwapGuardSettlementData {
   decisionHash: Hex;
@@ -104,7 +109,7 @@ export interface BaseAgentSwapGuardSettlementData {
   /** keccak256 of the settlement transaction's actual input bytes. */
   onChainSwapCalldataHash: Hex;
   recipient: `0x${string}`;
-  chainId: 8453;
+  chainId: BaseAgentSwapGuardChainId;
   fillStatus: 'FULL' | 'REVERTED';
   /** Measured input amount in raw units; '' when unattributed. */
   sourceAmountRaw: string;
@@ -230,29 +235,6 @@ function typedDataArgs(data: BaseAgentSwapGuardSettlementData) {
   } as const;
 }
 
-/** Read a token's `decimals()`. Null on any failure — callers treat null as
- *  "unknown" and report an unmeasured amount instead of assuming 18. */
-async function fetchDecimals(
-  client: RpcClientWithFallback,
-  key: string,
-  endpoints: string[],
-  token: string,
-  signal?: AbortSignal
-): Promise<number | null> {
-  try {
-    const result = await client.ethCall(
-      key,
-      endpoints,
-      token as `0x${string}`,
-      DECIMALS_SELECTOR,
-      signal
-    );
-    return parseDecimalsResult(result);
-  } catch {
-    return null;
-  }
-}
-
 function rpcMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
@@ -369,12 +351,6 @@ async function reconcileFill(params: {
   facts: ExecutionFacts;
   exactInput: NonNullable<BaseAgentSwapGuardResult['market']>['exactInput'];
   maxSlippageBps: number;
-  tokenIn: string;
-  tokenOut: string;
-  client: RpcClientWithFallback;
-  key: string;
-  endpoints: string[];
-  signal?: AbortSignal;
 }): Promise<{
   sourceAmountRaw: string;
   destinationAmountRaw: string;
@@ -401,32 +377,15 @@ async function reconcileFill(params: {
     out.codes.push(facts.unavailableReason);
     return out;
   }
-  if (facts.sourceAmount === null || facts.destinationAmount === null) {
+  if (facts.sourceAmountRaw === null || facts.destinationAmountRaw === null) {
     out.codes.push('FILL_PRICE_UNAVAILABLE');
     return out;
   }
-
-  const inDecimals = await fetchDecimals(
-    params.client,
-    params.key,
-    params.endpoints,
-    params.tokenIn,
-    params.signal
-  );
-  const outDecimals = await fetchDecimals(
-    params.client,
-    params.key,
-    params.endpoints,
-    params.tokenOut,
-    params.signal
-  );
-  if (inDecimals === null || outDecimals === null) {
-    // Without decimals the amounts cannot be stated honestly; report, never guess.
-    out.codes.push('FILL_PRICE_UNAVAILABLE');
-    return out;
-  }
-  out.sourceAmountRaw = String(Math.round(facts.sourceAmount * 10 ** inDecimals));
-  out.destinationAmountRaw = String(Math.round(facts.destinationAmount * 10 ** outDecimals));
+  // The exact on-chain raw sums from the receipt, carried BigInt-safe through
+  // the collector. Rebuilding raw from the float human amount would lose
+  // precision on 18-decimal tokens and misreport the reconciliation.
+  out.sourceAmountRaw = facts.sourceAmountRaw;
+  out.destinationAmountRaw = facts.destinationAmountRaw;
   if (facts.executedPrice !== null) out.executedPrice = String(facts.executedPrice);
 
   if (out.sourceAmountRaw !== exactInput.amountInRaw) {
@@ -498,18 +457,21 @@ export async function settleBaseAgentSwapGuard(
     };
   }
 
-  const endpoints = getRpcEndpoints(SETTLEMENT_RECIPIENT_CHAIN_ID);
+  // The settlement is issued on the chain the decision itself binds to; the
+  // set membership was already enforced by the decision verification above.
+  const settlementChainId = guard.scope.chainId;
+  const endpoints = getRpcEndpoints(settlementChainId);
   if (!endpoints) {
     return {
       ok: false,
       code: 'UNSUPPORTED_CHAIN',
-      message: `No RPC endpoints configured for chain ${SETTLEMENT_RECIPIENT_CHAIN_ID}`,
+      message: `No RPC endpoints configured for chain ${settlementChainId}`,
     };
   }
   const client =
     params.client ??
     new RpcClientWithFallback({ contextLabel: 'base-agent-swap-guard-settlement' });
-  const key = String(SETTLEMENT_RECIPIENT_CHAIN_ID);
+  const key = String(settlementChainId);
 
   const reasonCodes: string[] = [];
   if (verification.expired) reasonCodes.push('DECISION_EXPIRED_AT_CLOSURE');
@@ -545,11 +507,11 @@ export async function settleBaseAgentSwapGuard(
   }
   const factsResult = await collectExecutionFacts({
     txHash: params.swapTxHash,
-    chainId: SETTLEMENT_RECIPIENT_CHAIN_ID,
+    chainId: settlementChainId,
     endpoints,
     // The guarded input token is the approval token (binding is verified above).
-    sourceAssetId: `eip155:8453/erc20:${tokenIn}`,
-    destinationAssetId: `eip155:8453/erc20:${tokenOut}`,
+    sourceAssetId: `eip155:${settlementChainId}/erc20:${tokenIn}`,
+    destinationAssetId: `eip155:${settlementChainId}/erc20:${tokenOut}`,
     // The source leg leaves the transaction sender; the destination leg arrives
     // at the guarded recipient, which may be a different address.
     destinationReceiver: guard.binding.recipient,
@@ -568,12 +530,6 @@ export async function settleBaseAgentSwapGuard(
     facts,
     exactInput: guard.market.exactInput,
     maxSlippageBps: guard.policy.maxSlippageBps,
-    tokenIn,
-    tokenOut,
-    client,
-    key,
-    endpoints,
-    signal: params.signal,
   });
   reasonCodes.push(...fill.codes);
 
@@ -590,7 +546,7 @@ export async function settleBaseAgentSwapGuard(
     approvalTxHash,
     onChainSwapCalldataHash,
     recipient: guard.binding.recipient.toLowerCase() as `0x${string}`,
-    chainId: 8453,
+    chainId: settlementChainId,
     fillStatus: facts.fillStatus,
     sourceAmountRaw: fill.sourceAmountRaw,
     destinationAmountRaw: fill.destinationAmountRaw,
@@ -696,7 +652,7 @@ export async function verifyBaseAgentSwapGuardSettlement(
     if (
       value.type !== BASE_AGENT_SWAP_GUARD_SETTLEMENT_PRIMARY_TYPE ||
       data.schemaVersion !== BASE_AGENT_SWAP_GUARD_SETTLEMENT_SCHEMA_VERSION ||
-      data.chainId !== 8453 ||
+      !SETTLEMENT_CHAIN_IDS.has(data.chainId) ||
       (data.fillStatus !== 'FULL' && data.fillStatus !== 'REVERTED') ||
       typeof data.decisionHash !== 'string' ||
       !HASH.test(data.decisionHash) ||

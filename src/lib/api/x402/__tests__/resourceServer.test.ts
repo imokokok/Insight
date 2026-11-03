@@ -339,7 +339,9 @@ describe('x402 SVM resource-server registration', () => {
         extra: { name: 'USD Coin', version: '2' },
       }),
     ]);
-    expect(quote.resource?.description).toContain('Base mainnet AI-agent Swap Guard');
+    expect(quote.resource?.description).toContain(
+      'AI-agent Swap Guard (Base mainnet and BNB Smart Chain)'
+    );
     expect(quote.extensions?.bazaar?.info?.input).toMatchObject({
       type: 'mcp',
       toolName: BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME,

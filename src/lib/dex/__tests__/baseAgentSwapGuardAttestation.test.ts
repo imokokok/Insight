@@ -114,6 +114,27 @@ describe('Base Agent Swap Guard attestation', () => {
     });
   });
 
+  it('signs and verifies a BNB Smart Chain decision with chain 56 in the signed data', async () => {
+    const { decisionHash: _omit, ...rest } = guard();
+    const bnbUnsigned: Omit<BaseAgentSwapGuardResult, 'decisionHash'> = {
+      ...rest,
+      scope: { ...rest.scope, chainId: 56, profileId: 'bnb-pancakeswap-v3-usdt-usdc-100' },
+      binding: { ...rest.binding, chainId: 56 },
+    };
+    const unsigned = {
+      ...bnbUnsigned,
+      decisionHash: baseAgentSwapGuardDecisionHash(bnbUnsigned),
+    };
+    const decision = await createBaseAgentSwapGuardDecision(unsigned, dependencies);
+
+    expect(decision.attestation).not.toBeNull();
+    expect(decision.attestation?.data.chainId).toBe(56);
+    await expect(verifyBaseAgentSwapGuardDecision(decision, dependencies)).resolves.toMatchObject({
+      valid: true,
+      reason: 'verified',
+    });
+  });
+
   it('refuses an approval that targets the router instead of the input token contract', async () => {
     const invalid = guard();
     invalid.transactionsToSign!.approval.to = ROUTER;

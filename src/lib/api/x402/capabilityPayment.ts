@@ -109,12 +109,11 @@ export const X402_MCP_PAYMENT_SCOPE_BY_TOOL: Readonly<Record<string, X402Payment
   get_base_dex_venue_integrations: X402_PAYMENT_SCOPE.base,
   get_aerodrome_slipstream_market: X402_PAYMENT_SCOPE.base,
   prepare_aerodrome_slipstream_swap: X402_PAYMENT_SCOPE.base,
-  get_pancakeswap_v3_market: X402_PAYMENT_SCOPE.base,
-  prepare_pancakeswap_v3_swap: X402_PAYMENT_SCOPE.base,
+  // get_pancakeswap_v3_market / prepare_pancakeswap_v3_swap and the three
+  // base-agent-swap-guard tools are resolved dynamically from the requested
+  // profile or guarded chain (see the dynamic helpers), so they are
+  // intentionally absent from this static registry.
   get_quickswap_v2_market: X402_PAYMENT_SCOPE.base,
-  prepare_base_agent_swap_guard: X402_PAYMENT_SCOPE.base,
-  settle_base_agent_swap_guard: X402_PAYMENT_SCOPE.base,
-  verify_base_agent_swap_guard_settlement: X402_PAYMENT_SCOPE.base,
   base_lending_guard: X402_PAYMENT_SCOPE.base,
   base_lending_guard_exact_call: X402_PAYMENT_SCOPE.base,
   base_perp_guard: X402_PAYMENT_SCOPE.base,
@@ -158,6 +157,64 @@ function multichainGuardChainId(argumentsValue: unknown): unknown {
 }
 
 /**
+ * PancakeSwap V3 market/prepare tools now serve reviewed profiles on Base and
+ * BNB. Their payment realm follows the requested profile id; the optional id
+ * defaults to the reviewed Base lane, and an unknown prefix fails closed.
+ */
+function pancakeSwapV3McpPaymentScope(argumentsValue: unknown): X402PaymentScope | null {
+  if (!isRecord(argumentsValue)) return null;
+  const profileId = typeof argumentsValue.profileId === 'string' ? argumentsValue.profileId : null;
+  if (profileId === null) return X402_PAYMENT_SCOPE.base;
+  if (profileId.startsWith('bnb-')) return X402_PAYMENT_SCOPE.bnb;
+  if (profileId.startsWith('base-')) return X402_PAYMENT_SCOPE.base;
+  return null;
+}
+
+/**
+ * The three base-agent-swap-guard MCP tools now serve reviewed profiles on
+ * more than one chain (Base 8453, BNB 56). Their payment realm is derived
+ * from the guarded execution chain carried in the arguments, never a global
+ * default: an unparseable request resolves to null and fails closed.
+ */
+function baseAgentSwapGuardMcpPaymentScope(
+  toolName: string,
+  argumentsValue: unknown
+): X402PaymentScope | null {
+  if (!isRecord(argumentsValue)) return null;
+
+  if (toolName === 'prepare_base_agent_swap_guard') {
+    // profileId is optional and defaults to the reviewed Base lane. Only a
+    // recognized BNB prefix selects the BNB realm; an unrecognized prefix
+    // fails closed rather than silently authorizing on Base.
+    const profileId =
+      typeof argumentsValue.profileId === 'string' ? argumentsValue.profileId : null;
+    if (profileId === null) return X402_PAYMENT_SCOPE.base;
+    if (profileId.startsWith('bnb-')) return X402_PAYMENT_SCOPE.bnb;
+    if (profileId.startsWith('base-')) return X402_PAYMENT_SCOPE.base;
+    return null;
+  }
+
+  // settle/verify carry the signed decision (or settlement) whose guard scope
+  // names the reviewed execution chain.
+  const chainId = (() => {
+    const decision = isRecord(argumentsValue.decision) ? argumentsValue.decision : null;
+    if (decision) {
+      const guard = isRecord(decision.guard) ? decision.guard : null;
+      const scope = guard && isRecord(guard.scope) ? guard.scope : null;
+      if (scope && typeof scope.chainId === 'number') return scope.chainId;
+      // verify passes the settlement envelope instead of the decision.
+      const settlement = isRecord(decision.settlement) ? decision.settlement : null;
+      if (settlement && typeof settlement.chainId === 'number') return settlement.chainId;
+    }
+    return null;
+  })();
+
+  if (chainId === 56) return X402_PAYMENT_SCOPE.bnb;
+  if (chainId === 8453) return X402_PAYMENT_SCOPE.base;
+  return null;
+}
+
+/**
  * Resolve the required payment realm before a paid MCP call is quoted or
  * verified. A malformed/unsupported multichain request returns null rather
  * than inheriting the global rail and producing a deceptive quote.
@@ -173,8 +230,29 @@ export function x402PaymentScopeForMcpTool(
     return x402PaymentScopeForEvmChainId(multichainGuardChainId(argumentsValue));
   }
 
+  if (toolName === 'get_pancakeswap_v3_market' || toolName === 'prepare_pancakeswap_v3_swap') {
+    return pancakeSwapV3McpPaymentScope(argumentsValue);
+  }
+
+  if (
+    toolName === 'prepare_base_agent_swap_guard' ||
+    toolName === 'settle_base_agent_swap_guard' ||
+    toolName === 'verify_base_agent_swap_guard_settlement'
+  ) {
+    return baseAgentSwapGuardMcpPaymentScope(toolName, argumentsValue);
+  }
+
   return X402_MCP_PAYMENT_SCOPE_BY_TOOL[toolName] ?? null;
 }
+
+/** MCP tools whose payment scope is derived from their arguments per call. */
+const X402_DYNAMIC_MCP_PAYMENT_SCOPE_TOOLS = new Set([
+  'prepare_base_agent_swap_guard',
+  'settle_base_agent_swap_guard',
+  'verify_base_agent_swap_guard_settlement',
+  'get_pancakeswap_v3_market',
+  'prepare_pancakeswap_v3_swap',
+]);
 
 /**
  * Called when the MCP catalog is assembled. A new paid tool cannot ship until
@@ -184,6 +262,7 @@ export function x402PaymentScopeForMcpTool(
 export function assertX402PaymentScopeDeclaredForMcpTool(toolName: string): void {
   if (
     toolName in X402_MCP_PAYMENT_SCOPE_BY_TOOL ||
+    X402_DYNAMIC_MCP_PAYMENT_SCOPE_TOOLS.has(toolName) ||
     toolName === 'multichain_evm_lending_guard' ||
     toolName === 'multichain_evm_lending_guard_exact_call'
   ) {

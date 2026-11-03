@@ -106,6 +106,11 @@ describe('x402 capability payment bindings', () => {
     const dynamicTools = new Set([
       'multichain_evm_lending_guard',
       'multichain_evm_lending_guard_exact_call',
+      'prepare_base_agent_swap_guard',
+      'settle_base_agent_swap_guard',
+      'verify_base_agent_swap_guard_settlement',
+      'get_pancakeswap_v3_market',
+      'prepare_pancakeswap_v3_swap',
     ]);
     const catalogNames = catalog.map((tool) => tool.name).sort();
     const boundNames = Object.keys(X402_MCP_PAYMENT_SCOPE_BY_TOOL)
@@ -113,6 +118,32 @@ describe('x402 capability payment bindings', () => {
       .sort();
 
     expect(boundNames).toEqual(catalogNames);
+  });
+
+  it('derives guard prepare scopes from the profileId prefix and fails closed on unknown ones', () => {
+    // Missing profileId defaults to the reviewed Base lane.
+    expect(x402PaymentScopeForMcpTool('prepare_base_agent_swap_guard', {})).toEqual(
+      X402_PAYMENT_SCOPE.base
+    );
+    expect(x402PaymentScopeForMcpTool('prepare_base_agent_swap_guard', { profileId: 123 })).toEqual(
+      X402_PAYMENT_SCOPE.base
+    );
+    expect(
+      x402PaymentScopeForMcpTool('prepare_base_agent_swap_guard', {
+        profileId: 'bnb-pancakeswap-v3-usdt-usdc-100',
+      })
+    ).toEqual(X402_PAYMENT_SCOPE.bnb);
+    expect(
+      x402PaymentScopeForMcpTool('prepare_base_agent_swap_guard', {
+        profileId: 'base-pancakeswap-v3-usdc-usdt-100',
+      })
+    ).toEqual(X402_PAYMENT_SCOPE.base);
+    // An unrecognized prefix must not silently authorize a Base payment.
+    expect(
+      x402PaymentScopeForMcpTool('prepare_base_agent_swap_guard', {
+        profileId: 'not-a-reviewed-profile',
+      })
+    ).toBeNull();
   });
 
   it('leaves genuinely chain-neutral tools on the merchant-configured rail', () => {
