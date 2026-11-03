@@ -1,3 +1,5 @@
+import { isEntitlementCoveredMcpTool } from '@/lib/billing/productPricing';
+
 import {
   facilitatorBearerTokenForNetwork,
   facilitatorUrlForNetwork,
@@ -94,6 +96,11 @@ const X402_CHAIN_NEUTRAL_MCP_PAYMENT_SCOPE_BY_TOOL = {
   get_wrapped_asset_peg: X402_PAYMENT_SCOPE.configured,
   oracle_watch: X402_PAYMENT_SCOPE.configured,
   oracle_watch_history: X402_PAYMENT_SCOPE.configured,
+  // Product begin tools are chain-neutral purchases: the monitored subject is
+  // optional-chain data scope, not an execution chain, so the merchant's
+  // configured rail applies (same reasoning as oracle_watch).
+  oracle_watch_window_begin: X402_PAYMENT_SCOPE.configured,
+  position_lifecycle_begin: X402_PAYMENT_SCOPE.configured,
   pre_trade_safety_check: X402_PAYMENT_SCOPE.configured,
   recommend_oracle_setup: X402_PAYMENT_SCOPE.configured,
   verify_execution_pair: X402_PAYMENT_SCOPE.configured,
@@ -269,7 +276,11 @@ export function assertX402PaymentScopeDeclaredForMcpTool(toolName: string): void
     toolName in X402_MCP_PAYMENT_SCOPE_BY_TOOL ||
     X402_DYNAMIC_MCP_PAYMENT_SCOPE_TOOLS.has(toolName) ||
     toolName === 'multichain_evm_lending_guard' ||
-    toolName === 'multichain_evm_lending_guard_exact_call'
+    toolName === 'multichain_evm_lending_guard_exact_call' ||
+    // In-window product tools (poll/close/guard/receipt/close-summary) are
+    // covered by the prior purchase and authenticate with its one-time token
+    // in their arguments — no per-call payment realm applies to them.
+    isEntitlementCoveredMcpTool(toolName)
   ) {
     return;
   }
