@@ -88,9 +88,9 @@ const ddl: InStatement[] = [
     projection_quarantined_at_ms INTEGER,
     created_at_ms INTEGER NOT NULL
   )`,
-  // A lease is acquired before an executor reads upstream oracles. GitHub's
-  // fallback runner and the independent Cloudflare scheduler can therefore
-  // overlap safely without capturing a different payload for the same slot.
+  // A lease is acquired before an executor reads upstream oracles. A delayed
+  // GitHub run and a manual recovery run can therefore overlap safely without
+  // capturing a different payload for the same slot.
   `CREATE TABLE IF NOT EXISTS snapshot_ingest_leases (
     slot_ms INTEGER PRIMARY KEY,
     lease_id TEXT NOT NULL,

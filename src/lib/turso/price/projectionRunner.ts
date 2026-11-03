@@ -23,9 +23,9 @@ export interface TursoPriceProjectionRun {
 
 /**
  * Drain a bounded number of immutable Turso outbox batches. The bounded loop
- * lets the independent Cloudflare scheduler recover a multi-hour Supabase
- * outage in one invocation without turning a transient downstream failure
- * into an unbounded serverless request.
+ * lets the scheduled GitHub runner recover a multi-hour Supabase outage in one
+ * invocation without turning a transient downstream failure into unbounded
+ * write pressure.
  */
 export async function runTursoPriceProjection(
   batchSize: number,
