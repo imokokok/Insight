@@ -10,6 +10,7 @@ import {
   X402_LOOPSCALE_VAULT_DEPOSIT_ROUTE,
   X402_MONAD_LENDING_GUARD_ROUTE,
   X402_SOLANA_LENDING_GUARD_ROUTE,
+  X402_SOLANA_SWAP_GUARD_ROUTE,
 } from './config';
 
 /**
@@ -44,6 +45,7 @@ export const X402_REST_PAYMENT_SCOPE_BY_PATH: Readonly<Record<string, X402Paymen
   [X402_BASE_PERP_GUARD_ROUTE]: X402_PAYMENT_SCOPE.base,
   [X402_MONAD_LENDING_GUARD_ROUTE]: X402_PAYMENT_SCOPE.monad,
   [X402_SOLANA_LENDING_GUARD_ROUTE]: X402_PAYMENT_SCOPE.solana,
+  [X402_SOLANA_SWAP_GUARD_ROUTE]: X402_PAYMENT_SCOPE.solana,
   [X402_LOOPSCALE_VAULT_DEPOSIT_ROUTE]: X402_PAYMENT_SCOPE.solana,
 };
 
@@ -124,6 +126,9 @@ export const X402_MCP_PAYMENT_SCOPE_BY_TOOL: Readonly<Record<string, X402Payment
   monad_lending_guard_exact_call: X402_PAYMENT_SCOPE.monad,
   get_solana_dex_route: X402_PAYMENT_SCOPE.solana,
   solana_lending_guard: X402_PAYMENT_SCOPE.solana,
+  solana_swap_guard: X402_PAYMENT_SCOPE.solana,
+  settle_solana_swap_guard: X402_PAYMENT_SCOPE.solana,
+  verify_solana_swap_guard_settlement: X402_PAYMENT_SCOPE.solana,
   loopscale_vault_deposit: X402_PAYMENT_SCOPE.solana,
   // MCP does not yet implement the HyperCore verify/settle lifecycle. Keep
   // these tools from falling back to an unrelated EVM quote until it does.

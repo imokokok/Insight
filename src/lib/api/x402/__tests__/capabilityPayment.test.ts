@@ -102,6 +102,19 @@ describe('x402 capability payment bindings', () => {
     expect(x402PaymentScopeForMcpTool('multichain_evm_lending_guard', {})).toBeNull();
   });
 
+  it('binds the Solana swap guard lifecycle to the native Solana rail', () => {
+    expect(X402_REST_PAYMENT_SCOPE_BY_PATH['/api/v1/safety/solana-swap-guard']).toEqual(
+      X402_PAYMENT_SCOPE.solana
+    );
+    for (const tool of [
+      'solana_swap_guard',
+      'settle_solana_swap_guard',
+      'verify_solana_swap_guard_settlement',
+    ]) {
+      expect(x402PaymentScopeForMcpTool(tool, {})).toEqual(X402_PAYMENT_SCOPE.solana);
+    }
+  });
+
   it('requires every paid MCP capability to declare its payment semantics', () => {
     const dynamicTools = new Set([
       'multichain_evm_lending_guard',

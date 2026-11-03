@@ -138,9 +138,12 @@ const TOOL_RULES: Array<[RegExp, MeteringClass]> = [
   [/^get_aerodrome_slipstream_market$/, 'C1'],
   [/^prepare_aerodrome_slipstream_swap$/, 'C3'],
   [/^prepare_base_agent_swap_guard$/, 'C3'],
+  [/^solana_swap_guard$/, 'C3'],
   // Post-settlement guard closure / verification — C4 evidence artifacts.
   [/^settle_base_agent_swap_guard$/, 'C4'],
   [/^verify_base_agent_swap_guard_settlement$/, 'C4'],
+  [/^settle_solana_swap_guard$/, 'C4'],
+  [/^verify_solana_swap_guard_settlement$/, 'C4'],
   [/^get_pancakeswap_v3_market$/, 'C1'],
   [/^prepare_pancakeswap_v3_swap$/, 'C3'],
   [/^get_quickswap_v2_market$/, 'C1'],
