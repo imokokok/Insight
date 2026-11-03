@@ -16,6 +16,14 @@ const packages = [
     directory: 'skills/insight-base-agent-swap-guard',
     archive: 'insight-base-agent-swap-guard-skill-v0.1.0.zip',
   },
+  {
+    directory: 'skills/insight-base-perp-guard',
+    archive: 'insight-base-perp-guard-skill-v0.1.0.zip',
+  },
+  {
+    directory: 'skills/insight-hyperliquid-perp-guard',
+    archive: 'insight-hyperliquid-perp-guard-skill-v0.1.0.zip',
+  },
 ] as const;
 const destination = path.join(root, 'public', 'downloads');
 

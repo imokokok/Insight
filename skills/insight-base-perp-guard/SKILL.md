@@ -1,6 +1,6 @@
 ---
 name: insight-base-perp-guard
-description: Assess a proposed Synthetix Perps V3 position on Base before the agent or wallet acts. The skill checks underlying and USDC margin oracle integrity plus caller-declared post-action leverage against reviewed market caps, returns an ALLOW / CAUTION / BLOCK decision, and can bind one exact unsigned commitOrder call into a portable EIP-712 decision. Use only for Synthetix Perps V3 Base open-position intents; never for generic swaps, venue-internal order building, or transaction execution.
+description: Assess a proposed Synthetix Perps V3 position on Base before the agent or wallet acts. The skill checks underlying and USDC margin oracle integrity plus caller-declared post-action leverage against reviewed market caps, attaches disclosed spot/TWAP/in-range liquidity evidence for the underlying when a reviewed Base spot market exists, returns an ALLOW / CAUTION / BLOCK decision, and can bind one exact unsigned commitOrder call into a portable EIP-712 decision. Use only for Synthetix Perps V3 Base open-position intents; never for generic swaps, venue-internal order building, or transaction execution.
 ---
 
 # Insight Base Perp Guard
@@ -12,7 +12,11 @@ one Synthetix Perps V3 Base open-position intent.
    direction (`open_long` or `open_short`), notional `sizeUsd`, and USDC
    `marginValueUsd`, all after the intended action.
 2. Call `base_perp_guard` with those values. Effective leverage is derived, not
-   declared.
+   declared. When a reviewed Base spot market exists for the underlying (ETH
+   today), the result also carries disclosed spot/TWAP/in-range liquidity
+   evidence — context only, never a substitute for oracle consensus — and
+   observed thin execution liquidity at the declared size can downgrade an
+   `ALLOW` to `CAUTION`.
 3. Treat `BLOCK` as stop. Treat `CAUTION` as review-before-execution. Treat an
    `ALLOW` as decision evidence only — never as wallet authority or an order
    authorization.
@@ -30,7 +34,8 @@ already be deposited into the Synthetix account separately.
 
 Do not create an order, request a signature, retry a blocked intent with
 altered fields, or claim support for mark-price, funding, or liquidation-engine
-assessment. Markets outside the reviewed set (BTC, ETH, SOL, XRP, DOGE, PEPE)
+assessment. Liquidity evidence is disclosed context from one DEX venue, not an
+oracle price. Markets outside the reviewed set (BTC, ETH, SOL, XRP, DOGE, PEPE)
 fail closed by design.
 
 See [`README.md`](README.md) for installation and exact boundaries.

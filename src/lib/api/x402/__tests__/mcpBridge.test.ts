@@ -121,6 +121,22 @@ describe('handleMcpPaidToolCall settlement gating', () => {
     expect(res.headers.get('PAYMENT-RESPONSE')).toBe('c2V0dGxlZA==');
   });
 
+  function guardCallRequest(profileId: string): Request {
+    return new Request('http://x/api/mcp', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'tools/call',
+        params: {
+          name: 'prepare_base_agent_swap_guard',
+          arguments: { profileId },
+        },
+      }),
+    });
+  }
+
   it('binds the Base Swap Guard payment quote to Base mainnet only', async () => {
     const baseGuardCfg = {
       ...cfg,
@@ -133,12 +149,10 @@ describe('handleMcpPaidToolCall settlement gating', () => {
     } as X402Config;
 
     await handleMcpPaidToolCall({
-      ...input(
-        async () => jsonRpcResult({ content: [{ type: 'text', text: 'ok' }] }),
-        undefined,
-        'prepare_base_agent_swap_guard'
-      ),
+      request: guardCallRequest('base-pancakeswap-v3-usdc-usdt-100'),
       cfg: baseGuardCfg,
+      toolName: 'prepare_base_agent_swap_guard',
+      runBusiness: async () => jsonRpcResult({ content: [{ type: 'text', text: 'ok' }] }),
     });
 
     expect(mockedServerFactory).toHaveBeenCalledWith(
@@ -146,6 +160,36 @@ describe('handleMcpPaidToolCall settlement gating', () => {
         network: 'eip155:8453',
         evmNetworks: ['eip155:8453'],
         facilitatorUrl: 'https://base.example',
+        solana: null,
+      }),
+      '20000',
+      'prepare_base_agent_swap_guard'
+    );
+  });
+
+  it('binds the BNB Swap Guard payment quote to BNB Smart Chain', async () => {
+    const bnbGuardCfg = {
+      ...cfg,
+      enabled: true,
+      evmEnabled: true,
+      evmNetworks: ['eip155:56'],
+      payTo: '0xAbC0000000000000000000000000000000000001',
+      facilitatorUrl: 'https://bnb.example',
+      facilitatorUrls: { 'eip155:56': 'https://bnb.example' },
+    } as X402Config;
+
+    await handleMcpPaidToolCall({
+      request: guardCallRequest('bnb-pancakeswap-v3-usdt-usdc-100'),
+      cfg: bnbGuardCfg,
+      toolName: 'prepare_base_agent_swap_guard',
+      runBusiness: async () => jsonRpcResult({ content: [{ type: 'text', text: 'ok' }] }),
+    });
+
+    expect(mockedServerFactory).toHaveBeenCalledWith(
+      expect.objectContaining({
+        network: 'eip155:56',
+        evmNetworks: ['eip155:56'],
+        facilitatorUrl: 'https://bnb.example',
         solana: null,
       }),
       '20000',
