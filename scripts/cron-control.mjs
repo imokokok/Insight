@@ -60,35 +60,6 @@ export async function guard() {
   const maxAgeMinutes = Math.max(1, Number(process.env.FALLBACK_MAX_AGE_MINUTES) || 60);
   const cutoff = new Date(Date.now() - maxAgeMinutes * 60_000).toISOString();
 
-  // Projection is clocked by Cloudflare rather than a Supabase dispatcher.
-  // Its durable receipt is therefore the only correct native-GitHub fallback
-  // guard: a fresh receipt means the independent primary already completed.
-  if (workflow === 'turso-price-project.yml') {
-    const projectionQuery = new URL(`${baseUrl}/rest/v1/turso_price_slot_receipts`);
-    projectionQuery.searchParams.set('select', 'snapshot_ts');
-    projectionQuery.searchParams.set('projected_at', 'not.is.null');
-    projectionQuery.searchParams.set('snapshot_ts', `gte.${cutoff}`);
-    projectionQuery.searchParams.set('order', 'snapshot_ts.desc');
-    projectionQuery.searchParams.set('limit', '1');
-
-    try {
-      const response = await requestLedger(projectionQuery, { headers: headers() });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const rows = await response.json();
-      if (rows.length > 0) {
-        await writeGithubFile('should_run', 'false');
-        console.log('[cron-control] Cloudflare projection receipt is fresh; fallback skipped');
-        return;
-      }
-    } catch (error) {
-      console.warn(
-        `[cron-control] projection receipt guard failed (${error.message}); fallback will run`
-      );
-      await writeGithubFile('should_run', 'true');
-      return;
-    }
-  }
-
   const query = new URL(`${baseUrl}/rest/v1/cron_dispatch_runs`);
   query.searchParams.set('select', 'completed_at');
   query.searchParams.set('workflow_file', `eq.${workflow}`);

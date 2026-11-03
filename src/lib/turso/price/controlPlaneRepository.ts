@@ -34,7 +34,7 @@ const feedSchema = z
   .strict();
 const feedRegistrySchema = z.object({ feeds: z.array(feedSchema).max(10_000) }).strict();
 
-export type TursoIngestTriggerSource = 'cloudflare_cron' | 'github_actions' | 'manual';
+export type TursoIngestTriggerSource = 'github_actions' | 'manual';
 
 export interface TursoIngestLease {
   state: 'acquired' | 'busy' | 'completed';

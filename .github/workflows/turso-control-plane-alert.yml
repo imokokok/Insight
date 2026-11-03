@@ -2,9 +2,8 @@ name: Turso Control Plane Alert
 
 on:
   schedule:
-    # Check after both Cloudflare primary schedules and their delayed GitHub
-    # fallbacks have had time to run. This is deliberately independent from
-    # Supabase pg_cron, which is the failure mode it watches.
+    # Check after the GitHub Actions capture and projection windows. This is
+    # deliberately independent from the Supabase data path it watches.
     - cron: '12,27,42,57 * * * *'
   workflow_dispatch:
 

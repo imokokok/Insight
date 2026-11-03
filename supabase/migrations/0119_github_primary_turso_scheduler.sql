@@ -1,15 +1,10 @@
-import { readFile, writeFile } from 'node:fs/promises';
-import { fileURLToPath } from 'node:url';
-
-// Raw capture and its delayed Supabase projection must not share a pg_cron
-// failure domain. Cloudflare now owns both primary clocks; GitHub remains a
-// delayed receipt-guarded fallback for the projector.
-const migrationSql = String.raw`-- Move the Turso-to-Supabase projection primary clock out of Supabase pg_cron.
+-- Keep high-frequency Turso scheduling outside Supabase pg_cron.
 --
--- The prior scheduler outage proved that a durable Turso outbox is not enough
--- when its only projector is dispatched by the same unavailable control plane.
--- Cloudflare Cron now triggers the authenticated projector directly; GitHub's
--- native schedule remains an independent, receipt-guarded fallback.
+-- GitHub Actions directly captures raw slots at :00/:15/:30/:45 and projects
+-- them at :03/:18/:33/:48. The Turso lease and Supabase projection receipts
+-- make scheduled retries idempotent. Supabase retains its low-frequency
+-- dispatches, relational data, and health telemetry without carrying the
+-- high-frequency scheduler load.
 
 BEGIN;
 
@@ -37,13 +32,8 @@ BEGIN
 
   PERFORM public.disable_github_workflow_dispatcher();
 
-  -- Cloudflare owns both primary Turso clocks: raw capture on the quarter hour
-  -- and projection three minutes later. Keep GitHub snapshot collection as a
-  -- delayed capture fallback and keep unrelated low-frequency workflows here.
-  PERFORM cron.schedule(
-    'github-dispatch-snapshot-collect', '7,22,37,52 * * * *',
-    $command$SELECT public.dispatch_github_workflow('snapshot-collect.yml');$command$
-  );
+  -- High-frequency Turso capture and projection are native GitHub schedules,
+  -- not Supabase pg_cron dispatches. Keep only low-frequency product jobs here.
   PERFORM cron.schedule(
     'github-dispatch-oracle-watch', '8 * * * *',
     $command$SELECT public.dispatch_github_workflow('oracle-watch-collect.yml');$command$
@@ -106,33 +96,9 @@ BEGIN
     PERFORM public.enable_github_workflow_dispatcher();
   ELSE
     RAISE NOTICE
-      'Cloudflare primary projection activation deferred: github_workflow_dispatch_token is unavailable';
+      'GitHub primary Turso scheduler activation deferred: github_workflow_dispatch_token is unavailable';
   END IF;
 END;
 $block$;
 
 COMMIT;
-`;
-
-const repositoryRoot = new URL('../../', import.meta.url);
-const outputPath = fileURLToPath(
-  new URL('supabase/migrations/0118_cloudflare_primary_projection.sql', repositoryRoot)
-);
-const args = new Set(process.argv.slice(2));
-const write = args.has('--write');
-const check = args.has('--check');
-
-if (write === check || [...args].some((arg) => arg !== '--write' && arg !== '--check')) {
-  throw new Error('Use exactly one supported option: --write or --check');
-}
-
-if (write) {
-  await writeFile(outputPath, migrationSql, 'utf8');
-} else {
-  const current = await readFile(outputPath, 'utf8');
-  if (current !== migrationSql) {
-    throw new Error(
-      '0118_cloudflare_primary_projection.sql is stale; regenerate it from this TypeScript source.'
-    );
-  }
-}

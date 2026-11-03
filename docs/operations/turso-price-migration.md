@@ -28,38 +28,26 @@ collection. A retry with different evidence for the same slot is rejected.
 
 ## Primary ingest control plane
 
-In `primary` mode, raw capture no longer relies on a Supabase query or a
-GitHub Actions runner being available:
+In `primary` mode, the high-frequency control plane is intentionally small:
+GitHub Actions runs the bounded collector and projector directly, Turso holds
+the immutable raw evidence, and Supabase receives only the idempotent business
+projection.
 
 ```text
-Cloudflare Cron (every 15 min, UTC)
-  -> signed /api/cron/turso-ingest on Insight (Vercel Node runtime)
+GitHub Actions Snapshot Collect (every 15 min, UTC)
   -> Turso slot lease
   -> upstream oracle reads + atomic Turso raw slot capture
   -> best-effort Supabase rich-cache/feed-health side effects
-Cloudflare Cron (three minutes after each capture)
-  -> signed /api/cron/turso-project on Insight (Vercel Node runtime)
+GitHub Actions Turso Price Projection (three minutes after capture)
   -> bounded, receipt-backed Turso-to-Supabase outbox drain
 ```
 
-The Cloudflare Worker only schedules and signs the request; it stores no
-price data and has no Turso, Supabase, GitHub, or Vercel administrator token.
-The Vercel route is deliberately separate from `CRON_SECRET` and accepts only
-the `INGEST_SCHEDULER_SECRET` Bearer credential. Cloudflare Cron has a
-15-minute invocation window, while the route has an explicit 180-second
-maximum duration.
-
-The existing GitHub `Snapshot Collect` workflow remains a delayed, guarded
-fallback. Market-reference and manipulation-cost evidence now run in a
-separate Actions job, so a transient Supabase evidence-write failure remains
-visible but can never change the raw-capture ledger result.
-Cloudflare starts raw capture at `:00/:15/:30/:45`; both Supabase-dispatched
-and native GitHub fallback runs begin seven minutes later at
-`:07/:22/:37/:52`. A runtime grace guard enforces the same delay, so an
-accidental cron regression cannot make GitHub compete with Cloudflare during
-the primary window. After that window its raw-capture step shares the Turso
-lease, so a completed primary slot returns `already_captured` before it reads
-an oracle or writes a second slot.
+The collector runs at `:00/:15/:30/:45`; projection runs at
+`:03/:18/:33/:48`. Both Actions workflows use queued concurrency rather than
+cancellation, and the Turso lease / Supabase receipt boundaries make a delayed
+or manually retried run safe. Market-reference and manipulation-cost evidence
+remain in a separate job, so a transient evidence-write failure cannot change
+the raw-capture result.
 
 The active feed registry is administered in Supabase but mirrored as a
 canonical, hashed last-known-good payload in Turso after successful
@@ -69,13 +57,10 @@ defaults to 86400 (valid range: 300–604800); when the mirror exceeds that
 age, the resolver performs one bounded authoritative Supabase refresh rather
 than silently using an indefinitely old configuration.
 
-Cloudflare is also the projection workflow's primary clock: it invokes the
-authenticated projector at minutes `3,18,33,48` and drains up to four bounded
-outbox batches per invocation, allowing a multi-hour Supabase outage to catch
-up in one successful run. GitHub's native schedule is a delayed, receipt-
-guarded fallback at minutes `10,25,40,55`; it runs only when the Supabase
-receipt proves that Cloudflare projection is stale. Supabase `pg_cron` no
-longer participates in the projection critical path.
+Projection drains up to four bounded outbox batches per invocation. This lets a
+multi-hour Supabase outage catch up promptly without turning recovery into
+unbounded write pressure. Supabase `pg_cron` does not participate in either
+high-frequency Turso critical path.
 
 ## Required configuration
 
@@ -105,22 +90,8 @@ Acknowledged slot payloads older than the same window are compacted to their
 hashes, digest, counts, and an empty-input audit marker. In production the
 projector workflow also accepts repository variables
 `TURSO_PRICE_PROJECTION_BATCH_SIZE` (default 16) and
+`TURSO_PRICE_PROJECTION_MAX_BATCHES` (default 4) and
 `TURSO_PRICE_PROJECTION_MAX_LAG_SECONDS` (default 1800).
-
-### Scheduler secrets
-
-For production, create one random scheduler value and install the identical
-value as an encrypted production environment variable in Vercel and as a
-Cloudflare Worker secret:
-
-```text
-Vercel project (production only): INGEST_SCHEDULER_SECRET
-Cloudflare Worker secret:          INGEST_SCHEDULER_SECRET
-```
-
-Do not place this value in GitHub Actions, `wrangler.jsonc`, a URL, or an
-application-visible variable. Rotate both ends together; a mismatch fails
-closed with HTTP 401 and leaves existing Turso data untouched.
 
 ## Rollout
 
@@ -131,15 +102,9 @@ closed with HTTP 401 and leaves existing Turso data untouched.
    create or delete a Turso database.
 3. Run `npm run build:cron`, then deploy both generated collector and projector
    bundles while still in `legacy` mode.
-4. Once the workflow definition containing `dispatch_id` and `scheduled_for`
-   inputs is on the default branch, apply
-   `0114_turso_price_projection_dispatcher.sql`, then
-   `0115_cloudflare_ingest_fallback.sql`, then the concurrently shipped
-   `0116_oracle_watch_windows.sql` and `0117_position_lifecycles.sql`, and finally
-   `0118_cloudflare_primary_projection.sql`. The final migration removes the
-   projection job from Supabase `pg_cron` while retaining the delayed GitHub
-   fallback. Do not apply these activation migrations before their workflows
-   are available on `main`.
+4. Apply `0119_github_primary_turso_scheduler.sql` after the GitHub workflow
+   schedules are on `main`. It removes the high-frequency snapshot dispatcher
+   from Supabase `pg_cron` while preserving lower-frequency product jobs.
 5. Set the GitHub Actions repository variable `TURSO_PRICE_WRITE_MODE=shadow`
    for several complete collection cycles.
    Supabase remains authoritative. Each Turso slot must exactly match the
@@ -161,18 +126,10 @@ closed with HTTP 401 and leaves existing Turso data untouched.
    the same release. Raw-history readers use Supabase before that instant and
    Turso from that instant onward. The service refuses primary writes if the
    boundary is absent or invalid.
-8. Deploy the Vercel release containing `/api/cron/turso-ingest` and
-   `/api/cron/turso-project`, set the production-only
-   `INGEST_SCHEDULER_SECRET`, then deploy `workers/turso-ingest-scheduler/`
-   with the identical Worker secret. The Worker configuration is the sole
-   owner of the raw `*/15 * * * *` and projection `3,18,33,48 * * * *` Cron
-   triggers; allow up to 15 minutes for a Cron-trigger change to propagate.
-9. Invoke the signed ingest route once for the current quarter-hour and verify one
-   `snapshot_ingest_leases` row reaches `completed_at_ms` only after the
-   matching `snapshot_slots` row exists. Check the Cloudflare Worker log for a
-   `turso_ingest_triggered` event. Then invoke the signed project route and
-   verify that its receipt exists in `turso_price_slot_receipts`. Both routes
-   must reject an unauthenticated request with 401.
+8. Confirm the GitHub Actions schedules are active on the default branch, then
+   dispatch each workflow once. Verify a `snapshot_ingest_leases` row reaches
+   `completed_at_ms` only after its matching `snapshot_slots` row exists, and
+   verify the matching `turso_price_slot_receipts` receipt is present.
 
 ## Rollback
 
@@ -181,20 +138,17 @@ new fine-price writes and reads to the existing Supabase flow. Do not delete
 Turso data or the Supabase receipt table; they are required to investigate or
 replay an interrupted hand-off.
 
-If the independent scheduler must be paused, remove its Cron entry through
-the Worker configuration and deploy that configuration; do not delete the
-Worker, the signing secret, or any Turso evidence. Retain the GitHub fallback
-until a replacement capture path has been verified.
+If high-frequency collection must be paused, disable the two GitHub Actions
+schedules. Do not delete Turso data or the Supabase receipt table.
 
 ## Verification commands
 
 ```bash
 npm run db:check:turso-price-projection
 npm run db:check:turso-price-projection-dispatcher
-npm run db:check:cloudflare-primary-projection-migration
+npm run db:check:github-primary-turso-scheduler
 npm run turso:price:migrate
-npm run worker:turso-ingest:check
-npx jest src/lib/turso/price/__tests__ src/lib/reports/__tests__/snapshotIngest.test.ts src/lib/supabase/__tests__/snapshotHistory.turso.test.ts --runInBand
+npx jest src/lib/turso/price/__tests__ src/lib/supabase/__tests__/snapshotHistory.turso.test.ts --runInBand
 ```
 
 After the primary release, check that each Turso slot has an acknowledgement,
