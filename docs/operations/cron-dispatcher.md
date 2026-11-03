@@ -3,10 +3,13 @@
 ## Outcome
 
 Supabase `pg_cron` dispatches low-frequency product jobs, while GitHub Actions
-owns the two high-frequency Turso clocks directly:
+owns the two high-frequency Turso clocks directly. After each native window,
+Supabase performs a primary-key receipt probe and dispatches recovery only if
+the completed slot is missing:
 
 ```text
 GitHub schedule → GitHub runner → Turso raw slot → Supabase idempotent projection
+Supabase receipt check (only missing slot) → GitHub workflow_dispatch → same idempotent runner
 Supabase pg_cron → pg_net → GitHub workflow_dispatch → GitHub runner
 ```
 
@@ -17,7 +20,8 @@ The dispatcher covers the low-frequency product-critical jobs:
 
 | Workflow                        | Primary cadence                                      | Native GitHub fallback                           |
 | ------------------------------- | ---------------------------------------------------- | ------------------------------------------------ |
-| `snapshot-collect.yml`          | GitHub native `:00,:15,:30,:45`                      | Turso lease makes retries/manual recovery safe   |
+| `snapshot-collect.yml`          | GitHub native `:00,:15,:30,:45`                      | receipt-gated check at `:07,:22,:37,:52`         |
+| `turso-price-project.yml`       | GitHub native `:03,:18,:33,:48`                      | receipt-gated check at `:10,:25,:40,:55`         |
 | `oracle-watch-collect.yml`      | hourly (dispatch :08, reduced from every 30 minutes) | hourly at :00, skips while ledger is fresh       |
 | `reputation-cron.yml`           | every 2 hours (dispatch :27, reduced from hourly)    | same cadence at :07, skips while ledger is fresh |
 | `safety-outcome-cron.yml`       | every 2 hours                                        | same cadence, skips while ledger is fresh        |
@@ -34,8 +38,10 @@ The dispatcher covers the low-frequency product-critical jobs:
    permission `Actions: Read and write`; no organization/account permissions.
 3. Apply migration `0045_reliable_github_dispatcher.sql` in Supabase. For the
    current Turso control plane, also apply
-   `0119_github_primary_turso_scheduler.sql`; it removes the high-frequency
-   snapshot dispatcher from Supabase.
+   `0119_github_primary_turso_scheduler.sql`, followed by
+   `0120_receipt_gated_turso_fallback.sql`; together they remove the
+   unconditional high-frequency dispatcher while retaining a conditional
+   self-healing path for a missing receipt.
 4. In Supabase SQL Editor, substitute the token locally and run:
 
    ```sql
@@ -81,9 +87,10 @@ SELECT public.disable_github_workflow_dispatcher();
 ```
 
 Native GitHub schedules remain active for the high-frequency Turso collector
-and projector. To rotate the PAT, update the existing Vault secret in the
-Supabase Vault UI; there is no reason to modify a migration or repository
-secret.
+and projector. Receipt-gated recovery jobs are also disabled; re-enable them
+with `SELECT public.enable_github_workflow_dispatcher();` after the incident.
+To rotate the PAT, update the existing Vault secret in the Supabase Vault UI;
+there is no reason to modify a migration or repository secret.
 
 ## Free-tier bounds
 

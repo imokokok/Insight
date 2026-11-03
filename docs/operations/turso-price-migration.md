@@ -59,8 +59,11 @@ than silently using an indefinitely old configuration.
 
 Projection drains up to four bounded outbox batches per invocation. This lets a
 multi-hour Supabase outage catch up promptly without turning recovery into
-unbounded write pressure. Supabase `pg_cron` does not participate in either
-high-frequency Turso critical path.
+unbounded write pressure. GitHub Actions remains the high-frequency primary.
+Supabase `pg_cron` performs only two receipt-indexed checks per 15-minute slot:
+after the native windows, it dispatches a collector or projector recovery only
+when that slot has no `turso_price_slot_receipts` row. A healthy slot therefore
+adds no pg_net request, ledger write, runner start, or duplicate upstream read.
 
 ## Required configuration
 
@@ -103,8 +106,11 @@ projector workflow also accepts repository variables
 3. Run `npm run build:cron`, then deploy both generated collector and projector
    bundles while still in `legacy` mode.
 4. Apply `0119_github_primary_turso_scheduler.sql` after the GitHub workflow
-   schedules are on `main`. It removes the high-frequency snapshot dispatcher
-   from Supabase `pg_cron` while preserving lower-frequency product jobs.
+   schedules are on `main`. Then apply
+   `0120_receipt_gated_turso_fallback.sql`. Together they remove the old
+   unconditional high-frequency dispatcher and add receipt-gated recovery for
+   a missed or delayed native GitHub schedule while preserving lower-frequency
+   product jobs.
 5. Set the GitHub Actions repository variable `TURSO_PRICE_WRITE_MODE=shadow`
    for several complete collection cycles.
    Supabase remains authoritative. Each Turso slot must exactly match the
@@ -147,6 +153,7 @@ schedules. Do not delete Turso data or the Supabase receipt table.
 npm run db:check:turso-price-projection
 npm run db:check:turso-price-projection-dispatcher
 npm run db:check:github-primary-turso-scheduler
+npm run db:check:receipt-gated-turso-fallback
 npm run turso:price:migrate
 npx jest src/lib/turso/price/__tests__ src/lib/supabase/__tests__/snapshotHistory.turso.test.ts --runInBand
 ```
