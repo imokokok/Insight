@@ -338,6 +338,16 @@ export async function assessPolymarketGuard(
     escalate('block');
     checks.push({ id: 'lifecycle', status: 'block', detail: 'market is not active' });
     reasons.push('market not active');
+  } else if (market.closed === null && market.active === null) {
+    // Fail closed on honesty: metadata that cannot state its own lifecycle
+    // state is not a verified-open market.
+    escalate('caution');
+    checks.push({
+      id: 'lifecycle',
+      status: 'caution',
+      detail: 'lifecycle state unknown (closed and active both absent from metadata)',
+    });
+    reasons.push('market lifecycle state unknown');
   } else {
     checks.push({
       id: 'lifecycle',
