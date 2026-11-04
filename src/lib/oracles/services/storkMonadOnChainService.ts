@@ -8,8 +8,10 @@ import {
   STORK_MONAD_RPC_ENDPOINTS,
   type StorkMonadFeed,
 } from '@/lib/oracles/constants/storkMonad';
+import { mapWithConcurrency } from '@/lib/utils/concurrency';
 import { createLogger } from '@/lib/utils/logger';
 
+import { aggregateMonadCalls } from '../utils/monadMulticall';
 import { RpcClientWithFallback } from '../utils/rpcClientWithFallback';
 
 const logger = createLogger('StorkMonadOnChainService');
@@ -105,6 +107,15 @@ function decodeStorkPrice(raw: string, feed: StorkMonadFeed): StorkMonadPriceDat
   };
 }
 
+function assertEncodedAssetId(feed: StorkMonadFeed): void {
+  // Independently protect the checked-in plaintext asset ID from an accidental
+  // mismatch with the bytes32 passed to Stork's contract.
+  const derivedAssetId = keccak256(toHex(feed.assetId));
+  if (derivedAssetId.toLowerCase() !== feed.encodedAssetId.toLowerCase()) {
+    throw new Error(`Stork encoded asset id mismatch for ${feed.alias}`);
+  }
+}
+
 export class StorkMonadOnChainService {
   private readonly rpcClient: RpcClientWithFallback;
   private readonly cache = new OracleCache();
@@ -119,12 +130,7 @@ export class StorkMonadOnChainService {
     if (cached && this.isUsable(cached)) return cached;
     if (cached) this.cache.delete(cacheKey);
 
-    // This independently protects the checked-in plaintext asset id from an
-    // accidental mismatch with the bytes32 sent to the contract.
-    const derivedAssetId = keccak256(toHex(feed.assetId));
-    if (derivedAssetId.toLowerCase() !== feed.encodedAssetId.toLowerCase()) {
-      throw new Error(`Stork encoded asset id mismatch for ${feed.alias}`);
-    }
+    assertEncodedAssetId(feed);
 
     const data = encodeFunctionData({
       abi: STORK_ABI,
@@ -138,6 +144,109 @@ export class StorkMonadOnChainService {
       data,
       signal
     );
+    return this.acceptPrice(feed, raw, cacheKey);
+  }
+
+  /** Read reviewed Stork asset IDs in bounded Multicall3 chunks on Monad. */
+  async getPrices(
+    feeds: readonly StorkMonadFeed[],
+    signal?: AbortSignal
+  ): Promise<StorkMonadPriceData[]> {
+    if (feeds.length === 0) return [];
+    if (new Set(feeds.map((feed) => feed.encodedAssetId.toLowerCase())).size !== feeds.length) {
+      throw new Error('Stork Monad batch contains duplicate asset IDs');
+    }
+
+    const readings = new Map<string, StorkMonadPriceData>();
+    const pending: StorkMonadFeed[] = [];
+    for (const feed of feeds) {
+      const cacheKey = `stork-monad:${feed.encodedAssetId}`;
+      const cached = this.cache.get<StorkMonadPriceData>(cacheKey);
+      if (cached && this.isUsable(cached)) readings.set(feed.encodedAssetId, cached);
+      else {
+        if (cached) this.cache.delete(cacheKey);
+        try {
+          assertEncodedAssetId(feed);
+          pending.push(feed);
+        } catch (error) {
+          logger.warn('Rejected Stork Monad feed with mismatched encoded asset ID', {
+            symbol: feed.alias,
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
+      }
+    }
+    if (pending.length === 0) return feeds.flatMap((feed) => [readings.get(feed.encodedAssetId)!]);
+
+    const endpoints = [
+      ...(ALCHEMY_RPC.monad ? [ALCHEMY_RPC.monad] : []),
+      ...STORK_MONAD_RPC_ENDPOINTS,
+    ];
+    let aggregateResults: Awaited<ReturnType<typeof aggregateMonadCalls>> | null = null;
+    try {
+      aggregateResults = await aggregateMonadCalls(
+        this.rpcClient,
+        endpoints,
+        pending.map((feed) => ({
+          target: STORK_MONAD_CONTRACT_ADDRESS,
+          allowFailure: true,
+          callData: encodeFunctionData({
+            abi: STORK_ABI,
+            functionName: 'getTemporalNumericValueV1',
+            args: [feed.encodedAssetId],
+          }),
+        })),
+        signal
+      );
+    } catch (error) {
+      logger.warn('Stork Monad Multicall failed; using bounded individual reads', {
+        error: error instanceof Error ? error.message : String(error),
+        feeds: pending.length,
+      });
+    }
+
+    const fallback = async (feed: StorkMonadFeed): Promise<void> => {
+      try {
+        readings.set(feed.encodedAssetId, await this.getPrice(feed, signal));
+      } catch (error) {
+        logger.warn('Stork Monad batch feed is unavailable after individual fallback', {
+          symbol: feed.alias,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    };
+    if (!aggregateResults) {
+      await mapWithConcurrency(pending, 4, fallback);
+      return feeds.flatMap((feed) => {
+        const reading = readings.get(feed.encodedAssetId);
+        return reading ? [reading] : [];
+      });
+    }
+
+    const fallbacks: StorkMonadFeed[] = [];
+    for (const [index, feed] of pending.entries()) {
+      const result = aggregateResults[index];
+      if (!result?.success) {
+        fallbacks.push(feed);
+        continue;
+      }
+      try {
+        readings.set(
+          feed.encodedAssetId,
+          this.acceptPrice(feed, result.returnData, `stork-monad:${feed.encodedAssetId}`)
+        );
+      } catch {
+        fallbacks.push(feed);
+      }
+    }
+    await mapWithConcurrency(fallbacks, 4, fallback);
+    return feeds.flatMap((feed) => {
+      const reading = readings.get(feed.encodedAssetId);
+      return reading ? [reading] : [];
+    });
+  }
+
+  private acceptPrice(feed: StorkMonadFeed, raw: string, cacheKey: string): StorkMonadPriceData {
     const price = decodeStorkPrice(raw, feed);
     if (!this.isUsable(price)) {
       const age = Math.max(0, Math.floor(Date.now() / 1000) - price.sourceTimestamp);
@@ -145,10 +254,6 @@ export class StorkMonadOnChainService {
         `Stork Monad price is stale or future-dated for ${feed.alias} (age ${age}s, maximum ${feed.maxStalenessSeconds}s)`
       );
     }
-
-    // A contract safe-read already rejects values outside the contract's own
-    // valid window. Keep a short cache so a value cannot outlive Insight's
-    // independently enforced per-feed policy.
     this.cache.set(cacheKey, price, Math.min(30_000, price.maxAgeSeconds * 1000));
     return price;
   }

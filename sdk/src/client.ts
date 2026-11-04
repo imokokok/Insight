@@ -62,6 +62,11 @@ export class InsightClient {
 
   async preTrade(request: PreTradeRequest, signal?: AbortSignal): Promise<PreTradeResult> {
     if (request.decisionInput) validateDecisionInputRequest(request.decisionInput);
+    if (request.decisionInput?.reviewedUniswapV3 && !request.destinationAsset?.trim()) {
+      throw new TypeError(
+        'destinationAsset is required when reviewedUniswapV3 evidence is requested.'
+      );
+    }
     const query: Record<string, string | number | undefined> = {
       asset: request.asset,
       chainId: request.chainId,
@@ -83,6 +88,15 @@ export class InsightClient {
             maxReferenceDeviationBps: request.decisionInput.maxReferenceDeviationBps,
             maxSlippageBps: request.decisionInput.maxSlippageBps,
             maxQuoteAgeSeconds: request.decisionInput.maxQuoteAgeSeconds,
+            ...(request.decisionInput.reviewedUniswapV3
+              ? {
+                  reviewedUniswapV3AmountIn: request.decisionInput.reviewedUniswapV3.amountIn,
+                  reviewedUniswapV3MaxQuoteDeviationBps:
+                    request.decisionInput.reviewedUniswapV3.maxQuoteDeviationBps,
+                  reviewedUniswapV3MaxTwapDeviationBps:
+                    request.decisionInput.reviewedUniswapV3.maxTwapDeviationBps,
+                }
+              : {}),
           }
         : {}),
     };
@@ -428,6 +442,22 @@ function validateDecisionInputRequest(value: NonNullable<PreTradeRequest['decisi
     throw new TypeError(
       'decisionInput must contain finite prices, a timezone-qualified timestamp, and supported tolerances.'
     );
+  }
+  if (value.reviewedUniswapV3) {
+    const reviewed = value.reviewedUniswapV3;
+    if (
+      !/^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$/.test(reviewed.amountIn) ||
+      !Number.isSafeInteger(reviewed.maxQuoteDeviationBps) ||
+      reviewed.maxQuoteDeviationBps < 0 ||
+      reviewed.maxQuoteDeviationBps > 10_000 ||
+      !Number.isSafeInteger(reviewed.maxTwapDeviationBps) ||
+      reviewed.maxTwapDeviationBps < 0 ||
+      reviewed.maxTwapDeviationBps > 10_000
+    ) {
+      throw new TypeError(
+        'reviewedUniswapV3 must contain an exact positive decimal amount and supported bps limits.'
+      );
+    }
   }
 }
 

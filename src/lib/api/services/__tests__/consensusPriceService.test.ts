@@ -55,6 +55,20 @@ describe('resolveProvidersForSymbol', () => {
     expect(isSymbolSupported).toHaveBeenCalledWith('ETH', Blockchain.BASE);
   });
 
+  it('uses BNB oracle coverage as the price reference for canonical WBNB', async () => {
+    getAllActiveFeedsByProviderWithStatus.mockResolvedValue({
+      feeds: new Map<string, unknown[]>([
+        [OracleProvider.CHAINLINK, [{ symbol: 'BNB/USD', chain_id: 56 }]],
+      ]),
+      errored: false,
+    });
+
+    const providers = await resolveProvidersForSymbol('WBNB', Blockchain.BNB_SMART_CHAIN);
+
+    expect(providers).toContain(OracleProvider.CHAINLINK);
+    expect(isSymbolSupported).toHaveBeenCalledWith('BNB', Blockchain.BNB_SMART_CHAIN);
+  });
+
   it('does not treat another quote currency or another chain as registered USD coverage', async () => {
     getAllActiveFeedsByProviderWithStatus.mockResolvedValue({
       feeds: new Map<string, unknown[]>([
@@ -153,6 +167,18 @@ describe('resolveProvidersForSymbol', () => {
     }));
 
     const providers = await resolveProvidersForSymbol('MON', Blockchain.MONAD);
+
+    expect(providers).toEqual([OracleProvider.PYTH]);
+  });
+
+  it('keeps the pinned Solana Pyth Core registry available while the operational feed mirror is empty', async () => {
+    getAllActiveFeedsByProviderWithStatus.mockResolvedValue({ feeds: new Map(), errored: false });
+    getClient.mockImplementation((provider: OracleProvider) => ({
+      isSymbolSupported: (symbol: string, chain?: Blockchain) =>
+        provider === OracleProvider.PYTH && symbol === 'SOL' && chain === Blockchain.SOLANA,
+    }));
+
+    const providers = await resolveProvidersForSymbol('SOL', Blockchain.SOLANA);
 
     expect(providers).toEqual([OracleProvider.PYTH]);
   });
@@ -300,6 +326,33 @@ describe('getConsensusPrice provider scoping', () => {
     expect(result.participantCount).toBe(1);
     expect(result.providers).toMatchObject([
       { provider: OracleProvider.PYTH, status: 'success', source: 'Pyth Core Monad:MON/USD' },
+    ]);
+  });
+
+  it('reads a Pyth-only Solana request directly from the pinned Core client', async () => {
+    const getPrice = jest.fn().mockResolvedValue({
+      provider: OracleProvider.PYTH,
+      symbol: 'SOL/USD',
+      chain: Blockchain.SOLANA,
+      price: 151.23,
+      timestamp: Date.now(),
+      confidence: 0.99,
+      source: 'Pyth Core Solana:SOL/USD',
+      dataAge: 2,
+      ingestionTimestamp: Date.now(),
+    });
+    getClient.mockReturnValue({ isSymbolSupported, getPrice });
+
+    const result = await getConsensusPrice('SOL', Blockchain.SOLANA, undefined, [
+      OracleProvider.PYTH,
+    ]);
+
+    expect(getPrice).toHaveBeenCalledWith('SOL', Blockchain.SOLANA);
+    expect(mockFetchPriceWithDatabase).not.toHaveBeenCalled();
+    expect(mockGetReputations).not.toHaveBeenCalled();
+    expect(result.participantCount).toBe(1);
+    expect(result.providers).toMatchObject([
+      { provider: OracleProvider.PYTH, status: 'success', source: 'Pyth Core Solana:SOL/USD' },
     ]);
   });
 });

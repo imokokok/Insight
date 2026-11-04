@@ -19,7 +19,10 @@ describe('verifyCronSecret', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    process.env = { ...originalEnv, CRON_SECRET: 'super-secret-cron-token' };
+    process.env = {
+      ...originalEnv,
+      CRON_SECRET: 'super-secret-cron-token',
+    };
   });
 
   afterEach(() => {

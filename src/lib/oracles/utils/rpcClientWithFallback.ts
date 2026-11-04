@@ -31,6 +31,44 @@ interface RpcUsage {
 }
 const usage = new Map<string, RpcUsage>();
 
+/**
+ * Record a transport outside RpcClientWithFallback (currently native Solana
+ * JSON-RPC). Keep this aggregate-only so collector resource logs remain safe
+ * to retain: no endpoint, credential, calldata, response body, or account ID.
+ */
+export function recordRpcUsage(input: {
+  context: string;
+  chain: string;
+  method: string;
+  kind?: RpcUsage['kind'];
+  success: boolean;
+  timedOut?: boolean;
+  durationMs: number;
+}): void {
+  const kind = input.kind ?? 'read';
+  const usageKey = JSON.stringify([input.context, input.chain, input.method, kind]);
+  if (!usage.has(usageKey) && usage.size < 256) {
+    usage.set(usageKey, {
+      context: input.context,
+      chain: input.chain,
+      method: input.method,
+      kind,
+      attempts: 0,
+      successes: 0,
+      failures: 0,
+      timeouts: 0,
+      durationMs: 0,
+    });
+  }
+  const counter = usage.get(usageKey);
+  if (!counter) return;
+  counter.attempts++;
+  if (input.success) counter.successes++;
+  else counter.failures++;
+  if (input.timedOut) counter.timeouts++;
+  counter.durationMs += Math.max(0, Math.round(input.durationMs));
+}
+
 /** Aggregate counters only: no endpoints, credentials, calldata or response bodies. */
 export function getRpcUsage(): RpcUsage[] {
   return [...usage.values()].map((row) => ({ ...row }));

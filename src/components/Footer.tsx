@@ -14,8 +14,10 @@ import {
 
 const PLATFORM_LINKS = [
   ['Home', '/'],
+  ['Decision Integrity', '/decision-integrity'],
   ['Oracle Evidence', '/price-insight?stage=observe'],
   ['Compare & Assess', '/price-insight?stage=compare'],
+  ['Risk Intelligence', '/risk-intelligence'],
   ['Oracle Directory', '/reputation'],
   ['Daily Reports', '/reports'],
   ['API', '/api'],
@@ -24,10 +26,10 @@ const PLATFORM_LINKS = [
   ['Guard SDK', '/sdk'],
 ] as const;
 
-const SAFETY_LINKS = [
-  ['Safety Check', '/safety-check'],
-  ['Pre-Trade Safety Check', '/ai#safety-check'],
-  ['Oracle Watch', '/ai#oracle-watch'],
+const RISK_TOOL_LINKS = [
+  ['Position Stress Test', '/safety-check'],
+  ['Pre-Trade Assessment', '/decision-integrity#pre-trade'],
+  ['Oracle Watch', '/decision-integrity#oracle-watch-demo'],
   ['Peg Risk', '/peg-risk'],
 ] as const;
 
@@ -104,7 +106,7 @@ export default function Footer() {
 
         <div className="evidence-footer-index">
           <FooterLinkGroup index="01" title="Platform" links={PLATFORM_LINKS} />
-          <FooterLinkGroup index="02" title="Safety" links={SAFETY_LINKS} />
+          <FooterLinkGroup index="02" title="Risk tools" links={RISK_TOOL_LINKS} />
 
           <nav className="evidence-footer-group" aria-label="Resources">
             <p>

@@ -12,9 +12,16 @@ import {
   ShieldCheck,
   XCircle,
 } from 'lucide-react';
+import { z } from 'zod';
 
 import { Button } from '@/components/ui/Button';
 import { useAppUrl } from '@/hooks/useAppUrl';
+import {
+  apiErrorCode,
+  apiErrorMessage,
+  parseApiEnvelope,
+  requireApiData,
+} from '@/lib/api/client/responseValidation';
 import { useSession } from '@/stores/authStore';
 
 type Verdict = 'normal' | 'caution' | 'danger';
@@ -77,6 +84,56 @@ interface OracleWatchSignal {
   }>;
   evaluatedAt: string;
 }
+
+const WatchAttestationSchema: z.ZodType<WatchAttestation> = z.object({
+  uid: z.string(),
+  schemaVersion: z.union([z.literal(1), z.literal(2)]),
+  attester: z.string(),
+  attesterLabel: z.string(),
+  validUntil: z.number(),
+  validForSeconds: z.number(),
+  signature: z.string(),
+  verifyUrl: z.string(),
+});
+
+const OracleWatchSignalSchema: z.ZodType<OracleWatchSignal> = z.object({
+  symbol: z.string(),
+  chain: z.string().nullable(),
+  verdict: z.enum(['normal', 'caution', 'danger']),
+  recommendation: z.enum(['proceed', 'proceed_with_caution', 'halt']),
+  maxDeviationPct: z.number().nullable(),
+  agreement: z.number(),
+  participantCount: z.number(),
+  outlierCount: z.number(),
+  staleCount: z.number(),
+  consensusPrice: z.number().nullable(),
+  reason: z.string(),
+  reasonCodes: z.array(z.string()).optional(),
+  requiredParticipantCount: z.number().optional(),
+  sourceGroupCount: z.number().optional(),
+  requiredSourceGroupCount: z.number().optional(),
+  independenceSatisfied: z.boolean().optional(),
+  attestation: WatchAttestationSchema.nullable().optional(),
+  mlRiskScore: z.number().nullable(),
+  mlScore1h: z.number().nullable(),
+  mlScore6h: z.number().nullable(),
+  mlRiskLevel: z.enum(['low', 'medium', 'high']).nullable(),
+  avgReputation: z.number().nullable(),
+  minReputation: z.number().nullable(),
+  quorumSatisfied: z.boolean(),
+  trustScore: z.number(),
+  trustLevel: z.enum(['low', 'medium', 'high']),
+  providers: z.array(
+    z.object({
+      provider: z.string(),
+      status: z.enum(['success', 'unsupported', 'error']),
+      deviationPct: z.number().nullable(),
+      isOutlier: z.boolean(),
+      isStale: z.boolean(),
+    })
+  ),
+  evaluatedAt: z.string(),
+});
 
 const CHAIN_OPTIONS = [
   { label: 'Any chain', value: '' },
@@ -160,16 +217,16 @@ export function OracleWatchDemo({ apiKey }: { apiKey?: string }) {
 
       const endpoint = apiKey ? '/api/v1/oracle-watch' : '/api/demo/oracle-watch';
       const res = await fetch(`${endpoint}?${params.toString()}`, { headers });
-      const json = await res.json();
+      const json = parseApiEnvelope(await res.json(), 'Oracle Watch response');
 
       if (!res.ok || !json.success) {
-        const code = json?.error?.code ?? 'UNKNOWN';
-        const message = json?.error?.message ?? 'Request failed';
+        const code = apiErrorCode(json);
+        const message = apiErrorMessage(json, 'Request failed');
         setError(`${code}: ${message}`);
         return;
       }
 
-      setResult(json.data as OracleWatchSignal);
+      setResult(requireApiData(json, OracleWatchSignalSchema, 'Oracle Watch response'));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Network error');
     } finally {

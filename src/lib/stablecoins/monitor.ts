@@ -28,7 +28,16 @@ import type {
 const logger = createLogger('stablecoin-monitor');
 
 const SNAPSHOT_CACHE_TTL = ORACLE_CACHE_TTL.PRICE;
-const snapshotCache = new TTLCache({ maxSize: 16, cleanupIntervalMs: 60000 });
+// Capacity is bounded and entries expire lazily on reads, so a per-instance
+// interval only wakes an otherwise idle server. Keep this cache timer-free.
+const snapshotCache = new TTLCache({ maxSize: 16, cleanupIntervalMs: 0 });
+const snapshotInFlight = new Map<string, Promise<StablecoinDepegSnapshot>>();
+
+/** Test seam — clears completed and pending process-local snapshots. */
+export function resetStablecoinSnapshotCacheForTests(): void {
+  snapshotCache.clear();
+  snapshotInFlight.clear();
+}
 
 export interface StablecoinDepegSnapshot {
   symbol: StablecoinSymbol;
@@ -80,7 +89,8 @@ interface DexPriceFetchResult {
 
 async function fetchDexPrices(
   symbol: string,
-  dexPools: DexPoolConfig[]
+  dexPools: DexPoolConfig[],
+  signal?: AbortSignal
 ): Promise<DexPriceFetchResult[]> {
   const results = await Promise.all(
     dexPools.map(async (pool) => {
@@ -89,13 +99,17 @@ async function fetchDexPrices(
 
         switch (pool.dexName) {
           case 'uniswap-v3': {
-            const spotData = await twapOnChainService.getSpotPrice(symbol, pool.chainId);
+            const spotData = await twapOnChainService.getSpotPrice(symbol, pool.chainId, signal);
             price = spotData.spotPrice;
             break;
           }
           case 'curve': {
             const reference = pool.token1Symbol;
-            const curveResult = await curvePoolService.getStablecoinPrice(symbol, reference);
+            const curveResult = await curvePoolService.getStablecoinPrice(
+              symbol,
+              reference,
+              signal
+            );
             price = curveResult?.price ?? null;
             break;
           }
@@ -245,13 +259,42 @@ function calculateCompositeRisk(
 // ---------- Main snapshot calculation ----------
 
 export async function calculateStablecoinDepegSnapshot(
-  symbol: StablecoinSymbol
+  symbol: StablecoinSymbol,
+  options: { signal?: AbortSignal } = {}
 ): Promise<StablecoinDepegSnapshot> {
   const cacheKey = `snapshot:${symbol}`;
   const cached = snapshotCache.get<StablecoinDepegSnapshot>(cacheKey);
   if (cached) {
     return cached;
   }
+
+  // A caller-owned signal cannot safely be shared: aborting one HTTP request
+  // must not cancel another request that happens to need the same snapshot.
+  // Signal-free calls (cron, MCP and most server reads) can share one costly
+  // recomputation after cache expiry.
+  if (options.signal) {
+    return loadStablecoinDepegSnapshot(symbol, options);
+  }
+
+  const pending = snapshotInFlight.get(cacheKey);
+  if (pending) return pending;
+
+  const request = loadStablecoinDepegSnapshot(symbol, options);
+  snapshotInFlight.set(cacheKey, request);
+  try {
+    return await request;
+  } finally {
+    if (snapshotInFlight.get(cacheKey) === request) {
+      snapshotInFlight.delete(cacheKey);
+    }
+  }
+}
+
+async function loadStablecoinDepegSnapshot(
+  symbol: StablecoinSymbol,
+  options: { signal?: AbortSignal }
+): Promise<StablecoinDepegSnapshot> {
+  const cacheKey = `snapshot:${symbol}`;
 
   const config = getStablecoinConfig(symbol);
   if (!config) {
@@ -267,7 +310,8 @@ export async function calculateStablecoinDepegSnapshot(
           source.symbol,
           source.chain,
           true,
-          false
+          false,
+          options.signal
         );
         return {
           source,
@@ -322,7 +366,7 @@ export async function calculateStablecoinDepegSnapshot(
     oracleReferencePrice > 0 ? ((oracleMaxPrice - oracleMinPrice) / oracleReferencePrice) * 100 : 0;
 
   // === Step 2: Fetch DEX market prices (new) ===
-  const dexResults = await fetchDexPrices(symbol, config.dexPools);
+  const dexResults = await fetchDexPrices(symbol, config.dexPools, options.signal);
 
   const marketSources: SourcePriceSnapshot[] = dexResults.map((r) => ({
     sourceId: `dex:${r.pool.dexName}:${r.pool.chain}:${symbol}`,
@@ -415,16 +459,28 @@ export async function calculateStablecoinDepegSnapshot(
   return snapshot;
 }
 
-export async function calculateAllStablecoinSnapshots(): Promise<StablecoinDepegSnapshot[]> {
-  const cacheKey = 'all-snapshots';
+export async function calculateAllStablecoinSnapshots(
+  options: {
+    /** Limit a request-path evaluation to the stablecoins it actually touches. */
+    symbols?: readonly string[];
+    signal?: AbortSignal;
+  } = {}
+): Promise<StablecoinDepegSnapshot[]> {
+  const selectedSymbols = options.symbols
+    ? [...new Set(options.symbols.map((symbol) => symbol.toUpperCase()))].sort()
+    : null;
+  const cacheKey = selectedSymbols ? `snapshots:${selectedSymbols.join(',')}` : 'all-snapshots';
   const cached = snapshotCache.get<StablecoinDepegSnapshot[]>(cacheKey);
   if (cached) {
     return cached;
   }
 
   const { STABLECOINS } = await import('./config');
+  const selectedCoins = selectedSymbols
+    ? STABLECOINS.filter((coin) => selectedSymbols.includes(coin.symbol))
+    : STABLECOINS;
   const results = await Promise.allSettled(
-    STABLECOINS.map((coin) => calculateStablecoinDepegSnapshot(coin.symbol))
+    selectedCoins.map((coin) => calculateStablecoinDepegSnapshot(coin.symbol, options))
   );
 
   const snapshots: StablecoinDepegSnapshot[] = [];

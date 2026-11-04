@@ -18,12 +18,14 @@ import {
   TrendingUp,
   Zap,
 } from 'lucide-react';
+import { z } from 'zod';
 
 import { ApiKeyManager } from '@/components/api-keys';
 import { DeveloperPathSwitch } from '@/components/developer/DeveloperPathSwitch';
 import { EditorialWorkspaceHeader, EvidenceProcessRail } from '@/components/editorial';
 import { PricingCtaSection } from '@/components/pricing';
 import { Button } from '@/components/ui/Button';
+import { parseApiEnvelope, requireApiData } from '@/lib/api/client/responseValidation';
 import { PLANS } from '@/lib/billing/plans';
 import { announceNavigationStart } from '@/lib/navigation/progress';
 import { createLogger } from '@/lib/utils/logger';
@@ -44,6 +46,17 @@ interface ApiKeyItem {
   prefix: string;
   plainKey?: string;
 }
+
+const ApiKeyListSchema = z.object({
+  keys: z.array(
+    z.object({
+      id: z.string(),
+      name: z.string(),
+      prefix: z.string(),
+      plainKey: z.string().optional(),
+    })
+  ),
+});
 
 const CAPABILITIES = [
   {
@@ -175,10 +188,11 @@ export function AiPageContent() {
       headers: { Authorization: `Bearer ${session.access_token}` },
     })
       .then((res) => res.json())
-      .then((result) => {
+      .then((payload: unknown) => {
         if (cancelled) return;
+        const result = parseApiEnvelope(payload, 'API key list response');
         if (result.success) {
-          setKeys(result.data.keys as ApiKeyItem[]);
+          setKeys(requireApiData(result, ApiKeyListSchema, 'API key list response').keys);
         }
       })
       .catch((err) => {
@@ -212,7 +226,7 @@ export function AiPageContent() {
           action={
             <div className="flex flex-wrap items-center gap-2">
               <a
-                href="#safety-check"
+                href="#pre-trade"
                 className="inline-flex items-center gap-2 border border-slate-950 bg-slate-950 px-4 py-2 text-sm font-medium text-white transition-colors hover:border-blue-700 hover:bg-blue-700"
               >
                 <ShieldCheck className="w-4 h-4" />
@@ -247,8 +261,8 @@ export function AiPageContent() {
           aria-label="On this page"
         >
           <span>Jump to</span>
-          <a href="#safety-check">Safety Check</a>
-          <a href="#oracle-watch">Oracle Watch</a>
+          <a href="#pre-trade">Pre-trade assessment</a>
+          <a href="#oracle-watch-demo">Oracle Watch</a>
           <a href="#config">MCP config</a>
           <a href="#playground">Playground</a>
           <Link href="/pricing">Pricing</Link>
@@ -298,7 +312,7 @@ export function AiPageContent() {
             ))}
 
             <a
-              href="#oracle-watch"
+              href="#oracle-watch-demo"
               className="flex flex-col gap-4 border-t border-blue-200 bg-blue-50/50 p-6 transition-colors hover:bg-blue-50 sm:col-span-2 sm:flex-row sm:items-center lg:col-span-4"
             >
               <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center bg-blue-700 text-white">
@@ -323,10 +337,8 @@ export function AiPageContent() {
       </section>
 
       {/* ===================== SAFETY CHECK DEMO ===================== */}
-      <section
-        id="safety-check"
-        className="border-y border-slate-900/10 bg-white/45 py-14 sm:py-20"
-      >
+      <span id="safety-check" className="block scroll-mt-20" aria-hidden="true" />
+      <section id="pre-trade" className="border-y border-slate-900/10 bg-white/45 py-14 sm:py-20">
         <div className="editorial-frame mx-auto max-w-[1240px] px-5 sm:px-8">
           <div className="mb-10 border-b border-slate-900/15 pb-5">
             <p className="editorial-index mb-4">02 — Gate the action</p>
@@ -363,7 +375,8 @@ export function AiPageContent() {
       </section>
 
       {/* ===================== ORACLE WATCH DEMO ===================== */}
-      <section id="oracle-watch" className="border-b border-slate-900/10 py-14 sm:py-20">
+      <span id="oracle-watch" className="block scroll-mt-20" aria-hidden="true" />
+      <section id="oracle-watch-demo" className="border-b border-slate-900/10 py-14 sm:py-20">
         <div className="editorial-frame mx-auto max-w-[1240px] px-5 sm:px-8">
           <div className="mb-10 border-b border-slate-900/15 pb-5">
             <p className="editorial-index mb-4">03 — Watch between actions</p>

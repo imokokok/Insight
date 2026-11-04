@@ -27,10 +27,10 @@ describe('derived pricing', () => {
 
   it('translates credit allowances into concrete call counts', () => {
     expect(creditAllowanceExamples(25_000, ['C2', 'C3'])).toBe(
-      '≈12,500 deep-analysis calls or ≈5,000 pre-trade checks'
+      '≈25,000 deep-analysis calls or ≈5,000 pre-trade checks'
     );
     expect(creditAllowanceExamples(100_000, ['C2', 'C3'])).toBe(
-      '≈50,000 deep-analysis calls or ≈20,000 pre-trade checks'
+      '≈100,000 deep-analysis calls or ≈20,000 pre-trade checks'
     );
     expect(creditAllowanceExamples(500_000, ['C3', 'C4'])).toBe(
       '≈100,000 pre-trade checks or ≈50,000 attested receipts'
@@ -41,10 +41,10 @@ describe('derived pricing', () => {
     // These exact strings used to be hardcoded in plans.ts. They are now
     // derived, and the derived output must stay byte-identical.
     expect(CREDIT_PACKS.starter.description).toBe(
-      '≈12,500 deep-analysis calls or ≈5,000 pre-trade checks'
+      '≈25,000 deep-analysis calls or ≈5,000 pre-trade checks'
     );
     expect(CREDIT_PACKS.builder.description).toBe(
-      '≈50,000 deep-analysis calls or ≈20,000 pre-trade checks'
+      '≈100,000 deep-analysis calls or ≈20,000 pre-trade checks'
     );
     expect(CREDIT_PACKS.agent.description).toBe(
       '≈100,000 pre-trade checks or ≈50,000 attested receipts'

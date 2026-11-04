@@ -8,8 +8,10 @@ import {
   PYTH_MONAD_RPC_ENDPOINTS,
   type PythMonadFeed,
 } from '@/lib/oracles/constants/pythMonad';
+import { mapWithConcurrency } from '@/lib/utils/concurrency';
 import { createLogger } from '@/lib/utils/logger';
 
+import { aggregateMonadCalls } from '../utils/monadMulticall';
 import { RpcClientWithFallback } from '../utils/rpcClientWithFallback';
 
 const logger = createLogger('PythMonadOnChainService');
@@ -144,6 +146,103 @@ export class PythMonadOnChainService {
       data,
       signal
     );
+    return this.acceptPrice(feed, raw, cacheKey);
+  }
+
+  /**
+   * Batch-read reviewed Pyth feeds at one Monad state. A malformed or stale
+   * sub-result is retried through the established individual path so a
+   * Multicall transport detail can never silently deactivate a valid feed.
+   */
+  async getPrices(
+    feeds: readonly PythMonadFeed[],
+    signal?: AbortSignal
+  ): Promise<PythMonadPriceData[]> {
+    if (feeds.length === 0) return [];
+    if (new Set(feeds.map((feed) => feed.id)).size !== feeds.length) {
+      throw new Error('Pyth Monad batch contains duplicate feed IDs');
+    }
+
+    const readings = new Map<string, PythMonadPriceData>();
+    const pending: PythMonadFeed[] = [];
+    for (const feed of feeds) {
+      const cacheKey = `pyth-monad:${feed.id}`;
+      const cached = this.cache.get<PythMonadPriceData>(cacheKey);
+      if (cached && this.isUsable(cached)) readings.set(feed.id, cached);
+      else {
+        if (cached) this.cache.delete(cacheKey);
+        pending.push(feed);
+      }
+    }
+    if (pending.length === 0) return feeds.flatMap((feed) => [readings.get(feed.id)!]);
+
+    const endpoints = [
+      ...(ALCHEMY_RPC.monad ? [ALCHEMY_RPC.monad] : []),
+      ...PYTH_MONAD_RPC_ENDPOINTS,
+    ];
+    let aggregateResults: Awaited<ReturnType<typeof aggregateMonadCalls>> | null = null;
+    try {
+      aggregateResults = await aggregateMonadCalls(
+        this.rpcClient,
+        endpoints,
+        pending.map((feed) => ({
+          target: PYTH_MONAD_CORE_ADDRESS,
+          allowFailure: true,
+          callData: encodeFunctionData({
+            abi: PYTH_CORE_ABI,
+            functionName: 'getPriceUnsafe',
+            args: [`0x${feed.id}`],
+          }),
+        })),
+        signal
+      );
+    } catch (error) {
+      logger.warn('Pyth Monad Multicall failed; using bounded individual reads', {
+        error: error instanceof Error ? error.message : String(error),
+        feeds: pending.length,
+      });
+    }
+
+    const fallback = async (feed: PythMonadFeed): Promise<void> => {
+      try {
+        readings.set(feed.id, await this.getPrice(feed, signal));
+      } catch (error) {
+        logger.warn('Pyth Monad batch feed is unavailable after individual fallback', {
+          symbol: feed.alias,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    };
+
+    if (!aggregateResults) {
+      await mapWithConcurrency(pending, 4, fallback);
+      return feeds.flatMap((feed) => {
+        const reading = readings.get(feed.id);
+        return reading ? [reading] : [];
+      });
+    }
+
+    const fallbacks: PythMonadFeed[] = [];
+    for (const [index, feed] of pending.entries()) {
+      const result = aggregateResults[index];
+      if (!result?.success) {
+        fallbacks.push(feed);
+        continue;
+      }
+      try {
+        readings.set(feed.id, this.acceptPrice(feed, result.returnData, `pyth-monad:${feed.id}`));
+      } catch {
+        fallbacks.push(feed);
+      }
+    }
+    await mapWithConcurrency(fallbacks, 4, fallback);
+    return feeds.flatMap((feed) => {
+      const reading = readings.get(feed.id);
+      return reading ? [reading] : [];
+    });
+  }
+
+  private acceptPrice(feed: PythMonadFeed, raw: string, cacheKey: string): PythMonadPriceData {
     const price = decodePythPrice(raw, feed);
     if (!this.isUsable(price)) {
       const age = Math.max(0, Math.floor(Date.now() / 1000) - price.publishTime);
@@ -151,9 +250,6 @@ export class PythMonadOnChainService {
         `Pyth Monad price is stale or future-dated for ${feed.alias} (age ${age}s, maximum ${price.maxAgeSeconds}s)`
       );
     }
-
-    // The contract call is a snapshot. A very short cache prevents redundant
-    // reads without allowing an old value to outlive the freshness policy.
     this.cache.set(cacheKey, price, Math.min(30_000, price.maxAgeSeconds * 1000));
     return price;
   }

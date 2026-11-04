@@ -7,16 +7,24 @@ import { useRouter } from 'next/navigation';
 
 import { ChevronDown, ArrowRight } from 'lucide-react';
 
+import { isNavigationGroupActive, isNavigationLinkActive } from './isNavigationLinkActive';
 import { type NavGroup } from './types';
 
 interface MegaMenuProps {
   group: NavGroup;
   isActive: boolean;
   currentPath: string;
+  currentSearch?: string;
   onItemClick?: () => void;
 }
 
-export function MegaMenu({ group, isActive, currentPath, onItemClick }: MegaMenuProps) {
+export function MegaMenu({
+  group,
+  isActive,
+  currentPath,
+  currentSearch = '',
+  onItemClick,
+}: MegaMenuProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -75,9 +83,7 @@ export function MegaMenu({ group, isActive, currentPath, onItemClick }: MegaMenu
     }
   };
 
-  const isGroupActive = group.items.some(
-    (item) => currentPath === item.href || currentPath.startsWith(item.href + '/')
-  );
+  const isGroupActive = isNavigationGroupActive(group.items, currentPath, currentSearch);
   const GroupIcon = group.icon;
 
   return (
@@ -124,8 +130,7 @@ export function MegaMenu({ group, isActive, currentPath, onItemClick }: MegaMenu
             <div className="grid grid-cols-2">
               {group.items.map((item) => {
                 const ItemIcon = item.icon;
-                const isItemActive =
-                  currentPath === item.href || currentPath.startsWith(item.href + '/');
+                const isItemActive = isNavigationLinkActive(item.href, currentPath, currentSearch);
                 return (
                   <Link
                     key={item.href}

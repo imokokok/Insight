@@ -99,9 +99,12 @@ async function fetchOnChainData(
   const client = getDefaultFactory().getClient(provider) as ReturnType<
     ReturnType<typeof getDefaultFactory>['getClient']
   > & {
-    getTokenOnChainData?: (targetSymbol: string) => Promise<AnyOnChainData | null>;
+    getTokenOnChainData?: (
+      targetSymbol: string,
+      targetChain?: Blockchain
+    ) => Promise<AnyOnChainData | null>;
   };
-  return client.getTokenOnChainData?.(symbol) ?? null;
+  return client.getTokenOnChainData?.(symbol, chain) ?? null;
 }
 
 export const GET = createApiHandler(

@@ -13,8 +13,14 @@
 import { useEffect, useState } from 'react';
 
 import { CheckCircle2, Coins, Loader2, Zap } from 'lucide-react';
+import { z } from 'zod';
 
 import { Button } from '@/components/ui/Button';
+import {
+  apiErrorMessage,
+  parseApiEnvelope,
+  requireApiData,
+} from '@/lib/api/client/responseValidation';
 import { CREDIT_PACKS, CREDIT_PACK_ORDER } from '@/lib/billing/plans';
 
 interface CreditWalletCardProps {
@@ -35,6 +41,33 @@ interface WalletData {
   recent: Array<{ delta: number; kind: string; ref: string | null; createdAt: string }>;
 }
 
+const WalletDataSchema: z.ZodType<WalletData> = z.object({
+  balance: z.number(),
+  frozen: z.number(),
+  pending: z.array(
+    z.object({
+      id: z.string(),
+      credits: z.number(),
+      invoiceId: z.string().nullable(),
+      paymentId: z.string().nullable(),
+      createdAt: z.string(),
+    })
+  ),
+  recent: z.array(
+    z.object({
+      delta: z.number(),
+      kind: z.string(),
+      ref: z.string().nullable(),
+      createdAt: z.string(),
+    })
+  ),
+});
+
+const CheckoutDataSchema = z.object({ url: z.string().url() });
+const ReconcileDataSchema = z
+  .object({ status: z.string().optional(), providerStatus: z.string().optional() })
+  .passthrough();
+
 export function CreditWalletCard({ accessToken, onError }: CreditWalletCardProps) {
   const [wallet, setWallet] = useState<WalletData | null>(null);
   const [topUpLoading, setTopUpLoading] = useState<string | null>(null);
@@ -49,9 +82,9 @@ export function CreditWalletCard({ accessToken, onError }: CreditWalletCardProps
         const response = await fetch('/api/billing/wallet', {
           headers: { Authorization: `Bearer ${accessToken}` },
         });
-        const result = await response.json();
+        const result = parseApiEnvelope(await response.json(), 'Wallet response');
         if (response.ok && result.success && !cancelled) {
-          setWallet(result.data);
+          setWallet(requireApiData(result, WalletDataSchema, 'Wallet response'));
         }
       } catch {
         // Wallet read is non-fatal — the card just shows a placeholder.
@@ -75,13 +108,17 @@ export function CreditWalletCard({ accessToken, onError }: CreditWalletCardProps
         },
         body: JSON.stringify({ type: 'topup', pack }),
       });
-      const result = await response.json();
+      const result = parseApiEnvelope(await response.json(), 'Top-up checkout response');
 
       if (!response.ok || !result.success) {
-        throw new Error(result.error?.message || 'Failed to start top-up checkout');
+        throw new Error(apiErrorMessage(result, 'Failed to start top-up checkout'));
       }
 
-      window.location.href = result.data.url;
+      window.location.href = requireApiData(
+        result,
+        CheckoutDataSchema,
+        'Top-up checkout response'
+      ).url;
     } catch (err) {
       onError?.(err instanceof Error ? err.message : 'Failed to start top-up');
       setTopUpLoading(null);
@@ -106,17 +143,22 @@ export function CreditWalletCard({ accessToken, onError }: CreditWalletCardProps
           ...(paymentIds[id]?.trim() ? { paymentId: paymentIds[id].trim() } : {}),
         }),
       });
-      const result = await response.json();
+      const result = parseApiEnvelope(await response.json(), 'Payment reconciliation response');
 
       if (!response.ok || !result.success) {
-        throw new Error(result.error?.message || 'Failed to check payment');
+        throw new Error(apiErrorMessage(result, 'Failed to check payment'));
       }
+      const reconciled = requireApiData(
+        result,
+        ReconcileDataSchema,
+        'Payment reconciliation response'
+      );
 
-      if (result.data?.status === 'paid') {
+      if (reconciled.status === 'paid') {
         onError?.('Payment confirmed — credits added to your wallet');
       } else if (
-        result.data?.providerStatus === 'confirmed' ||
-        result.data?.providerStatus === 'finished'
+        reconciled.providerStatus === 'confirmed' ||
+        reconciled.providerStatus === 'finished'
       ) {
         // Fallback: server reported a settled provider state.
       }
@@ -124,9 +166,9 @@ export function CreditWalletCard({ accessToken, onError }: CreditWalletCardProps
       const reload = await fetch('/api/billing/wallet', {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
-      const reloadResult = await reload.json();
+      const reloadResult = parseApiEnvelope(await reload.json(), 'Wallet reload response');
       if (reload.ok && reloadResult.success) {
-        setWallet(reloadResult.data);
+        setWallet(requireApiData(reloadResult, WalletDataSchema, 'Wallet reload response'));
       }
     } catch (err) {
       onError?.(err instanceof Error ? err.message : 'Failed to check payment');

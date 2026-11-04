@@ -45,8 +45,20 @@ import {
   type DecisionInputCheckRequest,
 } from '@/lib/decisionInputTrust/assessment';
 import { signDecisionInputAssessment } from '@/lib/decisionInputTrust/attestation';
+import {
+  getReviewedAerodromeSlipstreamPreTradeEvidence,
+  type ReviewedAerodromeSlipstreamPreTradeEvidence,
+} from '@/lib/dex/preTradeAerodromeSlipstream';
+import {
+  getReviewedUniswapV3PreTradeEvidence,
+  type ReviewedUniswapV3PreTradeEvidence,
+} from '@/lib/dex/preTradeUniswapV3';
 import { UnsupportedSymbolError, ValidationError } from '@/lib/errors';
-import { getManipCostAdvisory, type ManipCostAdvisory } from '@/lib/manipCost/baseline';
+import {
+  getManipCostAdvisory,
+  isManipCostCoveredSymbol,
+  type ManipCostAdvisory,
+} from '@/lib/manipCost/baseline';
 import {
   fetchChainlinkMarketReference,
   type ChainlinkMarketReference,
@@ -101,6 +113,7 @@ import {
 } from '@/lib/tokenSecurity/goplus';
 import { roundTo } from '@/lib/utils/format';
 import { createLogger } from '@/lib/utils/logger';
+import { throwIfAborted } from '@/lib/utils/requestDeadline';
 import { Blockchain, type OracleProvider } from '@/types/oracle';
 
 import { getConsensusPrice, type ConsensusPriceResponse } from './consensusPriceService';
@@ -495,6 +508,8 @@ function normalize(value: number, max: number): number {
 export interface AuditMeta {
   apiKeyId?: string;
   requestId?: string;
+  /** Opaque lifecycle correlation. It is operational metadata, never signed evidence. */
+  journeyId?: string;
   workflowTag?: string;
   baselineVerdict?: 'allow' | 'alert' | 'block' | 'unknown';
   baselineVersion?: string;
@@ -536,6 +551,7 @@ async function logAudit(
 
     const { error } = await client.from('pre_trade_checks').insert({
       request_id: meta.requestId ?? null,
+      journey_id: meta.journeyId ?? null,
       workflow_tag: meta.workflowTag ?? null,
       baseline_verdict: meta.baselineVerdict ?? null,
       baseline_version: meta.baselineVersion ?? null,
@@ -786,18 +802,35 @@ function classifyStalenessHardBlock(providerPrices: Record<string, ProviderPrice
 }
 
 async function fetchDepegWarnings(
-  asset: string
+  asset: string,
+  destinationAsset: string | undefined,
+  signal?: AbortSignal
 ): Promise<{ warnings: DepegWarning[]; available: boolean }> {
   try {
-    const snapshots = await calculateAllStablecoinSnapshots();
+    // A pre-trade check only needs peg evidence for the assets it evaluates.
+    // Collecting every supported stablecoin on a cold instance fans a single
+    // check into dozens of Oracle/RPC calls and is not evidence about this
+    // trade's source or destination asset.
+    const evaluatedStablecoins = [asset, destinationAsset]
+      .filter((symbol): symbol is string => typeof symbol === 'string')
+      .map((symbol) => symbol.toUpperCase())
+      .filter((symbol, index, values) => values.indexOf(symbol) === index)
+      .filter((symbol) => Boolean(getStablecoinConfig(symbol)));
+    if (evaluatedStablecoins.length === 0) return { warnings: [], available: true };
+
+    const snapshots = await calculateAllStablecoinSnapshots({
+      symbols: evaluatedStablecoins,
+      signal,
+    });
+    throwIfAborted(signal);
     // The monitor deliberately resolves partial results after per-coin failures.
-    // An unrelated coin's snapshot cannot establish this asset's peg evidence.
     const validSnapshots = snapshots.filter((s) => Number.isFinite(s.maxDeviationPercent));
     return {
-      available: getStablecoinConfig(asset)
-        ? validSnapshots.some((s) => s.symbol === asset)
-        : validSnapshots.length > 0,
+      available: evaluatedStablecoins.every((symbol) =>
+        validSnapshots.some((snapshot) => snapshot.symbol === symbol)
+      ),
       warnings: validSnapshots
+        .filter((snapshot) => evaluatedStablecoins.includes(snapshot.symbol))
         .filter((s) => Math.abs(s.maxDeviationPercent) >= THRESHOLDS.stablecoinDepegPct.caution)
         .map((s) => ({
           stablecoin: s.symbol,
@@ -809,6 +842,17 @@ async function fetchDepegWarnings(
     // Non-blocking: depeg data unavailable should not fail the safety check.
     return { warnings: [], available: false };
   }
+}
+
+function fetchConsensusForPreTrade(
+  input: PreTradeSafetyInput,
+  chain: Blockchain | undefined,
+  signal?: AbortSignal
+) {
+  const targetProviders = input.targetProviders as OracleProvider[] | undefined;
+  return signal
+    ? getConsensusPrice(input.asset, chain, undefined, targetProviders, { signal })
+    : getConsensusPrice(input.asset, chain, undefined, targetProviders);
 }
 
 /**
@@ -854,6 +898,97 @@ function computeRecommendedMaxPosition(
     : 1;
   const recommended = Math.round((base * deviationFactor * bufferFactor) / 1000) * 1000;
   return Math.max(10_000, recommended);
+}
+
+/**
+ * Derive a conservative venue-liquidity cap from one exact reviewed-pool quote
+ * and the pool's live balances. The quote's own price impact implies the pool's
+ * effective depth (impact ≈ size / depth for concentrated liquidity), and the
+ * input-token pool balance bounds what the pool can absorb at all; the cap is
+ * 1% of the smaller of the two, so executing the recommended maximum keeps the
+ * modeled price impact near ~1% and never assumes out-of-range depth. Null
+ * means the evidence cannot support a venue cap and the oracle-only cap stands.
+ */
+function computeVenueLiquidityCapUsd(
+  evidence: ReviewedUniswapV3PreTradeEvidence | ReviewedAerodromeSlipstreamPreTradeEvidence,
+  sourceConsensusPriceUsd: number
+): number | null {
+  const forward = evidence.quote.direction !== 'token1-to-token0';
+  const poolInputHuman = forward ? evidence.poolBalances.token0 : evidence.poolBalances.token1;
+  if (
+    !Number.isFinite(poolInputHuman) ||
+    poolInputHuman <= 0 ||
+    !Number.isFinite(sourceConsensusPriceUsd) ||
+    sourceConsensusPriceUsd <= 0 ||
+    !Number.isFinite(evidence.quote.amountIn) ||
+    evidence.quote.amountIn <= 0 ||
+    !Number.isFinite(evidence.quote.priceImpactBps) ||
+    evidence.quote.priceImpactBps < 0
+  ) {
+    return null;
+  }
+  const amountInUsd = evidence.quote.amountIn * sourceConsensusPriceUsd;
+  // Floor the impact at 1bp: stable pairs can quote 0 impact, which would
+  // otherwise imply infinite depth.
+  const impliedDepthUsd = (amountInUsd * 10_000) / Math.max(evidence.quote.priceImpactBps, 1);
+  const depthUsd = Math.min(poolInputHuman * sourceConsensusPriceUsd, impliedDepthUsd);
+  const cap = depthUsd * 0.01;
+  return Number.isFinite(cap) && cap > 0 ? Math.round(cap) : null;
+}
+
+/**
+ * Step 7 of the pre-trade check: resolve the reviewed DEX evidence lane (the
+ * lane promises were started before consensus so the calibration lands inside
+ * the signed attestation; the same promises are consumed again by the
+ * decision-input assessment below), then combine the oracle-dispersion advisory
+ * cap with the lane's real venue depth. Returns the effective recommended
+ * maximum position, the lane evidence for downstream reuse, and the human
+ * basis string used by the amount sanity warnings.
+ */
+async function resolveRecommendedPositionCap(
+  maxDeviationPct: number,
+  protocolSafety: ProtocolSafetyContext | null,
+  consensusPriceUsd: number,
+  uniswapV3Lane: Promise<ReviewedUniswapV3PreTradeEvidence | null> | undefined,
+  aerodromeLane: Promise<ReviewedAerodromeSlipstreamPreTradeEvidence | null> | undefined,
+  warnings: string[]
+): Promise<{
+  reviewedLaneEvidence:
+    | ReviewedUniswapV3PreTradeEvidence
+    | ReviewedAerodromeSlipstreamPreTradeEvidence
+    | null;
+  recommendedMaxPositionUsd: number;
+  liquidityBasis: string;
+}> {
+  const oracleRecommendedMaxPositionUsd = computeRecommendedMaxPosition(
+    maxDeviationPct,
+    protocolSafety
+  );
+  const reviewedLaneEvidence =
+    (
+      await Promise.all([
+        uniswapV3Lane ?? Promise.resolve(null),
+        aerodromeLane ?? Promise.resolve(null),
+      ])
+    ).find((evidence): evidence is NonNullable<typeof evidence> => evidence !== null) ?? null;
+  const venueLiquidityCapUsd = reviewedLaneEvidence
+    ? computeVenueLiquidityCapUsd(reviewedLaneEvidence, consensusPriceUsd)
+    : null;
+  let recommendedMaxPositionUsd = oracleRecommendedMaxPositionUsd;
+  if (
+    reviewedLaneEvidence &&
+    venueLiquidityCapUsd !== null &&
+    venueLiquidityCapUsd < oracleRecommendedMaxPositionUsd
+  ) {
+    recommendedMaxPositionUsd = Math.max(1, venueLiquidityCapUsd);
+    warnings.push(
+      `Reviewed venue liquidity cap applied: recommended max position limited to $${recommendedMaxPositionUsd.toLocaleString()} by reviewed pool depth at block ${reviewedLaneEvidence.block.number}.`
+    );
+  }
+  const liquidityBasis = reviewedLaneEvidence
+    ? `oracle-condition and reviewed-venue-liquidity cap $${recommendedMaxPositionUsd.toLocaleString()}`
+    : `oracle-condition advisory cap (not venue liquidity) $${recommendedMaxPositionUsd.toLocaleString()}`;
+  return { reviewedLaneEvidence, recommendedMaxPositionUsd, liquidityBasis };
 }
 
 /**
@@ -1623,7 +1758,10 @@ async function fetchManipCostAdvisorySafe(
   asset: string,
   chainId: number
 ): Promise<ManipCostAdvisory | undefined> {
-  if (chainId !== 1) return undefined;
+  // Avoid constructing a database client for an asset that the fixed v0 pool
+  // map cannot possibly cover. The helper has the same guard internally, but
+  // this hot-path check prevents needless work for every unsupported symbol.
+  if (chainId !== 1 || !isManipCostCoveredSymbol(asset)) return undefined;
   try {
     const { createServiceRoleClient } = await import('@/lib/supabase/server');
     const supabase = createServiceRoleClient();
@@ -1641,6 +1779,63 @@ interface DecisionInputReferenceEvidence {
   chainlink: ChainlinkMarketReference | null;
   redstone: RedStoneMarketReference | null;
   cex: MarketReference | null;
+}
+
+/**
+ * Start the optional reviewed-pool read alongside the independent references.
+ * This lane is deliberately opt-in and fail-closed: a requested, unavailable,
+ * or unsupported profile becomes signed insufficient evidence rather than an
+ * inferred quote from another pool or direction.
+ */
+function startReviewedUniswapV3Fetch(
+  input: PreTradeSafetyInput
+): Promise<ReviewedUniswapV3PreTradeEvidence | null> | undefined {
+  const requested = input.decisionInput?.reviewedUniswapV3;
+  if (!requested) return undefined;
+  return getReviewedUniswapV3PreTradeEvidence({
+    chainId: input.chainId,
+    asset: input.asset,
+    destinationAsset: input.destinationAsset,
+    amountIn: requested.amountIn,
+  }).catch((error: unknown) => {
+    logger.warn('Reviewed Uniswap V3 pre-trade evidence unavailable', {
+      asset: input.asset,
+      destinationAsset: input.destinationAsset ?? null,
+      chainId: input.chainId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return null;
+  });
+}
+
+function startReviewedAerodromeSlipstreamFetch(
+  input: PreTradeSafetyInput
+): Promise<ReviewedAerodromeSlipstreamPreTradeEvidence | null> | undefined {
+  const requested = input.decisionInput?.reviewedAerodromeSlipstream;
+  if (!requested) return undefined;
+  return getReviewedAerodromeSlipstreamPreTradeEvidence({
+    chainId: input.chainId,
+    asset: input.asset,
+    destinationAsset: input.destinationAsset,
+    amountIn: requested.amountIn,
+  }).catch((error: unknown) => {
+    logger.warn('Reviewed Aerodrome Slipstream pre-trade evidence unavailable', {
+      asset: input.asset,
+      destinationAsset: input.destinationAsset ?? null,
+      chainId: input.chainId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return null;
+  });
+}
+
+function assertSingleReviewedDexLane(input: PreTradeSafetyInput): void {
+  if (input.decisionInput?.reviewedUniswapV3 && input.decisionInput.reviewedAerodromeSlipstream) {
+    throw new ValidationError(
+      'Choose only one reviewed DEX evidence lane per decision-input assessment.',
+      { field: 'decisionInput' }
+    );
+  }
 }
 
 function startDecisionInputReferenceFetch(
@@ -1694,20 +1889,28 @@ async function attachDecisionInputAssessment(
   input: PreTradeSafetyInput,
   result: PreTradeSafetyResult,
   referenceEvidencePromise: Promise<DecisionInputReferenceEvidence> | undefined,
+  reviewedUniswapV3Promise: Promise<ReviewedUniswapV3PreTradeEvidence | null> | undefined,
+  reviewedAerodromeSlipstreamPromise:
+    | Promise<ReviewedAerodromeSlipstreamPreTradeEvidence | null>
+    | undefined,
   /** undefined means fetch now; null means the normal advisory fetch already found no evidence. */
   knownManipulationCost?: ManipCostAdvisory | null
 ): Promise<void> {
   if (!input.decisionInput) return;
 
-  const [referenceEvidence, manipulationCost] = await Promise.all([
-    referenceEvidencePromise ?? Promise.resolve({ chainlink: null, cex: null, redstone: null }),
-    knownManipulationCost === undefined
-      ? fetchManipCostAdvisorySafe(input.asset, input.chainId)
-      : Promise.resolve(knownManipulationCost ?? undefined),
-  ]);
+  const [referenceEvidence, manipulationCost, reviewedUniswapV3, reviewedAerodromeSlipstream] =
+    await Promise.all([
+      referenceEvidencePromise ?? Promise.resolve({ chainlink: null, cex: null, redstone: null }),
+      knownManipulationCost === undefined
+        ? fetchManipCostAdvisorySafe(input.asset, input.chainId)
+        : Promise.resolve(knownManipulationCost ?? undefined),
+      reviewedUniswapV3Promise ?? Promise.resolve(null),
+      reviewedAerodromeSlipstreamPromise ?? Promise.resolve(null),
+    ]);
 
   const assessment = assessDecisionInput({
     asset: input.asset,
+    destinationAsset: input.destinationAsset,
     chainId: input.chainId,
     action: input.action,
     tradeAmountUsd: input.tradeAmountUsd,
@@ -1716,6 +1919,8 @@ async function attachDecisionInputAssessment(
     redstone: referenceEvidence.redstone,
     cex: referenceEvidence.cex,
     dex: manipulationCost ?? null,
+    reviewedUniswapV3,
+    reviewedAerodromeSlipstream,
   });
   const attestation = await signDecisionInputAssessment(assessment, result.attestation?.uid);
   if (attestation) {
@@ -1913,7 +2118,11 @@ async function buildUnavailablePreTradeResult(
   warnings: string[],
   contributingFactors: ContributingFactor[],
   startedAt: number,
-  decisionInputReferenceEvidence: Promise<DecisionInputReferenceEvidence> | undefined
+  decisionInputReferenceEvidence: Promise<DecisionInputReferenceEvidence> | undefined,
+  reviewedUniswapV3Promise: Promise<ReviewedUniswapV3PreTradeEvidence | null> | undefined,
+  reviewedAerodromeSlipstreamPromise:
+    | Promise<ReviewedAerodromeSlipstreamPreTradeEvidence | null>
+    | undefined
 ): Promise<PreTradeSafetyResult> {
   const result = buildUnavailableSafetyResult(
     input,
@@ -1935,15 +2144,137 @@ async function buildUnavailablePreTradeResult(
       error: error instanceof Error ? error.message : String(error),
     });
   }
-  await attachDecisionInputAssessment(input, result, decisionInputReferenceEvidence);
+  await attachDecisionInputAssessment(
+    input,
+    result,
+    decisionInputReferenceEvidence,
+    reviewedUniswapV3Promise,
+    reviewedAerodromeSlipstreamPromise
+  );
   await logAudit(input, result, meta);
   return result;
 }
 
+/** Cadence-relative staleness CAUTION plus the consensus-aware hard backstop.
+ *  Extracted from preTradeSafetyCheck to keep it within its lint budget; the
+ *  rule semantics live here. */
+function evaluateStalenessRules(params: {
+  providerPrices: Record<string, ProviderPriceDetail>;
+  stalenessBaselines: Map<string, number | null>;
+  maxAge: number;
+  staleProviders: string[];
+  staleRisk: boolean;
+}): { verdict: SafetyVerdict | null; factors: ContributingFactor[]; warnings: string[] } {
+  const factors: ContributingFactor[] = [];
+  const warnings: string[] = [];
+  let verdict: SafetyVerdict | null = null;
+  const escalate = (next: SafetyVerdict) => {
+    verdict = verdict === null ? next : pickWorst(verdict, next);
+  };
+
+  // Cadence-relative staleness: a SOFT CAUTION only — never blocks. A feed is
+  // stale only vs its own observed cadence (feedCadence.isCadenceStale), so
+  // naturally-slow sources are never falsely flagged and never blocked. The
+  // absolute 7-day threshold (THRESHOLDS.dataStaleSeconds.block) is the only
+  // hard-block backstop, for feeds that are genuinely stuck.
+  if (params.staleRisk) {
+    escalate('CAUTION');
+    // Representative effective threshold: K × the tightest stale baseline.
+    const staleBaselines = params.staleProviders
+      .map((p) => params.stalenessBaselines.get(p) ?? 0)
+      .filter((b) => b > 0);
+    const effectiveThreshold =
+      staleBaselines.length > 0
+        ? CAUTION_STALE_MULTIPLIER * Math.min(...staleBaselines)
+        : STALE_FLOOR_SECONDS;
+    factors.push({
+      rule: 'data_stale_seconds',
+      value: params.maxAge,
+      threshold: effectiveThreshold,
+      triggeredVerdict: 'CAUTION',
+      message: `Stale oracle data: ${params.staleProviders.join(', ')} exceed their observed update cadence (max age ${params.maxAge}s).`,
+    });
+    warnings.push(`Oracle data is stale vs its own cadence (max age ${params.maxAge}s).`);
+  }
+
+  // Hard backstop (consensus-aware): a feed is only BLOCKED as "extremely stale"
+  // when it is BOTH >= the absolute backstop age AND its price diverges from the
+  // fresh consensus (proving the data is genuinely dead, not just a stale
+  // timestamp). A stale timestamp whose price still agrees with consensus is a
+  // timestamp-source anomaly (e.g. API3 communal dAPIs report 7-120d-old
+  // `updatedAt` while serving current prices) and must NOT hard-block — it
+  // surfaces as a soft CAUTION instead. When NO provider is fresh (total oracle
+  // outage) we cannot corroborate and fall back to the absolute age -> BLOCK.
+  const hardStale = classifyStalenessHardBlock(params.providerPrices);
+  for (const [provider, detail] of Object.entries(params.providerPrices)) {
+    detail.timestampAnomaly = hardStale.timestampAnomalyProviders.includes(provider);
+  }
+  if (hardStale.hardBlock) {
+    escalate('BLOCK');
+    factors.push({
+      rule: 'data_stale_seconds',
+      value: params.maxAge,
+      threshold: THRESHOLDS.dataStaleSeconds.block,
+      triggeredVerdict: 'BLOCK',
+      message: `Oracle data extremely stale AND diverges from consensus: ${hardStale.hardStaleProviders.join(', ')} (max age ${params.maxAge}s >= ${THRESHOLDS.dataStaleSeconds.block}s absolute backstop).`,
+    });
+    warnings.push(`Oracle data is extremely stale (max age ${params.maxAge}s).`);
+  }
+  if (hardStale.timestampAnomalyProviders.length > 0) {
+    escalate('CAUTION');
+    factors.push({
+      rule: 'data_stale_timestamp_anomaly',
+      value: params.maxAge,
+      threshold: THRESHOLDS.dataStaleSeconds.block,
+      triggeredVerdict: 'CAUTION',
+      message: `Stale timestamp but price in consensus: ${hardStale.timestampAnomalyProviders.join(', ')} (max age ${params.maxAge}s) — likely a timestamp-source anomaly, not dead data.`,
+    });
+    warnings.push(
+      `Stale timestamp reported by ${hardStale.timestampAnomalyProviders.join(', ')} but price agrees with consensus (possible timestamp-source anomaly).`
+    );
+  }
+
+  return { verdict, factors, warnings };
+}
+
+/** Depeg rule: take the worst active depeg warning across the pair. */
+function evaluateDepegRule(params: { depegWarnings: DepegWarning[] }): {
+  verdict: SafetyVerdict | null;
+  factors: ContributingFactor[];
+  warnings: string[];
+} {
+  const factors: ContributingFactor[] = [];
+  const warnings: string[] = [];
+
+  const worstDepeg = params.depegWarnings.reduce<number>(
+    (max, w) => (Math.abs(w.deviationPct) > max ? Math.abs(w.deviationPct) : max),
+    0
+  );
+  const depegVerdict = evaluateHighIsBad(worstDepeg, THRESHOLDS.stablecoinDepegPct);
+  if (depegVerdict) {
+    const worstCoin = params.depegWarnings.reduce<string | null>(
+      (pick, w) => (Math.abs(w.deviationPct) >= worstDepeg ? w.stablecoin : pick),
+      null
+    );
+    factors.push({
+      rule: 'stablecoin_depeg_pct',
+      value: roundTo(worstDepeg, 4),
+      threshold:
+        THRESHOLDS.stablecoinDepegPct[depegVerdict.toLowerCase() as 'caution' | 'danger' | 'block'],
+      triggeredVerdict: depegVerdict,
+      message: `Stablecoin ${worstCoin ?? ''} depeg ${worstDepeg.toFixed(2)}% exceeds ${depegVerdict.toLowerCase()} threshold.`,
+    });
+    warnings.push(`Active stablecoin depeg detected (${worstDepeg.toFixed(2)}%).`);
+  }
+  return { verdict: depegVerdict, factors, warnings };
+}
+
 export async function preTradeSafetyCheck(
   input: PreTradeSafetyInput,
-  meta: AuditMeta = {}
+  meta: AuditMeta = {},
+  options: { signal?: AbortSignal } = {}
 ): Promise<PreTradeSafetyResult> {
+  throwIfAborted(options.signal);
   const startedAt = Date.now();
   const warnings: string[] = [];
   const contributingFactors: ContributingFactor[] = [];
@@ -1962,21 +2293,21 @@ export async function preTradeSafetyCheck(
   // data is consulted. See src/lib/ops/issuanceControl.ts for the deliberate
   // (and loudly logged) fail-open behaviour when the switch is unreadable.
   const halted = await haltedCheckResult(input, meta, chain, startedAt);
+  throwIfAborted(options.signal);
   if (halted) return halted;
 
+  assertSingleReviewedDexLane(input);
   const decisionInputReferenceEvidence = startDecisionInputReferenceFetch(input);
+  const reviewedUniswapV3Evidence = startReviewedUniswapV3Fetch(input);
+  const reviewedAerodromeSlipstreamEvidence = startReviewedAerodromeSlipstreamFetch(input);
 
   // 1. Cross-oracle consensus price (also embeds reputation + agreement).
   let consensus: ConsensusPriceResponse | undefined;
   let consensusFailed = false;
   try {
-    consensus = await getConsensusPrice(
-      input.asset,
-      chain,
-      undefined,
-      input.targetProviders as OracleProvider[] | undefined
-    );
+    consensus = await fetchConsensusForPreTrade(input, chain, options.signal);
   } catch (error) {
+    throwIfAborted(options.signal);
     if (error instanceof UnsupportedSymbolError) {
       // No oracle coverage for this asset/chain — cannot verify, treat as BLOCK.
       consensusFailed = true;
@@ -1997,7 +2328,8 @@ export async function preTradeSafetyCheck(
   }
 
   // 2. Stablecoin depeg warnings (non-blocking).
-  const depeg = await fetchDepegWarnings(input.asset);
+  const depeg = await fetchDepegWarnings(input.asset, input.destinationAsset, options.signal);
+  throwIfAborted(options.signal);
   const depegWarnings = depeg.warnings;
   if (!depeg.available)
     warnings.push(
@@ -2015,7 +2347,9 @@ export async function preTradeSafetyCheck(
       warnings,
       contributingFactors,
       startedAt,
-      decisionInputReferenceEvidence
+      decisionInputReferenceEvidence,
+      reviewedUniswapV3Evidence,
+      reviewedAerodromeSlipstreamEvidence
     );
   }
 
@@ -2023,16 +2357,16 @@ export async function preTradeSafetyCheck(
   // Fetch observed-cadence baselines for this symbol (single indexed query).
   // NON-BLOCKING: on any failure we fall back to an empty map → no cadence
   // CAUTION, but the 7-day absolute hard-block backstop still applies.
-  let stalenessBaselines: Map<string, number | null> = new Map();
-  // 3b. Advisory manipulation-cost context (see fetchManipCostAdvisorySafe —
-  // EVIDENCE ONLY, never a verdict gate, never in the signed attestation).
-  const manipulationCost = await fetchManipCostAdvisorySafe(input.asset, input.chainId);
-  // 3c. Token-security evidence lane — started WITHOUT awaiting so the fetch
-  // overlaps oracle consensus work; signed+attached after the verdict
-  // attestation issues (needs its uid). EVIDENCE ONLY: never a verdict gate.
-  // Outcome captured for the opt-in debugTokenSec response surface.
+  // 3b. These reads are all independent, advisory/context inputs. Start them
+  // together so a pre-trade request pays the longest read once rather than
+  // serial database latency. None is a verdict gate.
+  const manipulationCostPromise = fetchManipCostAdvisorySafe(input.asset, input.chainId);
   const tokenSecurityLane = createTokenSecurityLane(input);
-  stalenessBaselines = await loadStalenessBaselines(input.asset);
+  const stalenessBaselinesPromise = loadStalenessBaselines(input.asset);
+  const [manipulationCost, stalenessBaselines] = await Promise.all([
+    manipulationCostPromise,
+    stalenessBaselinesPromise,
+  ]);
 
   const providerPrices = buildProviderPrices(consensus, stalenessBaselines);
 
@@ -2126,66 +2460,18 @@ export async function preTradeSafetyCheck(
     warnings.push(`Price spread between oracles ${spreadPct.toFixed(2)}% is elevated.`);
   }
 
-  // Cadence-relative staleness: a SOFT CAUTION only — never blocks. A feed is
-  // stale only vs its own observed cadence (feedCadence.isCadenceStale), so
-  // naturally-slow sources are never falsely flagged and never blocked. The
-  // absolute 7-day threshold (THRESHOLDS.dataStaleSeconds.block) is the only
-  // hard-block backstop, for feeds that are genuinely stuck.
-  if (staleRisk) {
-    verdict = pickWorst(verdict, 'CAUTION');
-    // Representative effective threshold: K × the tightest stale baseline.
-    const staleBaselines = staleProviders
-      .map((p) => stalenessBaselines.get(p) ?? 0)
-      .filter((b) => b > 0);
-    const effectiveThreshold =
-      staleBaselines.length > 0
-        ? CAUTION_STALE_MULTIPLIER * Math.min(...staleBaselines)
-        : STALE_FLOOR_SECONDS;
-    contributingFactors.push({
-      rule: 'data_stale_seconds',
-      value: maxAge,
-      threshold: effectiveThreshold,
-      triggeredVerdict: 'CAUTION',
-      message: `Stale oracle data: ${staleProviders.join(', ')} exceed their observed update cadence (max age ${maxAge}s).`,
-    });
-    warnings.push(`Oracle data is stale vs its own cadence (max age ${maxAge}s).`);
-  }
-  // Hard backstop (consensus-aware): a feed is only BLOCKED as "extremely stale"
-  // when it is BOTH >= the absolute backstop age AND its price diverges from the
-  // fresh consensus (proving the data is genuinely dead, not just a stale
-  // timestamp). A stale timestamp whose price still agrees with consensus is a
-  // timestamp-source anomaly (e.g. API3 communal dAPIs report 7-120d-old
-  // `updatedAt` while serving current prices) and must NOT hard-block — it
-  // surfaces as a soft CAUTION instead. When NO provider is fresh (total oracle
-  // outage) we cannot corroborate and fall back to the absolute age -> BLOCK.
-  const hardStale = classifyStalenessHardBlock(providerPrices);
-  for (const [provider, detail] of Object.entries(providerPrices)) {
-    detail.timestampAnomaly = hardStale.timestampAnomalyProviders.includes(provider);
-  }
-  if (hardStale.hardBlock) {
-    verdict = pickWorst(verdict, 'BLOCK');
-    contributingFactors.push({
-      rule: 'data_stale_seconds',
-      value: maxAge,
-      threshold: THRESHOLDS.dataStaleSeconds.block,
-      triggeredVerdict: 'BLOCK',
-      message: `Oracle data extremely stale AND diverges from consensus: ${hardStale.hardStaleProviders.join(', ')} (max age ${maxAge}s >= ${THRESHOLDS.dataStaleSeconds.block}s absolute backstop).`,
-    });
-    warnings.push(`Oracle data is extremely stale (max age ${maxAge}s).`);
-  }
-  if (hardStale.timestampAnomalyProviders.length > 0) {
-    verdict = pickWorst(verdict, 'CAUTION');
-    contributingFactors.push({
-      rule: 'data_stale_timestamp_anomaly',
-      value: maxAge,
-      threshold: THRESHOLDS.dataStaleSeconds.block,
-      triggeredVerdict: 'CAUTION',
-      message: `Stale timestamp but price in consensus: ${hardStale.timestampAnomalyProviders.join(', ')} (max age ${maxAge}s) — likely a timestamp-source anomaly, not dead data.`,
-    });
-    warnings.push(
-      `Stale timestamp reported by ${hardStale.timestampAnomalyProviders.join(', ')} but price agrees with consensus (possible timestamp-source anomaly).`
-    );
-  }
+  // Staleness rules (cadence CAUTION + consensus-aware hard backstop), extracted
+  // into evaluateStalenessRules; see that helper for the full semantics.
+  const stalenessRules = evaluateStalenessRules({
+    providerPrices,
+    stalenessBaselines,
+    maxAge,
+    staleProviders,
+    staleRisk,
+  });
+  if (stalenessRules.verdict) verdict = pickWorst(verdict, stalenessRules.verdict);
+  contributingFactors.push(...stalenessRules.factors);
+  warnings.push(...stalenessRules.warnings);
 
   const agreementVerdict = evaluateLowIsBad(agreement, THRESHOLDS.crossProviderAgreement);
   if (agreementVerdict) {
@@ -2203,28 +2489,11 @@ export async function preTradeSafetyCheck(
     warnings.push(`Oracle providers disagree (agreement ${(agreement * 100).toFixed(1)}%).`);
   }
 
-  // Depeg: take the worst active depeg warning.
-  const worstDepeg = depegWarnings.reduce<number>(
-    (max, w) => (Math.abs(w.deviationPct) > max ? Math.abs(w.deviationPct) : max),
-    0
-  );
-  const depegVerdict = evaluateHighIsBad(worstDepeg, THRESHOLDS.stablecoinDepegPct);
-  if (depegVerdict) {
-    verdict = pickWorst(verdict, depegVerdict);
-    const worstCoin = depegWarnings.reduce<string | null>(
-      (pick, w) => (Math.abs(w.deviationPct) >= worstDepeg ? w.stablecoin : pick),
-      null
-    );
-    contributingFactors.push({
-      rule: 'stablecoin_depeg_pct',
-      value: roundTo(worstDepeg, 4),
-      threshold:
-        THRESHOLDS.stablecoinDepegPct[depegVerdict.toLowerCase() as 'caution' | 'danger' | 'block'],
-      triggeredVerdict: depegVerdict,
-      message: `Stablecoin ${worstCoin ?? ''} depeg ${worstDepeg.toFixed(2)}% exceeds ${depegVerdict.toLowerCase()} threshold.`,
-    });
-    warnings.push(`Active stablecoin depeg detected (${worstDepeg.toFixed(2)}%).`);
-  }
+  // Depeg rule, extracted into evaluateDepegRule; see that helper.
+  const depegRule = evaluateDepegRule({ depegWarnings });
+  if (depegRule.verdict) verdict = pickWorst(verdict, depegRule.verdict);
+  contributingFactors.push(...depegRule.factors);
+  warnings.push(...depegRule.warnings);
 
   // Protocol buffer rule (lending actions only): escalate + freeze based on
   // how much cross-oracle dispersion consumes the protocol's max-LTV buffer.
@@ -2282,8 +2551,18 @@ export async function preTradeSafetyCheck(
   const anomalyScore = risk.anomalyScore;
   const manipulationRiskScore = risk.manipulationRiskScore;
 
-  // 7. Recommended max position.
-  const recommendedMaxPositionUsd = computeRecommendedMaxPosition(maxDeviationPct, protocolSafety);
+  // 7. Recommended max position. Oracle dispersion sets the advisory base; when
+  // the caller supplied a reviewed DEX evidence lane, that lane's exact quote
+  // and live pool balances calibrate the cap with real venue depth (see the
+  // helper for promise-timing and cap semantics).
+  const { recommendedMaxPositionUsd, liquidityBasis } = await resolveRecommendedPositionCap(
+    maxDeviationPct,
+    protocolSafety,
+    consensus.consensusPrice,
+    reviewedUniswapV3Evidence,
+    reviewedAerodromeSlipstreamEvidence,
+    warnings
+  );
 
   // 8. Amount vs recommended position sanity.
   if (input.tradeAmountUsd > recommendedMaxPositionUsd * 3) {
@@ -2293,11 +2572,9 @@ export async function preTradeSafetyCheck(
       value: input.tradeAmountUsd,
       threshold: recommendedMaxPositionUsd * 3,
       triggeredVerdict: 'DANGER',
-      message: `Trade size $${input.tradeAmountUsd.toLocaleString()} far exceeds oracle-condition advisory cap (not venue liquidity) $${recommendedMaxPositionUsd.toLocaleString()}.`,
+      message: `Trade size $${input.tradeAmountUsd.toLocaleString()} far exceeds ${liquidityBasis}.`,
     });
-    warnings.push(
-      `Trade size far exceeds oracle-condition advisory cap; venue liquidity was not assessed ($${recommendedMaxPositionUsd.toLocaleString()}).`
-    );
+    warnings.push(`Trade size far exceeds ${liquidityBasis}.`);
   } else if (input.tradeAmountUsd > recommendedMaxPositionUsd * 1.5) {
     verdict = pickWorst(verdict, 'CAUTION');
     contributingFactors.push({
@@ -2305,11 +2582,9 @@ export async function preTradeSafetyCheck(
       value: input.tradeAmountUsd,
       threshold: recommendedMaxPositionUsd * 1.5,
       triggeredVerdict: 'CAUTION',
-      message: `Trade size $${input.tradeAmountUsd.toLocaleString()} exceeds oracle-condition advisory cap (not venue liquidity) $${recommendedMaxPositionUsd.toLocaleString()}.`,
+      message: `Trade size $${input.tradeAmountUsd.toLocaleString()} exceeds ${liquidityBasis}.`,
     });
-    warnings.push(
-      `Trade size exceeds oracle-condition advisory cap; venue liquidity was not assessed ($${recommendedMaxPositionUsd.toLocaleString()}).`
-    );
+    warnings.push(`Trade size exceeds ${liquidityBasis}.`);
   }
 
   // 9. Outlier provider warning (informational).
@@ -2408,6 +2683,8 @@ export async function preTradeSafetyCheck(
     input,
     result,
     decisionInputReferenceEvidence,
+    reviewedUniswapV3Evidence,
+    reviewedAerodromeSlipstreamEvidence,
     manipulationCost ?? null
   );
 

@@ -1,14 +1,20 @@
-# Insight — Oracle Transparency & Risk Intelligence
+# Insight — Decision Integrity & Oracle Risk Intelligence
 
-Insight is oracle transparency and risk infrastructure for DeFi and AI agents, built on **BNB Smart Chain (BSC)** and compatible with other EVM networks.
+Insight is oracle transparency, decision integrity, and risk intelligence infrastructure for DeFi and AI agents, built on **BNB Smart Chain (BSC)** and compatible with other EVM networks.
 
 Insight helps DeFi applications, operators, developers, and AI agents inspect oracle prices and the risks of relying on them. It compares data from **13 oracle providers across 40+ blockchain networks**, evaluates deviation, freshness, source independence, and protocol impact, and can issue signed evidence of its assessments. For AI agents specifically, this is **decision-input integrity**: a signed, re-verifiable answer to "can this price be trusted" before a trade is signed.
 
 ```text
-Oracle observations → Cross-source comparison → Risk assessment → Verifiable evidence
+Oracle observations → Cross-source comparison → Risk assessment → Decision-input integrity → Verifiable evidence
 ```
 
 **Pre-Trade Safety Check** assesses a proposed action. **Oracle Watch** monitors changing conditions between actions. The REST API, MCP server, [Guard SDK](sdk/README.md), and [independent verifier](verifier/README.md) make these capabilities available to applications and agents. Insight also works independently of [PriorSeal](https://github.com/imokokok/PriorSeal); see the [product positioning guide](docs/product-positioning.md) for the combined assessment, authorization, execution, and review workflow.
+
+**Lending Guard** now covers focused direct-call profiles on Base and Monad. It checks collateral and loan oracle integrity plus caller-declared post-action LTV for Aave V3 and Morpho Blue on both chains, plus Compound V3 Base USDC Comet and reviewed Moonwell Base markets. It is read-only and x402-metered; it never signs or broadcasts a lending transaction. See [Base Lending Guard](docs/base-lending-guard.md) and [Monad Lending Guard](docs/monad-lending-guard.md).
+
+**Base Agent Swap Guard** is the focused Base DEX counterpart: it gates three reviewed direct single-hop profiles — Aerodrome Slipstream WETH↔USDC, Aerodrome Slipstream USDC↔USDT, and PancakeSwap V3 USDC↔USDT, each in either reviewed pool direction — with exact quote/code identity, canonical calldata decoding, explicit execution thresholds, and independently checked source/destination price inputs. It returns no calls on CAUTION or BLOCK, and it never routes, signs, broadcasts, or treats a Base smart-account UserOperation or aggregator multicall as covered. See [Base Agent Swap Guard](docs/base-agent-swap-guard.md).
+
+**Base Perp Guard** extends decision-input integrity to perpetual futures: it gates a proposed Synthetix Perps V3 Base position by separately evaluating the underlying and USDC margin oracle integrity and checking caller-declared post-action leverage against reviewed market caps (BTC, ETH, SOL, XRP, DOGE, PEPE; USDC margin only). An exact-call mode (`POST`) binds one unsigned direct `commitOrder` call into a portable, short-lived EIP-712 decision attestation. It is x402-metered; it does not evaluate the venue's mark-price or liquidation engine and never signs or broadcasts an order. See [Base Perp Guard](docs/base-perp-guard.md).
 
 > Insight is **not a real-time oracle tracker**. Price snapshots and feed health are collected every 15 minutes, reputation scores are recalculated hourly, and data is aggregated into daily reports. Check each assessment's freshness and validity window before using it.
 
@@ -22,9 +28,9 @@ Oracle observations → Cross-source comparison → Risk assessment → Verifiab
 
 ## Supported Networks
 
-- BNB Smart Chain Mainnet (Chain ID: 56) — x402 pay-per-call settlement in Binance-Peg USDC via the AEON mandate flow
-- Base Mainnet (Chain ID: 8453) — x402 pay-per-call settlement in USDC
-- Monad Mainnet (Chain ID: 143) — read-only oracle coverage for 51 official Chainlink USD feeds; x402 pay-per-call support is configuration-ready (`eip155:143` + Monad facilitator, USDC verified on-chain 2026-10-16)
+- **x402 pay-per-call settlement:** The public [x402 manifest](https://www.oracleinsight.xyz/.well-known/x402) and each endpoint's unsigned `PAYMENT-REQUIRED` response are the source of truth for rails currently advertised in production. A caller must select a live `accepts[]` option; do not infer availability from the action chain.
+- **Current x402 rail:** HyperEVM (Chain ID: 999) settles USDC through the UVD facilitator using the standard EIP-3009 x402 exact flow. The live challenge may additionally expose route-specific options that are not listed for discovery.
+- **Product coverage is separate from payment availability:** Base, BNB Chain, Monad, and additional EVM networks can be assessed by the API, but that does not make their native tokens payment rails. Treat the live quote as authoritative.
 - Additional EVM networks are covered read-only for oracle data (40+ chains)
 
 ## Contract Addresses
@@ -46,12 +52,15 @@ Insight is an API/agent service and issues no token. Its on-chain footprint is i
 
 ## Start here
 
-| Goal                                               | Where to go                                                                                                                       |
-| -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| Assess a trade from an application or agent        | [Guard SDK](sdk/README.md#non-intervening-assessment-and-verification) or [API reference](https://www.oracleinsight.xyz/docs/api) |
-| Verify a signed receipt with your own trusted keys | [Independent verifier](verifier/README.md) or [browser demo](https://www.oracleinsight.xyz/verify)                                |
-| Explore the product                                | [Website](https://www.oracleinsight.xyz) or [AI/MCP hub](https://www.oracleinsight.xyz/ai)                                        |
-| Run the website and API locally                    | [Local development](#local-development)                                                                                           |
+| Goal                                               | Where to go                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Inspect current oracle evidence                    | [Oracle Evidence](https://www.oracleinsight.xyz/price-insight?stage=observe)                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| Assess a proposed action or monitor changed inputs | [Decision Integrity](https://www.oracleinsight.xyz/decision-integrity), [Guard SDK](sdk/README.md#non-intervening-assessment-and-verification), or [API reference](https://www.oracleinsight.xyz/docs/api)                                                                                                                                                                                                                                                                                   |
+| Compare sources or investigate a risk question     | [Risk Intelligence](https://www.oracleinsight.xyz/risk-intelligence)                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| Choose REST, AI / MCP, or SDK                      | [Build](https://www.oracleinsight.xyz/build)                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| Install a focused Agent Skill                      | [Pre-Trade Safety](skills/insight-pre-trade-safety/README.md) · [Base Aave V3 Lending Guard](skills/insight-lending-guard/README.md) · [Base Agent Swap Guard](skills/insight-base-agent-swap-guard/README.md) · [Solana Swap Guard](skills/insight-solana-swap-guard/README.md) · [Base Perp Guard](skills/insight-base-perp-guard/README.md) · [Hyperliquid Perp Guard](skills/insight-hyperliquid-perp-guard/README.md) · [Solana Perp Guard](skills/insight-solana-perp-guard/README.md) |
+| Verify a signed receipt with your own trusted keys | [Independent verifier](verifier/README.md) or [browser demo](https://www.oracleinsight.xyz/verify)                                                                                                                                                                                                                                                                                                                                                                                           |
+| Run the website and API locally                    | [Local development](#local-development)                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 
 ## What Insight provides
 
@@ -71,13 +80,13 @@ When signing is configured, the check can include an EIP-712 attestation. A sign
 
 Oracle Watch gives a running strategy a cross-oracle **NORMAL, CAUTION, or DANGER** signal and a `proceed`, `proceed_with_caution`, or `halt` recommendation. Applications can poll it between trades and pause on `halt`. It checks deviation, agreement, stale or outlying feeds, coverage, and independent source groups; it can also issue signed receipts when an attester key is configured.
 
-Historical coverage is guaranteed for **ETH, BTC, USDC, and USDT on Ethereum, Arbitrum, and Base**. Other pairs can return a current signal without a historical curve; check `meta.historyGuaranteed` rather than treating an empty series as evidence of no incidents. Use the [AI/MCP hub](https://www.oracleinsight.xyz/ai#oracle-watch) or `GET /api/v1/oracle-watch?symbol=ETH&chain=ethereum` to explore the signal.
+Historical coverage is guaranteed for **ETH, BTC, USDC, and USDT on Ethereum, Arbitrum, and Base**. Other pairs can return a current signal without a historical curve; check `meta.historyGuaranteed` rather than treating an empty series as evidence of no incidents. Use the [Decision Integrity page](https://www.oracleinsight.xyz/decision-integrity#oracle-watch-demo) or `GET /api/v1/oracle-watch?symbol=ETH&chain=ethereum` to explore the signal.
 
 ### Explore oracle and protocol risk
 
 The web app also provides cross-oracle price comparison, feed health and reputation, position safety and liquidation analysis, Peg Risk for stablecoins and wrapped assets, and daily reports. Researchers can inspect source timestamps and export results; developers can use the corresponding API endpoints.
 
-Integrated providers include Chainlink, Pyth Core, Stork, Chronicle, API3, RedStone, DIA, WINkLink, Supra, Uniswap V3 TWAP, Reflector, Flare, and Band. Position safety supports selected Aave V3, Compound V3, Morpho Blue, Venus, and BENQI markets. Coverage varies by asset and chain, so confirm the available sources and protocol parameters for the position being assessed.
+Integrated providers include Chainlink, Pyth Core, Stork, Chronicle, API3, RedStone, DIA, WINkLink, Supra, Uniswap V3 TWAP, Reflector, Flare, and Band. Monad also has a separate, block-pinned Uniswap V3 WMON/USDC execution-market layer: spot, 15-minute TWAP, in-range liquidity, fixed-size Quoter V2 slippage, and finalized Swap-event volume. DEX evidence never counts as an independent oracle or enters oracle consensus. Position safety supports selected Aave V3, Compound V3, Morpho Blue, Venus, and BENQI markets. Coverage varies by asset and chain, so confirm the available sources and protocol parameters for the position being assessed.
 
 ### SDK, API, MCP, and verifier
 

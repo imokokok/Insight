@@ -4,7 +4,7 @@ import { type OracleFeed } from '@/lib/supabase/queries';
 import { getAdminQueries } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider } from '@/types/oracle';
-import { type Blockchain, type PriceData } from '@/types/oracle';
+import { Blockchain, type PriceData } from '@/types/oracle';
 
 import { BLOCKCHAIN_TO_CHAIN_ID } from '../constants/chainMapping';
 import { getActiveFeedsMap, matchesChainId } from '../utils/dynamicFeedResolver';
@@ -12,6 +12,7 @@ import { extractBaseSymbol, isUsdDenominatedFeedSymbol } from '../utils/oracleDa
 import {
   shouldUseDatabase,
   getPriceFromDatabase,
+  getLatestPriceSnapshotFromDatabase,
   savePriceToDatabase,
   getHistoricalPricesFromDatabase,
   supportsPricePersistence,
@@ -67,8 +68,40 @@ function getPriceDataAgeMs(priceData: PriceData): number {
   return Math.max(0, Date.now() - refTime);
 }
 
-function isDbPriceStale(priceData: PriceData, provider: OracleProvider): boolean {
-  return getPriceDataAgeMs(priceData) > getDbCacheTtlMs(provider);
+function requiresStrictDirectFreshness(provider: OracleProvider, chain: Blockchain): boolean {
+  return provider === OracleProvider.SUPRA && chain === Blockchain.MONAD;
+}
+
+function isDbPriceStale(
+  priceData: PriceData,
+  provider: OracleProvider,
+  chain: Blockchain
+): boolean {
+  if (getPriceDataAgeMs(priceData) > getDbCacheTtlMs(provider)) return true;
+
+  // A recent DB ingestion does not make an old Push observation fresh. The
+  // direct Supra Monad reader already enforces this exact 30-minute source
+  // timestamp bound; apply it to cached records too so a value near its
+  // expiry cannot cross the gate solely because it was cached a few seconds
+  // ago.
+  if (requiresStrictDirectFreshness(provider, chain)) {
+    const sourceAgeMs = Date.now() - priceData.timestamp;
+    return !Number.isFinite(sourceAgeMs) || sourceAgeMs > 30 * 60 * 1000;
+  }
+
+  return false;
+}
+
+function selectNewestFallbackPrice(
+  staleRecord: PriceData | null,
+  latestSnapshot: PriceData | null
+): PriceData | null {
+  if (!staleRecord) return latestSnapshot;
+  if (!latestSnapshot) return staleRecord;
+
+  const recordTime = staleRecord.ingestionTimestamp ?? staleRecord.timestamp;
+  const snapshotTime = latestSnapshot.ingestionTimestamp ?? latestSnapshot.timestamp;
+  return snapshotTime > recordTime ? latestSnapshot : staleRecord;
 }
 
 function getOracleClient(provider: OracleProvider) {
@@ -301,13 +334,17 @@ export async function fetchPriceWithDatabase(
     }
 
     // RedStone's price API is case-sensitive: mixed-case symbols such as
-    // `etrUSD_FUNDAMENTAL` / `CELO/EUR` return HTTP 500 when uppercased. The
-    // shared `baseSymbol` above is uppercased for the case-insensitive support
-    // gate, but the live fetch must use the DB-stored canonical casing
-    // (recovered via matchedSymbol) so we hit the API with the
-    // exact symbol. All other providers keep the uppercased base symbol.
+    // `etrUSD_FUNDAMENTAL` / `CELO/EUR` return HTTP 500 when uppercased. Supra
+    // on Monad also has a source-native identity (`SUI/USDT`, not merely
+    // `SUI`): preserving it makes cache/history rows and direct Push reads
+    // refer to the same reviewed pair. Other providers keep the uppercased
+    // base symbol.
     let fetchSymbol = baseSymbol;
-    if (provider === OracleProvider.REDSTONE && matchedSymbol) {
+    if (
+      matchedSymbol &&
+      (provider === OracleProvider.REDSTONE ||
+        (provider === OracleProvider.SUPRA && targetChain === Blockchain.MONAD))
+    ) {
       fetchSymbol = matchedSymbol;
     }
 
@@ -323,7 +360,7 @@ export async function fetchPriceWithDatabase(
     if (!forceRefresh && useDatabase && shouldUseDatabase() && supportsPricePersistence(provider)) {
       const dbPrice = await getPriceFromDatabase(provider, fetchSymbol, targetChain);
       if (dbPrice) {
-        if (!isDbPriceStale(dbPrice, provider)) {
+        if (!isDbPriceStale(dbPrice, provider, targetChain)) {
           return dbPrice;
         }
         staleDbPrice = dbPrice;
@@ -341,7 +378,13 @@ export async function fetchPriceWithDatabase(
 
     try {
       const livePrice = await client.getPrice(fetchSymbol, targetChain, { signal });
-      if (storageOptions.persist !== false && supportsPricePersistence(provider)) {
+      // A live API or UI request must not turn into a Postgres write.  The
+      // 15-minute snapshot collector owns the short-term cache and persists
+      // its complete result set once per batch.  Keeping this opt-in prevents
+      // request volume from growing `price_records`, its indexes, WAL, and the
+      // later TTL-cleanup work.  A dedicated ingest path may opt in explicitly
+      // when it has a documented need for a one-off durable observation.
+      if (storageOptions.persist === true && supportsPricePersistence(provider)) {
         await savePriceToDatabase(livePrice)
           .then((saved) => {
             if (saved) {
@@ -389,19 +432,29 @@ export async function fetchPriceWithDatabase(
       if (!forceRefresh) await recordFeedHealthResult(provider, baseSymbol, chain, true);
       return livePrice;
     } catch (liveError) {
-      // Live refresh failed. If we have a stale DB fallback, serve it rather
-      // than failing the request — the staleness is still surfaced to consumers
-      // via dataAgeSeconds in the consensus response. Record the feed health
-      // failure so feeds that only fail under live traffic are still tracked
-      // (matches the outer-catcher's behavior for the no-fallback path).
-      if (staleDbPrice) {
+      // Live refresh failed. A price_records row is rich but normally only
+      // hourly; the lean snapshot stream remains 15-minute. Consult it only
+      // now (never on the normal request path) so outage fallback freshness is
+      // retained without adding a read to successful live requests.
+      const latestSnapshot =
+        !forceRefresh && useDatabase && shouldUseDatabase() && supportsPricePersistence(provider)
+          ? await getLatestPriceSnapshotFromDatabase(provider, fetchSymbol, targetChain)
+          : null;
+      const fallbackPrice = selectNewestFallbackPrice(staleDbPrice, latestSnapshot);
+
+      // The staleness is still surfaced to consumers via dataAgeSeconds in the
+      // consensus response. Record the feed health failure so feeds that only
+      // fail under live traffic are still tracked (matching the outer catcher's
+      // behavior for the no-fallback path).
+      if (fallbackPrice && !requiresStrictDirectFreshness(provider, targetChain)) {
         await recordFeedHealthResult(provider, baseSymbol, chain, false);
-        logger.warn('Live price refresh failed; serving stale DB cache', {
+        logger.warn('Live price refresh failed; serving latest durable fallback', {
           provider,
           symbol: baseSymbol,
+          source: fallbackPrice.source ?? 'price_records',
           error: liveError instanceof Error ? liveError.message : String(liveError),
         });
-        return staleDbPrice;
+        return fallbackPrice;
       }
       throw liveError;
     }
@@ -479,11 +532,16 @@ export async function fetchHistoricalPricesWithDatabase(
       (client as { clearCache: () => void }).clearCache();
     }
 
-    // RedStone's API is case-sensitive; use the DB-stored canonical casing for
-    // the historical fetch so mixed-case symbols (e.g. `etrUSD_FUNDAMENTAL`)
-    // are not uppercased into a 500. Other providers keep the uppercased base.
+    // Preserve a provider's canonical source identity for history as well.
+    // Besides RedStone's case-sensitive API symbols, this ensures Monad Supra
+    // Push snapshots are queried under their exact pair (`SUI/USDT`) rather
+    // than a non-existent bare-asset cache key.
     let fetchSymbol = baseSymbol;
-    if (provider === OracleProvider.REDSTONE && matchedSymbol) {
+    if (
+      matchedSymbol &&
+      (provider === OracleProvider.REDSTONE ||
+        (provider === OracleProvider.SUPRA && targetChain === Blockchain.MONAD))
+    ) {
       fetchSymbol = matchedSymbol;
     }
 

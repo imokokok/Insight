@@ -2,9 +2,12 @@ import { getConsensusPrice } from '@/lib/api/services/consensusPriceService';
 import { signAttestationV2 } from '@/lib/attestations/oracleSafetyAttestationV2';
 import { signAttestationV3 } from '@/lib/attestations/oracleSafetyAttestationV3';
 import { assertVeritasJointRun1800Admission } from '@/lib/attestations/veritasJointRunValidity';
+import { getReviewedUniswapV3PreTradeEvidence } from '@/lib/dex/preTradeUniswapV3';
 import { UnsupportedSymbolError } from '@/lib/errors';
 import { getManipCostAdvisory, type ManipCostAdvisory } from '@/lib/manipCost/baseline';
-import { computeMarketReferenceContext } from '@/lib/marketReference/client';
+import { fetchChainlinkMarketReference } from '@/lib/marketReference/chainlink';
+import { computeMarketReferenceContext, getMarketReference } from '@/lib/marketReference/client';
+import { fetchRedStoneMarketReference } from '@/lib/marketReference/redstone';
 import { getModelStatus, scorePreTradeMultiHorizon } from '@/lib/ml/inference';
 import { getFeedStalenessBaselineMap } from '@/lib/oracles/feedCadence';
 import { getProtocolByIdWithDynamicData } from '@/lib/protocols/dynamicData';
@@ -61,6 +64,7 @@ jest.mock('@/lib/oracles/feedCadence', () => ({
 // omitted) so unrelated tests are unaffected; the advisory describe block
 // overrides per-case.
 jest.mock('@/lib/manipCost/baseline', () => ({
+  ...jest.requireActual('@/lib/manipCost/baseline'),
   getManipCostAdvisory: jest.fn(() => Promise.resolve(null)),
 }));
 
@@ -101,6 +105,7 @@ jest.mock('@/lib/ml/inference', () => ({
 // feature passes through without hitting Supabase.
 jest.mock('@/lib/marketReference/client', () => ({
   computeMarketReferenceContext: jest.fn(),
+  getMarketReference: jest.fn(() => Promise.resolve(null)),
 }));
 
 // Mock the v2/v3 signers so v2/v3 service tests assert the ROUTING/PLUMBING
@@ -119,6 +124,24 @@ jest.mock('@/lib/attestations/oracleSafetyAttestationV3', () => ({
 }));
 jest.mock('@/lib/attestations/veritasJointRunValidity', () => ({
   assertVeritasJointRun1800Admission: jest.fn(),
+}));
+
+// The reviewed DEX evidence lane is mocked so venue-liquidity calibration tests
+// assert the sizing math without RPC access. The optional decision-input
+// reference fetchers are stubbed to null (their normal unavailable fallback) so
+// the lane tests stay hermetic and fast.
+jest.mock('@/lib/dex/preTradeUniswapV3', () => ({
+  getReviewedUniswapV3PreTradeEvidence: jest.fn(),
+}));
+
+jest.mock('@/lib/marketReference/chainlink', () => ({
+  ...jest.requireActual('@/lib/marketReference/chainlink'),
+  fetchChainlinkMarketReference: jest.fn(() => Promise.resolve(null)),
+}));
+
+jest.mock('@/lib/marketReference/redstone', () => ({
+  ...jest.requireActual('@/lib/marketReference/redstone'),
+  fetchRedStoneMarketReference: jest.fn(() => Promise.resolve(null)),
 }));
 
 const mockedGetConsensusPrice = getConsensusPrice as jest.MockedFunction<typeof getConsensusPrice>;
@@ -154,6 +177,18 @@ const mockedFetchGoPlusTokenSecurity = fetchGoPlusTokenSecurity as jest.MockedFu
 >;
 const mockedSignContextAttestation = signContextAttestation as jest.MockedFunction<
   typeof signContextAttestation
+>;
+const mockedReviewedUniswapV3Evidence = getReviewedUniswapV3PreTradeEvidence as jest.MockedFunction<
+  typeof getReviewedUniswapV3PreTradeEvidence
+>;
+const mockedFetchChainlinkReference = fetchChainlinkMarketReference as jest.MockedFunction<
+  typeof fetchChainlinkMarketReference
+>;
+const mockedFetchRedStoneReference = fetchRedStoneMarketReference as jest.MockedFunction<
+  typeof fetchRedStoneMarketReference
+>;
+const mockedGetMarketReference = getMarketReference as jest.MockedFunction<
+  typeof getMarketReference
 >;
 
 // ---------------------------------------------------------------------------
@@ -265,6 +300,11 @@ beforeEach(() => {
   // returns a valid object (mlModelVersion = null) instead of undefined.
   mockedGetModelStatus.mockReturnValue({ active: false, trainedAt: null, metrics: {} });
   mockedMarketContext.mockResolvedValue(null);
+  // Decision-input reference evidence: unavailable-by-default (null) so lane
+  // tests stay hermetic; resetMocks wipes the factory implementations above.
+  mockedFetchChainlinkReference.mockResolvedValue(null);
+  mockedFetchRedStoneReference.mockResolvedValue(null);
+  mockedGetMarketReference.mockResolvedValue(null);
   // Default: v2 signer returns a stub so result.attestation is non-null when
   // schemaVersion=2 is exercised. The stub echoes the resolved CAIP-19 ids and
   // derives coverageStatus from the quorum participant count (mirroring the real
@@ -526,11 +566,12 @@ describe('preTradeSafetyCheck — agreement & depeg rules', () => {
       } as never,
     ]);
 
-    const result = await preTradeSafetyCheck(makeInput());
+    const result = await preTradeSafetyCheck(makeInput({ asset: 'USDT' }));
 
     expect(result.verdict).toBe('BLOCK');
     expect(result.depegWarnings).toHaveLength(1);
     expect(result.contributingFactors.find((f) => f.rule === 'stablecoin_depeg_pct')).toBeDefined();
+    expect(mockedSnapshots).toHaveBeenCalledWith({ symbols: ['USDT'], signal: undefined });
   });
 
   it('ignores depeg deviations below the 0.3% caution threshold', async () => {
@@ -1617,6 +1658,20 @@ describe('preTradeSafetyCheck — manipulation-cost advisory', () => {
     expect(mockedGetManipCostAdvisory).not.toHaveBeenCalled();
   });
 
+  it('skips the advisory database read for an uncovered Ethereum asset', async () => {
+    const providers = [
+      makeProvider({ provider: 'chainlink' as OracleProvider, price: 1860, deviationPct: 0.05 }),
+      makeProvider({ provider: 'redstone' as OracleProvider, price: 1860.5, deviationPct: 0.03 }),
+      makeProvider({ provider: 'api3' as OracleProvider, price: 1859.8, deviationPct: 0.02 }),
+    ];
+    mockedGetConsensusPrice.mockResolvedValue(makeConsensus(providers));
+
+    const result = await preTradeSafetyCheck(makeInput({ asset: 'APE', chainId: 1 }));
+
+    expect(mockedGetManipCostAdvisory).not.toHaveBeenCalled();
+    expect(result.manipulationCost).toBeUndefined();
+  });
+
   it('an advisory fetch failure does not block or degrade the verdict', async () => {
     const providers = [
       makeProvider({ provider: 'chainlink' as OracleProvider, price: 1860, deviationPct: 0.05 }),
@@ -1899,5 +1954,184 @@ describe('preTradeSafetyCheck — token-security evidence lane (advisory)', () =
     expect(result.tokenSecurity?.isOpenSource).toBe(false);
     expect(result.verdict).toBe('PASS');
     expect(result.warnings).toEqual(['No oracle risk signals detected.']);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Venue-liquidity calibration of the recommended max position (short-coming ④)
+// ---------------------------------------------------------------------------
+
+describe('preTradeSafetyCheck — reviewed venue liquidity cap', () => {
+  const nowIso = () => new Date().toISOString();
+
+  function reviewedLaneEvidence(overrides: Record<string, unknown> = {}) {
+    return {
+      profile: 'base-weth-usdc',
+      venue: 'uniswap-v3',
+      market: 'WETH/USDC',
+      direction: 'token0-to-token1',
+      sourceFreshnessSeconds: 2,
+      observedAt: nowIso(),
+      block: {
+        number: '53410059',
+        hash: `0x${'11'.repeat(32)}`,
+        timestamp: nowIso(),
+      },
+      contracts: {
+        factory: '0x33128a8fC17869897dcE68Ed026d694621f6FDfD',
+        pool: '0x6c561B446416E1A00E8E93E221854d6eA4171372',
+        quoterV2: '0x3d4e44Eb1374240CE5F1B871ab261CD16335B76a',
+        feeTier: 3_000,
+        codeIdentity: {
+          factory: `0x${'aa'.repeat(32)}`,
+          quoterV2: `0x${'bb'.repeat(32)}`,
+          pool: `0x${'cc'.repeat(32)}`,
+        },
+      },
+      quote: {
+        direction: 'token0-to-token1',
+        amountIn: 1.25,
+        amountInRaw: '1250000000000000000',
+        amountOut: 2323,
+        amountOutRaw: '2323000000',
+        effectiveToken1PerToken0: 1858,
+        initializedTicksCrossed: 1,
+        priceImpactBps: 6,
+      },
+      spotToken1PerToken0: 1860,
+      twapToken1PerToken0: 1859,
+      twapDeviationBpsFromSpot: 5,
+      poolBalances: {
+        token0Raw: '10000000000000000000',
+        token0: 10,
+        token1Raw: '18600000000',
+        token1: 18_600,
+      },
+      ...overrides,
+    } as never;
+  }
+
+  function laneInput(overrides: Record<string, unknown> = {}) {
+    return makeInput({
+      asset: 'WETH',
+      chainId: 8453,
+      action: 'swap',
+      tradeAmountUsd: 100,
+      decisionInput: {
+        decisionPriceUsd: 1860,
+        quotePriceUsd: 1858,
+        quoteObservedAt: nowIso(),
+        maxReferenceDeviationBps: 50,
+        maxSlippageBps: 50,
+        maxQuoteAgeSeconds: 60,
+        reviewedUniswapV3: { amountIn: '1.25', maxQuoteDeviationBps: 50, maxTwapDeviationBps: 50 },
+      },
+      ...overrides,
+    } as never);
+  }
+
+  it('caps the recommended position at 1% of reviewed pool depth in the forward direction', async () => {
+    mockedGetConsensusPrice.mockResolvedValue(makeConsensus([makeProvider()]));
+    // consensus $1860; pool input side holds 10 WETH ($18,600) and the quote's
+    // 6bp impact implies $3.875M of depth, so the balance binds: cap = $186.
+    mockedReviewedUniswapV3Evidence.mockResolvedValue(reviewedLaneEvidence());
+
+    const result = await preTradeSafetyCheck(laneInput());
+
+    expect(mockedReviewedUniswapV3Evidence).toHaveBeenCalledWith(
+      expect.objectContaining({ chainId: 8453, asset: 'WETH', amountIn: '1.25' })
+    );
+    expect(result.recommendedMaxPositionUsd).toBe(186);
+    expect(
+      result.warnings.some((warning) => warning.startsWith('Reviewed venue liquidity cap applied'))
+    ).toBe(true);
+  });
+
+  it('selects the input-side balance in the reverse direction', async () => {
+    mockedGetConsensusPrice.mockResolvedValue(
+      makeConsensus([makeProvider({ price: 1, deviationPct: 0.01 })], {
+        symbol: 'USDC',
+        consensusPrice: 1,
+        methodResults: {
+          median: 1,
+          trimmed_mean: 1,
+          weighted_median: 1,
+          iqr_filtered: 1,
+        },
+        priceRange: { min: 1, max: 1 },
+        recommendedProvider: 'chainlink' as OracleProvider,
+      })
+    );
+    // USDT→USDC reverse lane: the input token is token1, so the 20,000 USDT
+    // balance (not the token0 balance) bounds depth. 2bp impact implies far
+    // more depth than the balance, so cap = 20,000 × 1 × 1% = $200.
+    mockedReviewedUniswapV3Evidence.mockResolvedValue(
+      reviewedLaneEvidence({
+        profile: 'base-pancakeswap-v3-usdc-usdt',
+        market: 'USDC/USDT',
+        direction: 'token1-to-token0',
+        quote: {
+          direction: 'token1-to-token0',
+          amountIn: 500,
+          amountInRaw: '500000000',
+          amountOut: 499.9,
+          amountOutRaw: '499900000',
+          effectiveToken0PerToken1: 0.9998,
+          initializedTicksCrossed: 0,
+          priceImpactBps: 2,
+        },
+        poolBalances: {
+          token0Raw: '20000000000',
+          token0: 20_000,
+          token1Raw: '20000000000',
+          token1: 20_000,
+        },
+      })
+    );
+
+    const result = await preTradeSafetyCheck(
+      laneInput({
+        asset: 'USDT',
+        decisionInput: {
+          decisionPriceUsd: 1,
+          quotePriceUsd: 0.9998,
+          quoteObservedAt: nowIso(),
+          maxReferenceDeviationBps: 50,
+          maxSlippageBps: 50,
+          maxQuoteAgeSeconds: 60,
+          reviewedUniswapV3: {
+            amountIn: '500',
+            maxQuoteDeviationBps: 50,
+            maxTwapDeviationBps: 50,
+          },
+        },
+      })
+    );
+
+    expect(result.recommendedMaxPositionUsd).toBe(200);
+    expect(
+      result.warnings.some((warning) => warning.startsWith('Reviewed venue liquidity cap applied'))
+    ).toBe(true);
+  });
+
+  it('keeps the oracle-only advisory cap when the lane evidence cannot support a venue cap', async () => {
+    mockedGetConsensusPrice.mockResolvedValue(makeConsensus([makeProvider()]));
+    mockedReviewedUniswapV3Evidence.mockResolvedValue(
+      reviewedLaneEvidence({
+        poolBalances: {
+          token0Raw: '0',
+          token0: 0,
+          token1Raw: '18600000000',
+          token1: 18_600,
+        },
+      })
+    );
+
+    const result = await preTradeSafetyCheck(laneInput());
+
+    expect(result.recommendedMaxPositionUsd).toBeGreaterThanOrEqual(10_000);
+    expect(
+      result.warnings.some((warning) => warning.startsWith('Reviewed venue liquidity cap applied'))
+    ).toBe(false);
   });
 });

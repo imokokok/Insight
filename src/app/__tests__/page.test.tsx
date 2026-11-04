@@ -69,7 +69,11 @@ describe('HomePage', () => {
     it('should render feature entry points', () => {
       renderDashboard();
 
-      for (const href of ['/price-insight', '/safety-check', '/reports']) {
+      for (const href of [
+        '/price-insight?stage=compare',
+        '/decision-integrity#pre-trade',
+        '/reports',
+      ]) {
         expect(document.querySelector(`a[href="${href}"]`)).toBeInTheDocument();
       }
     });
@@ -79,8 +83,9 @@ describe('HomePage', () => {
 
       expect(document.getElementById('risk-threshold-title')).toBeInTheDocument();
       expect(document.querySelector('a[href="/safety-check"]')).toBeInTheDocument();
-      expect(document.querySelector('a[href="/price-insight"]')).toBeInTheDocument();
-      expect(document.querySelector('a[href="/sdk"]')).toBeInTheDocument();
+      expect(document.querySelector('a[href="/price-insight?stage=compare"]')).toBeInTheDocument();
+      expect(document.querySelector('a[href="/decision-integrity#pre-trade"]')).toBeInTheDocument();
+      expect(document.querySelector('a[href="/build"]')).toBeInTheDocument();
     });
   });
 

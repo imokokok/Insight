@@ -14,15 +14,22 @@ const steps = [
     number: '02',
     title: 'Compare',
     text: 'Expose divergence, freshness, coverage, and source-level context.',
-    href: '/price-insight',
-    label: 'Price Insight',
+    href: '/price-insight?stage=compare',
+    label: 'Compare & Assess',
   },
   {
     number: '03',
     title: 'Assess',
-    text: 'Assess how oracle deviation could affect a trade, loan, or liquidation.',
-    href: '/safety-check',
-    label: 'Safety Check',
+    text: 'Assess the oracle evidence for a proposed trade, loan, or other action.',
+    href: '/decision-integrity#pre-trade',
+    label: 'Decision Integrity',
+  },
+  {
+    number: '04',
+    title: 'Watch & verify',
+    text: 'Monitor changing conditions and preserve the assessment record when needed.',
+    href: '/decision-integrity#oracle-watch-demo',
+    label: 'Oracle Watch',
   },
 ] as const;
 
@@ -55,7 +62,11 @@ export function OracleQuestionSection() {
                 href: '/price-insight?stage=observe',
               },
               { icon: CircleDot, label: 'Does it agree elsewhere?', href: '/price-insight' },
-              { icon: ShieldCheck, label: 'What happens if it moves?', href: '/safety-check' },
+              {
+                icon: ShieldCheck,
+                label: 'Is it fit for this action?',
+                href: '/decision-integrity#pre-trade',
+              },
             ].map(({ icon: Icon, label, href }, index) => (
               <Link key={label} href={href} className="home-question-card">
                 <span className="home-question-number">0{index + 1}</span>
@@ -88,7 +99,7 @@ export function OracleProcessSection() {
             explainable assessment your application can use before taking action.
           </p>
         </div>
-        <ol className="grid gap-0 border-l border-white/15 sm:grid-cols-3 sm:border-l-0 sm:border-t sm:pt-7">
+        <ol className="grid gap-0 border-l border-white/15 sm:grid-cols-2 sm:border-l-0 sm:border-t sm:pt-7 lg:grid-cols-4">
           {steps.map((step, index) => (
             <li
               key={step.number}

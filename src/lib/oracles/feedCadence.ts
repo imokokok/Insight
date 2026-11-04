@@ -1,8 +1,26 @@
+import { TTLCache } from '@/lib/utils/cache';
 import { createLogger } from '@/lib/utils/logger';
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 const logger = createLogger('feed-cadence');
+
+/**
+ * Cadence baselines are a collector-produced, non-price input to the pre-trade
+ * path. A short cache removes repeat database reads during a warm invocation
+ * without masking a failed feed for long; the independent 7-day hard stale
+ * backstop remains live on every request.
+ */
+export const FEED_STALENESS_BASELINE_CACHE_TTL_MS = 60_000;
+
+const baselineCache = new TTLCache({ maxSize: 128, cleanupIntervalMs: 0 });
+const baselinesInFlight = new Map<string, Promise<Map<string, number | null>>>();
+
+/** Test seam — clears the warm-instance baseline cache and request coalescer. */
+export function resetFeedStalenessBaselineCacheForTests(): void {
+  baselineCache.clear();
+  baselinesInFlight.clear();
+}
 
 /**
  * Multiplier on a feed's observed cadence (p90 data age) beyond which we treat
@@ -124,6 +142,37 @@ export async function updateAllFeedStalenessBaselines(supabase: SupabaseClient):
  * via HARD_STALE_BLOCK_SECONDS.
  */
 export async function getFeedStalenessBaselineMap(
+  supabase: SupabaseClient,
+  symbol: string
+): Promise<Map<string, number | null>> {
+  const cached = baselineCache.get<Map<string, number | null>>(symbol);
+  if (cached !== null) return new Map(cached);
+
+  let request = baselinesInFlight.get(symbol);
+  if (!request) {
+    request = loadFeedStalenessBaselineMap(supabase, symbol);
+    baselinesInFlight.set(symbol, request);
+    void request.then(
+      () => {
+        if (baselinesInFlight.get(symbol) === request) baselinesInFlight.delete(symbol);
+      },
+      () => {
+        if (baselinesInFlight.get(symbol) === request) baselinesInFlight.delete(symbol);
+      }
+    );
+  }
+
+  const result = await request;
+  // Do not cache an unavailable baseline: its absence is deliberately
+  // non-blocking, and a recovered database should be used immediately.
+  if (result.size > 0) {
+    baselineCache.set(symbol, new Map(result), FEED_STALENESS_BASELINE_CACHE_TTL_MS);
+  }
+  // A fresh Map prevents a caller from mutating the warm-instance cache.
+  return new Map(result);
+}
+
+async function loadFeedStalenessBaselineMap(
   supabase: SupabaseClient,
   symbol: string
 ): Promise<Map<string, number | null>> {

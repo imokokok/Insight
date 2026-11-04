@@ -5,7 +5,7 @@ import { getX402Config } from '@/lib/api/x402/config';
 import { handlePaidPreTradeRequest, hasAuthCredentials, isPaidRequest } from '@/lib/api/x402/guard';
 import { assessExecutionPreflight } from '@/lib/preflight/executionPreflight';
 
-import { GET } from '../route';
+import { GET, HEAD } from '../route';
 
 jest.mock('next/server', () => {
   class NextResponse {
@@ -100,6 +100,14 @@ beforeEach(() => {
 });
 
 describe('execution-preflight route', () => {
+  it('rejects HEAD without entering the x402 payment dispatch', () => {
+    const response = HEAD();
+
+    expect(response.status).toBe(405);
+    expect(response.headers.get('allow')).toBe('GET, OPTIONS');
+    expect(mockHandleX402).not.toHaveBeenCalled();
+  });
+
   it('runs validated keyless x402 requests through the preflight callback and returns its decision', async () => {
     const request = makeRequest();
 
@@ -119,7 +127,8 @@ describe('execution-preflight route', () => {
         action: 'swap',
         tradeAmountUsd: 1000,
       }),
-      { requestId: 'req_preflight_x402', apiKeyId: undefined }
+      { requestId: 'req_preflight_x402', apiKeyId: undefined },
+      expect.objectContaining({ signal: expect.anything() })
     );
     expect(mockSuccessResponse).toHaveBeenCalledWith(
       expect.objectContaining({ verdict: 'caution' }),
@@ -143,6 +152,86 @@ describe('execution-preflight route', () => {
       'VALIDATION_ERROR',
       'Invalid execution preflight query parameters',
       expect.any(Object)
+    );
+  });
+
+  it('forwards an opt-in reviewed Uniswap V3 lane only with the validated decision input', async () => {
+    const query = [
+      'asset=WETH',
+      'chainId=8453',
+      'action=swap',
+      'tradeAmountUsd=1000',
+      'destinationAsset=USDC',
+      'decisionInputCheck=1',
+      'decisionPriceUsd=2000',
+      'quotePriceUsd=2000',
+      'quoteObservedAt=2026-10-25T00%3A00%3A00.000Z',
+      'maxReferenceDeviationBps=50',
+      'maxSlippageBps=50',
+      'maxQuoteAgeSeconds=30',
+      'reviewedUniswapV3AmountIn=0.5',
+      'reviewedUniswapV3MaxQuoteDeviationBps=50',
+      'reviewedUniswapV3MaxTwapDeviationBps=50',
+    ].join('&');
+    const request = makeRequest({}, query);
+
+    await GET(request, routeContext());
+    const runBusiness = mockHandleX402.mock.calls[0][2] as (requestId: string) => Promise<Response>;
+    await runBusiness('req_preflight_reviewed_dex');
+
+    expect(mockAssessPreflight).toHaveBeenCalledWith(
+      expect.objectContaining({
+        destinationAsset: 'USDC',
+        decisionInput: expect.objectContaining({
+          reviewedUniswapV3: {
+            amountIn: '0.5',
+            maxQuoteDeviationBps: 50,
+            maxTwapDeviationBps: 50,
+          },
+        }),
+      }),
+      expect.any(Object),
+      expect.objectContaining({ signal: expect.anything() })
+    );
+  });
+
+  it('forwards an opt-in reviewed Aerodrome Slipstream lane with the validated decision input', async () => {
+    const query = [
+      'asset=WETH',
+      'chainId=8453',
+      'action=swap',
+      'tradeAmountUsd=1000',
+      'destinationAsset=USDC',
+      'decisionInputCheck=1',
+      'decisionPriceUsd=2000',
+      'quotePriceUsd=2000',
+      'quoteObservedAt=2026-10-25T00%3A00%3A00.000Z',
+      'maxReferenceDeviationBps=50',
+      'maxSlippageBps=50',
+      'maxQuoteAgeSeconds=30',
+      'reviewedAerodromeSlipstreamAmountIn=0.5',
+      'reviewedAerodromeSlipstreamMaxQuoteDeviationBps=50',
+      'reviewedAerodromeSlipstreamMaxTwapDeviationBps=50',
+    ].join('&');
+    const request = makeRequest({}, query);
+
+    await GET(request, routeContext());
+    const runBusiness = mockHandleX402.mock.calls[0][2] as (requestId: string) => Promise<Response>;
+    await runBusiness('req_preflight_reviewed_aerodrome');
+
+    expect(mockAssessPreflight).toHaveBeenCalledWith(
+      expect.objectContaining({
+        destinationAsset: 'USDC',
+        decisionInput: expect.objectContaining({
+          reviewedAerodromeSlipstream: {
+            amountIn: '0.5',
+            maxQuoteDeviationBps: 50,
+            maxTwapDeviationBps: 50,
+          },
+        }),
+      }),
+      expect.any(Object),
+      expect.objectContaining({ signal: expect.anything() })
     );
   });
 

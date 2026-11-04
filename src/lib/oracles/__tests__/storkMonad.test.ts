@@ -143,6 +143,18 @@ describe('StorkMonadOnChainService', () => {
     await expect(nonPositive.getPrice(btc!)).rejects.toThrow('Invalid non-positive Stork price');
   });
 
+  it('does not send a batch call when a feed asset ID does not match its encoded hash', async () => {
+    const rpc = rpcReturning(
+      storkResponse(BigInt(Date.now()) * 1_000_000n, 81_265_292_110_690_000_000_000n)
+    );
+    const service = new StorkMonadOnChainService(rpc);
+
+    const readings = await service.getPrices([{ ...btc!, encodedAssetId: `0x${'0'.repeat(64)}` }]);
+
+    expect(readings).toEqual([]);
+    expect(rpc.ethCall).not.toHaveBeenCalled();
+  });
+
   it('does not widen raw fixed-point values before scaling them', () => {
     expect(scaleStorkValue(81_265_292_110_690_000_000_000n)).toBe(81265.29211069);
     expect(() => scaleStorkValue(10n ** 400n)).toThrow('Stork scaled value is not finite');

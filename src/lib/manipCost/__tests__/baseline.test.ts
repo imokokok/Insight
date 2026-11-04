@@ -3,6 +3,7 @@ import {
   getManipCostAdvisory,
   isManipCostCoveredSymbol,
   manipCostPoolKeysForSymbol,
+  resetManipCostAdvisoryCacheForTests,
 } from '../baseline';
 
 import type { SupabaseClient } from '@supabase/supabase-js';
@@ -66,6 +67,10 @@ function snapshotRow(poolKey: string, ageMinutes: number): Row {
 
 const NOW = new Date();
 
+afterEach(() => {
+  resetManipCostAdvisoryCacheForTests();
+});
+
 // ---------------------------------------------------------------------------
 // Symbol mapping
 // ---------------------------------------------------------------------------
@@ -100,6 +105,20 @@ describe('manipCostPoolKeysForSymbol', () => {
 // ---------------------------------------------------------------------------
 
 describe('getManipCostAdvisory', () => {
+  it('briefly caches a verified advisory for repeated warm-instance reads', async () => {
+    const rows = [
+      snapshotRow('uniswap-v3-eth-usdc-005', 5),
+      snapshotRow('uniswap-v2-usdc-weth', 7),
+    ];
+    const client = fakeSupabase({ data: rows });
+
+    const first = await getManipCostAdvisory(client, 'ETH');
+    const second = await getManipCostAdvisory(client, 'ETH');
+
+    expect(client.from).toHaveBeenCalledTimes(1);
+    expect(second).toEqual(first);
+  });
+
   it('builds the advisory from fresh snapshots for all mapped pools (ETH)', async () => {
     const rows = [
       snapshotRow('uniswap-v3-eth-usdc-005', 5),

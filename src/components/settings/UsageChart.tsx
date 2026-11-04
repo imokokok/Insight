@@ -14,7 +14,13 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import { z } from 'zod';
 
+import {
+  apiErrorMessage,
+  parseApiEnvelope,
+  requireApiData,
+} from '@/lib/api/client/responseValidation';
 import { PLANS, type Plan } from '@/lib/billing/plans';
 
 interface UsageData {
@@ -27,6 +33,13 @@ interface UsageData {
   byDate: Array<{ date: string; count: number }>;
   byEndpoint: Array<{ endpoint: string; count: number }>;
 }
+
+const UsageDataSchema: z.ZodType<UsageData> = z.object({
+  key: z.object({ id: z.string(), name: z.string(), plan: z.string() }),
+  total: z.number(),
+  byDate: z.array(z.object({ date: z.string(), count: z.number() })),
+  byEndpoint: z.array(z.object({ endpoint: z.string(), count: z.number() })),
+});
 
 interface UsageChartProps {
   apiKeyId: string;
@@ -74,13 +87,13 @@ export function UsageChart({ apiKeyId, plan, accessToken }: UsageChartProps) {
         const response = await fetch(`/api/user/api-keys/${apiKeyId}/usage`, {
           headers: { Authorization: `Bearer ${accessToken}` },
         });
-        const result = await response.json();
+        const result = parseApiEnvelope(await response.json(), 'API key usage response');
 
         if (!response.ok || !result.success) {
-          throw new Error(result.error?.message || 'Failed to load usage');
+          throw new Error(apiErrorMessage(result, 'Failed to load usage'));
         }
 
-        setData(result.data);
+        setData(requireApiData(result, UsageDataSchema, 'API key usage response'));
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load usage');
       } finally {

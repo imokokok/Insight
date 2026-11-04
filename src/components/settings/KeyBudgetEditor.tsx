@@ -14,6 +14,7 @@ import { useState } from 'react';
 import { Save } from 'lucide-react';
 
 import { Button } from '@/components/ui/Button';
+import { apiErrorMessage, parseApiEnvelope } from '@/lib/api/client/responseValidation';
 
 interface KeyBudgetEditorProps {
   accessToken: string | null | undefined;
@@ -50,9 +51,9 @@ export function KeyBudgetEditor({
         },
         body: JSON.stringify({ budgetMonthly: amount }),
       });
-      const result = await response.json();
+      const result = parseApiEnvelope(await response.json(), 'Key budget response');
       if (!response.ok || !result.success) {
-        throw new Error(result.error?.message || 'Failed to save budget');
+        throw new Error(apiErrorMessage(result, 'Failed to save budget'));
       }
 
       setEditing(false);
