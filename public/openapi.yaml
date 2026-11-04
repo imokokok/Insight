@@ -3240,6 +3240,58 @@ paths:
       responses:
         '200': { description: Cryptographic verification result and expiry state. }
 
+  /safety/bnb-perp-guard:
+    get:
+      operationId: assessBnbPerpGuard
+      tags: [Safety]
+      summary: BNB perp risk decision (Aster Perps)
+      description: >-
+        Read-only risk gate for a caller-declared Aster Perps USDT-margined
+        position on BNB Smart Chain. It separately evaluates the underlying
+        and USDT margin oracle integrity, binds the declared leverage to the
+        reviewed profile capped by the live venue margin requirement, and
+        escalates on observed Aster mark/index or consensus divergence; it
+        never signs, submits, or authorizes an order. API-key access or x402
+        payment is accepted.
+      security:
+        - apiKey: []
+        - {}
+      parameters:
+        - {
+            name: protocolId,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [aster-perps-bnb-mainnet] },
+          }
+        - {
+            name: action,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [open_long, open_short] },
+          }
+        - { name: assetSymbol, in: query, required: true, schema: { type: string, example: BTC } }
+        - {
+            name: marginAssetSymbol,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [USDT] },
+          }
+        - {
+            name: sizeUsd,
+            in: query,
+            required: true,
+            schema: { type: number, exclusiveMinimum: 0, example: 20000 },
+          }
+        - {
+            name: marginValueUsd,
+            in: query,
+            required: true,
+            schema: { type: number, exclusiveMinimum: 0, example: 2000 },
+          }
+      responses:
+        '200': { description: Complete ALLOW, CAUTION, or BLOCK perp decision. }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
   /safety/hyperliquid-perp-guard:
     get:
       operationId: assessHyperliquidPerpGuard
@@ -4620,6 +4672,45 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/ApiErrorResponse' }
 
+  /safety/prediction-guard:
+    get:
+      operationId: assessPolymarketGuard
+      tags: [Safety]
+      summary: Polymarket prediction-market screening decision
+      description: >-
+        Read-only screening gate for one Polymarket market. Cross-oracle
+        consensus is deliberately not applied to event markets; the guard
+        verifies machine-parseable price-contract metadata, lifecycle and
+        resolution timing, quoted-probability integrity, and whether the
+        declared settlement venue can be verified post-hoc. It never signs,
+        submits, or authorizes an order. API-key access or x402 payment is
+        accepted.
+      security:
+        - apiKey: []
+        - {}
+      parameters:
+        - {
+            name: protocolId,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [polymarket-prediction-mainnet] },
+          }
+        - {
+            name: action,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [buy_up, buy_down] },
+          }
+        - {
+            name: marketSlug,
+            in: query,
+            required: true,
+            schema: { type: string, example: btc-updown-5m-1766162100 },
+          }
+      responses:
+        '200': { description: Complete ALLOW, CAUTION, or BLOCK screening decision. }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
   /safety/preflight:
     get:
       operationId: executionPreflight
