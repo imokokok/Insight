@@ -23,7 +23,7 @@
     "prevalidate:ci": "npm run build --prefix verifier",
     "validate:ci": "npm run validate:generated && npm run workflow:check && npm run rwa:parity && npm run protocol:check && npm run validate:ci:checks && npm run build",
     "validate:ci:static": "node scripts/run-checks-parallel.mjs lint format:check typecheck typecheck:scripts knip sdk:test rwa:registry:check rwa:execution-profiles",
-    "validate:ci:tests": "npm run test:coverage && npm run test:reliability",
+    "validate:ci:tests": "npm run test:coverage -- --maxWorkers=75% && npm run test:reliability",
     "validate:ci:checks": "npm run validate:ci:static && npm run validate:ci:tests",
     "test": "jest",
     "test:watch": "jest --watch",
