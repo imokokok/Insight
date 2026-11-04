@@ -24,6 +24,9 @@ import {
   X402_POSITION_LIFECYCLE_ROUTE,
   X402_SOLANA_LENDING_GUARD_ROUTE,
   X402_SOLANA_PERP_GUARD_ROUTE,
+  X402_SOLANA_SWAP_GUARD_ROUTE,
+  X402_BNB_PERP_GUARD_ROUTE,
+  X402_PREDICTION_GUARD_ROUTE,
   X402_LOOPSCALE_VAULT_DEPOSIT_ROUTE,
   X402_EXECUTION_PREFLIGHT_ROUTE,
   X402_MCP_ROUTE,
@@ -904,6 +907,18 @@ export async function buildX402HttpServer(
     [X402_SOLANA_PERP_GUARD_ROUTE]: routeConfigWithoutDiscovery(
       cfg,
       'Solana Perp Guard: a read-only, pre-trade decision gate for opening a Drift Protocol v2 perpetual position on Solana mainnet (reviewed SOL, BTC, and ETH markets, USDC margin). It evaluates underlying and USDC cross-oracle consensus integrity on canonical mainnet feeds, checks caller-declared post-action leverage against a reviewed static profile capped by the live Drift margin ratio, and attaches disclosed on-chain venue evidence (Drift mark price vs Pyth Lazer oracle deviation, funding rate, open interest, market status). It never signs, submits, or authorizes an order.'
+    ),
+    [X402_SOLANA_SWAP_GUARD_ROUTE]: routeConfigWithoutDiscovery(
+      cfg,
+      'Solana Swap Guard: a read-only, pre-signing gate for one exact unsigned Orca Whirlpool swap message on Solana mainnet (reviewed USDC/USDT and SOL/USDC lanes). It re-derives pool, vault, tick-array, and oracle identities from live mainnet state, prices the pool from its own sqrtPrice, runs both oracle checks, and simulates the exact unsigned message before any ALLOW. It never signs, submits, or authorizes a transaction.'
+    ),
+    [X402_BNB_PERP_GUARD_ROUTE]: routeConfigWithoutDiscovery(
+      cfg,
+      'BNB Perp Guard: a read-only, pre-trade decision gate for opening an Aster Perps USDT-margined perpetual position on BNB Smart Chain (reviewed BTCUSDT and ETHUSDT markets). It separately evaluates the underlying and USDT margin cross-oracle consensus integrity on canonical mainnet feeds, binds the declared leverage to a reviewed static profile capped by the live Aster required-margin ratio, and attaches disclosed venue evidence (Aster mark/index divergence, funding rate, open interest, market status, consensus-vs-index deviation). It never signs, submits, or authorizes an order.'
+    ),
+    [X402_PREDICTION_GUARD_ROUTE]: routeConfigWithoutDiscovery(
+      cfg,
+      'Prediction Guard: a read-only screening gate for one Polymarket market entry. Cross-oracle consensus is deliberately not applied to event markets; the guard verifies machine-parseable price-contract metadata, lifecycle and resolution timing, quoted-probability integrity, and whether the declared settlement venue can be verified post-hoc by the settlement-evidence pipeline. It never signs, submits, or authorizes an order.'
     ),
     [X402_LOOPSCALE_VAULT_DEPOSIT_ROUTE]: routeConfigWithoutDiscovery(
       cfg,
