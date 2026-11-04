@@ -1,11 +1,16 @@
 import { type HTTPAdapter } from '@x402/core/server';
 
-import { x402ConfigForPaymentScope, X402_PAYMENT_SCOPE } from '../capabilityPayment';
+import {
+  X402_REST_PAYMENT_SCOPE_BY_PATH,
+  x402ConfigForPaymentScope,
+  X402_PAYMENT_SCOPE,
+} from '../capabilityPayment';
 import {
   parseX402Config,
   SOLANA_DEVNET_CAIP2,
   X402_BASE_LENDING_GUARD_ROUTE,
   X402_BASE_PERP_GUARD_ROUTE,
+  X402_BNB_PERP_GUARD_ROUTE,
   X402_EXECUTION_PREFLIGHT_ROUTE,
   X402_HYPERLIQUID_PERP_GUARD_ROUTE,
   X402_LOOPSCALE_VAULT_DEPOSIT_ROUTE,
@@ -14,8 +19,10 @@ import {
   X402_ORACLE_WATCH_WINDOW_ROUTE,
   X402_POSITION_LIFECYCLE_ROUTE,
   X402_PRE_TRADE_ROUTE,
+  X402_PREDICTION_GUARD_ROUTE,
   X402_SOLANA_LENDING_GUARD_ROUTE,
   X402_SOLANA_PERP_GUARD_ROUTE,
+  X402_SOLANA_SWAP_GUARD_ROUTE,
   X402_SWAP_INTENT_ROUTE,
 } from '../config';
 import { resetFacilitatorResilienceForTests } from '../facilitatorResilience';
@@ -257,6 +264,9 @@ describe('x402 SVM resource-server registration', () => {
     // (path, method, expected amount in atomic units) for every paid REST
     // surface a keyless agent can hit. A route missing from the resource-server
     // map would return the defensive no-quote 402 instead of a real quote.
+    // The completeness assertion below keeps this list in sync with
+    // X402_REST_PAYMENT_SCOPE_BY_PATH so a new scope-mapped route cannot ship
+    // unregistered again (that regression shipped once: #400's two guards).
     const routes = [
       { path: X402_PRE_TRADE_ROUTE, method: 'GET', amount: '20000' },
       { path: X402_EXECUTION_PREFLIGHT_ROUTE, method: 'GET', amount: '20000' },
@@ -266,12 +276,22 @@ describe('x402 SVM resource-server registration', () => {
       { path: X402_MONAD_LENDING_GUARD_ROUTE, method: 'GET', amount: '20000' },
       { path: X402_MULTICHAIN_EVM_LENDING_GUARD_ROUTE, method: 'GET', amount: '20000' },
       { path: X402_SOLANA_LENDING_GUARD_ROUTE, method: 'POST', amount: '20000' },
+      { path: X402_SOLANA_SWAP_GUARD_ROUTE, method: 'POST', amount: '20000' },
       { path: X402_SOLANA_PERP_GUARD_ROUTE, method: 'GET', amount: '20000' },
+      { path: X402_BNB_PERP_GUARD_ROUTE, method: 'GET', amount: '20000' },
+      { path: X402_PREDICTION_GUARD_ROUTE, method: 'GET', amount: '20000' },
       { path: X402_LOOPSCALE_VAULT_DEPOSIT_ROUTE, method: 'POST', amount: '20000' },
       { path: X402_SWAP_INTENT_ROUTE, method: 'GET', amount: '20000' },
       { path: X402_ORACLE_WATCH_WINDOW_ROUTE, method: 'POST', amount: '500000' },
       { path: X402_POSITION_LIFECYCLE_ROUTE, method: 'POST', amount: '550000' },
     ];
+
+    // Every chain-scoped route registered in the payment-scope map must have a
+    // paid quote in the resource-server route map.
+    const listedPaths = new Set(routes.map((route) => route.path));
+    for (const scopePath of Object.keys(X402_REST_PAYMENT_SCOPE_BY_PATH)) {
+      expect(listedPaths).toContain(scopePath);
+    }
 
     for (const route of routes) {
       const result = await server.processHTTPRequest({
