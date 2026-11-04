@@ -1,5 +1,10 @@
 # Repository collaboration rules
 
+## Local builds
+
+- `npm run build` uses Next.js Turbopack by default (what CI and Vercel run). Sandboxed local environments that cannot create Turbopack CSS worker processes must use `npm run build:webpack` (or run builds with `env -u NODE_OPTIONS` outside the sandbox).
+- `npm run ci:local` runs the full suite including `next build`; in sandboxed environments substitute the webpack build for the turbopack step before running it.
+
 ## Local Vercel access
 
 - The user authorized reuse of the saved Vercel credential in future tasks. Load `VERCEL_TOKEN` from the Git-ignored `.env.vercel.local` in this repository; do not ask the user to supply it again while it remains valid.
