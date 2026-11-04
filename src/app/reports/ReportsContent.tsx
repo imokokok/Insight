@@ -326,7 +326,13 @@ function Pagination({
   );
 }
 
-function ReportsContentInner({ initialReports }: { initialReports: ReportSummary[] }) {
+function ReportsContentInner({
+  initialReports,
+  initialDataUnavailable = false,
+}: {
+  initialReports: ReportSummary[];
+  initialDataUnavailable?: boolean;
+}) {
   const [currentPage, setCurrentPage] = useState(1);
   const latestReport = initialReports[0];
   const archiveReports = initialReports.slice(1);
@@ -360,12 +366,20 @@ function ReportsContentInner({ initialReports }: { initialReports: ReportSummary
 
           {archiveReports.length === 0 ? (
             <EmptyStateEnhanced
-              type="new"
-              title={latestReport ? 'The archive starts here' : 'No reports yet'}
+              type={initialDataUnavailable ? 'error' : 'new'}
+              title={
+                initialDataUnavailable
+                  ? 'Archive temporarily unavailable'
+                  : latestReport
+                    ? 'The archive starts here'
+                    : 'No reports yet'
+              }
               description={
-                latestReport
-                  ? 'Earlier editions will appear here as new daily reports are published.'
-                  : 'Daily reports will appear here once the scheduled snapshot collection begins.'
+                initialDataUnavailable
+                  ? 'The report archive could not be reached. No evidence record has been removed; please retry shortly.'
+                  : latestReport
+                    ? 'Earlier editions will appear here as new daily reports are published.'
+                    : 'Daily reports will appear here once the scheduled snapshot collection begins.'
               }
               size="md"
               variant="card"
@@ -403,10 +417,19 @@ function ReportsContentInner({ initialReports }: { initialReports: ReportSummary
   );
 }
 
-export default function ReportsContent({ initialReports }: { initialReports: ReportSummary[] }) {
+export default function ReportsContent({
+  initialReports,
+  initialDataUnavailable = false,
+}: {
+  initialReports: ReportSummary[];
+  initialDataUnavailable?: boolean;
+}) {
   return (
     <ErrorBoundary level="page" componentName="ReportsContent">
-      <ReportsContentInner initialReports={initialReports} />
+      <ReportsContentInner
+        initialReports={initialReports}
+        initialDataUnavailable={initialDataUnavailable}
+      />
     </ErrorBoundary>
   );
 }

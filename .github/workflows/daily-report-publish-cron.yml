@@ -122,7 +122,21 @@ jobs:
         run: node scripts/cron-control.mjs start
 
       - name: Publish previous day's report only if missing
-        run: node .github/cron-dist/daily-report-publish.mjs --if-missing
+        # The runner is idempotent with --if-missing, so a short retry absorbs
+        # transient database/provider failures without duplicating a report.
+        run: |
+          set -u
+          for attempt in 1 2 3; do
+            echo "[daily-report-publish] backfill attempt ${attempt}/3"
+            if node .github/cron-dist/daily-report-publish.mjs --if-missing; then
+              exit 0
+            fi
+            if [ "$attempt" -lt 3 ]; then
+              sleep "$((attempt * 60))"
+            fi
+          done
+          echo "::error::All 3 backfill attempts failed"
+          exit 1
 
       - name: Expire the production report cache
         run: |

@@ -240,12 +240,20 @@ async function computeWatchRequestHash(
 
 function toObservationEntries(providers: OracleWatchProvider[]): ProviderObservationEntry[] {
   return providers.map((p) => {
-    const included = p.status === 'success' && !p.isOutlier;
+    const included = p.status === 'success' && p.countsTowardOracleQuorum && !p.isOutlier;
     const exclusionReason =
-      p.status !== 'success' ? p.status : p.isOutlier ? 'outlier' : p.isStale ? 'stale' : '';
+      p.status !== 'success'
+        ? p.status
+        : !p.countsTowardOracleQuorum
+          ? 'SHADOW_ONLY'
+          : p.isOutlier
+            ? 'outlier'
+            : p.isStale
+              ? 'stale'
+              : '';
     return {
       provider: p.provider,
-      feedId: p.source ?? '',
+      feedId: p.feedId ?? '',
       value: BigInt(Math.round((p.price > 0 ? p.price : 0) * PRICE_SCALE)),
       timestamp: BigInt(Math.floor(p.timestamp / 1000)),
       dataAgeSeconds: BigInt(Math.max(0, Math.round(p.dataAgeSeconds ?? 0))),

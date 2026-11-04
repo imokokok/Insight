@@ -1,4 +1,8 @@
-import type { X402Config } from '@/lib/api/x402/config';
+import {
+  eip3009TokenNameForNetwork,
+  payToForEvmNetwork,
+  type X402Config,
+} from '@/lib/api/x402/config';
 
 export const MPP_MCP_TOOL = 'pre_trade_safety_check';
 
@@ -26,10 +30,21 @@ export function getMppConfig(
     return { enabled: false, mcpEnabled: false, secretKey: null };
   }
 
-  const evmX402Enabled = x402Config.evmEnabled ?? (x402Config.enabled && x402Config.payTo !== '');
+  const evmX402Enabled =
+    x402Config.evmEnabled ??
+    (x402Config.enabled &&
+      (x402Config.payTo !== '' || Object.keys(x402Config.evmPayTos ?? {}).length > 0));
   if (!evmX402Enabled) {
     throw new Error('MPP_ENABLED requires an enabled EVM x402 payment option');
   }
+  if (payToForEvmNetwork(x402Config, x402Config.network) === '') {
+    throw new Error(
+      'MPP_ENABLED requires a recipient for X402_NETWORK via X402_PAY_TO or X402_EVM_PAY_TOS'
+    );
+  }
+  // MPP's EVM charge method is EIP-3009-based. Chains such as BNB that use
+  // the AEON mandate flow remain x402-only rather than failing on a request.
+  eip3009TokenNameForNetwork(x402Config.network);
 
   const secretKey = env.MPP_SECRET_KEY?.trim() ?? '';
   if (new TextEncoder().encode(secretKey).byteLength < 32) {

@@ -1,9 +1,14 @@
+import { CHRONICLE_MONAD_PRICE_FEEDS } from '@/lib/oracles/constants/chronicleMonad';
+import { PYTH_MONAD_SPONSORED_FEEDS } from '@/lib/oracles/constants/pythMonad';
+import { PYTH_SOLANA_SPONSORED_FEEDS } from '@/lib/oracles/constants/pythSolana';
+import { STORK_MONAD_PUSHED_FEEDS } from '@/lib/oracles/constants/storkMonad';
 import {
   API3_AVAILABLE_PAIRS,
   oracleSupportedSymbols,
   SUPRA_AVAILABLE_PAIRS,
   WINKLINK_AVAILABLE_PAIRS,
 } from '@/lib/oracles/constants/supportedSymbols';
+import { SUPRA_MONAD_PUSHED_FEEDS } from '@/lib/oracles/constants/supraMonad';
 import { BLOCKCHAIN_TO_CHAIN_ID, TWAP_POOL_ADDRESSES } from '@/lib/oracles/constants/twapConstants';
 import { Blockchain, OracleProvider } from '@/types/oracle';
 
@@ -19,6 +24,9 @@ export interface OracleMetadata {
  */
 export const PRICE_ORACLE_ORDER: readonly OracleProvider[] = [
   OracleProvider.CHAINLINK,
+  OracleProvider.PYTH,
+  OracleProvider.STORK,
+  OracleProvider.CHRONICLE,
   OracleProvider.API3,
   OracleProvider.REDSTONE,
   OracleProvider.DIA,
@@ -39,7 +47,12 @@ export const ORACLE_SUPPORTED_CHAINS: Record<OracleProvider, readonly Blockchain
     Blockchain.AVALANCHE,
     Blockchain.BNB_CHAIN,
     Blockchain.BASE,
+    Blockchain.SOLANA,
+    Blockchain.MONAD,
   ],
+  [OracleProvider.PYTH]: [Blockchain.MONAD, Blockchain.SOLANA],
+  [OracleProvider.STORK]: [Blockchain.MONAD],
+  [OracleProvider.CHRONICLE]: [Blockchain.MONAD],
   [OracleProvider.API3]: [
     Blockchain.ETHEREUM,
     Blockchain.ARBITRUM,
@@ -88,6 +101,7 @@ export const ORACLE_SUPPORTED_CHAINS: Record<OracleProvider, readonly Blockchain
     Blockchain.SUPRA_CHAIN,
     Blockchain.APTOS,
     Blockchain.SUI,
+    Blockchain.MONAD,
   ],
   [OracleProvider.TWAP]: [
     Blockchain.ETHEREUM,
@@ -103,9 +117,22 @@ export const ORACLE_SUPPORTED_CHAINS: Record<OracleProvider, readonly Blockchain
 };
 
 const PAIRS_BY_PROVIDER: Partial<Record<OracleProvider, Record<string, string[]>>> = {
+  [OracleProvider.PYTH]: {
+    [Blockchain.MONAD]: PYTH_MONAD_SPONSORED_FEEDS.map((feed) => feed.alias),
+    [Blockchain.SOLANA]: PYTH_SOLANA_SPONSORED_FEEDS.map((feed) => feed.alias),
+  },
+  [OracleProvider.STORK]: {
+    [Blockchain.MONAD]: STORK_MONAD_PUSHED_FEEDS.map((feed) => feed.alias),
+  },
+  [OracleProvider.CHRONICLE]: {
+    [Blockchain.MONAD]: CHRONICLE_MONAD_PRICE_FEEDS.map((feed) => feed.alias),
+  },
   [OracleProvider.API3]: API3_AVAILABLE_PAIRS,
   [OracleProvider.WINKLINK]: WINKLINK_AVAILABLE_PAIRS,
-  [OracleProvider.SUPRA]: SUPRA_AVAILABLE_PAIRS,
+  [OracleProvider.SUPRA]: {
+    ...SUPRA_AVAILABLE_PAIRS,
+    [Blockchain.MONAD]: SUPRA_MONAD_PUSHED_FEEDS.map((feed) => feed.alias),
+  },
 };
 
 function getStaticSymbolsForChain(provider: OracleProvider, chain: Blockchain): string[] {

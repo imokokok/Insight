@@ -4,11 +4,20 @@ import { HTTPFacilitatorClient, getFacilitatorResponseError } from '@x402/core/s
 import { Credential, Errors, Expires } from 'mppx';
 import { Mppx, evm } from 'mppx/server';
 
-import { createCdpAuthHeaders } from '@/lib/api/x402/cdpAuth';
-import { type X402Config, tokenNameForNetwork, usdcForNetwork } from '@/lib/api/x402/config';
+import { createCdpAuthHeaders, createStaticBearerAuthHeaders } from '@/lib/api/x402/cdpAuth';
+import {
+  type X402Config,
+  eip3009TokenNameForNetwork,
+  facilitatorBearerTokenForNetwork,
+  facilitatorUrlForNetwork,
+  isCdpFacilitatorUrl,
+  payToForEvmNetwork,
+  usdcForNetwork,
+} from '@/lib/api/x402/config';
 import {
   atomicUnitsToUsdc,
   recordX402Settlement,
+  x402AcquisitionSource,
   type X402SettlementAudit,
 } from '@/lib/api/x402/guard';
 import { createLogger } from '@/lib/utils/logger';
@@ -19,22 +28,26 @@ const logger = createLogger('mpp-pretrade');
 const MPP_RESOURCE = 'pre-trade-safety-check';
 
 function createMppServer(cfg: X402Config, secretKey: string) {
+  const facilitatorUrl = facilitatorUrlForNetwork(cfg, cfg.network);
+  const bearerToken = facilitatorBearerTokenForNetwork(cfg, cfg.network);
   const httpFacilitator = new HTTPFacilitatorClient({
-    url: cfg.facilitatorUrl,
+    url: facilitatorUrl,
     timeoutMs: cfg.facilitatorTimeoutMs,
-    ...(cfg.facilitatorCdpAuth
+    ...(isCdpFacilitatorUrl(facilitatorUrl) && cfg.facilitatorCdpAuth
       ? { createAuthHeaders: createCdpAuthHeaders(cfg.facilitatorCdpAuth) }
-      : {}),
+      : bearerToken
+        ? { createAuthHeaders: createStaticBearerAuthHeaders(bearerToken) }
+        : {}),
   });
 
   return Mppx.create({
     methods: [
       evm.charge({
-        authorization: { name: tokenNameForNetwork(cfg.network), version: '2' },
+        authorization: { name: eip3009TokenNameForNetwork(cfg.network), version: '2' },
         chainId: getChainId(cfg.network),
         currency: usdcForNetwork(cfg.network) as `0x${string}`,
         decimals: 6,
-        recipient: cfg.payTo as `0x${string}`,
+        recipient: payToForEvmNetwork(cfg, cfg.network) as `0x${string}`,
         x402: {
           // Both clients implement the same verify/settle wire contract. The
           // assertion bridges incompatible optional-field types from their
@@ -61,10 +74,11 @@ function getChainId(network: X402Config['network']): number {
 }
 
 function getServer(cfg: X402Config, secretKey: string): MppServer {
+  const facilitatorUrl = facilitatorUrlForNetwork(cfg, cfg.network);
   const key = JSON.stringify({
     network: cfg.network,
-    payTo: cfg.payTo.toLowerCase(),
-    facilitatorUrl: cfg.facilitatorUrl,
+    payTo: payToForEvmNetwork(cfg, cfg.network).toLowerCase(),
+    facilitatorUrl,
     secretKey,
   });
   if (cachedServer && cachedServerKey === key) return cachedServer;
@@ -185,6 +199,7 @@ export async function issueMppPreTradeQuote(
   audit(cfg, requestId, 'quote_issued', {
     amountUsdc: atomicUnitsToUsdc(cfg.amountAtomic),
     responseTimeMs: Date.now() - startedAt,
+    acquisitionSource: x402AcquisitionSource(request),
   });
 
   return mergeChallenges(x402Response, mppChallenge);
@@ -208,6 +223,7 @@ export async function handleMppPaidPreTradeRequest(
   const server = getServer(cfg, secretKey);
   const options = getRouteOptions(request, cfg);
   const requestId = newRequestId();
+  const acquisitionSource = x402AcquisitionSource(request);
   const startedAt = Date.now();
 
   let credential: ReturnType<typeof Credential.fromRequest>;
@@ -218,6 +234,7 @@ export async function handleMppPaidPreTradeRequest(
     audit(cfg, requestId, 'payment_rejected', {
       responseTimeMs: Date.now() - startedAt,
       errorReason: 'malformed_mpp_credential',
+      acquisitionSource,
     });
     return attachRequestId(challenge, requestId);
   }
@@ -234,6 +251,7 @@ export async function handleMppPaidPreTradeRequest(
       audit(cfg, requestId, 'verify_failed', {
         responseTimeMs: Date.now() - startedAt,
         errorReason: facilitatorError.name,
+        acquisitionSource,
       });
       logger.warn('MPP facilitator validation unavailable', {
         requestId,
@@ -256,6 +274,7 @@ export async function handleMppPaidPreTradeRequest(
     audit(cfg, requestId, 'payment_rejected', {
       responseTimeMs: Date.now() - startedAt,
       errorReason: error.name,
+      acquisitionSource,
     });
     const challenge = await issueMppChallenge(server, options, request);
     return attachRequestId(challenge, requestId);
@@ -273,6 +292,7 @@ export async function handleMppPaidPreTradeRequest(
     amountUsdc: atomicUnitsToUsdc(cfg.amountAtomic),
     payer,
     responseTimeMs: Date.now() - startedAt,
+    acquisitionSource,
   });
 
   const businessStartedAt = Date.now();
@@ -283,6 +303,7 @@ export async function handleMppPaidPreTradeRequest(
     audit(cfg, requestId, 'business_failed', {
       responseTimeMs: Date.now() - businessStartedAt,
       errorReason: `handler_error:${error instanceof Error ? error.name : 'unknown'}`,
+      acquisitionSource,
     });
     throw error;
   }
@@ -291,6 +312,7 @@ export async function handleMppPaidPreTradeRequest(
     audit(cfg, requestId, 'business_failed', {
       responseTimeMs: Date.now() - businessStartedAt,
       errorReason: `handler_failed:${businessResponse.status}`,
+      acquisitionSource,
     });
     businessResponse.headers.set('X-Request-Id', requestId);
     return withCors(businessResponse);
@@ -299,6 +321,7 @@ export async function handleMppPaidPreTradeRequest(
   audit(cfg, requestId, 'business_succeeded', {
     amountUsdc: atomicUnitsToUsdc(cfg.amountAtomic),
     responseTimeMs: Date.now() - businessStartedAt,
+    acquisitionSource,
   });
 
   const settlementStartedAt = Date.now();
@@ -316,6 +339,7 @@ export async function handleMppPaidPreTradeRequest(
       asset: usdcForNetwork(cfg.network),
       responseTimeMs: Date.now() - settlementStartedAt,
       verdict: 'pre_trade_safety_check',
+      acquisitionSource,
     });
 
     const response = server.transport.respondReceipt({
@@ -332,6 +356,7 @@ export async function handleMppPaidPreTradeRequest(
       payer,
       responseTimeMs: Date.now() - settlementStartedAt,
       errorReason: error instanceof Error ? error.name : 'unknown',
+      acquisitionSource,
     });
     logger.error(
       'MPP settlement failed after successful pre-trade check',

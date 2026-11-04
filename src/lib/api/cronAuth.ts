@@ -47,17 +47,19 @@ function safeEqualStrings(a: string, b: string): boolean {
  * rejected. This prevents a cron route from silently becoming public if
  * the env var is accidentally dropped in an environment.
  */
-export function verifyCronSecret(request: Request): NextResponse | null {
-  const cronSecret = process.env.CRON_SECRET;
-
-  if (!cronSecret) {
+function verifyBearerSecret(request: Request, secret: string | undefined): NextResponse | null {
+  if (!secret) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const authHeader = request.headers.get('authorization');
-  if (!authHeader || !safeEqualStrings(authHeader, `Bearer ${cronSecret}`)) {
+  if (!authHeader || !safeEqualStrings(authHeader, `Bearer ${secret}`)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   return null;
+}
+
+export function verifyCronSecret(request: Request): NextResponse | null {
+  return verifyBearerSecret(request, process.env.CRON_SECRET);
 }

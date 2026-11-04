@@ -212,5 +212,27 @@ describe('urlParams', () => {
 
       mockReplaceState.mockRestore();
     });
+
+    it('preserves route-level parameters while synchronizing query controls', () => {
+      window.history.replaceState({}, '', '/price-insight?stage=observe&campaign=search');
+      const mockReplaceState = jest
+        .spyOn(window.history, 'replaceState')
+        .mockImplementation(() => {});
+
+      updateUrlParams({
+        oracles: [OracleProvider.CHAINLINK],
+        chains: [Blockchain.ETHEREUM],
+        symbol: 'BTC',
+        timeRange: 24,
+      });
+
+      const newUrl = mockReplaceState.mock.calls[0][2] as string;
+      expect(newUrl).toContain('stage=observe');
+      expect(newUrl).toContain('campaign=search');
+      expect(newUrl).toContain('oracles=chainlink');
+
+      mockReplaceState.mockRestore();
+      window.history.replaceState({}, '', '/');
+    });
   });
 });

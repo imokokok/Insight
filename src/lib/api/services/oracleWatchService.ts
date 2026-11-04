@@ -68,6 +68,10 @@ export interface OracleWatchProvider {
   price: number;
   timestamp: number;
   dataAgeSeconds: number | null;
+  /** Canonical provider feed ID, bound into signed observation evidence. */
+  feedId?: string;
+  /** False for observations deliberately kept outside strict quorum. */
+  countsTowardOracleQuorum: boolean;
   source?: string;
 }
 
@@ -237,7 +241,9 @@ function computeMlRisk(
   const base = { mlRiskScore: null, mlScore1h: null, mlScore6h: null, mlRiskLevel: null };
   if (result.participantCount === 0 || result.consensusPrice === null || !historical) return base;
 
-  const successProviders = result.providers.filter((p) => p.status === 'success');
+  const successProviders = result.providers.filter(
+    (p) => p.status === 'success' && p.countsTowardOracleQuorum
+  );
   const absDevs = successProviders
     .map((p) => p.deviationPct)
     .filter((v): v is number => v !== null && Number.isFinite(v))
@@ -368,25 +374,31 @@ async function computeOracleWatchSignal(
     throw error;
   }
 
+  // Keep every provider in the response for operators, but allow only the
+  // same observations that entered consensus to affect Watch's strict gates.
+  // In particular, Stork Monad is intentionally shadow-only until its source
+  // overlap review promotes it.
   const successProviders = result.providers.filter((p) => p.status === 'success');
+  const quorumProviders = successProviders.filter(
+    (p) => p.countsTowardOracleQuorum && !p.isOutlier
+  );
   // Sources the consensus engine already rejected as outliers must not drive the
   // deviation gate: they were excluded precisely because they do not describe the
-  // asset, so counting their distance from consensus would undo the exclusion and
-  // keep a healthy feed pinned at DANGER. Falls back to the full set only when
-  // every provider was excluded, so a genuinely divergent market still reports
-  // its real deviation instead of collapsing to zero.
-  const consensusProviders = successProviders.filter((p) => !p.isOutlier);
-  const devProviders = consensusProviders.length > 0 ? consensusProviders : successProviders;
+  // asset, so counting their distance from consensus would undo that exclusion.
+  // A non-zero participantCount guarantees this set is non-empty.
+  const devProviders = quorumProviders;
   const maxDeviationPct = devProviders.reduce(
     (m, p) => (p.deviationPct === null ? m : Math.max(m, Math.abs(p.deviationPct))),
     0
   );
-  const outlierCount = successProviders.filter((p) => p.isOutlier).length;
-  const staleCount = successProviders.filter((p) => p.isStale).length;
+  const outlierCount = successProviders.filter(
+    (p) => p.countsTowardOracleQuorum && p.isOutlier
+  ).length;
+  const staleCount = successProviders.filter((p) => p.countsTowardOracleQuorum && p.isStale).length;
 
   // Surface reputation from the reputation service, already attached to each
   // consensus provider. Aggregated as avg/min for a single gateable number.
-  const reputations = successProviders
+  const reputations = quorumProviders
     .map((p) => p.reputationScore)
     .filter((s): s is number => s !== null && Number.isFinite(s));
   const avgReputation =
@@ -405,6 +417,8 @@ async function computeOracleWatchSignal(
     price: p.price,
     timestamp: p.timestamp,
     dataAgeSeconds: p.dataAgeSeconds,
+    feedId: p.feedId,
+    countsTowardOracleQuorum: p.countsTowardOracleQuorum,
     source: p.source,
   }));
 
@@ -449,7 +463,7 @@ async function computeOracleWatchSignal(
   // sources plus a TWAP — clear QUORUM_MIN while describing a single point of
   // failure. Derived groups (TWAP) still feed the consensus and the quorum
   // count but are excluded here by nonDerivedGroupCount.
-  const sourceGroupCount = nonDerivedGroupCount(successProviders.map((p) => p.provider));
+  const sourceGroupCount = nonDerivedGroupCount(quorumProviders.map((p) => p.provider));
   const independenceSatisfied = sourceGroupCount >= INDEPENDENCE_MIN;
 
   let verdict: OracleWatchSeverity;

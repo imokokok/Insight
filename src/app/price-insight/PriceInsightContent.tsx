@@ -2,6 +2,8 @@
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
 
+import { useRouter, useSearchParams } from 'next/navigation';
+
 import { useCrossChainAnalytics } from '@/app/cross-chain/hooks/useCrossChainAnalytics';
 import { useCrossChainDataState } from '@/app/cross-chain/hooks/useCrossChainDataState';
 import { useCrossOraclePage } from '@/app/cross-oracle/hooks/useCrossOraclePage';
@@ -23,30 +25,34 @@ import { DimensionSwitcher, type Dimension } from './components/DimensionSwitche
 import { MarketSnapshotSummary } from './components/MarketSnapshotSummary';
 import { OracleControlPanel } from './components/OracleControlPanel';
 import { OracleQueryResults } from './components/OracleQueryResults';
+import { SourceRecordWorkspace } from './components/SourceRecordWorkspace';
 import { TabNavigation, type TabId } from './components/TabNavigation';
+import { WorkflowSwitcher, type WorkflowStage } from './components/WorkflowSwitcher';
 
 function normalizeSymbolParam(raw: string): string {
-  const normalized = raw.trim().toUpperCase();
-  return normalized.includes('/') ? normalized : `${normalized}/USD`;
+  return raw.trim().toUpperCase().split('/')[0] ?? '';
 }
 
-function readUrlSearchParams() {
-  const search = typeof window !== 'undefined' ? window.location.search : '';
-  const params = new URLSearchParams(search);
-
+function readUrlSearchParams(params: Pick<URLSearchParams, 'get'>) {
   const symbolParam = params.get('symbol');
   const symbol = symbolParam ? normalizeSymbolParam(symbolParam) : undefined;
 
-  const providerParam = params.get('provider');
+  const providerParam = params.get('provider') ?? params.get('oracles')?.split(',')[0];
   const provider =
     providerParam && ORACLE_PROVIDER_VALUES.includes(providerParam as OracleProvider)
       ? (providerParam as OracleProvider)
       : undefined;
 
-  const chainParam = params.get('chain');
+  const chainParam = params.get('chain') ?? params.get('chains')?.split(',')[0];
   const chain = chainParam && isBlockchain(chainParam) ? (chainParam as Blockchain) : undefined;
 
-  return { symbol, provider, chain };
+  const stageParam = params.get('stage');
+  const stage: WorkflowStage =
+    stageParam === 'observe' || stageParam === 'assess' || stageParam === 'compare'
+      ? stageParam
+      : 'compare';
+
+  return { stage, symbol, provider, chain };
 }
 
 function CrossChainDataInitializer() {
@@ -61,64 +67,184 @@ const REFRESH_OPTIONS = [
   { value: 300000, label: '5m' },
 ] as const;
 
+const WORKFLOW_COPY: Record<
+  WorkflowStage,
+  {
+    index: string;
+    stage: string;
+    eyebrow: string;
+    title: string;
+    description: string;
+    evidence: string[];
+  }
+> = {
+  observe: {
+    index: '01',
+    stage: 'Observe',
+    eyebrow: 'Inspect one oracle record before it becomes a decision input.',
+    title: 'Start with the source behind the price.',
+    description:
+      'Choose a provider, network and asset to keep the reported price, freshness and verification context together.',
+    evidence: ['Source identity', 'Update freshness', 'Verification record'],
+  },
+  compare: {
+    index: '02',
+    stage: 'Compare',
+    eyebrow:
+      'Cross-oracle and cross-chain price verification. Agreement is evidence; divergence is a signal to investigate.',
+    title: 'See where the market agrees—and where it does not.',
+    description:
+      'Compare providers or chains without losing the context of consensus, spread, anomalies, feed behaviour and data freshness.',
+    evidence: ['Consensus context', 'Divergence signals', 'Feed behaviour'],
+  },
+  assess: {
+    index: '03',
+    stage: 'Assess',
+    eyebrow: 'Turn source evidence and agreement signals into an explainable risk assessment.',
+    title: 'Decide with the evidence in view.',
+    description:
+      'Read freshness, concentration, correlation and divergence risk before an application or agent relies on a price.',
+    evidence: ['Risk factors', 'Source independence', 'Decision context'],
+  },
+};
+
 export default function PriceInsightContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const route = useMemo(() => readUrlSearchParams(searchParams), [searchParams]);
   const [dimension, setDimension] = useState<Dimension>('oracle');
   const [activeTab, setActiveTab] = useState<TabId>('comparison');
+  const workflow = route.stage;
+  const oracleSelection = useMemo(
+    () => ({
+      ...(route.symbol ? { symbol: route.symbol } : {}),
+      ...(route.provider ? { oracles: [route.provider] } : {}),
+    }),
+    [route.provider, route.symbol]
+  );
 
-  // Initialize cross-chain selector state from URL params on first mount so
-  // that links like /price-insight?symbol=ETH&chain=ethereum work for the
-  // chain dimension as well.
   useEffect(() => {
-    const { symbol, provider, chain } = readUrlSearchParams();
-    if (symbol) {
-      useCrossChainSelectorStore.getState().setSelectedSymbol(symbol);
+    if (route.symbol) {
+      useCrossChainSelectorStore.getState().setSelectedSymbol(route.symbol);
     }
-    if (provider) {
-      useCrossChainSelectorStore.getState().setSelectedProvider(provider);
+    if (route.provider) {
+      useCrossChainSelectorStore.getState().setSelectedProvider(route.provider);
     }
-    if (chain) {
-      useCrossChainSelectorStore.getState().setSelectedBaseChain(chain);
+    if (route.chain) {
+      useCrossChainSelectorStore.getState().setSelectedBaseChain(route.chain);
     }
-  }, []);
+  }, [route.chain, route.provider, route.symbol]);
+
+  const replaceRoute = useCallback(
+    (update: (params: URLSearchParams) => void) => {
+      const params = new URLSearchParams(searchParams.toString());
+      update(params);
+      router.replace(`/price-insight?${params.toString()}`);
+    },
+    [router, searchParams]
+  );
+
+  const setStage = useCallback(
+    (stage: WorkflowStage) => {
+      if (stage === 'compare') {
+        setDimension('oracle');
+        setActiveTab('comparison');
+      }
+      if (stage === 'assess') {
+        setDimension('oracle');
+        setActiveTab('risk');
+      }
+      replaceRoute((params) => params.set('stage', stage));
+    },
+    [replaceRoute]
+  );
 
   const handleDimensionChange = useCallback((newDim: Dimension) => {
     setDimension(newDim);
     setActiveTab('comparison');
   }, []);
 
+  const handleSourceCompare = useCallback(
+    ({
+      symbol,
+      provider,
+      chain,
+    }: {
+      symbol: string;
+      provider: OracleProvider | null;
+      chain: Blockchain | null;
+    }) => {
+      setDimension('oracle');
+      setActiveTab('comparison');
+      replaceRoute((params) => {
+        params.set('stage', 'compare');
+        if (symbol) params.set('symbol', symbol);
+        if (provider) params.set('provider', provider);
+        if (chain) params.set('chain', chain);
+        params.delete('oracles');
+        params.delete('chains');
+      });
+    },
+    [replaceRoute]
+  );
+
+  const copy = WORKFLOW_COPY[workflow];
+  const oracleKey = `${oracleSelection.symbol ?? 'default'}-${oracleSelection.oracles?.join(',') ?? 'all'}`;
+
   return (
     <ErrorBoundary level="page" componentName="PriceInsightContent">
       <div className="editorial-workspace evidence-workbench research-workbench comparison-workbench min-h-screen">
         <div className="editorial-frame mx-auto max-w-[1440px] px-5 pb-20 pt-4 sm:px-8 lg:px-12 lg:pb-28">
           <EditorialWorkspaceHeader
-            index="02"
-            stage="Compare"
-            eyebrow="Cross-oracle and cross-chain price verification. Agreement is evidence; divergence is a signal to investigate."
-            title="See where the market agrees—and where it does not."
-            description="Compare providers or chains without losing the context of consensus, spread, anomalies, feed behaviour, and data freshness."
-            evidence={['Consensus context', 'Divergence signals', 'Feed behaviour']}
+            index={copy.index}
+            stage={copy.stage}
+            eyebrow={copy.eyebrow}
+            title={copy.title}
+            description={copy.description}
+            evidence={copy.evidence}
             action={
-              <DimensionSwitcher dimension={dimension} onDimensionChange={handleDimensionChange} />
+              <div className="flex flex-col items-start gap-3">
+                <WorkflowSwitcher stage={workflow} onStageChange={setStage} />
+                {workflow !== 'observe' && (
+                  <DimensionSwitcher
+                    dimension={dimension}
+                    onDimensionChange={handleDimensionChange}
+                  />
+                )}
+              </div>
             }
           />
 
           <EvidenceProcessRail
-            label="Comparison protocol"
-            activeIndex={activeTab === 'comparison' ? 1 : 2}
+            label="Oracle evidence workflow"
+            activeIndex={workflow === 'observe' ? 0 : workflow === 'compare' ? 1 : 2}
             items={[
-              { label: 'Select the field', detail: 'Oracle or chain dimension' },
-              { label: 'Establish consensus', detail: 'Median · spread · agreement' },
-              { label: 'Inspect divergence', detail: 'Anomaly · behaviour · risk' },
+              { label: 'Observe', detail: 'Source · chain · freshness' },
+              { label: 'Compare', detail: 'Consensus · spread · divergence' },
+              { label: 'Assess', detail: 'Risk · dependence · decision' },
             ]}
           />
 
-          <div className="pt-7">
-            {dimension === 'oracle' ? (
-              <OracleDimension activeTab={activeTab} onTabChange={setActiveTab} />
-            ) : (
-              <ChainDimension activeTab={activeTab} onTabChange={setActiveTab} />
-            )}
-          </div>
+          {workflow === 'observe' ? (
+            <SourceRecordWorkspace onCompare={handleSourceCompare} />
+          ) : (
+            <div className="pt-7">
+              {dimension === 'oracle' ? (
+                <OracleDimension
+                  key={oracleKey}
+                  activeTab={workflow === 'assess' ? 'risk' : activeTab}
+                  onTabChange={setActiveTab}
+                  initialSymbol={oracleSelection.symbol}
+                  initialOracles={oracleSelection.oracles}
+                />
+              ) : (
+                <ChainDimension
+                  activeTab={workflow === 'assess' ? 'risk' : activeTab}
+                  onTabChange={setActiveTab}
+                />
+              )}
+            </div>
+          )}
         </div>
       </div>
     </ErrorBoundary>
@@ -128,14 +254,14 @@ export default function PriceInsightContent() {
 function OracleDimension({
   activeTab,
   onTabChange,
+  initialSymbol,
+  initialOracles,
 }: {
   activeTab: TabId;
   onTabChange: (tab: TabId) => void;
+  initialSymbol?: string;
+  initialOracles?: OracleProvider[];
 }) {
-  // Read the symbol from the URL once so links like
-  // /price-insight?symbol=ETH actually load ETH/USD instead of the default.
-  const initialSymbol = useMemo(() => readUrlSearchParams().symbol, []);
-
   const {
     selectedOracles,
     setSelectedOracles,
@@ -165,7 +291,7 @@ function OracleDimension({
     setRefreshInterval,
     lastRefreshedAt,
     nextRefreshAt,
-  } = useCrossOraclePage({ initialSymbol });
+  } = useCrossOraclePage({ initialSymbol, initialOracles });
 
   const oracleChartColors = useMemo(() => {
     const colors: Record<string, string> = {};

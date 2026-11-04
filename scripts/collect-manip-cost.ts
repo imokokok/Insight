@@ -12,25 +12,28 @@
  * ALCHEMY_ETHEREUM_RPC with public fallbacks.
  */
 import { collectManipCost, type ManipCostRow } from '@/lib/manipCost/collector';
+import { retryIdempotentSupabaseWrite } from '@/lib/supabase/idempotentWrite';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 
 async function upsertRows(rows: ManipCostRow[]): Promise<number> {
   if (rows.length === 0) return 0;
   const supabase = createServiceRoleClient();
-  const { error } = await supabase.from('manip_cost_pool_snapshots').upsert(
-    rows.map((r) => ({ ...r })),
-    {
-      onConflict: 'snapshot_ts,pool_key',
-      ignoreDuplicates: true,
-    }
-  );
-  if (error) {
-    throw new Error(
-      `Failed to upsert manipulation-cost rows: ${
-        typeof error.message === 'string' ? error.message : '[object Object]'
-      }`
+  await retryIdempotentSupabaseWrite(async () => {
+    const { error } = await supabase.from('manip_cost_pool_snapshots').upsert(
+      rows.map((r) => ({ ...r })),
+      {
+        onConflict: 'snapshot_ts,pool_key',
+        ignoreDuplicates: true,
+      }
     );
-  }
+    if (error) {
+      throw new Error(
+        `Failed to upsert manipulation-cost rows: ${
+          typeof error.message === 'string' ? error.message : '[object Object]'
+        }`
+      );
+    }
+  }, 'upsert manipulation-cost snapshots');
   return rows.length;
 }
 

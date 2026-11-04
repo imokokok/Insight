@@ -1,13 +1,23 @@
 import { keccak256 } from 'viem';
 import { z } from 'zod';
 
+import type { EvidenceUse } from '@/lib/dataRights/evidenceRights';
 import { DecisionInputQuoteTimestampSchema } from '@/lib/decisionInputTrust/validation';
+import type { ReviewedAerodromeSlipstreamPreTradeEvidence } from '@/lib/dex/preTradeAerodromeSlipstream';
+import type { ReviewedUniswapV3PreTradeEvidence } from '@/lib/dex/preTradeUniswapV3';
 import { MANIP_COST_MAX_AGE_MS, type ManipCostAdvisory } from '@/lib/manipCost/baseline';
 import type { ChainlinkMarketReference } from '@/lib/marketReference/chainlink';
 import { MAX_REF_AGE_HOURS, type MarketReference } from '@/lib/marketReference/client';
 import type { RedStoneMarketReference } from '@/lib/marketReference/redstone';
 import { ETHEREUM_TOKEN_ADDRESSES } from '@/lib/oracles/constants/ethereumTokenAddresses';
 import { canonicalJsonString } from '@/lib/utils/canonicalJson';
+
+import {
+  DecisionInputQuoteProvenanceSchema,
+  quoteProvenanceMatchesQuote,
+  usableQuoteProvenance,
+  type DecisionInputQuoteProvenance,
+} from './quoteProvenance';
 
 import type { DecisionInputAssessmentAttestation } from './attestation';
 import type { OnchainRouteQuoteEvidence } from './onchainRouteQuote';
@@ -38,6 +48,48 @@ export interface DecisionInputCheckRequest {
   maxSlippageBps: number;
   /** Maximum acceptable age for the supplied venue quote. */
   maxQuoteAgeSeconds: number;
+  /**
+   * Hash-only evidence retained by the caller. It binds the reported quote to
+   * a source identifier and the caller-held request/response bytes without
+   * proxying or persisting a third-party market-data payload.
+   */
+  quoteProvenance?: DecisionInputQuoteProvenance;
+  /** Fail closed unless `quoteProvenance` is present, valid, and usable here. */
+  requireQuoteProvenance?: boolean;
+  /**
+   * Opt in to a block-pinned quote from one reviewed Uniswap V3 pool. The
+   * exact input amount is expressed in the source asset's decimal units. This
+   * first release admits MON/USDC on Monad, WETH/USDC on Base, and reviewed
+   * PancakeSwap V3 USDC/USDT on Base, only in the reviewed forward direction;
+   * unsupported routes fail closed.
+   */
+  reviewedUniswapV3?: {
+    amountIn: string;
+    maxQuoteDeviationBps: number;
+    maxTwapDeviationBps: number;
+    /**
+     * Destination-per-source token rate of the caller's own prepared route
+     * quote (same pool, same direction). When present, the reviewed-pool
+     * divergence check compares the independently fetched reviewed quote
+     * against this rate — token per token — instead of against the USD
+     * `quotePriceUsd`, because a token-per-token rate and a USD-per-source
+     * price are only numerically comparable when the destination is a $1
+     * stablecoin (the comparison is otherwise dimensionally wrong).
+     */
+    routeEffectiveDestinationPerSource?: number;
+  };
+  /**
+   * Opt in to one exact-input quote from the reviewed Base Aerodrome
+   * Slipstream WETH/USDC CL100 pool. It is intentionally a separate field:
+   * tick-spacing/fee semantics differ from Uniswap V3's fee-tier identity.
+   */
+  reviewedAerodromeSlipstream?: {
+    amountIn: string;
+    maxQuoteDeviationBps: number;
+    maxTwapDeviationBps: number;
+    /** Same-unit anchor as `reviewedUniswapV3.routeEffectiveDestinationPerSource`. */
+    routeEffectiveDestinationPerSource?: number;
+  };
   /** Optional route quote captured by the gated execution workflow. */
   operationRouteQuote?: DecisionInputRouteQuote;
 }
@@ -54,9 +106,21 @@ export interface DecisionInputReason {
     | 'CHAINLINK_DIVERGENCE'
     | 'REDSTONE_DIVERGENCE'
     | 'DEX_DEPTH_UNAVAILABLE'
+    | 'REVIEWED_UNISWAP_V3_UNAVAILABLE'
+    | 'REVIEWED_UNISWAP_V3_QUOTE_DIVERGENCE'
+    | 'REVIEWED_UNISWAP_V3_PRICE_IMPACT'
+    | 'REVIEWED_UNISWAP_V3_TWAP_DEVIATION'
+    | 'REVIEWED_AERODROME_SLIPSTREAM_UNAVAILABLE'
+    | 'REVIEWED_AERODROME_SLIPSTREAM_QUOTE_DIVERGENCE'
+    | 'REVIEWED_AERODROME_SLIPSTREAM_PRICE_IMPACT'
+    | 'REVIEWED_AERODROME_SLIPSTREAM_TWAP_DEVIATION'
     | 'QUOTE_TIMESTAMP_INVALID'
     | 'QUOTE_STALE'
-    | 'QUOTE_SLIPPAGE';
+    | 'QUOTE_SLIPPAGE'
+    | 'QUOTE_PROVENANCE_REQUIRED'
+    | 'QUOTE_PROVENANCE_MALFORMED'
+    | 'QUOTE_PROVENANCE_MISMATCH'
+    | 'QUOTE_PROVENANCE_RIGHTS';
   severity: 'block' | 'insufficient_evidence';
   message: string;
 }
@@ -78,10 +142,21 @@ export interface DecisionInputAssessment {
   operationRouteQuote: DecisionInputRouteQuote | null;
   /** Digest of the decision price, venue quote, timestamps, and optional route quote. */
   quoteInputHash: `0x${string}`;
+  /** Present only when caller-held quote evidence passed structural and scope checks. */
+  quoteProvenance?: DecisionInputQuoteProvenance;
+  /** Present when this signed result was evaluated only in the synthetic staging mode. */
+  evidenceUse?: 'staging';
   policy: Pick<
     DecisionInputCheckRequest,
     'maxReferenceDeviationBps' | 'maxSlippageBps' | 'maxQuoteAgeSeconds'
-  >;
+  > & {
+    /** Optional for backwards-compatible verification of earlier attestations. */
+    requireQuoteProvenance?: boolean;
+    reviewedUniswapV3?: NonNullable<DecisionInputCheckRequest['reviewedUniswapV3']>;
+    reviewedAerodromeSlipstream?: NonNullable<
+      DecisionInputCheckRequest['reviewedAerodromeSlipstream']
+    >;
+  };
   prices: {
     decisionPriceUsd: number;
     quotePriceUsd: number;
@@ -129,6 +204,72 @@ export interface DecisionInputAssessment {
       freshestSnapshotTs: string | null;
       cheapestMove1PctUsd: number | null;
       tradeSizeTo1PctManipulationCostRatio: number | null;
+    } | null;
+    reviewedUniswapV3?: {
+      profile:
+        | 'monad-wmon-usdc'
+        | 'base-weth-usdc'
+        | 'base-uniswap-v3-weth-usdc-500'
+        | 'base-pancakeswap-v3-usdc-usdt'
+        | 'bnb-pancakeswap-v3-usdt-usdc'
+        | 'bnb-pancakeswap-v3-usdt-wbnb';
+      venue: 'uniswap-v3' | 'pancakeswap-v3';
+      market: string;
+      /** Direction of the reviewed quote inside the pinned pool. */
+      direction: 'token0-to-token1' | 'token1-to-token0';
+      sourceFreshnessSeconds: number;
+      observedAt: string;
+      blockNumber: string;
+      blockHash: `0x${string}`;
+      factory: `0x${string}`;
+      pool: `0x${string}`;
+      quoterV2: `0x${string}`;
+      feeTier: number;
+      codeIdentity?: {
+        factory: `0x${string}`;
+        quoterV2: `0x${string}`;
+        pool: `0x${string}`;
+      };
+      amountIn: number;
+      amountInRaw: string;
+      amountOut: number;
+      amountOutRaw: string;
+      /** Forward quotes: token1 received per token0 submitted. */
+      effectiveToken1PerToken0?: number;
+      /** Reverse quotes: token0 received per token1 submitted. */
+      effectiveToken0PerToken1?: number;
+      priceImpactBps: number;
+      quoteDeviationBps: number | null;
+      twapDeviationBpsFromSpot: number;
+    } | null;
+    reviewedAerodromeSlipstream?: {
+      profile:
+        | 'base-aerodrome-slipstream-weth-usdc-cl100'
+        | 'base-aerodrome-slipstream-usdc-usdt-cl1';
+      venue: 'aerodrome-slipstream';
+      market: string;
+      /** Direction of the reviewed quote inside the pinned pool. */
+      direction: 'token0-to-token1' | 'token1-to-token0';
+      sourceFreshnessSeconds: number;
+      observedAt: string;
+      blockNumber: string;
+      blockHash: `0x${string}`;
+      factory: `0x${string}`;
+      pool: `0x${string}`;
+      quoterV2: `0x${string}`;
+      tickSpacing: number;
+      feePips: number;
+      amountIn: number;
+      amountInRaw: string;
+      amountOut: number;
+      amountOutRaw: string;
+      /** Forward quotes: token1 received per token0 submitted. */
+      effectiveToken1PerToken0?: number;
+      /** Reverse quotes: token0 received per token1 submitted. */
+      effectiveToken0PerToken1?: number;
+      priceImpactBps: number;
+      quoteDeviationBps: number | null;
+      twapDeviationBpsFromSpot: number;
     } | null;
   };
   reasons: DecisionInputReason[];
@@ -344,11 +485,38 @@ export const DecisionInputAssessmentSchema = z
     evaluatedAt: DecisionInputQuoteTimestampSchema,
     operationRouteQuote: DecisionInputRouteQuoteSchema.nullable(),
     quoteInputHash: Bytes32Schema,
+    quoteProvenance: DecisionInputQuoteProvenanceSchema.optional(),
+    evidenceUse: z.literal('staging').optional(),
     policy: z
       .object({
         maxReferenceDeviationBps: z.number().int().min(0).max(10_000),
         maxSlippageBps: z.number().int().min(0).max(10_000),
         maxQuoteAgeSeconds: z.number().int().min(1).max(300),
+        requireQuoteProvenance: z.boolean().optional(),
+        reviewedUniswapV3: z
+          .object({
+            amountIn: z
+              .string()
+              .regex(/^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$/)
+              .max(128),
+            maxQuoteDeviationBps: z.number().int().min(0).max(10_000),
+            maxTwapDeviationBps: z.number().int().min(0).max(10_000),
+            routeEffectiveDestinationPerSource: FinitePositiveNumberSchema.optional(),
+          })
+          .strict()
+          .optional(),
+        reviewedAerodromeSlipstream: z
+          .object({
+            amountIn: z
+              .string()
+              .regex(/^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$/)
+              .max(128),
+            maxQuoteDeviationBps: z.number().int().min(0).max(10_000),
+            maxTwapDeviationBps: z.number().int().min(0).max(10_000),
+            routeEffectiveDestinationPerSource: FinitePositiveNumberSchema.optional(),
+          })
+          .strict()
+          .optional(),
       })
       .strict(),
     prices: z
@@ -415,6 +583,95 @@ export const DecisionInputAssessmentSchema = z
           })
           .strict()
           .nullable(),
+        reviewedUniswapV3: z
+          .object({
+            profile: z.enum([
+              'monad-wmon-usdc',
+              'base-weth-usdc',
+              'base-uniswap-v3-weth-usdc-500',
+              'base-pancakeswap-v3-usdc-usdt',
+            ]),
+            venue: z.enum(['uniswap-v3', 'pancakeswap-v3']),
+            market: z.string().min(1).max(80),
+            direction: z.enum(['token0-to-token1', 'token1-to-token0']),
+            sourceFreshnessSeconds: FiniteNonnegativeNumberSchema,
+            observedAt: EvidenceTimestampSchema,
+            blockNumber: z
+              .string()
+              .regex(/^[1-9][0-9]*$/)
+              .max(80),
+            blockHash: Bytes32Schema,
+            factory: AddressSchema,
+            pool: AddressSchema,
+            quoterV2: AddressSchema,
+            feeTier: z.number().int().positive().max(1_000_000),
+            codeIdentity: z
+              .object({
+                factory: Bytes32Schema,
+                quoterV2: Bytes32Schema,
+                pool: Bytes32Schema,
+              })
+              .strict()
+              .optional(),
+            amountIn: FinitePositiveNumberSchema,
+            amountInRaw: z
+              .string()
+              .regex(/^[1-9][0-9]*$/)
+              .max(80),
+            amountOut: FinitePositiveNumberSchema,
+            amountOutRaw: z
+              .string()
+              .regex(/^[1-9][0-9]*$/)
+              .max(80),
+            effectiveToken1PerToken0: FinitePositiveNumberSchema.optional(),
+            effectiveToken0PerToken1: FinitePositiveNumberSchema.optional(),
+            priceImpactBps: FiniteNonnegativeNumberSchema,
+            quoteDeviationBps: NullableNonnegativeNumberSchema,
+            twapDeviationBpsFromSpot: FiniteNonnegativeNumberSchema,
+          })
+          .strict()
+          .nullable()
+          .optional(),
+        reviewedAerodromeSlipstream: z
+          .object({
+            profile: z.enum([
+              'base-aerodrome-slipstream-weth-usdc-cl100',
+              'base-aerodrome-slipstream-usdc-usdt-cl1',
+            ]),
+            venue: z.literal('aerodrome-slipstream'),
+            market: z.string().min(1).max(80),
+            direction: z.enum(['token0-to-token1', 'token1-to-token0']),
+            sourceFreshnessSeconds: FiniteNonnegativeNumberSchema,
+            observedAt: EvidenceTimestampSchema,
+            blockNumber: z
+              .string()
+              .regex(/^[1-9][0-9]*$/)
+              .max(80),
+            blockHash: Bytes32Schema,
+            factory: AddressSchema,
+            pool: AddressSchema,
+            quoterV2: AddressSchema,
+            tickSpacing: z.number().int().positive().max(16_383),
+            feePips: z.number().int().positive().max(100_000),
+            amountIn: FinitePositiveNumberSchema,
+            amountInRaw: z
+              .string()
+              .regex(/^[1-9][0-9]*$/)
+              .max(80),
+            amountOut: FinitePositiveNumberSchema,
+            amountOutRaw: z
+              .string()
+              .regex(/^[1-9][0-9]*$/)
+              .max(80),
+            effectiveToken1PerToken0: FinitePositiveNumberSchema.optional(),
+            effectiveToken0PerToken1: FinitePositiveNumberSchema.optional(),
+            priceImpactBps: FiniteNonnegativeNumberSchema,
+            quoteDeviationBps: NullableNonnegativeNumberSchema,
+            twapDeviationBpsFromSpot: FiniteNonnegativeNumberSchema,
+          })
+          .strict()
+          .nullable()
+          .optional(),
       })
       .strict(),
     reasons: z
@@ -432,9 +689,21 @@ export const DecisionInputAssessmentSchema = z
               'CHAINLINK_DIVERGENCE',
               'REDSTONE_DIVERGENCE',
               'DEX_DEPTH_UNAVAILABLE',
+              'REVIEWED_UNISWAP_V3_UNAVAILABLE',
+              'REVIEWED_UNISWAP_V3_QUOTE_DIVERGENCE',
+              'REVIEWED_UNISWAP_V3_PRICE_IMPACT',
+              'REVIEWED_UNISWAP_V3_TWAP_DEVIATION',
+              'REVIEWED_AERODROME_SLIPSTREAM_UNAVAILABLE',
+              'REVIEWED_AERODROME_SLIPSTREAM_QUOTE_DIVERGENCE',
+              'REVIEWED_AERODROME_SLIPSTREAM_PRICE_IMPACT',
+              'REVIEWED_AERODROME_SLIPSTREAM_TWAP_DEVIATION',
               'QUOTE_TIMESTAMP_INVALID',
               'QUOTE_STALE',
               'QUOTE_SLIPPAGE',
+              'QUOTE_PROVENANCE_REQUIRED',
+              'QUOTE_PROVENANCE_MALFORMED',
+              'QUOTE_PROVENANCE_MISMATCH',
+              'QUOTE_PROVENANCE_RIGHTS',
             ]),
             severity: z.enum(['block', 'insufficient_evidence']),
             message: z.string().min(1).max(512),
@@ -465,6 +734,14 @@ export const DecisionInputAssessmentSchema = z
         quotePriceUsd: assessment.prices.quotePriceUsd,
         quoteObservedAt: assessment.prices.quoteObservedAt,
         operationRouteQuote: assessment.operationRouteQuote,
+        ...(assessment.quoteProvenance ? { quoteProvenance: assessment.quoteProvenance } : {}),
+        ...(assessment.policy.reviewedUniswapV3
+          ? { reviewedUniswapV3: assessment.policy.reviewedUniswapV3 }
+          : {}),
+        ...(assessment.policy.reviewedAerodromeSlipstream
+          ? { reviewedAerodromeSlipstream: assessment.policy.reviewedAerodromeSlipstream }
+          : {}),
+        ...(assessment.evidenceUse ? { evidenceUse: assessment.evidenceUse } : {}),
       });
     } catch {
       context.addIssue({
@@ -482,6 +759,50 @@ export const DecisionInputAssessmentSchema = z
         path: ['quoteInputHash'],
         message: 'Quote input hash does not match the assessment inputs.',
       });
+    }
+
+    const quoteProvenance = assessment.quoteProvenance;
+    if (
+      assessment.status === 'SUFFICIENT' &&
+      assessment.policy.requireQuoteProvenance === true &&
+      !quoteProvenance
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['quoteProvenance'],
+        message:
+          'A sufficient result under a provenance-required policy must carry a validated provenance envelope.',
+      });
+    }
+    if (quoteProvenance) {
+      if (quoteProvenance.rightsScope === 'synthetic' && assessment.evidenceUse !== 'staging') {
+        context.addIssue({
+          code: 'custom',
+          path: ['evidenceUse'],
+          message: 'Synthetic quote provenance is valid only in a signed staging assessment.',
+        });
+      }
+      if (quoteProvenance.rightsScope === 'research-quarantined') {
+        context.addIssue({
+          code: 'custom',
+          path: ['quoteProvenance', 'rightsScope'],
+          message: 'Research-quarantined quote provenance may not be signed as usable evidence.',
+        });
+      }
+      if (
+        !quoteProvenanceMatchesQuote(quoteProvenance, {
+          asset: assessment.asset,
+          chainId: assessment.chainId,
+          quotePriceUsd: assessment.prices.quotePriceUsd,
+          quoteObservedAt: assessment.prices.quoteObservedAt,
+        })
+      ) {
+        context.addIssue({
+          code: 'custom',
+          path: ['quoteProvenance'],
+          message: 'Quote provenance does not bind to the assessed quote.',
+        });
+      }
     }
 
     const hasBlockReason = assessment.reasons.some((reason) => reason.severity === 'block');
@@ -505,7 +826,11 @@ export const DecisionInputAssessmentSchema = z
       assessment.status === 'SUFFICIENT' &&
       (assessment.evidence.chainlink === null ||
         assessment.evidence.cex === null ||
-        assessment.evidence.dexManipulationCost === null ||
+        (assessment.policy.reviewedUniswapV3 || assessment.policy.reviewedAerodromeSlipstream
+          ? assessment.policy.reviewedUniswapV3
+            ? assessment.evidence.reviewedUniswapV3 === null
+            : assessment.evidence.reviewedAerodromeSlipstream === null
+          : assessment.evidence.dexManipulationCost === null) ||
         assessment.prices.quoteAgeSeconds === null)
     ) {
       context.addIssue({
@@ -589,6 +914,7 @@ export const DecisionInputAssessmentSchema = z
 
 export interface AssessDecisionInputOptions {
   asset: string;
+  destinationAsset?: string;
   chainId: number;
   action: DecisionInputAssessment['action'];
   tradeAmountUsd: number;
@@ -597,6 +923,12 @@ export interface AssessDecisionInputOptions {
   redstone?: RedStoneMarketReference | null;
   cex: MarketReference | null;
   dex: ManipCostAdvisory | null;
+  /** Fresh exact-notional evidence from a reviewed Monad or Base V3 pool. */
+  reviewedUniswapV3?: ReviewedUniswapV3PreTradeEvidence | null;
+  /** Fresh exact-notional evidence from the reviewed Base Aerodrome CL100 pool. */
+  reviewedAerodromeSlipstream?: ReviewedAerodromeSlipstreamPreTradeEvidence | null;
+  /** Synthetic evidence is accepted only in staging/test evaluation. */
+  evidenceUse?: EvidenceUse;
   now?: Date;
 }
 
@@ -629,6 +961,7 @@ type DexEvidence = NonNullable<DecisionInputAssessment['evidence']['dexManipulat
 interface QuoteChecks {
   ageSeconds: number | null;
   deviationBps: number | null;
+  provenance?: DecisionInputQuoteProvenance;
 }
 
 interface ChainlinkChecks {
@@ -659,7 +992,10 @@ interface DexChecks {
 function assessQuote(
   request: DecisionInputCheckRequest,
   nowMs: number,
-  reasons: DecisionInputReason[]
+  reasons: DecisionInputReason[],
+  asset: string,
+  chainId: number,
+  evidenceUse: EvidenceUse
 ): QuoteChecks {
   const timestampFormatValid = DecisionInputQuoteTimestampSchema.safeParse(
     request.quoteObservedAt
@@ -691,9 +1027,56 @@ function assessQuote(
       `The venue quote differs from the decision price by ${quoteDiffBps.toFixed(1)} bps; the limit is ${request.maxSlippageBps} bps.`
     );
   }
+
+  let provenance: DecisionInputQuoteProvenance | undefined;
+  if (request.quoteProvenance !== undefined) {
+    const result = usableQuoteProvenance(
+      request.quoteProvenance,
+      {
+        asset,
+        chainId,
+        quotePriceUsd: request.quotePriceUsd,
+        quoteObservedAt: request.quoteObservedAt,
+      },
+      evidenceUse
+    );
+    if (result.provenance) {
+      provenance = result.provenance;
+    } else if (result.reason === 'rights_not_permitted') {
+      addReason(
+        reasons,
+        'QUOTE_PROVENANCE_RIGHTS',
+        'insufficient_evidence',
+        'The quote provenance is quarantined or not permitted for this assessment environment.'
+      );
+    } else if (result.reason === 'binding_mismatch') {
+      addReason(
+        reasons,
+        'QUOTE_PROVENANCE_MISMATCH',
+        'insufficient_evidence',
+        'The quote provenance does not bind to the submitted asset, chain, price, and timestamp.'
+      );
+    } else {
+      addReason(
+        reasons,
+        'QUOTE_PROVENANCE_MALFORMED',
+        'insufficient_evidence',
+        'The quote provenance envelope is malformed.'
+      );
+    }
+  } else if (request.requireQuoteProvenance === true) {
+    addReason(
+      reasons,
+      'QUOTE_PROVENANCE_REQUIRED',
+      'insufficient_evidence',
+      'The policy requires caller-held quote provenance before this input can proceed.'
+    );
+  }
+
   return {
     ageSeconds: ageSeconds !== null && ageSeconds >= 0 ? ageSeconds : null,
     deviationBps: quoteDiffBps,
+    ...(provenance ? { provenance } : {}),
   };
 }
 
@@ -704,7 +1087,10 @@ function assessChainlink(
   chainlink: ChainlinkMarketReference | null,
   reasons: DecisionInputReason[]
 ): ChainlinkChecks {
-  const referenceSymbol = asset === 'WETH' ? 'ETH' : asset;
+  // Canonical wrapped natives price against their native reference: WETH→ETH
+  // (Ethereum/Base) and WBNB→BNB (BNB Smart Chain), matching the consensus
+  // service's PRICE_REFERENCE_ALIASES.
+  const referenceSymbol = asset === 'WETH' ? 'ETH' : asset === 'WBNB' ? 'BNB' : asset;
   const usable =
     chainlink !== null &&
     chainlink.symbol === referenceSymbol &&
@@ -763,7 +1149,7 @@ function assessRedStone(
   nowMs: number,
   reasons: DecisionInputReason[]
 ): RedStoneChecks {
-  const referenceSymbol = asset === 'WETH' ? 'ETH' : asset;
+  const referenceSymbol = asset === 'WETH' ? 'ETH' : asset === 'WBNB' ? 'BNB' : asset;
   const updatedAtMs = redstone ? Date.parse(redstone.updatedAt) : Number.NaN;
   const valid =
     redstone !== null &&
@@ -894,7 +1280,8 @@ function assessDex(
   tradeAmountUsd: number,
   dex: ManipCostAdvisory | null,
   nowMs: number,
-  reasons: DecisionInputReason[]
+  reasons: DecisionInputReason[],
+  required: boolean
 ): DexChecks {
   const snapshotMs = dex?.freshestSnapshotTs ? Date.parse(dex.freshestSnapshotTs) : Number.NaN;
   const symbolMatches =
@@ -912,12 +1299,14 @@ function assessDex(
     Number.isFinite(dex.cheapestMove1PctUsd) &&
     dex.cheapestMove1PctUsd > 0;
   if (!usable || !dex || typeof dex.cheapestMove1PctUsd !== 'number') {
-    addReason(
-      reasons,
-      'DEX_DEPTH_UNAVAILABLE',
-      'insufficient_evidence',
-      `No fresh Ethereum DEX manipulation-cost evidence is available for ${asset}; this v1 evidence map covers ETH, USDC, and WBTC on Ethereum mainnet.`
-    );
+    if (required) {
+      addReason(
+        reasons,
+        'DEX_DEPTH_UNAVAILABLE',
+        'insufficient_evidence',
+        `No fresh Ethereum DEX manipulation-cost evidence is available for ${asset}; this v1 evidence map covers ETH, USDC, and WBTC on Ethereum mainnet.`
+      );
+    }
     return { evidence: null };
   }
 
@@ -937,18 +1326,252 @@ function assessDex(
   };
 }
 
+type ReviewedUniswapV3Evidence = NonNullable<
+  NonNullable<DecisionInputAssessment['evidence']['reviewedUniswapV3']>
+>;
+
+interface ReviewedUniswapV3Checks {
+  evidence: ReviewedUniswapV3Evidence | null;
+}
+
+function assessReviewedUniswapV3(
+  request: DecisionInputCheckRequest,
+  evidence: ReviewedUniswapV3PreTradeEvidence | null | undefined,
+  reasons: DecisionInputReason[]
+): ReviewedUniswapV3Checks {
+  if (!request.reviewedUniswapV3) return { evidence: null };
+  if (!evidence) {
+    addReason(
+      reasons,
+      'REVIEWED_UNISWAP_V3_UNAVAILABLE',
+      'insufficient_evidence',
+      'No fresh block-pinned quote is available from the reviewed concentrated-liquidity pool for this exact route and amount.'
+    );
+    return { evidence: null };
+  }
+
+  const forward = evidence.quote.direction !== 'token1-to-token0';
+  const effectivePerSource = forward
+    ? evidence.quote.effectiveToken1PerToken0
+    : evidence.quote.effectiveToken0PerToken1;
+  if (effectivePerSource === undefined || !Number.isFinite(effectivePerSource)) {
+    addReason(
+      reasons,
+      'REVIEWED_UNISWAP_V3_UNAVAILABLE',
+      'insufficient_evidence',
+      'The reviewed Uniswap V3 quote is missing a usable effective price for the bound direction.'
+    );
+    return { evidence: null };
+  }
+  // Prefer the same-unit anchor (destination tokens per source token) supplied
+  // by the caller's own prepared route quote; fall back to the USD-per-source
+  // `quotePriceUsd`, which is only numerically comparable when the destination
+  // token is a $1 stablecoin.
+  const anchorRate = request.reviewedUniswapV3.routeEffectiveDestinationPerSource;
+  const anchor =
+    anchorRate !== undefined && Number.isFinite(anchorRate) && anchorRate > 0
+      ? anchorRate
+      : request.quotePriceUsd;
+  const quoteDeviationBps = deviationBps(effectivePerSource, anchor);
+  if (
+    quoteDeviationBps !== null &&
+    quoteDeviationBps > request.reviewedUniswapV3.maxQuoteDeviationBps
+  ) {
+    addReason(
+      reasons,
+      'REVIEWED_UNISWAP_V3_QUOTE_DIVERGENCE',
+      'block',
+      `The reviewed Uniswap V3 quote differs from the submitted venue quote by ${quoteDeviationBps.toFixed(1)} bps; the limit is ${request.reviewedUniswapV3.maxQuoteDeviationBps} bps.`
+    );
+  }
+  if (evidence.quote.priceImpactBps > request.maxSlippageBps) {
+    addReason(
+      reasons,
+      'REVIEWED_UNISWAP_V3_PRICE_IMPACT',
+      'block',
+      `The reviewed Uniswap V3 exact-input quote has ${evidence.quote.priceImpactBps.toFixed(1)} bps price impact; the declared slippage limit is ${request.maxSlippageBps} bps.`
+    );
+  }
+  if (evidence.twapDeviationBpsFromSpot > request.reviewedUniswapV3.maxTwapDeviationBps) {
+    addReason(
+      reasons,
+      'REVIEWED_UNISWAP_V3_TWAP_DEVIATION',
+      'block',
+      `The reviewed Uniswap V3 spot/TWAP divergence is ${evidence.twapDeviationBpsFromSpot.toFixed(1)} bps; the limit is ${request.reviewedUniswapV3.maxTwapDeviationBps} bps.`
+    );
+  }
+
+  return {
+    evidence: {
+      profile: evidence.profile,
+      venue: evidence.venue,
+      market: evidence.market,
+      direction: evidence.quote.direction,
+      sourceFreshnessSeconds: evidence.sourceFreshnessSeconds,
+      observedAt: evidence.observedAt,
+      blockNumber: evidence.block.number,
+      blockHash: evidence.block.hash,
+      factory: evidence.contracts.factory,
+      pool: evidence.contracts.pool,
+      quoterV2: evidence.contracts.quoterV2,
+      feeTier: evidence.contracts.feeTier,
+      ...(evidence.contracts.codeIdentity ? { codeIdentity: evidence.contracts.codeIdentity } : {}),
+      amountIn: evidence.quote.amountIn,
+      amountInRaw: evidence.quote.amountInRaw,
+      amountOut: evidence.quote.amountOut,
+      amountOutRaw: evidence.quote.amountOutRaw,
+      ...(forward
+        ? { effectiveToken1PerToken0: evidence.quote.effectiveToken1PerToken0 }
+        : { effectiveToken0PerToken1: evidence.quote.effectiveToken0PerToken1 }),
+      priceImpactBps: evidence.quote.priceImpactBps,
+      quoteDeviationBps,
+      twapDeviationBpsFromSpot: evidence.twapDeviationBpsFromSpot,
+    },
+  };
+}
+
+type ReviewedAerodromeSlipstreamEvidence = NonNullable<
+  NonNullable<DecisionInputAssessment['evidence']['reviewedAerodromeSlipstream']>
+>;
+
+interface ReviewedAerodromeSlipstreamChecks {
+  evidence: ReviewedAerodromeSlipstreamEvidence | null;
+}
+
+function assessReviewedAerodromeSlipstream(
+  request: DecisionInputCheckRequest,
+  evidence: ReviewedAerodromeSlipstreamPreTradeEvidence | null | undefined,
+  reasons: DecisionInputReason[]
+): ReviewedAerodromeSlipstreamChecks {
+  if (!request.reviewedAerodromeSlipstream) return { evidence: null };
+  if (!evidence) {
+    addReason(
+      reasons,
+      'REVIEWED_AERODROME_SLIPSTREAM_UNAVAILABLE',
+      'insufficient_evidence',
+      'No fresh block-pinned quote is available from the reviewed Aerodrome Slipstream pool for this exact route and amount.'
+    );
+    return { evidence: null };
+  }
+
+  const forward = evidence.quote.direction !== 'token1-to-token0';
+  const effectivePerSource = forward
+    ? evidence.quote.effectiveToken1PerToken0
+    : evidence.quote.effectiveToken0PerToken1;
+  if (effectivePerSource === undefined || !Number.isFinite(effectivePerSource)) {
+    addReason(
+      reasons,
+      'REVIEWED_AERODROME_SLIPSTREAM_UNAVAILABLE',
+      'insufficient_evidence',
+      'The reviewed Aerodrome Slipstream quote is missing a usable effective price for the bound direction.'
+    );
+    return { evidence: null };
+  }
+  // Prefer the same-unit anchor (destination tokens per source token) supplied
+  // by the caller's own prepared route quote; fall back to the USD-per-source
+  // `quotePriceUsd`, which is only numerically comparable when the destination
+  // token is a $1 stablecoin.
+  const anchorRate = request.reviewedAerodromeSlipstream.routeEffectiveDestinationPerSource;
+  const anchor =
+    anchorRate !== undefined && Number.isFinite(anchorRate) && anchorRate > 0
+      ? anchorRate
+      : request.quotePriceUsd;
+  const quoteDeviationBps = deviationBps(effectivePerSource, anchor);
+  if (
+    quoteDeviationBps !== null &&
+    quoteDeviationBps > request.reviewedAerodromeSlipstream.maxQuoteDeviationBps
+  ) {
+    addReason(
+      reasons,
+      'REVIEWED_AERODROME_SLIPSTREAM_QUOTE_DIVERGENCE',
+      'block',
+      `The reviewed Aerodrome Slipstream quote differs from the submitted venue quote by ${quoteDeviationBps.toFixed(1)} bps; the limit is ${request.reviewedAerodromeSlipstream.maxQuoteDeviationBps} bps.`
+    );
+  }
+  if (evidence.quote.priceImpactBps > request.maxSlippageBps) {
+    addReason(
+      reasons,
+      'REVIEWED_AERODROME_SLIPSTREAM_PRICE_IMPACT',
+      'block',
+      `The reviewed Aerodrome Slipstream exact-input quote has ${evidence.quote.priceImpactBps.toFixed(1)} bps price impact; the declared slippage limit is ${request.maxSlippageBps} bps.`
+    );
+  }
+  if (evidence.twapDeviationBpsFromSpot > request.reviewedAerodromeSlipstream.maxTwapDeviationBps) {
+    addReason(
+      reasons,
+      'REVIEWED_AERODROME_SLIPSTREAM_TWAP_DEVIATION',
+      'block',
+      `The reviewed Aerodrome Slipstream spot/TWAP divergence is ${evidence.twapDeviationBpsFromSpot.toFixed(1)} bps; the limit is ${request.reviewedAerodromeSlipstream.maxTwapDeviationBps} bps.`
+    );
+  }
+
+  return {
+    evidence: {
+      profile: evidence.profile,
+      venue: evidence.venue,
+      market: evidence.market,
+      direction: evidence.quote.direction,
+      sourceFreshnessSeconds: evidence.sourceFreshnessSeconds,
+      observedAt: evidence.observedAt,
+      blockNumber: evidence.block.number,
+      blockHash: evidence.block.hash,
+      factory: evidence.contracts.factory,
+      pool: evidence.contracts.pool,
+      quoterV2: evidence.contracts.quoterV2,
+      tickSpacing: evidence.contracts.tickSpacing,
+      feePips: evidence.contracts.feePips,
+      amountIn: evidence.quote.amountIn,
+      amountInRaw: evidence.quote.amountInRaw,
+      amountOut: evidence.quote.amountOut,
+      amountOutRaw: evidence.quote.amountOutRaw,
+      ...(forward
+        ? { effectiveToken1PerToken0: evidence.quote.effectiveToken1PerToken0 }
+        : { effectiveToken0PerToken1: evidence.quote.effectiveToken0PerToken1 }),
+      priceImpactBps: evidence.quote.priceImpactBps,
+      quoteDeviationBps,
+      twapDeviationBpsFromSpot: evidence.twapDeviationBpsFromSpot,
+    },
+  };
+}
+
 export function assessDecisionInput(options: AssessDecisionInputOptions): DecisionInputAssessment {
-  const { asset, chainId, action, tradeAmountUsd, request, chainlink, redstone, cex, dex } =
-    options;
+  const {
+    asset,
+    chainId,
+    action,
+    tradeAmountUsd,
+    request,
+    chainlink,
+    redstone,
+    cex,
+    dex,
+    reviewedUniswapV3,
+    reviewedAerodromeSlipstream,
+  } = options;
   const now = options.now ?? new Date();
   const nowMs = now.getTime();
   const normalizedAsset = asset.trim().toUpperCase();
+  const evidenceUse = options.evidenceUse ?? 'customer';
   const reasons: DecisionInputReason[] = [];
-  const quote = assessQuote(request, nowMs, reasons);
+  const quote = assessQuote(request, nowMs, reasons, normalizedAsset, chainId, evidenceUse);
   const oracle = assessChainlink(normalizedAsset, chainId, request, chainlink, reasons);
   const redstoneReference = assessRedStone(normalizedAsset, request, redstone, nowMs, reasons);
   const market = assessCex(request, cex, nowMs, reasons);
-  const depth = assessDex(normalizedAsset, chainId, tradeAmountUsd, dex, nowMs, reasons);
+  const depth = assessDex(
+    normalizedAsset,
+    chainId,
+    tradeAmountUsd,
+    dex,
+    nowMs,
+    reasons,
+    request.reviewedUniswapV3 === undefined && request.reviewedAerodromeSlipstream === undefined
+  );
+  const reviewedDex = assessReviewedUniswapV3(request, reviewedUniswapV3, reasons);
+  const reviewedAerodrome = assessReviewedAerodromeSlipstream(
+    request,
+    reviewedAerodromeSlipstream,
+    reasons
+  );
   const hasBlock = reasons.some((reason) => reason.severity === 'block');
   const hasMissingEvidence = reasons.some((reason) => reason.severity === 'insufficient_evidence');
   const status = hasBlock ? 'BLOCK' : hasMissingEvidence ? 'INSUFFICIENT_EVIDENCE' : 'SUFFICIENT';
@@ -972,11 +1595,24 @@ export function assessDecisionInput(options: AssessDecisionInputOptions): Decisi
       quotePriceUsd: request.quotePriceUsd,
       quoteObservedAt: request.quoteObservedAt,
       operationRouteQuote: request.operationRouteQuote ?? null,
+      ...(quote.provenance ? { quoteProvenance: quote.provenance } : {}),
+      ...(request.reviewedUniswapV3 ? { reviewedUniswapV3: request.reviewedUniswapV3 } : {}),
+      ...(request.reviewedAerodromeSlipstream
+        ? { reviewedAerodromeSlipstream: request.reviewedAerodromeSlipstream }
+        : {}),
+      ...(evidenceUse === 'staging' ? { evidenceUse: 'staging' } : {}),
     }),
+    ...(quote.provenance ? { quoteProvenance: quote.provenance } : {}),
+    ...(evidenceUse === 'staging' ? { evidenceUse: 'staging' } : {}),
     policy: {
       maxReferenceDeviationBps: request.maxReferenceDeviationBps,
       maxSlippageBps: request.maxSlippageBps,
       maxQuoteAgeSeconds: request.maxQuoteAgeSeconds,
+      ...(request.requireQuoteProvenance === true ? { requireQuoteProvenance: true } : {}),
+      ...(request.reviewedUniswapV3 ? { reviewedUniswapV3: request.reviewedUniswapV3 } : {}),
+      ...(request.reviewedAerodromeSlipstream
+        ? { reviewedAerodromeSlipstream: request.reviewedAerodromeSlipstream }
+        : {}),
     },
     prices: {
       decisionPriceUsd: request.decisionPriceUsd,
@@ -997,6 +1633,10 @@ export function assessDecisionInput(options: AssessDecisionInputOptions): Decisi
       redstone: redstoneReference.evidence,
       cex: market.evidence,
       dexManipulationCost: depth.evidence,
+      ...(request.reviewedUniswapV3 ? { reviewedUniswapV3: reviewedDex.evidence } : {}),
+      ...(request.reviewedAerodromeSlipstream
+        ? { reviewedAerodromeSlipstream: reviewedAerodrome.evidence }
+        : {}),
     },
     reasons,
     caveats: [
@@ -1004,7 +1644,24 @@ export function assessDecisionInput(options: AssessDecisionInputOptions): Decisi
       'This assessment is separate from the EIP-712 oracle safety attestation and may carry its own integrity signature.',
       'A fresh RedStone USD reference is an additional divergence check. Its absence or staleness does not by itself lower the assessment status; the API observation is not independently signature-verified here and may share upstream market venues with other sources.',
       'The per-asset venue quote is caller-supplied. In agent_begin_trade, the route quote is independently simulated against Ethereum mainnet state and committed with its block evidence; this does not guarantee a later transaction will execute at that price.',
+      ...(quote.provenance
+        ? [
+            'Quote provenance is hash-only evidence retained by the caller. It binds the submitted quote to a source identifier and request/response digests, but does not authenticate the upstream provider or grant rights to redistribute upstream data.',
+          ]
+        : []),
       'DEX manipulation cost is a pool-depth proxy, not a route-specific quote, price-impact estimate, or guarantee that the pool can execute this trade.',
+      ...(request.reviewedUniswapV3
+        ? [
+            'The reviewed concentrated-liquidity evidence is an exact-input Quoter V2 simulation at one pinned block for an admitted forward-direction pool. It does not simulate the caller’s signed transaction, other routes, MEV, or a later block.',
+            'The quote-to-USD comparison treats the reviewed USDC or USDT output as a dollar-denominated venue quote; separate stablecoin and oracle evidence remains required.',
+          ]
+        : []),
+      ...(request.reviewedAerodromeSlipstream
+        ? [
+            'The reviewed Aerodrome Slipstream evidence is an exact-input QuoterV2 simulation at one pinned block for the admitted Base WETH-to-USDC CL100 pool. It does not simulate the caller’s signed transaction, other routes, MEV, or a later block.',
+            'The Aerodrome quote-to-USD comparison treats the reviewed USDC output as a dollar-denominated venue quote; separate stablecoin and oracle evidence remains required.',
+          ]
+        : []),
     ],
   };
 }

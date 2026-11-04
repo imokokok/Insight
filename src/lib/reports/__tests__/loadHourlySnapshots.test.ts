@@ -104,4 +104,16 @@ describe('loadHourlySnapshotsForRange', () => {
       'valid exact count'
     );
   });
+
+  it('splits long history reads into seven-day windows', async () => {
+    const { client, query } = makeClient(1);
+
+    await expect(
+      loadHourlySnapshotsForRange(client, '2026-09-01T00:00:00Z', '2026-09-09T00:00:00Z')
+    ).resolves.toHaveLength(1);
+
+    expect(query.range).toHaveBeenCalledTimes(2);
+    expect(query.gte).toHaveBeenNthCalledWith(1, 'snapshot_hour', '2026-09-01T00:00:00.000Z');
+    expect(query.lt).toHaveBeenNthCalledWith(2, 'snapshot_hour', '2026-09-09T00:00:00.000Z');
+  });
 });

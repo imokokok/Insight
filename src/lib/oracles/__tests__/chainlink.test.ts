@@ -1,8 +1,10 @@
 import { ChainlinkClient } from '@/lib/oracles/clients/chainlink';
 import { chainlinkOnChainService } from '@/lib/oracles/services/chainlinkOnChainService';
+import { chainlinkSolanaOnChainService } from '@/lib/oracles/services/chainlinkSolanaOnChainService';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
 jest.mock('@/lib/oracles/services/chainlinkOnChainService');
+jest.mock('@/lib/oracles/services/chainlinkSolanaOnChainService');
 const mockIsPriceFeedSupported = jest.fn();
 const mockGetChainlinkPriceFeed = jest.fn();
 
@@ -46,6 +48,7 @@ describe('ChainlinkClient', () => {
       expect(client.supportedChains).toContain(Blockchain.ETHEREUM);
       expect(client.supportedChains).toContain(Blockchain.ARBITRUM);
       expect(client.supportedChains).toContain(Blockchain.POLYGON);
+      expect(client.supportedChains).toContain(Blockchain.SOLANA);
     });
 
     it('should use real data by default', () => {
@@ -162,6 +165,33 @@ describe('ChainlinkClient', () => {
 
       expect(result.chain).toBe(Blockchain.ARBITRUM);
       expect(chainlinkOnChainService.getPrice).toHaveBeenCalledWith('ETH', 42161, undefined);
+    });
+
+    it('reads Solana through the native OCR2 account path, never an EVM registry', async () => {
+      (chainlinkSolanaOnChainService.getPrice as jest.Mock).mockResolvedValue({
+        symbol: 'SOL/USD',
+        price: 101.25,
+        timestamp: Date.now(),
+        decimals: 8,
+        roundId: '42',
+        answer: '10125000000',
+        accountAddress: 'CH31Xns5z3M1cTAbKW34jcxPPciazARpijcHj9rxtemt',
+        description: 'SOL / USD',
+        observationSlot: 460_973_132,
+        accountDataHash: `0x${'12'.repeat(32)}`,
+      });
+
+      const result = await client.getPrice('SOL', Blockchain.SOLANA);
+
+      expect(result).toMatchObject({
+        provider: OracleProvider.CHAINLINK,
+        chain: Blockchain.SOLANA,
+        symbol: 'SOL/USD',
+        price: 101.25,
+        roundId: '42',
+      });
+      expect(chainlinkSolanaOnChainService.getPrice).toHaveBeenCalledWith('SOL', undefined);
+      expect(chainlinkOnChainService.getPrice).not.toHaveBeenCalled();
     });
 
     it('should include round metadata', async () => {

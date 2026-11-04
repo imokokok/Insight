@@ -33,6 +33,7 @@ export const supraConfig = createOracleConfig({
     Blockchain.METIS,
     Blockchain.BLAST,
     Blockchain.STARKNET,
+    Blockchain.MONAD,
   ],
   color: '#14B8A6',
   features: {

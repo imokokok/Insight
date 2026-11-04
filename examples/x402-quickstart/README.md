@@ -26,7 +26,7 @@ plenty at $0.02 per check).
 The same x402 client pays for unauthenticated `tools/call` against the hosted
 MCP server (`https://www.oracleinsight.xyz/api/mcp`). `initialize`,
 `tools/list`, and `ping` are free; `tools/call` is priced by the tool's
-metering class (1 credit = $0.004: C1 = $0.002, C2 = $0.008, C3 = $0.02,
+metering class (1 credit = $0.004: C1 = $0.002, C2 = $0.004, C3 = $0.02,
 C4 = $0.04). Body shape:
 
 ```json

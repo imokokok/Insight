@@ -34,8 +34,8 @@
  * cadence: polling faster than 15 minutes yields no fresher snapshot data, so
  * clients should cache on their side.
  *
- * Pricing model (2026-10):
- *   - x402 remains the public per-call list price: C1 $0.002, C2 $0.008,
+ * Pricing model (2026-10, C2 halved in the 2026-11-03 pricing review):
+ *   - x402 remains the public per-call list price: C1 $0.002, C2 $0.004,
  *     C3 $0.02, C4 $0.04 (1 credit = $0.004).
  *   - The annual commitment carries the discount. Measured against the x402
  *     list price, annual plans land 12.5%–19.8% below and monthly plans
@@ -128,6 +128,19 @@ export const PLANS = {
 } as const;
 
 export type Plan = keyof typeof PLANS;
+
+/**
+ * Canonical USD value of one credit, anchored to the x402 public list price
+ * (C1 $0.002 per 0.5 cr). Product-level credit prices are derived from this
+ * constant so a non-per-call purchase can never drift from the per-call
+ * x402↔credit exchange rate documented in the pricing-model comment above.
+ */
+export const USD_PER_CREDIT = 0.004;
+
+/** Convert a USD list price into its integer credit cost at {@link USD_PER_CREDIT}. */
+export function usdToCredits(usd: number): number {
+  return Math.round(usd / USD_PER_CREDIT);
+}
 
 /** Billing cycle options for subscriptions. */
 export type BillingInterval = 'month' | 'year';

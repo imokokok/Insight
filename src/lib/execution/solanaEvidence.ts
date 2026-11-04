@@ -1,13 +1,15 @@
 import { createHash } from 'node:crypto';
 
 import { ed25519 } from '@noble/curves/ed25519';
-import canonicalize from 'canonicalize';
 
 const BASE58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 
 export type SolanaEvidenceSchema =
   | 'insight.solana-execution-receipt.v1'
-  | 'insight.solana-simulation-receipt.v1';
+  | 'insight.solana-simulation-receipt.v1'
+  | 'insight.solana-lending-guard-decision.v1'
+  | 'insight.solana-swap-guard-decision.v1'
+  | 'insight.solana-swap-guard-settlement.v1';
 
 export type SolanaSignedEvidence<
   TPayload extends Record<string, unknown> = Record<string, unknown>,
@@ -50,7 +52,10 @@ export function verifySolanaEvidence(
     return false;
   if (
     value.schema !== 'insight.solana-execution-receipt.v1' &&
-    value.schema !== 'insight.solana-simulation-receipt.v1'
+    value.schema !== 'insight.solana-simulation-receipt.v1' &&
+    value.schema !== 'insight.solana-lending-guard-decision.v1' &&
+    value.schema !== 'insight.solana-swap-guard-decision.v1' &&
+    value.schema !== 'insight.solana-swap-guard-settlement.v1'
   )
     return false;
   if (
@@ -105,6 +110,15 @@ function isValidPayload(schema: SolanaEvidenceSchema, payload: Record<string, un
       isUnixSeconds(payload.issuedAt)
     );
   }
+  if (schema === 'insight.solana-lending-guard-decision.v1') {
+    return isValidSolanaLendingGuardPayload(payload);
+  }
+  if (schema === 'insight.solana-swap-guard-decision.v1') {
+    return isValidSolanaSwapGuardPayload(payload);
+  }
+  if (schema === 'insight.solana-swap-guard-settlement.v1') {
+    return isValidSolanaSwapGuardSettlementPayload(payload);
+  }
   const simulation = payload.simulation;
   if (!isRecord(simulation)) return false;
   return (
@@ -123,6 +137,76 @@ function isValidPayload(schema: SolanaEvidenceSchema, payload: Record<string, un
     isUnixSeconds(payload.issuedAt) &&
     isUnixSeconds(simulation.simulatedAt) &&
     isNonNegativeSafeInteger(simulation.simulationSlot)
+  );
+}
+
+function isValidSolanaLendingGuardPayload(payload: Record<string, unknown>): boolean {
+  const issuedAt = payload.issuedAt;
+  const validUntil = payload.validUntil;
+  return (
+    typeof payload.decisionHash === 'string' &&
+    /^0x[0-9a-f]{64}$/i.test(payload.decisionHash) &&
+    typeof payload.messageHash === 'string' &&
+    /^0x[0-9a-f]{64}$/i.test(payload.messageHash) &&
+    isSolanaPublicKey(payload.account) &&
+    (payload.protocolId === 'kamino-lend' ||
+      payload.protocolId === 'marginfi-v2' ||
+      payload.protocolId === 'jupiter-lend-earn' ||
+      payload.protocolId === 'save-lend' ||
+      payload.protocolId === 'loopscale-vault') &&
+    (payload.action === 'supply' || payload.action === 'borrow') &&
+    (payload.verdict === 0 || payload.verdict === 1 || payload.verdict === 2) &&
+    isUnixSeconds(issuedAt) &&
+    isUnixSeconds(validUntil) &&
+    Number(validUntil) >= Number(issuedAt) &&
+    payload.schemaVersion === 1
+  );
+}
+
+function isValidSolanaSwapGuardPayload(payload: Record<string, unknown>): boolean {
+  const issuedAt = payload.issuedAt;
+  const validUntil = payload.validUntil;
+  return (
+    typeof payload.decisionHash === 'string' &&
+    /^0x[0-9a-f]{64}$/i.test(payload.decisionHash) &&
+    typeof payload.messageHash === 'string' &&
+    /^0x[0-9a-f]{64}$/i.test(payload.messageHash) &&
+    isSolanaPublicKey(payload.account) &&
+    payload.profileId === 'solana-orca-whirlpool-usdc-usdt-1' &&
+    (payload.direction === 'usdc-to-usdt' || payload.direction === 'usdt-to-usdc') &&
+    (payload.verdict === 0 || payload.verdict === 1 || payload.verdict === 2) &&
+    isUnixSeconds(issuedAt) &&
+    isUnixSeconds(validUntil) &&
+    Number(validUntil) >= Number(issuedAt) &&
+    payload.schemaVersion === 1
+  );
+}
+
+function isValidSolanaSwapGuardSettlementPayload(payload: Record<string, unknown>): boolean {
+  return (
+    typeof payload.decisionHash === 'string' &&
+    /^0x[0-9a-f]{64}$/i.test(payload.decisionHash) &&
+    isBase58Bytes(payload.signature, 64) &&
+    isSolanaPublicKey(payload.taker) &&
+    payload.profileId === 'solana-orca-whirlpool-usdc-usdt-1' &&
+    (payload.direction === 'usdc-to-usdt' || payload.direction === 'usdt-to-usdc') &&
+    typeof payload.amountInRaw === 'string' &&
+    /^(0|[1-9][0-9]*)$/.test(payload.amountInRaw) &&
+    typeof payload.minOutRaw === 'string' &&
+    /^(0|[1-9][0-9]*)$/.test(payload.minOutRaw) &&
+    (payload.sourceAmountRaw === null ||
+      (typeof payload.sourceAmountRaw === 'string' && /^[0-9]+$/.test(payload.sourceAmountRaw))) &&
+    (payload.destinationAmountRaw === null ||
+      (typeof payload.destinationAmountRaw === 'string' &&
+        /^[0-9]+$/.test(payload.destinationAmountRaw))) &&
+    (payload.status === 'SETTLED' ||
+      payload.status === 'REVERTED' ||
+      payload.status === 'UNRECONCILED') &&
+    typeof payload.reconciliation === 'string' &&
+    isNonNegativeSafeInteger(payload.slot) &&
+    isUnixSeconds(payload.executedAt) &&
+    isUnixSeconds(payload.issuedAt) &&
+    payload.schemaVersion === 1
   );
 }
 
@@ -175,9 +259,23 @@ function readSigningSeed(): Uint8Array | null {
 }
 
 function canonicalBytes(value: unknown): Uint8Array {
-  const serialized = canonicalize(value);
-  if (typeof serialized !== 'string') throw new TypeError('Evidence is not valid canonical JSON');
-  return new TextEncoder().encode(serialized);
+  return new TextEncoder().encode(canonicalJson(value));
+}
+
+function canonicalJson(value: unknown): string {
+  if (value === null || typeof value === 'string' || typeof value === 'boolean') {
+    return JSON.stringify(value);
+  }
+  if (typeof value === 'number' && Number.isFinite(value)) return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
+  if (isRecord(value)) {
+    const keys = Object.keys(value).sort();
+    if (keys.some((key) => ['__proto__', 'constructor', 'prototype'].includes(key))) {
+      throw new TypeError('Evidence contains an unsafe object key');
+    }
+    return `{${keys.map((key) => `${JSON.stringify(key)}:${canonicalJson(value[key])}`).join(',')}}`;
+  }
+  throw new TypeError('Evidence is not valid canonical JSON');
 }
 
 function encodeBase58(bytes: Uint8Array): string {

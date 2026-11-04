@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { parseHypercoreX402Config, type HypercoreX402Config } from './hypercore';
 import { isSolanaPublicKey } from './solanaEncoding';
 
 /**
@@ -7,10 +8,11 @@ import { isSolanaPublicKey } from './solanaEncoding';
  *
  * Design rules (see ~/.workbuddy/insight-x402/x402-pretrade-plan.md):
  * - The master switch (`X402_ENABLED`) must be exactly "true". EVM payment is
- *   enabled only with a valid `X402_PAY_TO` and unless `X402_EVM_ENABLED` is
- *   exactly "false"; `X402_EVM_NETWORKS` selects advertised EVM networks and
- *   defaults to `X402_NETWORK`. Solana is an independent opt-in that also
- *   requires `X402_SOLANA_PAY_TO`.
+ *   enabled with a valid default `X402_PAY_TO` or explicit
+ *   `X402_EVM_PAY_TOS` entries, unless `X402_EVM_ENABLED` is exactly "false".
+ *   `X402_EVM_NETWORKS` selects advertised EVM networks and defaults to
+ *   `X402_NETWORK`. Solana is an independent opt-in that also requires
+ *   `X402_SOLANA_PAY_TO`.
  * - The receiving address lives in server-side env only. It is NEVER read from
  *   request parameters, so a caller cannot redirect a 402 quote to another
  *   wallet.
@@ -19,7 +21,7 @@ import { isSolanaPublicKey } from './solanaEncoding';
  *   deterministic integer amount.
  */
 
-/** EVM networks with native USDC and an EIP-3009 exact-payment path. */
+/** EVM networks with a USDC-class settlement asset reachable by a registered facilitator. */
 export const X402_EVM_NETWORK_IDS = [
   'eip155:84532', // Base Sepolia
   'eip155:8453', // Base
@@ -31,12 +33,24 @@ export const X402_EVM_NETWORK_IDS = [
   'eip155:1329', // Sei
   'eip155:196', // X Layer
   'eip155:143', // Monad
+  'eip155:999', // HyperEVM
+  'eip155:56', // BNB Smart Chain (AEON facilitator; bridged USDC, 18 decimals)
 ] as const;
 
 export type X402NetworkId = (typeof X402_EVM_NETWORK_IDS)[number];
 
 /** Native USDC contract and EIP-712 domain name for each supported EVM network. */
-const SUPPORTED_NETWORKS: Record<X402NetworkId, { usdc: string; tokenName: string }> = {
+const SUPPORTED_NETWORKS: Record<
+  X402NetworkId,
+  {
+    usdc: string;
+    tokenName?: string;
+    decimals?: number;
+    eip3009?: boolean;
+    /** Opt-in additional settlement assets sharing the network's decimals and facilitator flow. */
+    extraAssets?: readonly { symbol: string; address: string; tokenName?: string }[];
+  }
+> = {
   'eip155:84532': {
     /** Chain: Base Sepolia (testnet). Circle native USDC. */
     usdc: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
@@ -94,12 +108,53 @@ const SUPPORTED_NETWORKS: Record<X402NetworkId, { usdc: string; tokenName: strin
      */
     tokenName: 'USDC',
   },
+  'eip155:999': {
+    /** Chain: HyperEVM mainnet. UVD advertises this USDC asset for x402 v2 exact. */
+    usdc: '0xb88339CB7199b77E23DB6E890353E22632Ba630f',
+    /** HyperEVM USDC uses the FiatToken EIP-712 domain { name: "USDC", version: "2" }. */
+    tokenName: 'USDC',
+  },
+  'eip155:56': {
+    /** Chain: BNB Smart Chain. Binance-bridged USDC (18 decimals), the token listed by the AEON x402 facilitator (facilitator.aeon.xyz /supported, kind exact v2 on eip155:56, verified 2026-10-17). */
+    usdc: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
+    /**
+     * The bridged token itself exposes no EIP-712 domain (no DOMAIN_SEPARATOR
+     * on-chain), but the AEON facilitator's non-EIP-3009 mandate flow signs a
+     * TransferWithAuthorization-shaped message against the domain carried in
+     * the quote `extra` and verifies it facilitator-side (spender
+     * 0x555e3311a9893c9B17444C1Ff0d88192a57Ef13e after a client-side approve).
+     * Name/version below are the AEON stack's canonical values for BSC USDC
+     * (asset registry in @aeon-ai-pay/evm).
+     */
+    tokenName: 'USD Coin',
+    decimals: 18,
+    /** No on-chain EIP-3009; settlement is the AEON facilitator mandate flow. */
+    eip3009: false,
+    /**
+     * USDT (Binance-Peg, 18 decimals) is in the AEON asset registry for chain
+     * 56 (TokenSymbolUtil, @aeon-ai-pay/evm 2.1.4) and settles through the same
+     * mandate flow as USDC. Emitted as a second challenge option only when
+     * X402_BNB_ASSETS lists `usdt`. USD1/United Stables are NOT listed here:
+     * they have on-chain EIP-3009 but are absent from the AEON registry, so a
+     * challenge advertising them today could not be verified or settled.
+     */
+    extraAssets: [
+      {
+        symbol: 'USDT',
+        address: '0x55d398326f99059fF775485246999027B3197955',
+        tokenName: 'Tether USD',
+      },
+    ],
+  },
 };
 
 export const SOLANA_MAINNET_CAIP2 = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as const;
 export const SOLANA_DEVNET_CAIP2 = 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1' as const;
 
 export type X402SolanaNetworkId = typeof SOLANA_MAINNET_CAIP2 | typeof SOLANA_DEVNET_CAIP2;
+
+/** Any network that can appear in an x402 `accepts[]` payment option. */
+export type X402PaymentNetworkId = X402NetworkId | X402SolanaNetworkId;
 
 const SOLANA_NETWORKS = {
   [SOLANA_MAINNET_CAIP2]: {
@@ -120,6 +175,12 @@ export interface X402SolanaConfig {
   /** USDC atomic units (6 decimals) charged per successful check. */
   amountAtomic: string;
   priceUsd: number;
+  /**
+   * Optional RPC used solely to pin a fresh blockhash into each SVM payment
+   * challenge. It must observe the same cluster view as the facilitator's
+   * settlement RPC; otherwise it is safer to leave this unset.
+   */
+  rpcUrl: string | null;
 }
 
 export interface X402PaymentOption {
@@ -133,8 +194,36 @@ export interface X402PaymentOption {
 
 const NetworkSchema = z.enum(X402_EVM_NETWORK_IDS);
 const SolanaNetworkSchema = z.enum([SOLANA_DEVNET_CAIP2, SOLANA_MAINNET_CAIP2]);
+const PaymentNetworkSchema = z.union([NetworkSchema, SolanaNetworkSchema]);
 
 const USDC_DECIMALS = 6;
+
+/**
+ * Settlement assets selectable for the BNB Smart Chain challenge. `usdc` is
+ * the default; `usdt` is opt-in via X402_BNB_ASSETS and shares the AEON
+ * mandate flow (both assets are 18-decimal Binance-Peg tokens).
+ */
+export type X402BnbAsset = 'usdc' | 'usdt';
+
+const BNB_ASSET_CATALOG: readonly X402BnbAsset[] = ['usdc', 'usdt'];
+
+function parseBnbAssets(raw: string | undefined): X402BnbAsset[] {
+  if (raw === undefined || raw.trim() === '') return ['usdc'];
+
+  const values = raw.split(',').map((value) => value.trim().toLowerCase());
+  if (values.some((value) => value === '')) {
+    throw new Error('X402_BNB_ASSETS must be a comma-separated list without empty entries');
+  }
+  const invalid = values.filter((value) => !BNB_ASSET_CATALOG.includes(value as X402BnbAsset));
+  if (invalid.length > 0) {
+    throw new Error(
+      `X402_BNB_ASSETS has unsupported assets: ${invalid.join(', ')} (supported: ${BNB_ASSET_CATALOG.join(', ')})`
+    );
+  }
+  const unique = [...new Set(values)] as X402BnbAsset[];
+  // `usdc` stays first so the primary challenge option is deterministic.
+  return ['usdc', ...unique.filter((value) => value !== 'usdc')];
+}
 
 const PayToSchema = z
   .string()
@@ -154,7 +243,14 @@ export interface X402Config {
   network: X402NetworkId;
   /** EVM networks advertised by x402; MPP continues to use `network`. */
   evmNetworks?: X402NetworkId[];
+  /** Default EVM recipient, retained for backwards-compatible single-wallet deployments. */
   payTo: string;
+  /**
+   * Optional EVM-recipient overrides parsed from `X402_EVM_PAY_TOS`.
+   * Entries take precedence over `payTo`, allowing per-chain treasury and
+   * incident isolation without changing the public payment protocol.
+   */
+  evmPayTos?: Partial<Record<X402NetworkId, string>>;
   /** USDC atomic units (6 decimals) charged per successful check. */
   amountAtomic: string;
   /** Human-readable USD price for docs/telemetry. */
@@ -166,9 +262,11 @@ export interface X402Config {
    * "eip155:143=https://x402-facilitator.molandak.org"). Networks not listed
    * fall back to `facilitatorUrl`. Needed when the primary facilitator (e.g.
    * CDP) does not support every advertised network (e.g. Monad mainnet is
-   * served by the Monad x402 facilitator instead).
+   * served by the Monad x402 facilitator instead). Solana mainnet is handled
+   * separately so an inherited generic mapping cannot silently route it away
+   * from its PayAI default.
    */
-  facilitatorUrls: Partial<Record<X402NetworkId, string>>;
+  facilitatorUrls: Partial<Record<X402PaymentNetworkId, string>>;
   /** Facilitator HTTP timeout (verify + settle), bounded well below 90s default. */
   facilitatorTimeoutMs: number;
   /** Payment authorization validity window advertised in 402 requirements. */
@@ -179,14 +277,54 @@ export interface X402Config {
    * unauthenticated verify/settle calls. Null = no auth (x402.org default).
    */
   facilitatorCdpAuth: { apiKeyId: string; apiKeySecret: string } | null;
+  /** Optional static Bearer credential for the default facilitator URL. */
+  facilitatorBearerToken?: string | null;
+  /** Optional static Bearer credential overrides keyed by payment network. */
+  facilitatorBearerTokens?: Partial<Record<X402PaymentNetworkId, string>>;
   /** Optional, independently opted-in Solana x402 option. */
   solana?: X402SolanaConfig | null;
+  /** Native HyperCore Core-USDC beta, isolated from ordinary EVM exact rails. */
+  hypercore?: HypercoreX402Config | null;
+  /**
+   * Settlement assets advertised for BNB Smart Chain (default `['usdc']`).
+   * Parsed from X402_BNB_ASSETS; `usdc` is always first so the primary
+   * challenge option is deterministic. Optional so hand-built configs
+   * (tests) default to USDC.
+   */
+  bnbAssets?: X402BnbAsset[];
 }
 
-function parseFacilitatorUrls(raw: string | undefined): Partial<Record<X402NetworkId, string>> {
+function parseEvmPayTos(raw: string | undefined): Partial<Record<X402NetworkId, string>> {
   if (raw === undefined || raw.trim() === '') return {};
 
-  const urls: Partial<Record<X402NetworkId, string>> = {};
+  const payTos: Partial<Record<X402NetworkId, string>> = {};
+  for (const pair of raw.split(',')) {
+    const trimmed = pair.trim();
+    if (trimmed === '') {
+      throw new Error('X402_EVM_PAY_TOS must not contain empty entries');
+    }
+    const eq = trimmed.indexOf('=');
+    if (eq <= 0 || eq === trimmed.length - 1) {
+      throw new Error(
+        'X402_EVM_PAY_TOS entries must be "network=0xRecipient" pairs separated by commas'
+      );
+    }
+    const network = NetworkSchema.parse(trimmed.slice(0, eq).trim());
+    const payTo = PayToSchema.parse(trimmed.slice(eq + 1).trim());
+    if (payTos[network]) {
+      throw new Error(`X402_EVM_PAY_TOS has a duplicate entry for ${network}`);
+    }
+    payTos[network] = payTo;
+  }
+  return payTos;
+}
+
+function parseFacilitatorUrls(
+  raw: string | undefined
+): Partial<Record<X402PaymentNetworkId, string>> {
+  if (raw === undefined || raw.trim() === '') return {};
+
+  const urls: Partial<Record<X402PaymentNetworkId, string>> = {};
   for (const pair of raw.split(',')) {
     const trimmed = pair.trim();
     if (trimmed === '') {
@@ -198,9 +336,8 @@ function parseFacilitatorUrls(raw: string | undefined): Partial<Record<X402Netwo
         'X402_FACILITATOR_URLS entries must be "network=url" pairs separated by commas'
       );
     }
-    const network = trimmed.slice(0, eq).trim() as X402NetworkId;
+    const network = PaymentNetworkSchema.parse(trimmed.slice(0, eq).trim());
     const url = trimmed.slice(eq + 1).trim();
-    NetworkSchema.parse(network);
     try {
       const parsed = new URL(url);
       if (parsed.protocol !== 'https:') {
@@ -215,6 +352,73 @@ function parseFacilitatorUrls(raw: string | undefined): Partial<Record<X402Netwo
     urls[network] = url;
   }
   return urls;
+}
+
+/** Parse a server-side HTTPS endpoint at an environment boundary. */
+function parseOptionalHttpsUrl(raw: string | undefined, name: string): string | null {
+  const url = raw?.trim() ?? '';
+  if (url === '') return null;
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'https:') throw new Error('not https');
+  } catch {
+    throw new Error(`${name} must be a valid https URL`);
+  }
+  return url;
+}
+
+/**
+ * Parse a server-side opaque Bearer credential. Authorization header injection
+ * is rejected at the configuration boundary; the returned value never carries
+ * a `Bearer ` prefix so every caller emits a single canonical header.
+ */
+function parseBearerToken(raw: string | undefined, name: string): string | null {
+  const supplied = raw?.trim() ?? '';
+  if (supplied === '') return null;
+
+  const token = supplied.replace(/^Bearer[ \t]+/i, '');
+  if (token === '' || /\s/.test(token)) {
+    throw new Error(`${name} must be one opaque Bearer token without whitespace`);
+  }
+  return token;
+}
+
+/**
+ * Parse per-network static facilitator credentials without ever logging their
+ * values. Split only on the first '=': opaque tokens may themselves end in
+ * base64 padding.
+ */
+function parseFacilitatorBearerTokens(
+  raw: string | undefined
+): Partial<Record<X402PaymentNetworkId, string>> {
+  if (raw === undefined || raw.trim() === '') return {};
+
+  const tokens: Partial<Record<X402PaymentNetworkId, string>> = {};
+  for (const pair of raw.split(',')) {
+    const trimmed = pair.trim();
+    if (trimmed === '') {
+      throw new Error('X402_FACILITATOR_BEARER_TOKENS must not contain empty entries');
+    }
+    const eq = trimmed.indexOf('=');
+    if (eq <= 0 || eq === trimmed.length - 1) {
+      throw new Error(
+        'X402_FACILITATOR_BEARER_TOKENS entries must be "network=token" pairs separated by commas'
+      );
+    }
+    const network = PaymentNetworkSchema.parse(trimmed.slice(0, eq).trim());
+    const token = parseBearerToken(
+      trimmed.slice(eq + 1),
+      `X402_FACILITATOR_BEARER_TOKENS entry for ${network}`
+    );
+    if (token === null) {
+      throw new Error(`X402_FACILITATOR_BEARER_TOKENS entry for ${network} has no token`);
+    }
+    if (tokens[network]) {
+      throw new Error(`X402_FACILITATOR_BEARER_TOKENS has a duplicate entry for ${network}`);
+    }
+    tokens[network] = token;
+  }
+  return tokens;
 }
 
 function parsePriceUsd(raw: string | undefined): number {
@@ -240,7 +444,8 @@ function parseEvmNetworks(raw: string | undefined, defaultNetwork: X402NetworkId
   return networks;
 }
 
-function usdToAtomicUnits(usd: number): string {
+/** Convert a USD price into USDC atomic units (6 decimals) as a decimal string. */
+export function usdToAtomicUnits(usd: number): string {
   // Integer math on the micro-dollar grid avoids binary float drift.
   const microUsd = Math.round(usd * 10 ** USDC_DECIMALS);
   if (microUsd <= 0) {
@@ -250,10 +455,30 @@ function usdToAtomicUnits(usd: number): string {
 }
 
 const CDP_FACILITATOR_HOST = 'api.cdp.coinbase.com';
+const DAYDREAMS_FACILITATOR_HOST = 'facilitator.daydreams.systems';
+const PAYAI_SOLANA_FACILITATOR_URL = 'https://facilitator.payai.network';
+
+/** True only for the CDP facilitator host, never for a lookalike URL. */
+export function isCdpFacilitatorUrl(url: string): boolean {
+  try {
+    return new URL(url).host === CDP_FACILITATOR_HOST;
+  } catch {
+    return false;
+  }
+}
+
+/** True only for the production Daydreams facilitator host. */
+export function isDaydreamsFacilitatorUrl(url: string): boolean {
+  try {
+    return new URL(url).host === DAYDREAMS_FACILITATOR_HOST;
+  } catch {
+    return false;
+  }
+}
 
 function parseFacilitatorCdpAuth(
   env: NodeJS.ProcessEnv,
-  facilitatorUrl: string
+  facilitatorUrls: readonly string[]
 ): { apiKeyId: string; apiKeySecret: string } | null {
   const apiKeyId = env.X402_CDP_API_KEY_ID?.trim() ?? '';
   const apiKeySecret = env.X402_CDP_API_KEY_SECRET?.trim() ?? '';
@@ -265,17 +490,11 @@ function parseFacilitatorCdpAuth(
     );
   }
 
-  let host = '';
-  try {
-    host = new URL(facilitatorUrl).host;
-  } catch {
-    // URL syntax errors surface later via the facilitator client; do not
-    // double-report here.
-  }
+  const usesCdp = facilitatorUrls.some(isCdpFacilitatorUrl);
 
-  if (host === CDP_FACILITATOR_HOST && apiKeyId === '') {
+  if (usesCdp && apiKeyId === '') {
     throw new Error(
-      'X402_FACILITATOR_URL points at the CDP facilitator but X402_CDP_API_KEY_ID/' +
+      'a configured x402 facilitator points at CDP but X402_CDP_API_KEY_ID/' +
         'X402_CDP_API_KEY_SECRET are missing — CDP requires authenticated verify/settle'
     );
   }
@@ -295,9 +514,22 @@ export function parseX402Config(env: NodeJS.ProcessEnv = process.env): X402Confi
 
   const rawPayTo = env.X402_PAY_TO?.trim() ?? '';
   const payTo = rawPayTo === '' ? '' : PayToSchema.parse(rawPayTo);
+  const evmPayTos = parseEvmPayTos(env.X402_EVM_PAY_TOS);
 
   const flagEnabled = env.X402_ENABLED === 'true';
-  const evmEnabled = flagEnabled && env.X402_EVM_ENABLED !== 'false' && payTo !== '';
+  const hasEvmRecipient = payTo !== '' || Object.keys(evmPayTos).length > 0;
+  const evmEnabled = flagEnabled && env.X402_EVM_ENABLED !== 'false' && hasEvmRecipient;
+  if (evmEnabled) {
+    const missingRecipients = evmNetworks.filter(
+      (networkId) => (evmPayTos[networkId] ?? payTo) === ''
+    );
+    if (missingRecipients.length > 0) {
+      throw new Error(
+        `enabled EVM x402 networks have no recipient: ${missingRecipients.join(', ')}. ` +
+          'Set X402_PAY_TO or add entries to X402_EVM_PAY_TOS.'
+      );
+    }
+  }
 
   const solanaFlagEnabled = flagEnabled && env.X402_SOLANA_ENABLED === 'true';
   const rawSolanaPayTo = env.X402_SOLANA_PAY_TO?.trim() ?? '';
@@ -310,37 +542,162 @@ export function parseX402Config(env: NodeJS.ProcessEnv = process.env): X402Confi
   if (solanaFlagEnabled && solanaPayTo !== '') {
     const solanaNetwork = SolanaNetworkSchema.parse(env.X402_SOLANA_NETWORK ?? SOLANA_DEVNET_CAIP2);
     const solanaPriceUsd = parsePriceUsd(env.X402_SOLANA_PRICE_USD ?? env.X402_PRICE_USD);
+    const solanaRpcUrl = parseOptionalHttpsUrl(env.X402_SOLANA_RPC_URL, 'X402_SOLANA_RPC_URL');
     solana = {
       network: solanaNetwork,
       payTo: solanaPayTo,
       usdcMint: SOLANA_NETWORKS[solanaNetwork].usdc,
       amountAtomic: usdToAtomicUnits(solanaPriceUsd),
       priceUsd: solanaPriceUsd,
+      rpcUrl: solanaRpcUrl,
     };
   }
 
   const facilitatorUrl = env.X402_FACILITATOR_URL?.trim() || 'https://x402.org/facilitator';
   const facilitatorUrls = parseFacilitatorUrls(env.X402_FACILITATOR_URLS);
+  const solanaFacilitatorUrl = parseOptionalHttpsUrl(
+    env.X402_SOLANA_FACILITATOR_URL,
+    'X402_SOLANA_FACILITATOR_URL'
+  );
+  if (solana) {
+    // Solana is intentionally isolated from the generic map. PayAI currently
+    // advertises both canonical Solana networks and includes a fresh
+    // facilitator-side blockhash hint; the public x402 Devnet facilitator
+    // advertises support but has rejected valid fresh hashes in live testing.
+    // Operators can still intentionally select another provider through the
+    // dedicated HTTPS-only override.
+    facilitatorUrls[solana.network] = solanaFacilitatorUrl ?? PAYAI_SOLANA_FACILITATOR_URL;
+  }
+  const facilitatorBearerToken = parseBearerToken(
+    env.X402_FACILITATOR_BEARER_TOKEN,
+    'X402_FACILITATOR_BEARER_TOKEN'
+  );
+  const facilitatorBearerTokens = parseFacilitatorBearerTokens(env.X402_FACILITATOR_BEARER_TOKENS);
+  const bnbAssets = parseBnbAssets(env.X402_BNB_ASSETS);
+
+  // Daydreams exposes /supported publicly but requires a server Bearer token
+  // for the payment path. Fail before advertising a Solana option that could
+  // only fail after a buyer signs a payment.
+  const activeNetworks: X402PaymentNetworkId[] = [
+    ...(evmEnabled ? evmNetworks : []),
+    ...(solana ? [solana.network] : []),
+  ];
+  for (const activeNetwork of activeNetworks) {
+    const activeUrl = facilitatorUrls[activeNetwork] ?? facilitatorUrl;
+    const token = facilitatorBearerTokens[activeNetwork] ?? facilitatorBearerToken;
+    if (isDaydreamsFacilitatorUrl(activeUrl) && token === null) {
+      throw new Error(
+        `Daydreams facilitator for ${activeNetwork} requires X402_FACILITATOR_BEARER_TOKEN ` +
+          `or X402_FACILITATOR_BEARER_TOKENS entry for that network`
+      );
+    }
+  }
+  const hypercore = parseHypercoreX402Config(env);
+  if (hypercore !== null && !flagEnabled) {
+    throw new Error('X402_HYPERCORE_ENABLED=true also requires X402_ENABLED=true');
+  }
 
   return {
-    enabled: evmEnabled || solana !== null,
+    enabled: evmEnabled || solana !== null || hypercore !== null,
     evmEnabled,
     network,
     evmNetworks,
     payTo,
+    evmPayTos,
     amountAtomic: usdToAtomicUnits(priceUsd),
     priceUsd,
     facilitatorUrl,
     facilitatorUrls,
+    facilitatorBearerToken,
+    facilitatorBearerTokens,
     facilitatorTimeoutMs: 15_000,
     maxTimeoutSeconds: 60,
-    facilitatorCdpAuth: parseFacilitatorCdpAuth(env, facilitatorUrl),
+    facilitatorCdpAuth: parseFacilitatorCdpAuth(env, [
+      facilitatorUrl,
+      ...Object.values(facilitatorUrls),
+    ]),
     solana,
+    bnbAssets,
+    hypercore,
   };
 }
 
 /** The v1 route this paid tier protects; used as the x402 route pattern. */
 export const X402_PRE_TRADE_ROUTE = '/api/v1/safety/pre-trade';
+
+/**
+ * Chain-neutral action gate. It accepts the same validated evidence inputs as
+ * pre-trade and is priced identically; the response is the compact
+ * ALLOW/CAUTION/BLOCK decision contract used by agents.
+ */
+export const X402_EXECUTION_PREFLIGHT_ROUTE = '/api/v1/safety/preflight';
+
+/** Base-only lending decision gate. The caller receives no transaction authority. */
+export const X402_BASE_LENDING_GUARD_ROUTE = '/api/v1/safety/base-lending-guard';
+
+/**
+ * Base-only Synthetix Perps V3 decision gate. GET returns the assessment;
+ * POST binds one exact unsigned commitOrder call into a signed decision.
+ */
+export const X402_BASE_PERP_GUARD_ROUTE = '/api/v1/safety/base-perp-guard';
+
+/**
+ * Hyperliquid Perp decision gate. GET returns the assessment for one declared
+ * HyperCore order intent; POST binds one exact unsigned exchange envelope into
+ * a signed decision. Like every other guard route it must appear in the
+ * resource-server route map (resourceServer.ts) so a keyless x402 caller gets
+ * a real 402 quote instead of the defensive no-route 402.
+ */
+export const X402_HYPERLIQUID_PERP_GUARD_ROUTE = '/api/v1/safety/hyperliquid-perp-guard';
+
+/** Monad lending decision gate; x402 quotes are bound to Monad mainnet. */
+export const X402_MONAD_LENDING_GUARD_ROUTE = '/api/v1/safety/monad-lending-guard';
+
+/** Base, Polygon, Arbitrum and BNB lending gate; x402 quotes derive from the validated chain ID. */
+export const X402_MULTICHAIN_EVM_LENDING_GUARD_ROUTE =
+  '/api/v1/safety/multichain-evm-lending-guard';
+
+/** Solana-native exact-transaction lending gate for Kamino, Marginfi, and Jupiter Earn. */
+export const X402_SOLANA_LENDING_GUARD_ROUTE = '/api/v1/safety/solana-lending-guard';
+
+/** Solana-native exact-transaction Orca Whirlpool swap gate and its settlement. */
+export const X402_SOLANA_SWAP_GUARD_ROUTE = '/api/v1/safety/solana-swap-guard';
+
+/**
+ * Solana-native Drift Protocol v2 perp decision gate. GET returns the
+ * on-chain-evidence assessment; like every other guard route it must appear
+ * in the resource-server route map (resourceServer.ts) so a keyless x402
+ * caller gets a real 402 quote instead of the defensive no-route 402.
+ */
+export const X402_SOLANA_PERP_GUARD_ROUTE = '/api/v1/safety/solana-perp-guard';
+
+/** Official-API-built Loopscale Solana lending-vault deposit gate. */
+export const X402_LOOPSCALE_VAULT_DEPOSIT_ROUTE = '/api/v1/safety/loopscale-vault-deposit';
+
+/** A two-gate same-chain swap lifecycle with one post-settlement receipt credit. */
+export const X402_SWAP_INTENT_ROUTE = '/api/v1/safety/swap-intent';
+
+/**
+ * Oracle Watch monitored-window purchase (POST): one settlement buys a 24 h
+ * continuous-signal window for one (symbol, chain). Unlike every other REST
+ * paid tier it is NOT priced at the configured per-call amount — the route
+ * quotes the window plan price (see src/lib/billing/oracleWatchWindow.ts) via
+ * a per-route amount override in resourceServer.ts. In-window polls are
+ * token-authenticated and never pass through this paid tier.
+ */
+export const X402_ORACLE_WATCH_WINDOW_ROUTE = '/api/v1/safety/oracle-watch-window';
+
+/**
+ * Position Lifecycle Bundle purchase (POST): one settlement buys 24 h of
+ * lifecycle coverage for one (symbol, chain) position — an embedded monitored
+ * window, 4 bundled guard assessments, and 1 attested execution receipt. Like
+ * the monitored-window route it is NOT priced at the configured per-call
+ * amount; the route quotes the bundle plan price (see
+ * src/lib/billing/positionLifecycle.ts) via a per-route amount override in
+ * resourceServer.ts. Bundled calls are token-authenticated and never pass
+ * through this paid tier.
+ */
+export const X402_POSITION_LIFECYCLE_ROUTE = '/api/v1/safety/position-lifecycle';
 
 /** The MCP streamable-HTTP route paid per tools/call (JSON-RPC POST). */
 export const X402_MCP_ROUTE = '/api/mcp';
@@ -363,9 +720,65 @@ export function usdcForNetwork(network: X402NetworkId): string {
  * EIP-712 domain name of the network's USDC token as deployed on-chain
  * (FiatToken EIP712Domain version is "2" on both supported networks, but the
  * name differs: "USDC" on Base Sepolia vs "USD Coin" on Base mainnet).
+ * Undefined on networks whose settlement token has no EIP-712 domain at all
+ * (BNB Smart Chain's bridged USDC), where the quote must not carry an
+ * `extra: { name, version }` hint and payment goes through the network's
+ * facilitator-specific authorization flow.
  */
-export function tokenNameForNetwork(network: X402NetworkId): string {
+export function tokenNameForNetwork(network: X402NetworkId): string | undefined {
   return SUPPORTED_NETWORKS[network].tokenName;
+}
+
+/** Resolve the configured EVM recipient for one payment network. */
+export function payToForEvmNetwork(cfg: X402Config, network: X402NetworkId): string {
+  return cfg.evmPayTos?.[network] ?? cfg.payTo;
+}
+
+/** Resolve the configured facilitator for any EVM or Solana payment network. */
+export function facilitatorUrlForNetwork(cfg: X402Config, network: X402PaymentNetworkId): string {
+  return cfg.facilitatorUrls?.[network] ?? cfg.facilitatorUrl;
+}
+
+/** Resolve a static server-side Bearer credential for a payment network. */
+export function facilitatorBearerTokenForNetwork(
+  cfg: X402Config,
+  network: X402PaymentNetworkId
+): string | null {
+  return cfg.facilitatorBearerTokens?.[network] ?? cfg.facilitatorBearerToken ?? null;
+}
+
+/**
+ * Like tokenNameForNetwork but requires an EIP-712 domain name. MPP payments
+ * build an EIP-3009 authorization against this domain, which only exists on
+ * Circle FiatToken deployments; callers on a network without one (BNB Smart
+ * Chain) must route through that network's facilitator flow instead.
+ */
+export function eip3009TokenNameForNetwork(network: X402NetworkId): string {
+  const entry = SUPPORTED_NETWORKS[network];
+  if (entry.tokenName === undefined || entry.eip3009 === false) {
+    throw new Error(
+      `network ${network} has no EIP-3009 settlement token; EIP-712 authorization is unavailable`
+    );
+  }
+  return entry.tokenName;
+}
+
+/** Token decimals of the network's settlement asset (Circle USDC default: 6). */
+export function tokenDecimalsForNetwork(network: X402NetworkId): number {
+  return SUPPORTED_NETWORKS[network].decimals ?? USDC_DECIMALS;
+}
+
+/**
+ * Convert a 6-decimal micro-USDC amount (the canonical internal grid) into the
+ * settlement token's atomic units for the given network. On 18-decimal tokens
+ * (BNB Smart Chain) the micro amount is shifted by 12 places; integer math
+ * keeps this lossless.
+ */
+export function atomicUnitsForNetwork(network: X402NetworkId, microUsdAtomic: string): string {
+  const decimals = tokenDecimalsForNetwork(network);
+  if (decimals === USDC_DECIMALS) return microUsdAtomic;
+  const shift = BigInt(decimals - USDC_DECIMALS);
+  return (BigInt(microUsdAtomic) * 10n ** shift).toString();
 }
 
 /** Build the network-specific payment options advertised by REST and MCP. */
@@ -374,18 +787,37 @@ export function getX402PaymentOptions(
   amountOverride?: string
 ): X402PaymentOption[] {
   const options: X402PaymentOption[] = [];
-  const evmEnabled = cfg.evmEnabled ?? (cfg.enabled && cfg.payTo !== '');
+  const evmEnabled =
+    cfg.evmEnabled ??
+    (cfg.enabled && (cfg.payTo !== '' || Object.keys(cfg.evmPayTos ?? {}).length > 0));
 
-  if (evmEnabled && cfg.payTo !== '') {
+  if (evmEnabled) {
     for (const network of cfg.evmNetworks?.length ? cfg.evmNetworks : [cfg.network]) {
+      const microAtomic = amountOverride ?? cfg.amountAtomic;
+      const payTo = payToForEvmNetwork(cfg, network);
       options.push({
         family: 'evm',
         network,
-        payTo: cfg.payTo,
+        payTo,
         asset: usdcForNetwork(network),
-        amountAtomic: amountOverride ?? cfg.amountAtomic,
+        amountAtomic: atomicUnitsForNetwork(network, microAtomic),
         tokenName: tokenNameForNetwork(network),
       });
+      // Opt-in additional assets (BNB USDT today) share the network's
+      // decimals, pay-to and facilitator flow, so only the asset identity
+      // and EIP-712 domain name differ.
+      const bnbAssets = cfg.bnbAssets ?? (['usdc'] as X402BnbAsset[]);
+      for (const extra of SUPPORTED_NETWORKS[network].extraAssets ?? []) {
+        if (!bnbAssets.includes(extra.symbol.toLowerCase() as X402BnbAsset)) continue;
+        options.push({
+          family: 'evm',
+          network,
+          payTo,
+          asset: extra.address,
+          amountAtomic: atomicUnitsForNetwork(network, microAtomic),
+          tokenName: extra.tokenName,
+        });
+      }
     }
   }
 

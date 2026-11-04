@@ -30,6 +30,17 @@ export type {
   EvidencePackVerification,
 } from './evidence-pack';
 export {
+  createDecisionInputQuoteProvenance,
+  DECISION_INPUT_QUOTE_PROVENANCE_SCHEMA_VERSION,
+  isDecisionInputQuoteProvenance,
+  quoteProvenanceMatchesInput,
+} from './decision-input-provenance';
+export type {
+  CreateDecisionInputQuoteProvenanceInput,
+  DecisionInputEvidenceRightsScope,
+  DecisionInputQuoteProvenance,
+} from './decision-input-provenance';
+export {
   createPriorSealDefiSubmitter,
   PriorSealGatewayExecutionError,
   PRIORSEAL_SWAP_APPROVAL_NAMESPACE,

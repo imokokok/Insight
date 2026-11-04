@@ -21,6 +21,11 @@ const PROVIDER_ERROR_CLASSIFICATIONS: Record<
   string,
   Record<string, { errorType: OracleErrorType; retryable?: boolean }>
 > = {
+  chronicle: {
+    CHRONICLE_ERROR: { errorType: 'server_error', retryable: true },
+    STALE_DATA: { errorType: 'server_error', retryable: true },
+    INVALID_PRICE: { errorType: 'data_format', retryable: false },
+  },
   redstone: {
     TIMEOUT_ERROR: { errorType: 'timeout', retryable: true },
     NETWORK_ERROR: { errorType: 'network', retryable: true },

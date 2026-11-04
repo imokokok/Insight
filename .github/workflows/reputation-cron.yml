@@ -6,8 +6,10 @@ name: Reputation Calculation
 
 on:
   schedule:
-    # Existing hourly clock remains as a guarded fallback.
-    - cron: '7 * * * *'
+    # Native fallback every 2 hours at :07, offset from the primary Supabase
+    # dispatch slot (job 48, every 2 hours at :12) and reduced from hourly to
+    # halve write load on the Supabase nano instance. Remains a guarded fallback.
+    - cron: '7 */2 * * *'
   workflow_dispatch:
     inputs:
       dispatch_id:
@@ -43,7 +45,7 @@ jobs:
         id: guard
         env:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
-          FALLBACK_MAX_AGE_MINUTES: '90'
+          FALLBACK_MAX_AGE_MINUTES: '170'
         run: node scripts/cron-control.mjs guard
 
       - name: Start run ledger

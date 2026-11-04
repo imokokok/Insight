@@ -1,8 +1,11 @@
+import { MARKET_REFERENCE_SOURCE_RIGHTS } from '@/lib/dataRights/evidenceRights';
 import {
   collectMarketReference,
   MARKET_REFERENCE_CORE_SYMBOLS,
+  MARKET_REFERENCE_SYMBOLS,
   MAX_SOURCE_TICKER_AGE_MS,
 } from '@/lib/marketReference/collector';
+import { SOLANA_DEX_PRICE_MINTS } from '@/lib/marketReference/solanaDexSources';
 
 type Json = unknown;
 
@@ -34,7 +37,179 @@ function cryptoComTickerResponse(timestampMs = Date.now(), instrument = 'WBTC_US
   };
 }
 
+/** One indexed pair per registered Solana mint (DexScreener batch shape). */
+function dexScreenerBatchBody(price = '3000.5'): Json {
+  return Object.values(SOLANA_DEX_PRICE_MINTS).map((mint, index) => ({
+    chainId: 'solana',
+    dexId: 'raydium',
+    baseToken: { address: mint, name: `Solana Token ${index}`, symbol: `SOLTEST${index}` },
+    quoteToken: { address: 'So11111111111111111111111111111111111111112', symbol: 'WSOL' },
+    priceUsd: price,
+    liquidity: { usd: String(250_000 - index) },
+    volume: { h24: String(1000 + index) },
+    updatedAt: MOCK_NOW,
+  }));
+}
+
+/** One token entry per registered Solana mint (GeckoTerminal batch shape). */
+function geckoTerminalBatchBody(price = '3001.25'): Json {
+  return {
+    data: Object.values(SOLANA_DEX_PRICE_MINTS).map((mint) => ({
+      id: `sol/${mint}`,
+      type: 'token',
+      attributes: { address: mint, symbol: 'SOLTEST', price_usd: price, volume_usd: '2000' },
+    })),
+  };
+}
+
+/** Jupiter Lite v3 price entry per registered Solana mint. */
+function jupiterBatchBody(price = '3002.1'): Json {
+  return Object.fromEntries(
+    Object.values(SOLANA_DEX_PRICE_MINTS).map((mint) => [
+      mint,
+      { usdPrice: price, blockId: 459140141, decimals: 5, priceChange24h: -0.47 },
+    ])
+  );
+}
+
 describe('collectMarketReference', () => {
+  it('collects Kraken for customer-facing Insight analytics with a derived-only delivery policy', async () => {
+    const fetchImpl = jest.fn(async (url: RequestInfo | URL) => {
+      expect(String(url)).toBe('https://api.kraken.com/0/public/Ticker?pair=XETHZUSD');
+      return jsonResponse({
+        error: [],
+        result: { XETHZUSD: { c: ['3000'], b: ['2999'], a: ['3001'], v: ['1', '2'] } },
+      });
+    });
+
+    const { rows, summary } = await collectMarketReference(new Date(MOCK_NOW), {
+      purpose: 'customer-facing',
+      fetchImpl,
+      now: () => MOCK_NOW,
+      symbols: ['ETH'],
+    });
+
+    expect(summary.eligibleExchanges).toEqual([
+      'kraken',
+      'dexscreener',
+      'geckoterminal',
+      'jupiter',
+    ]);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      exchange: 'kraken',
+      rights_scope: 'vendor-licensed',
+      rights_reference: 'kraken-support-email-2026-10-19-beijing-derived-analytics',
+      delivery_policy: 'derived-analytics-only',
+      is_success: true,
+    });
+  });
+
+  it('does not contact a CEX for a customer-facing collection without reviewed vendor rights', async () => {
+    const fetchImpl = jest.fn(async () => jsonResponse({ price: '1' }));
+
+    const { rows, summary } = await collectMarketReference(new Date(MOCK_NOW), {
+      purpose: 'customer-facing',
+      fetchImpl,
+      now: () => MOCK_NOW,
+      symbols: ['ETH'],
+      sourceRights: {
+        ...MARKET_REFERENCE_SOURCE_RIGHTS,
+        kraken: {
+          sourceId: 'kraken',
+          rightsScope: 'research-quarantined',
+          agreementReference: null,
+          deliveryPolicy: 'not-authorized',
+        },
+        dexscreener: {
+          sourceId: 'dexscreener',
+          rightsScope: 'research-quarantined',
+          agreementReference: null,
+          deliveryPolicy: 'not-authorized',
+        },
+        geckoterminal: {
+          sourceId: 'geckoterminal',
+          rightsScope: 'research-quarantined',
+          agreementReference: null,
+          deliveryPolicy: 'not-authorized',
+        },
+        jupiter: {
+          sourceId: 'jupiter',
+          rightsScope: 'research-quarantined',
+          agreementReference: null,
+          deliveryPolicy: 'not-authorized',
+        },
+      },
+    });
+
+    expect(fetchImpl).not.toHaveBeenCalled();
+    expect(rows).toEqual([]);
+    expect(summary).toMatchObject({
+      collectionPurpose: 'customer-facing',
+      eligibleExchanges: [],
+      covered: [],
+      uncovered: ['ETH'],
+    });
+  });
+
+  it('persists an agreement reference only for a customer-admitted source', async () => {
+    const fetchImpl = jest.fn(async (url: RequestInfo | URL) => {
+      if (String(url).includes('api.exchange.coinbase.com')) {
+        return jsonResponse({ price: '3000', bid: '2999', ask: '3001' });
+      }
+      throw new Error(`unexpected URL ${String(url)}`);
+    });
+
+    const { rows, summary } = await collectMarketReference(new Date(MOCK_NOW), {
+      purpose: 'customer-facing',
+      fetchImpl,
+      now: () => MOCK_NOW,
+      symbols: ['ETH'],
+      sourceRights: {
+        ...MARKET_REFERENCE_SOURCE_RIGHTS,
+        coinbase: {
+          sourceId: 'coinbase',
+          rightsScope: 'vendor-licensed',
+          agreementReference: 'test-agreement-2026-10',
+          deliveryPolicy: 'not-authorized',
+        },
+        kraken: {
+          sourceId: 'kraken',
+          rightsScope: 'research-quarantined',
+          agreementReference: null,
+          deliveryPolicy: 'not-authorized',
+        },
+        dexscreener: {
+          sourceId: 'dexscreener',
+          rightsScope: 'research-quarantined',
+          agreementReference: null,
+          deliveryPolicy: 'not-authorized',
+        },
+        geckoterminal: {
+          sourceId: 'geckoterminal',
+          rightsScope: 'research-quarantined',
+          agreementReference: null,
+          deliveryPolicy: 'not-authorized',
+        },
+        jupiter: {
+          sourceId: 'jupiter',
+          rightsScope: 'research-quarantined',
+          agreementReference: null,
+          deliveryPolicy: 'not-authorized',
+        },
+      },
+    });
+
+    expect(summary.eligibleExchanges).toEqual(['coinbase']);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      exchange: 'coinbase',
+      rights_scope: 'vendor-licensed',
+      rights_reference: 'test-agreement-2026-10',
+      delivery_policy: 'not-authorized',
+    });
+  });
+
   it('writes one row per (symbol, exchange), marking successes and failures', async () => {
     const fetchImpl = jest.fn(async (url: RequestInfo | URL) => {
       const u = String(url);
@@ -53,10 +228,14 @@ describe('collectMarketReference', () => {
       if (u.includes('api.crypto.com')) {
         return jsonResponse(cryptoComTickerResponse(MOCK_NOW));
       }
+      if (u.includes('api.dexscreener.com')) return jsonResponse(dexScreenerBatchBody());
+      if (u.includes('api.geckoterminal.com')) return jsonResponse(geckoTerminalBatchBody());
+      if (u.includes('lite-api.jup.ag')) return jsonResponse(jupiterBatchBody());
       throw new Error('unexpected url ' + u);
     });
 
     const { rows, summary } = await collectMarketReference(new Date('2026-08-30T16:00:00Z'), {
+      purpose: 'synthetic-test',
       fetchImpl,
       now: () => MOCK_NOW,
     });
@@ -66,6 +245,8 @@ describe('collectMarketReference', () => {
     expect(eth.every((r) => r.is_success)).toBe(true);
     expect(eth.map((r) => r.exchange).sort()).toEqual(['coinbase', 'gemini', 'kraken']);
     expect(eth[0].quote).toBe('USD');
+    expect(eth[0].rights_scope).toBe('synthetic');
+    expect(eth[0].delivery_policy).toBe('not-authorized');
     expect(eth[0].collector_version).toBeTruthy();
     expect(eth[0].data_age_seconds).toBeGreaterThanOrEqual(0);
     expect(eth.find((r) => r.exchange === 'coinbase')?.volume).toBe(42);
@@ -106,10 +287,14 @@ describe('collectMarketReference', () => {
       if (u.includes('api.crypto.com')) {
         return jsonResponse(cryptoComTickerResponse());
       }
+      if (u.includes('api.dexscreener.com')) return jsonResponse(dexScreenerBatchBody());
+      if (u.includes('api.geckoterminal.com')) return jsonResponse(geckoTerminalBatchBody());
+      if (u.includes('lite-api.jup.ag')) return jsonResponse(jupiterBatchBody());
       throw new Error('boom');
     });
 
     const { rows, summary } = await collectMarketReference(new Date('2026-08-30T16:00:00Z'), {
+      purpose: 'synthetic-test',
       fetchImpl,
     });
 
@@ -130,31 +315,21 @@ describe('collectMarketReference', () => {
     });
 
     const { rows, summary } = await collectMarketReference(new Date('2026-08-30T16:00:00Z'), {
+      purpose: 'synthetic-test',
       fetchImpl,
     });
 
-    // Coinbase + Kraken are attempted across 13 symbols; Gemini is queried only
-    // for its 7 mapped pairs and Crypto.com only for WBTC.
-    expect(rows).toHaveLength(13 * 2 + 7 + 1);
+    // Coinbase is attempted for the full universe (its WBTC miss is an
+    // explicit failed row), Kraken only for its 13 mapped pairs, Gemini for
+    // its 7 mapped pairs, Crypto.com for WBTC, and each Solana source once
+    // per registry symbol (the batch fetch itself failed, so every Solana
+    // symbol still writes its own failed rows).
+    expect(rows).toHaveLength(19 + 13 + 7 + 1 + 8 * 3);
     expect(rows.every((r) => r.is_success === false)).toBe(true);
     expect(rows.every((r) => r.ref_price === null)).toBe(true);
     expect(rows.every((r) => r.error_message)).toBe(true);
     expect(summary.covered).toHaveLength(0);
-    expect(summary.uncovered).toEqual([
-      'ETH',
-      'BTC',
-      'WBTC',
-      'USDC',
-      'USDT',
-      'SOL',
-      'ADA',
-      'XRP',
-      'ICP',
-      'HYPE',
-      'TAO',
-      'VVV',
-      'STG',
-    ]);
+    expect(summary.uncovered).toEqual([...MARKET_REFERENCE_SYMBOLS]);
     expect(summary.maxCrossExchangeSpreadPct).toBeNull();
   });
 
@@ -169,10 +344,14 @@ describe('collectMarketReference', () => {
       return jsonResponse({ last: '1.0' });
     });
     const { rows, summary } = await collectMarketReference(new Date('2026-08-30T16:15:00Z'), {
+      purpose: 'synthetic-test',
       fetchImpl,
       symbols: MARKET_REFERENCE_CORE_SYMBOLS,
     });
-    expect(rows).toHaveLength(15);
+    // 3+3+2 CEX rows plus coinbase's explicit failed WBTC row, plus 2×3
+    // Solana-source rows for USDC/USDT (the only registry symbols in the
+    // core set; their mocked batch bodies are unusable → failed rows).
+    expect(rows).toHaveLength(21);
     expect(summary.symbols).toEqual(MARKET_REFERENCE_CORE_SYMBOLS);
   });
 
@@ -195,7 +374,10 @@ describe('collectMarketReference', () => {
       return jsonResponse({ last: '5' });
     });
 
-    const { rows } = await collectMarketReference(new Date('2026-08-30T16:00:00Z'), { fetchImpl });
+    const { rows } = await collectMarketReference(new Date('2026-08-30T16:00:00Z'), {
+      purpose: 'synthetic-test',
+      fetchImpl,
+    });
     const ethCoinbase = rows.find((r) => r.symbol === 'ETH' && r.exchange === 'coinbase')!;
     expect(ethCoinbase.is_success).toBe(false);
     expect(ethCoinbase.error_message).toBe('unusable price from exchange');
@@ -212,7 +394,10 @@ describe('collectMarketReference', () => {
       return jsonResponse({ last: '1.0' });
     });
 
-    const { rows } = await collectMarketReference(new Date('2026-08-30T16:00:00Z'), { fetchImpl });
+    const { rows } = await collectMarketReference(new Date('2026-08-30T16:00:00Z'), {
+      purpose: 'synthetic-test',
+      fetchImpl,
+    });
     const ethKraken = rows.find((r) => r.symbol === 'ETH' && r.exchange === 'kraken')!;
     expect(ethKraken.is_success).toBe(false);
     expect(ethKraken.error_message).toContain('EGeneral:Too many requests');
@@ -235,6 +420,7 @@ describe('collectMarketReference', () => {
     });
 
     const { rows } = await collectMarketReference(new Date(MOCK_NOW), {
+      purpose: 'synthetic-test',
       fetchImpl,
       now: () => MOCK_NOW,
       symbols: ['WBTC'],
@@ -255,8 +441,8 @@ describe('collectMarketReference', () => {
   });
 });
 
-describe('licensed market reference adapters', () => {
-  it('collects a fresh Binance WBTC/USD composite only when licensed', async () => {
+describe('optional market reference adapters', () => {
+  it('collects a fresh Binance WBTC/USD composite only when explicitly admitted in a synthetic test', async () => {
     const urls: string[] = [];
     const fetchImpl = jest.fn(async (url: RequestInfo | URL) => {
       const value = String(url);
@@ -305,6 +491,7 @@ describe('licensed market reference adapters', () => {
     });
 
     const { rows } = await collectMarketReference(new Date(MOCK_NOW), {
+      purpose: 'synthetic-test',
       fetchImpl,
       now: () => MOCK_NOW,
       symbols: ['WBTC', 'BTC'],
@@ -315,10 +502,11 @@ describe('licensed market reference adapters', () => {
 
     urls.length = 0;
     const licensed = await collectMarketReference(new Date(MOCK_NOW), {
+      purpose: 'synthetic-test',
       fetchImpl,
       now: () => MOCK_NOW,
       symbols: ['WBTC', 'BTC'],
-      licensedExchanges: ['binance'],
+      enabledExchanges: ['binance'],
     });
     const binance = licensed.rows.find((row) => row.exchange === 'binance');
     expect(binance).toMatchObject({
@@ -392,10 +580,11 @@ describe('licensed market reference adapters', () => {
 
     for (const scenario of [{ staleFx: true }, { fxTrading: false }]) {
       const { rows } = await collectMarketReference(new Date(MOCK_NOW), {
+        purpose: 'synthetic-test',
         fetchImpl: makeFetcher(scenario),
         now: () => MOCK_NOW,
         symbols: ['WBTC'],
-        licensedExchanges: ['binance'],
+        enabledExchanges: ['binance'],
       });
 
       const binance = rows.find((row) => row.exchange === 'binance');
@@ -421,6 +610,7 @@ describe('licensed market reference adapters', () => {
     });
 
     const { rows } = await collectMarketReference(new Date(MOCK_NOW), {
+      purpose: 'synthetic-test',
       fetchImpl,
       now: () => MOCK_NOW,
       symbols: ['WBTC'],
@@ -459,6 +649,7 @@ describe('licensed market reference adapters', () => {
     });
 
     const { rows } = await collectMarketReference(new Date(MOCK_NOW), {
+      purpose: 'synthetic-test',
       fetchImpl,
       now: () => MOCK_NOW,
       symbols: ['WBTC'],
@@ -518,10 +709,11 @@ describe('licensed market reference adapters', () => {
     });
 
     const { rows } = await collectMarketReference(new Date(MOCK_NOW), {
+      purpose: 'synthetic-test',
       fetchImpl,
       now: () => MOCK_NOW,
       symbols: ['BTC'],
-      licensedExchanges: ['bitstamp'],
+      enabledExchanges: ['bitstamp'],
     });
 
     const bitstamp = rows.find((row) => row.exchange === 'bitstamp');
@@ -560,10 +752,11 @@ describe('licensed market reference adapters', () => {
     });
 
     const { rows } = await collectMarketReference(new Date(MOCK_NOW), {
+      purpose: 'synthetic-test',
       fetchImpl,
       now: () => MOCK_NOW,
       symbols: ['BTC'],
-      licensedExchanges: ['bitfinex'],
+      enabledExchanges: ['bitfinex'],
     });
 
     const bitfinex = rows.find((row) => row.exchange === 'bitfinex');
@@ -580,7 +773,7 @@ describe('licensed market reference adapters', () => {
     expect(urls).toContain('https://api-pub.bitfinex.com/v2/trades/tBTCUSD/hist?limit=1&sort=-1');
   });
 
-  it('fails closed when a licensed Bitfinex source timestamp is stale', async () => {
+  it('fails closed when an explicitly admitted Bitfinex source timestamp is stale', async () => {
     const fetchImpl = jest.fn(async (url: RequestInfo | URL) => {
       const value = String(url);
       if (value.includes('/conf/pub:list:pair:exchange')) return jsonResponse([['BTCUSD']]);
@@ -599,10 +792,11 @@ describe('licensed market reference adapters', () => {
     });
 
     const { rows } = await collectMarketReference(new Date(MOCK_NOW), {
+      purpose: 'synthetic-test',
       fetchImpl,
       now: () => MOCK_NOW,
       symbols: ['BTC'],
-      licensedExchanges: ['bitfinex'],
+      enabledExchanges: ['bitfinex'],
     });
 
     const bitfinex = rows.find((row) => row.exchange === 'bitfinex');

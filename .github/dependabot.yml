@@ -43,3 +43,9 @@ updates:
       - dependency-name: '*'
         update-types:
           - version-update:semver-major
+    groups:
+      # All action steps must stay on one version; grouped updates prevent
+      # partial bumps that fail workflows using multi-step actions.
+      github-actions:
+        patterns:
+          - '*'

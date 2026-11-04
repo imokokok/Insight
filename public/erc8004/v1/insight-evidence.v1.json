@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.oracleinsight.xyz/erc8004/v1/insight-evidence.v1.json",
+  "title": "Insight ERC-8004 evidence descriptor (v1)",
+  "description": "How Insight pre-trade artifacts anchor into ERC-8004 agent trust registries. This descriptor is documentation, not a signed object: every piece of evidence below is independently signed by Insight under its own EIP-712 domain and verifiable at the listed endpoints.",
+  "version": "1.0.0",
+  "provider": {
+    "name": "Insight",
+    "url": "https://www.oracleinsight.xyz",
+    "erc8004RegistrationFile": "https://www.oracleinsight.xyz/.well-known/agent8004.json",
+    "supportedTrust": ["reputation", "validation"]
+  },
+  "evidenceArtifacts": {
+    "oracleSafetyAttestationV2": {
+      "description": "EIP-712 typed attestation (26 signed fields, stable UID) covering a pre-trade decision-input check: verdict, quorum (>=3 independent providers), independence (>=2 non-derived operator groups), request/provider/reason-code commitments, and a bounded validity window (600s).",
+      "obtain": {
+        "method": "POST",
+        "url": "https://www.oracleinsight.xyz/api/v1/safety/pre-trade",
+        "payment": "HTTP 402 challenge (x402 v2); see https://www.oracleinsight.xyz/.well-known/x402.json"
+      },
+      "verify": {
+        "method": "POST",
+        "url": "https://www.oracleinsight.xyz/api/v1/safety/attestation/verify",
+        "note": "Offline-verifiable with viem/ethers using the domain and types below; the endpoint is a convenience."
+      },
+      "erc8004Usage": {
+        "validationRegistry": "Submit the attestation UID and requestHash as validationResponse evidence for a trade-execution validation request; third parties re-derive the UID from the signed fields.",
+        "reputationRegistry": "Reference the attestation (feedbackURI) when leaving feedback about an agent's decision quality; the UID binds the feedback to a concrete, signed check."
+      }
+    },
+    "x402QualityReceiptV0": {
+      "description": "Draft JSON-schema quality-attestation artifact generated from live paid receipts (verdict, response timing, settlement facts). Reference implementation for the x402 quality-attestation discussion, not an adopted standard.",
+      "schema": "https://www.oracleinsight.xyz/x402-quality/v0/x402-quality-v0.schema.json",
+      "erc8004Usage": {
+        "reputationRegistry": "Attach as feedbackURI artifacts describing service quality the agent experienced."
+      }
+    }
+  },
+  "binding": {
+    "agentIdentity": "The paying agent's EVM address (x402 PAYMENT-SIGNATURE payer) is recorded in the settlement audit row; on ERC-8004 networks the same address SHOULD hold the agent's identity token, which binds evidence to the ERC-8004 agentId without exposing the agent's key.",
+    "scope": "Challenge scope binds each payment to the exact resource (REST URL, or MCP tool name + canonicalized arguments), so receipts cannot be replayed against different requests."
+  }
+}

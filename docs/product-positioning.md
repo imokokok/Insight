@@ -6,7 +6,7 @@
 
 Insight makes oracle observations, source reliability, and the risks of relying on a price inspectable. It connects cross-source comparison, deviation, freshness, source independence, and protocol exposure to explainable assessments and portable signed evidence when signing is available.
 
-Its product path is **oracle observations → transparency → risk assessment → verifiable evidence**. Protocol teams, operators, developers, and AI agents can use these capabilities independently of PriorSeal. Pre-trade checks and agent workflows apply the same assessment method to the decision inputs of onchain actions; oracle observations remain the primary evidence base behind them.
+Its product path is **oracle observations → transparency → risk assessment → decision-input integrity → verifiable evidence**. Protocol teams, operators, developers, and AI agents can use these capabilities independently of PriorSeal. Pre-trade checks and agent workflows apply the same assessment method to the decision inputs of onchain actions; oracle observations remain the primary evidence base behind them.
 
 中文：**预言机透明度与风险情报，让价格背后的来源和使用风险可见、可判断，并保留可验证的评估证据。**
 
@@ -16,10 +16,24 @@ Its product path is **oracle observations → transparency → risk assessment �
 
 ## Public copy
 
-- Homepage headline: **See the oracles behind the price.**
-- Short description: **Compare oracle sources, understand the risk of relying on a price, and retain verifiable assessment evidence.**
+- Homepage headline: **Go beneath the price.**
+- Short description: **Insight reveals the oracle sources, their agreement, and their freshness, then turns that evidence into an explainable assessment before a person or agent acts.**
 - Agent description: **Before your agent signs, verify what it is about to trust.** Decision-input integrity for onchain agents: a signed, independently re-verifiable answer to "can this price be trusted".
 - SDK description: **Oracle risk assessments, monitoring, and signed price/fill evidence, with assessment-only APIs and optional gated execution.**
+
+## Public information architecture
+
+The public website should make the evidence-to-decision path explicit without implying that Insight authorizes or executes an action:
+
+| Entry              | Public role                                                                                           | Canonical route                |
+| ------------------ | ----------------------------------------------------------------------------------------------------- | ------------------------------ |
+| Oracle Evidence    | Inspect source coverage, freshness, agreement, and observed prices.                                   | `/price-insight?stage=observe` |
+| Decision Integrity | Assess a proposed action, monitor changed conditions, and inspect optional attestations.              | `/decision-integrity`          |
+| Risk Intelligence  | Choose a focused tool for source comparison, position stress, peg risk, provider context, or reports. | `/risk-intelligence`           |
+| Build              | Select REST API, AI / MCP, Guard SDK, or documentation for an integration.                            | `/build`                       |
+| Verify             | Independently inspect supported signed evidence and its limits.                                       | `/verify`                      |
+
+`Position Stress Test` is the public name for the existing `/safety-check` tool. Its URL and query parameters remain stable because it is a focused lending-position calculation, not a general top-level product category. `Compare & Assess` is the Risk Intelligence label for `/price-insight?stage=compare`; `Oracle Evidence` remains the separate Observe-stage entry.
 
 ## Three independently selectable offers
 

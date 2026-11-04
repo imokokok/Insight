@@ -5,7 +5,13 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { Check, Coins, Layers, Loader2, Zap } from 'lucide-react';
+import { z } from 'zod';
 
+import {
+  apiErrorMessage,
+  parseApiEnvelope,
+  requireApiData,
+} from '@/lib/api/client/responseValidation';
 import {
   METERING_CLASS_DESCRIPTION,
   METERING_CLASS_ORDER,
@@ -28,6 +34,8 @@ interface PricingCardsProps {
 }
 
 type SelfServePlan = Exclude<Plan, 'enterprise'>;
+
+const CheckoutDataSchema = z.object({ url: z.string().url() });
 
 const PLAN_DESCRIPTIONS: Record<Plan, string> = {
   developer: 'For analysts and builders running production oracle checks.',
@@ -85,14 +93,14 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
         },
         body: JSON.stringify({ plan: planId, interval }),
       });
-      const result = await response.json();
+      const result = parseApiEnvelope(await response.json(), 'Checkout response');
 
       if (!response.ok || !result.success) {
-        throw new Error(result.error?.message || 'Failed to start checkout');
+        throw new Error(apiErrorMessage(result, 'Failed to start checkout'));
       }
 
       // Redirect to NOWPayments invoice page.
-      window.location.href = result.data.url;
+      window.location.href = requireApiData(result, CheckoutDataSchema, 'Checkout response').url;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Checkout failed');
       setLoadingPlan(null);
@@ -119,13 +127,17 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
         },
         body: JSON.stringify({ type: 'topup', pack }),
       });
-      const result = await response.json();
+      const result = parseApiEnvelope(await response.json(), 'Top-up checkout response');
 
       if (!response.ok || !result.success) {
-        throw new Error(result.error?.message || 'Failed to start top-up');
+        throw new Error(apiErrorMessage(result, 'Failed to start top-up'));
       }
 
-      window.location.href = result.data.url;
+      window.location.href = requireApiData(
+        result,
+        CheckoutDataSchema,
+        'Top-up checkout response'
+      ).url;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Top-up failed');
       setLoadingPack(null);

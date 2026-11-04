@@ -112,7 +112,13 @@ function shouldRetry(error: Error, attempt: number, config: EnhancedRetryConfig)
     return true;
   }
 
-  const statusMatch = error.message.match(/(?:status[:=\s]+|HTTP\s+)(\d{3})(?:\s|$|\b)/i);
+  // Upstreams are not consistent about how they expose HTTP status codes.
+  // Supabase can surface a Cloudflare response as "Error code 522" rather
+  // than an Error with a numeric `status` property, so recognise that form as
+  // well as conventional "HTTP 522" / "status: 522" messages.
+  const statusMatch = error.message.match(
+    /(?:status[:=\s]+|HTTP\s+|(?:error\s+)?code[:=\s]+)(\d{3})(?:\s|$|\b)/i
+  );
   if (statusMatch) {
     const status = parseInt(statusMatch[1], 10);
     if (status >= 100 && status < 600 && config.retryableStatuses.includes(status)) {

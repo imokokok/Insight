@@ -1,5 +1,11 @@
 import { encodeAbiParameters, hashTypedData, keccak256, toBytes, verifyTypedData } from 'viem';
 
+import { canonicalJson } from './canonical-json';
+import {
+  isDecisionInputQuoteProvenance,
+  quoteProvenanceMatchesInput,
+} from './decision-input-provenance';
+
 import type {
   DecisionInputAssessment,
   DecisionInputPairCommitment,
@@ -84,6 +90,8 @@ export type DecisionInputVerification = {
   linkedPreTradeUid: string | null;
   validUntil: number | null;
 };
+
+export { canonicalJson } from './canonical-json';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   if (value === null || typeof value !== 'object' || Array.isArray(value)) return false;
@@ -222,29 +230,6 @@ export async function verifySignedPreTradeAttestation(
   });
 }
 
-/** Deterministic key-sorted JSON, shared with the server's canonical hashing. */
-export function canonicalJson(value: unknown, depth = 0): string {
-  if (depth > 64) throw new TypeError('JSON value is too deeply nested');
-  if (value === null || typeof value === 'string' || typeof value === 'boolean')
-    return JSON.stringify(value);
-  if (typeof value === 'number' && Number.isFinite(value)) return JSON.stringify(value);
-  if (Array.isArray(value)) {
-    if (value.length > 20_000) throw new TypeError('JSON value is too large');
-    return `[${value.map((entry) => canonicalJson(entry, depth + 1)).join(',')}]`;
-  }
-  if (isRecord(value)) {
-    const keys = Object.keys(value).sort();
-    if (
-      keys.length > 20_000 ||
-      keys.some((key) => ['__proto__', 'prototype', 'constructor'].includes(key))
-    ) {
-      throw new TypeError('JSON object contains unsafe or excessive keys');
-    }
-    return `{${keys.map((key) => `${JSON.stringify(key)}:${canonicalJson(value[key], depth + 1)}`).join(',')}}`;
-  }
-  throw new TypeError('Value is not canonical JSON');
-}
-
 function assessmentHash(assessment: DecisionInputAssessment): `0x${string}` {
   const { attestation: _attestation, ...unsigned } = assessment;
   const canonical = canonicalJson(unsigned);
@@ -257,7 +242,8 @@ function policyMatches(assessment: DecisionInputAssessment, policy: DecisionInpu
   return (
     assessment.policy.maxReferenceDeviationBps === policy.maxReferenceDeviationBps &&
     assessment.policy.maxSlippageBps === policy.maxSlippageBps &&
-    assessment.policy.maxQuoteAgeSeconds === policy.maxQuoteAgeSeconds
+    assessment.policy.maxQuoteAgeSeconds === policy.maxQuoteAgeSeconds &&
+    (assessment.policy.requireQuoteProvenance ?? false) === (policy.requireQuoteProvenance ?? false)
   );
 }
 
@@ -308,7 +294,9 @@ function validPolicyLimits(policy: Record<string, unknown>): boolean {
     Number(slippage) <= 10_000 &&
     Number.isSafeInteger(quoteAge) &&
     Number(quoteAge) >= 1 &&
-    Number(quoteAge) <= 300
+    Number(quoteAge) <= 300 &&
+    (policy.requireQuoteProvenance === undefined ||
+      typeof policy.requireQuoteProvenance === 'boolean')
   );
 }
 
@@ -421,7 +409,20 @@ export function decisionInputMatchesRequest(
     prices.quoteObservedAt === input.quoteObservedAt &&
     assessment.policy.maxReferenceDeviationBps === input.maxReferenceDeviationBps &&
     assessment.policy.maxSlippageBps === input.maxSlippageBps &&
-    assessment.policy.maxQuoteAgeSeconds === input.maxQuoteAgeSeconds
+    assessment.policy.maxQuoteAgeSeconds === input.maxQuoteAgeSeconds &&
+    (assessment.policy.requireQuoteProvenance ?? false) ===
+      (input.requireQuoteProvenance ?? false) &&
+    (input.quoteProvenance === undefined
+      ? assessment.quoteProvenance === undefined
+      : assessment.quoteProvenance !== undefined &&
+        quoteProvenanceMatchesInput(assessment.quoteProvenance, {
+          asset: request.asset,
+          chainId: request.chainId,
+          quotePriceUsd: input.quotePriceUsd,
+          quoteObservedAt: input.quoteObservedAt,
+        }) &&
+        assessment.quoteProvenance.requestHash === input.quoteProvenance.requestHash &&
+        assessment.quoteProvenance.responseHash === input.quoteProvenance.responseHash)
   );
 }
 
@@ -520,7 +521,9 @@ function validAssessmentPolicy(policy: Record<string, unknown>): boolean {
     Number(slippage) <= 10_000 &&
     Number.isSafeInteger(quoteAge) &&
     Number(quoteAge) >= 1 &&
-    Number(quoteAge) <= 300
+    Number(quoteAge) <= 300 &&
+    (policy.requireQuoteProvenance === undefined ||
+      typeof policy.requireQuoteProvenance === 'boolean')
   );
 }
 
@@ -540,7 +543,8 @@ function validAssessmentReasons(value: DecisionInputAssessment): boolean {
 function validAssessmentEnvelope(
   value: DecisionInputAssessment,
   proof: DecisionInputAttestation,
-  now: number
+  now: number,
+  allowStagingEvidence: boolean
 ): boolean {
   return (
     validAssessmentCore(value) &&
@@ -553,6 +557,21 @@ function validAssessmentEnvelope(
     Array.isArray(value.caveats) &&
     value.caveats.every((entry) => typeof entry === 'string') &&
     (value.operationRouteQuote === null || isRecord(value.operationRouteQuote)) &&
+    (value.quoteProvenance === undefined ||
+      (isDecisionInputQuoteProvenance(value.quoteProvenance) &&
+        value.quoteProvenance.rightsScope !== 'research-quarantined' &&
+        (value.quoteProvenance.rightsScope !== 'synthetic' || value.evidenceUse === 'staging') &&
+        quoteProvenanceMatchesInput(value.quoteProvenance, {
+          asset: value.asset,
+          chainId: value.chainId,
+          quotePriceUsd: value.prices.quotePriceUsd,
+          quoteObservedAt: value.prices.quoteObservedAt,
+        }))) &&
+    (value.status !== 'SUFFICIENT' ||
+      value.policy.requireQuoteProvenance !== true ||
+      value.quoteProvenance !== undefined) &&
+    (value.evidenceUse === undefined || value.evidenceUse === 'staging') &&
+    (value.evidenceUse !== 'staging' || allowStagingEvidence) &&
     validProofEnvelope(proof, now)
   );
 }
@@ -625,7 +644,9 @@ function validAssessmentPriceMath(assessment: DecisionInputAssessment): boolean 
       prices.quoteDeviationBps !== null &&
       ageAtEvaluation >= 0 &&
       ageAtEvaluation <= assessment.policy.maxQuoteAgeSeconds &&
-      expectedDeviation <= assessment.policy.maxSlippageBps);
+      expectedDeviation <= assessment.policy.maxSlippageBps &&
+      (assessment.policy.requireQuoteProvenance !== true ||
+        assessment.quoteProvenance !== undefined));
   return ageMatches && deviationMatches && sufficientWithinPolicy;
 }
 
@@ -665,7 +686,7 @@ function verificationResult(
 export async function verifyDecisionInputAssessment(
   value: unknown,
   trust: DecisionInputTrust,
-  options: { now?: number; allowHistorical?: boolean } = {}
+  options: { now?: number; allowHistorical?: boolean; allowStagingEvidence?: boolean } = {}
 ): Promise<DecisionInputVerification> {
   const empty = {
     valid: false,
@@ -681,7 +702,12 @@ export async function verifyDecisionInputAssessment(
     if (!proof) return { ...empty, reason: 'missing_attestation' };
     const verificationNow = options.now ?? Math.floor(Date.now() / 1000);
     if (
-      !validAssessmentEnvelope(assessment, proof, verificationNow) ||
+      !validAssessmentEnvelope(
+        assessment,
+        proof,
+        verificationNow,
+        options.allowStagingEvidence === true
+      ) ||
       !validAssessmentPriceMath(assessment)
     ) {
       return { ...empty, reason: 'malformed' };

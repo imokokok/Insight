@@ -1,11 +1,22 @@
 # CEX market-reference source integrations
 
-Bitstamp, Bitfinex, and Binance are implemented as optional sources for the
-existing `market_reference_snapshots` collector. They remain disabled unless
-the GitHub Actions repository variable `MARKET_REFERENCE_LICENSED_EXCHANGES`
-names them. Public endpoint availability does not grant commercial
-redistribution or third-party data rights; enable a venue only after written
-terms cover the intended Insight use.
+All CEX venues are disabled for customer-facing collection by default. The
+collector admits a venue only when the checked-in source-rights register has a
+reviewed `vendor-licensed` record with a written-permission reference; an
+environment variable cannot manufacture data rights. Public endpoint
+availability does not grant commercial redistribution or third-party data
+rights.
+
+Kraken is the sole admitted source as of 2026-10-19 Asia/Shanghai. Its written Support reply
+permits Insight to collect, store, display, and analyse Kraken market data
+without a separate licence for the stated use case, and confirms that derived
+analytics may be distributed. Its register entry is deliberately
+`derived-analytics-only`: Insight may use it in its existing assessment,
+divergence, and evidence workflows, but must not sell, redistribute,
+sublicense, publish as a data service, or otherwise make the underlying Kraken
+data available to third parties. The public raw market-reference endpoint stays
+disabled while this policy is active. Any customer-facing raw-data view, export,
+or broader commercial scope requires a new written Kraken review.
 
 ## Data contract
 
@@ -42,7 +53,7 @@ The collector discovers the market catalog and retains entries where
 `SPOT`, and `trading` is `Enabled`. It rejects ambiguous USD spot entries for
 the same base. The selected ticker supplies `last`, `bid`, `ask`, 24-hour
 `volume`, and Unix-second `timestamp`; that timestamp is freshness-checked.
-The licensed historical backfill uses the same discovered USD spot market and
+The rights-gated historical backfill uses the same discovered USD spot market and
 hourly OHLC endpoint, excludes the open candle, and pages backward with a
 cursor-advance guard.
 
@@ -93,8 +104,8 @@ expected base and quote assets. Each latest trade timestamp must be within 15
 minutes and at most 60 seconds in the future. A stale trade on either leg,
 missing pair, invalid bid/ask, or malformed response fails closed. The row's
 source time is the older of the WBTC/USDT and USDT/USD latest trades. Historical
-backfill uses only matched, completed hourly candles from both markets and
-applies the same licensed-source switch.
+backfill uses only matched, completed hourly candles from both markets and is
+admitted only after the same reviewed vendor agreement is registered.
 
 The live public API is documented as keyless on `data-api.binance.vision`. The
 standard `api.binance.com` host previously returned HTTP 451 on a GitHub-hosted
@@ -107,50 +118,50 @@ enabling the integration for production collection.
 
 ## Historical backfill
 
-The manual backfill collects Coinbase and Kraken hourly data, direct Crypto.com
-WBTC/USD candles, Bitstamp and Bitfinex USD spot candles when those sources are
-included in `MARKET_REFERENCE_LICENSED_EXCHANGES`, and the matched Binance
-WBTC/USDT × USDT/USD composite candles when Binance is included. Gemini does not
-currently have a historical-candle backfill path. All three optional sources
-are disabled when the variable is empty. Local collector and backfill commands
-read the same variable from `.env.local`; the GitHub Actions workflows read the
-repository Actions variable.
+The manual backfill collects only venues that are in the source-rights register
+as reviewed `vendor-licensed` sources with an agreement reference. This applies
+equally to Coinbase, Kraken, Crypto.com, Bitstamp, Bitfinex, and Binance; Gemini
+does not currently have a historical-candle backfill path. If no source meets
+that standard, the command exits successfully before making a CEX request or
+writing a row.
 
 ## Enablement sequence
 
 1. Confirm written commercial data permission with each exchange for the
-   planned collection, storage, analytics, and any customer-facing use.
-2. Apply `supabase/migrations/0087_market_reference_source_timestamps.sql` to
-   the target database before enabling any new venue. This repository change
-   does not apply the migration to a remote database.
-3. Publish the collector, workflow, and generated cron bundles. Regenerate the
+   planned collection, storage, analytics, customer-facing use, and whether
+   raw data (rather than only derived analytics) may be delivered.
+2. Record the agreement reference and any expiry in
+   `src/lib/dataRights/evidenceRights.ts`, changing only the covered venue to
+   `vendor-licensed`, and set its delivery policy. This code review is an
+   explicit control point, not a substitute for legal review.
+3. Apply `supabase/migrations/0090_market_reference_rights_gate.sql` and
+   `0093_market_reference_delivery_policy.sql` to the
+   target database. This repository change does not apply the migration to a
+   remote database.
+4. Publish the collector, workflow, and generated cron bundles. Regenerate the
    bundles from TypeScript with `node scripts/build-cron-bundles.mjs`.
-4. In GitHub repository **Settings → Secrets and variables → Actions →
-   Variables**, set `MARKET_REFERENCE_LICENSED_EXCHANGES` only to venues
-   covered by written permission, for example `bitstamp,bitfinex,binance`.
-   Leave it unset or empty to keep all optional sources off.
-5. Inspect collected rows, source timestamps, failed-source errors, and hourly
+5. Inspect collected rows, source timestamps, agreement references, failed-source errors, and hourly
    coverage after the next collection or manual backfill.
 
 ## WBTC source coverage
 
-Kraken and Crypto.com already provide two direct WBTC/USD CEX sources and meet
-the assessment's existing two-venue minimum once successful observations land
-in the same hour. Binance adds a third exchange's WBTC observation after it is
-licensed, deployed, and its rows are collected. Its price is a same-exchange
-cross-market conversion, not a direct WBTC/USD order book, and remains off by
-default until commercial use is cleared.
+No CEX source presently contributes to a customer-facing WBTC reference until
+its reviewed agreement is recorded. Once two covered venues produce successful
+same-hour rows, the existing assessment can use their independent-source count.
+Binance would add a third venue after its own agreement, deployment, and
+collection; its price is a same-exchange cross-market conversion, not a direct
+WBTC/USD order book.
 
 ## Commercial data-rights outreach status
 
-Last updated: 2026-10-16 Asia/Shanghai. Kraken, Gemini, and Bitstamp initial requests were reported sent at 2026-10-15 23:13 Asia/Shanghai; Coinbase at 23:59; Bitfinex at 2026-10-16 00:23. At 2026-10-16 00:37, the user reported sending Kraken’s requested follow-up and the outstanding Crypto.com Exchange and Binance requests. Kraken’s follow-up identifies the applicant as an independent developer of Insight operating in China; Business Development response is pending. A sent request is not a data license; keep customer-facing commercial use gated until written terms cover the intended scope.
+Last updated: 2026-10-19 Asia/Shanghai. Kraken, Gemini, and Bitstamp initial requests were reported sent at 2026-10-15 23:13 Asia/Shanghai; Coinbase at 23:59; Bitfinex at 2026-10-16 00:23. At 2026-10-16 00:37, the user reported sending Kraken’s requested follow-up and the outstanding Crypto.com Exchange and Binance requests. On 2026-10-18 16:05 GMT-7 (2026-10-19 07:05 Asia/Shanghai), Kraken Support confirmed in writing that Insight may collect, store, display, and analyse Kraken market data without a separate licence for the described use case, while prohibiting delivery of underlying data to third parties and permitting distribution of derived analytics. Kraken is enabled only under that narrower delivery policy. A sent request or a limited permission is not a broad raw-data licence; keep other customer-facing commercial use gated until written terms cover the intended scope.
 
-| Venue               | Outreach status                                                                                                                                                                                                                                                                                                                                                  | Contact / terms                                                                                                                                                                                                                                                                                                                                                 |
-| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Kraken              | Initial request sent 2026-10-15 23:13; Kraken Support requested the company represented, partnership rationale, and primary country of operations. Follow-up sent 2026-10-16 00:37, identifying the applicant as an independent developer of Insight operating in China; awaiting Business Development response and applicable written agreement                 | `marketdata@kraken.com`; [Kraken API Center](https://support.kraken.com/hc/en-us/articles/360000919966-API-Center)                                                                                                                                                                                                                                              |
-| Gemini              | Sent; awaiting written reply and applicable agreement                                                                                                                                                                                                                                                                                                            | `bizdev@gemini.com`                                                                                                                                                                                                                                                                                                                                             |
-| Bitstamp            | Sent; awaiting written reply and applicable agreement                                                                                                                                                                                                                                                                                                            | `partners@bitstamp.net`                                                                                                                                                                                                                                                                                                                                         |
-| Coinbase            | Sent 2026-10-15 23:59 Asia/Shanghai; awaiting written reply and applicable agreement. Request coverage for server-side collection, storage, derived analysis, and customer-facing outputs                                                                                                                                                                        | `marketdata@coinbase.com`; [Market Data Terms](https://www.coinbase.com/legal/market_data)                                                                                                                                                                                                                                                                      |
-| Crypto.com Exchange | Sent 2026-10-16 00:37 Asia/Shanghai; awaiting written reply and applicable agreement. Request prior express written permission for commercial use of Exchange spot market data and derived customer-facing assessments; do not use the Predictions data route                                                                                                    | [Exchange API page: Get in Touch](https://crypto.com/exchange-pro/en-US/api); [API docs](https://exchange-developer.crypto.com/exchange/v1/docs/api/rest-single-page/); [US Exchange Terms](https://static2.crypto.com/exchange/assets/documents/us-tnc.pdf)                                                                                                    |
-| Bitfinex            | Sent 2026-10-16 00:23 Asia/Shanghai; awaiting written reply and applicable agreement. Request covers commercial use of public spot API data, server-side storage, derived assessment outputs, and customer-facing use                                                                                                                                            | [Official support ticket](https://cs.bitfinex.com); [API Terms](https://www.bitfinex.com/legal/general/api-terms/); [Market Data Terms](https://www.bitfinex.com/legal/general/market-data/)                                                                                                                                                                    |
-| Binance             | Sent 2026-10-16 00:37 Asia/Shanghai; awaiting written reply and applicable agreement. Ask Binance to confirm whether commercial rights are required for Insight’s public Spot REST API collection and separately for Binance Vision historical datasets; the official Vision dataset terms require a separate written enterprise data license for commercial use | [Official support chat](https://www.binance.com/en/chat); [VIP & Institutional contact form](https://www.binance.com/en-IN/vip-institutional-services); [Spot REST API docs](https://developers.binance.com/en/docs/products/spot/rest-api); [Binance Vision dataset terms](https://github.com/binance/binance-public-data/blob/master/TERMS_AND_CONDITIONS.md) |
+| Venue               | Outreach status                                                                                                                                                                                                                                                                                                                                                                                                                                                            | Contact / terms                                                                                                                                                                                                                                                                                                                                                 |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Kraken              | Support reply received 2026-10-18 16:05 GMT-7 (2026-10-19 07:05 Asia/Shanghai): Insight may programmatically collect, store, display, and analyse market data for the stated use case without a separate licence; derived analytics may be distributed. Underlying data must remain for Insight's own benefit and must not be sold, redistributed, sublicensed, published as a data service, or made available to third parties. Enabled only as `derived-analytics-only`. | `marketdata@kraken.com`; [Kraken API Center](https://support.kraken.com/hc/en-us/articles/360000919966-API-Center)                                                                                                                                                                                                                                              |
+| Gemini              | Sent; awaiting written reply and applicable agreement                                                                                                                                                                                                                                                                                                                                                                                                                      | `bizdev@gemini.com`                                                                                                                                                                                                                                                                                                                                             |
+| Bitstamp            | Sent; awaiting written reply and applicable agreement                                                                                                                                                                                                                                                                                                                                                                                                                      | `partners@bitstamp.net`                                                                                                                                                                                                                                                                                                                                         |
+| Coinbase            | Sent 2026-10-15 23:59 Asia/Shanghai; awaiting written reply and applicable agreement. Request coverage for server-side collection, storage, derived analysis, and customer-facing outputs                                                                                                                                                                                                                                                                                  | `marketdata@coinbase.com`; [Market Data Terms](https://www.coinbase.com/legal/market_data)                                                                                                                                                                                                                                                                      |
+| Crypto.com Exchange | Sent 2026-10-16 00:37 Asia/Shanghai; awaiting written reply and applicable agreement. Request prior express written permission for commercial use of Exchange spot market data and derived customer-facing assessments; do not use the Predictions data route                                                                                                                                                                                                              | [Exchange API page: Get in Touch](https://crypto.com/exchange-pro/en-US/api); [API docs](https://exchange-developer.crypto.com/exchange/v1/docs/api/rest-single-page/); [US Exchange Terms](https://static2.crypto.com/exchange/assets/documents/us-tnc.pdf)                                                                                                    |
+| Bitfinex            | Sent 2026-10-16 00:23 Asia/Shanghai; awaiting written reply and applicable agreement. Request covers commercial use of public spot API data, server-side storage, derived assessment outputs, and customer-facing use                                                                                                                                                                                                                                                      | [Official support ticket](https://cs.bitfinex.com); [API Terms](https://www.bitfinex.com/legal/general/api-terms/); [Market Data Terms](https://www.bitfinex.com/legal/general/market-data/)                                                                                                                                                                    |
+| Binance             | Sent 2026-10-16 00:37 Asia/Shanghai; awaiting written reply and applicable agreement. Ask Binance to confirm whether commercial rights are required for Insight’s public Spot REST API collection and separately for Binance Vision historical datasets; the official Vision dataset terms require a separate written enterprise data license for commercial use                                                                                                           | [Official support chat](https://www.binance.com/en/chat); [VIP & Institutional contact form](https://www.binance.com/en-IN/vip-institutional-services); [Spot REST API docs](https://developers.binance.com/en/docs/products/spot/rest-api); [Binance Vision dataset terms](https://github.com/binance/binance-public-data/blob/master/TERMS_AND_CONDITIONS.md) |

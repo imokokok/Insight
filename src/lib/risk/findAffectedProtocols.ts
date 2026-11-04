@@ -1,10 +1,29 @@
 import { chainNames } from '@/lib/constants';
 import { getAllProtocolsWithDynamicData } from '@/lib/protocols/dynamicData';
+import { TTLCache } from '@/lib/utils/cache';
 import type { Blockchain } from '@/types/oracle';
 
 import type { AffectedProtocol } from './types';
 
-const affectedProtocolsCache = new Map<string, AffectedProtocol[]>();
+const AFFECTED_PROTOCOLS_CACHE_TTL_MS = 2 * 60 * 1000;
+const affectedProtocolsCache = new TTLCache({ maxSize: 128, cleanupIntervalMs: 0 });
+const affectedProtocolsInFlight = new Map<string, Promise<CachedAffectedProtocol[]>>();
+
+type CachedAffectedProtocol = Omit<
+  AffectedProtocol,
+  'riskSummary' | 'assetRole' | 'impactDirection'
+> & {
+  assetRole: 'collateral' | 'borrow';
+  impactDirection: 'collateral-down' | 'borrow-up';
+  chainName: string;
+  ltPercent: number;
+};
+
+/** Test seam — clears bounded warm-instance entries and pending lookups. */
+export function resetAffectedProtocolsCacheForTests(): void {
+  affectedProtocolsCache.clear();
+  affectedProtocolsInFlight.clear();
+}
 
 export interface FindAffectedProtocolsOptions {
   /** Emit a 'borrow' role entry alongside the 'collateral' entry (stablecoin-style). */
@@ -33,12 +52,47 @@ export async function findAffectedProtocols(
 ): Promise<AffectedProtocol[]> {
   const { includeBorrowRole = false, oracleMarketDivergence = 0, buildRiskSummary } = options;
 
-  const cacheKey = `${symbol}:${includeBorrowRole ? 'cb' : 'c'}:${oracleMarketDivergence}`;
-  const cached = affectedProtocolsCache.get(cacheKey);
-  if (cached) return cached;
+  const normalizedSymbol = symbol.toUpperCase();
+  const normalizedDivergence = Number.isFinite(oracleMarketDivergence) ? oracleMarketDivergence : 0;
+  const cacheKey = `${normalizedSymbol}:${includeBorrowRole ? 'cb' : 'c'}:${normalizedDivergence}`;
+  let cached = affectedProtocolsCache.get<CachedAffectedProtocol[]>(cacheKey);
+  if (!cached) {
+    let request = affectedProtocolsInFlight.get(cacheKey);
+    if (!request) {
+      request = loadAffectedProtocols(normalizedSymbol, includeBorrowRole, normalizedDivergence);
+      affectedProtocolsInFlight.set(cacheKey, request);
+    }
+    try {
+      cached = await request;
+      affectedProtocolsCache.set(cacheKey, cached, AFFECTED_PROTOCOLS_CACHE_TTL_MS);
+    } finally {
+      if (affectedProtocolsInFlight.get(cacheKey) === request) {
+        affectedProtocolsInFlight.delete(cacheKey);
+      }
+    }
+  }
 
+  // The summary is caller-specific wording. Cache only the data-derived
+  // template, then materialize the presentation string for every caller.
+  return cached.map(({ chainName, ltPercent, ...protocol }) => ({
+    ...protocol,
+    riskSummary: buildRiskSummary({
+      symbol: normalizedSymbol,
+      protocolName: protocol.protocolName,
+      chainName,
+      ltPercent,
+      role: protocol.assetRole,
+    }),
+  }));
+}
+
+async function loadAffectedProtocols(
+  symbol: string,
+  includeBorrowRole: boolean,
+  oracleMarketDivergence: number
+): Promise<CachedAffectedProtocol[]> {
   const protocols = await getAllProtocolsWithDynamicData();
-  const results: AffectedProtocol[] = [];
+  const results: CachedAffectedProtocol[] = [];
 
   // Estimated impact depends only on the divergence, not on the protocol, so
   // compute it once per symbol.
@@ -75,13 +129,8 @@ export async function findAffectedProtocols(
       ...base,
       assetRole: 'collateral',
       impactDirection: 'collateral-down',
-      riskSummary: buildRiskSummary({
-        symbol,
-        protocolName: protocol.name,
-        chainName,
-        ltPercent,
-        role: 'collateral',
-      }),
+      chainName,
+      ltPercent,
     });
 
     if (includeBorrowRole) {
@@ -89,17 +138,11 @@ export async function findAffectedProtocols(
         ...base,
         assetRole: 'borrow',
         impactDirection: 'borrow-up',
-        riskSummary: buildRiskSummary({
-          symbol,
-          protocolName: protocol.name,
-          chainName,
-          ltPercent,
-          role: 'borrow',
-        }),
+        chainName,
+        ltPercent,
       });
     }
   }
 
-  affectedProtocolsCache.set(cacheKey, results);
   return results;
 }

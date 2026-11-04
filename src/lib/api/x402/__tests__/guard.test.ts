@@ -1,24 +1,43 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
+import { webcrypto } from 'node:crypto';
+
 import { createServiceRoleClient } from '@/lib/supabase/server';
 
 import { type X402Config } from '../config';
 import {
+  atomicUnitsToUsdc,
   handlePaidPreTradeRequest,
   hasAuthCredentials,
   isPaidRequest,
   paymentAuditFields,
   toNextResponse,
+  x402AcquisitionSource,
 } from '../guard';
 import { getX402HttpServer } from '../resourceServer';
 
-const mockInsert = jest.fn(async () => ({ error: null }));
+const mockInsert = jest.fn();
+const mockAbortSignal = jest.fn(async () => ({ error: null }));
+const incrementRateLimitMock = jest.fn();
+
+function mockSettlementTable() {
+  return {
+    insert: (row: unknown) => {
+      mockInsert(row);
+      return { abortSignal: mockAbortSignal };
+    },
+  };
+}
 
 jest.mock('@/lib/supabase/server', () => ({
   createServiceRoleClient: jest.fn(() => ({
-    from: () => ({ insert: mockInsert }),
+    from: () => mockSettlementTable(),
   })),
+}));
+
+jest.mock('@/lib/api/middleware/rateLimitStore', () => ({
+  rateLimitStore: { increment: (...args: unknown[]) => incrementRateLimitMock(...args) },
 }));
 
 jest.mock('../resourceServer', () => ({
@@ -65,10 +84,18 @@ const mockedGetServer = getX402HttpServer as jest.Mock;
 // implementations before every test — re-prime the service-role client and
 // the insert recorder so audit assertions observe real calls.
 beforeEach(() => {
+  Object.defineProperty(globalThis, 'crypto', { value: webcrypto, configurable: true });
   (createServiceRoleClient as jest.Mock).mockImplementation(() => ({
-    from: () => ({ insert: mockInsert }),
+    from: () => mockSettlementTable(),
   }));
-  mockInsert.mockImplementation(async () => ({ error: null }));
+  mockInsert.mockClear();
+  mockAbortSignal.mockClear();
+  mockAbortSignal.mockImplementation(async () => ({ error: null }));
+  incrementRateLimitMock.mockClear();
+  incrementRateLimitMock.mockImplementation(async () => ({
+    count: 1,
+    resetTime: Date.now() + 60_000,
+  }));
 });
 
 const CFG: X402Config = {
@@ -118,6 +145,23 @@ describe('x402 guard', () => {
         paymentAuditFields({ network: 'solana:unknown', asset: 'not-a-mint', amount: '20000' })
       ).toEqual({ network: null });
     });
+
+    it('reads 18-decimal BNB Chain requirements on the token grid, not the 6-decimal USDC grid', () => {
+      // 0.02 USDT atomic at 18 decimals must audit as 0.02, not 2e13.
+      expect(
+        paymentAuditFields({
+          network: 'eip155:56',
+          asset: '0x55d398326f99059fF775485246999027B3197955',
+          amount: '20000000000000000',
+        })
+      ).toEqual({
+        network: 'eip155:56',
+        asset: '0x55d398326f99059fF775485246999027B3197955',
+        amountUsdc: '0.02',
+      });
+      expect(atomicUnitsToUsdc('20000000000000000', 18)).toBe('0.02');
+      expect(atomicUnitsToUsdc('20000')).toBe('0.02');
+    });
   });
 
   describe('header detection', () => {
@@ -128,6 +172,19 @@ describe('x402 guard', () => {
 
     it('does not treat the legacy v1 X-PAYMENT header as payment', () => {
       expect(isPaidRequest(makeRequest({ 'x-payment': 'legacy' }))).toBe(false);
+    });
+
+    it('keeps entry attribution bounded and non-identifying', () => {
+      expect(x402AcquisitionSource(makeRequest({ 'x-insight-entry-source': 'docs' }))).toBe('docs');
+      expect(x402AcquisitionSource(makeRequest({ 'x-insight-entry-source': 'sendaifun' }))).toBe(
+        'sendaifun'
+      );
+      expect(x402AcquisitionSource(makeRequest({ 'x-insight-entry-source': 'wallet_mcp' }))).toBe(
+        'wallet_mcp'
+      );
+      expect(
+        x402AcquisitionSource(makeRequest({ 'x-insight-entry-source': 'campaign-42-wallet-abc' }))
+      ).toBe('unknown');
     });
 
     it('detects API-key credentials for the legacy path', () => {
@@ -191,6 +248,20 @@ describe('x402 guard', () => {
   });
 
   describe('handlePaidPreTradeRequest', () => {
+    it('returns an explicit unavailable response when the selected rail cannot initialize', async () => {
+      mockedGetServer.mockRejectedValueOnce(new Error('facilitator unavailable'));
+      const business = jest.fn(OK_BUSINESS);
+
+      const response = await handlePaidPreTradeRequest(makeRequest(), CFG, business);
+
+      expect(response.status).toBe(503);
+      await expect(response.json()).resolves.toMatchObject({
+        error: 'X402_PAYMENT_RAIL_UNAVAILABLE',
+      });
+      expect(response.headers.get('X-Request-Id')).toMatch(/^req_/);
+      expect(business).not.toHaveBeenCalled();
+    });
+
     it('returns the core 402 quote without running the business handler', async () => {
       const processHTTPRequest = jest.fn().mockResolvedValue({
         type: 'payment-error',
@@ -208,6 +279,23 @@ describe('x402 guard', () => {
       expect(res.status).toBe(402);
       expect(res.headers.get('PAYMENT-REQUIRED')).toBe('quote');
       expect(business).not.toHaveBeenCalled();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(mockInsert).not.toHaveBeenCalled();
+    });
+
+    it('rejects quote floods before payment handling', async () => {
+      incrementRateLimitMock.mockResolvedValue({
+        count: 7,
+        resetTime: Date.now() + 60_000,
+      });
+      const processHTTPRequest = jest.fn();
+      mockedGetServer.mockResolvedValue({ processHTTPRequest });
+
+      const res = await handlePaidPreTradeRequest(makeRequest(), CFG, OK_BUSINESS);
+
+      expect(res.status).toBe(429);
+      expect(processHTTPRequest).not.toHaveBeenCalled();
+      expect(mockedGetServer).not.toHaveBeenCalled();
     });
 
     it('settles after a 2xx business response and attaches settlement headers', async () => {
@@ -239,7 +327,11 @@ describe('x402 guard', () => {
         Promise.resolve(NextResponse.json({ ok: true, data: { verdict: 'PASS' } }, { status: 200 }))
       );
       mockInsert.mockClear();
-      const res = await handlePaidPreTradeRequest(makeRequest(), CFG, business);
+      const res = await handlePaidPreTradeRequest(
+        makeRequest({ 'x-insight-entry-source': 'docs' }),
+        CFG,
+        business
+      );
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(business).toHaveBeenCalledTimes(1);
@@ -254,6 +346,7 @@ describe('x402 guard', () => {
           amount_usdc: '0.02',
           network: 'eip155:84532',
           verdict: 'PASS',
+          acquisition_source: 'docs',
         })
       );
     });
@@ -309,6 +402,72 @@ describe('x402 guard', () => {
       // on the header so the client can retry payment without re-running.
       expect(res.status).toBe(200);
       expect(res.headers.get('PAYMENT-RESPONSE')).toBe('failed-receipt');
+    });
+
+    it('routes a HyperCore usdSend payload through the self-hosted facilitator without invoking the EVM server', async () => {
+      const originalFetch = global.fetch;
+      const facilitatorFetch = jest.fn(async (input: RequestInfo | URL) => {
+        const url =
+          typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+        if (url.endsWith('/verify')) {
+          return Response.json({ isValid: true, payer: `0x${'b'.repeat(40)}` });
+        }
+        if (url.endsWith('/settle')) {
+          return Response.json({
+            success: true,
+            transaction: `hcx_${'a'.repeat(32)}`,
+            network: 'hyperliquid:mainnet',
+            payer: `0x${'b'.repeat(40)}`,
+            amount: '0.02',
+          });
+        }
+        throw new Error(`unexpected facilitator request ${url}`);
+      });
+      global.fetch = facilitatorFetch as unknown as typeof fetch;
+      try {
+        const config: X402Config = {
+          ...CFG,
+          hypercore: {
+            network: 'hyperliquid:mainnet',
+            payTo: '0xdef0000000000000000000000000000000000002',
+            facilitatorUrl: 'https://hypercore-facilitator.example',
+            merchantId: 'insight',
+            merchantSecret: 'a-merchant-secret-that-is-long-enough',
+            timeoutMs: 15_000,
+            maxTimeoutSeconds: 60,
+          },
+        };
+        const paymentPayload = {
+          x402Version: 2,
+          accepted: { network: 'hyperliquid:mainnet' },
+          payload: { quoteId: 'quote_0123456789abcdefghijklmnopqrstuv' },
+        };
+        const header = Buffer.from(JSON.stringify(paymentPayload), 'utf8').toString('base64');
+        const business = jest.fn(() =>
+          Promise.resolve(NextResponse.json({ data: { verdict: 'PASS' } }))
+        );
+        const response = await handlePaidPreTradeRequest(
+          makeRequest({ 'payment-signature': header }),
+          config,
+          business
+        );
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        expect(business).toHaveBeenCalledTimes(1);
+        expect(mockedGetServer).not.toHaveBeenCalled();
+        expect(facilitatorFetch).toHaveBeenCalledTimes(2);
+        expect(response.headers.get('payment-response')).not.toBeNull();
+        expect(mockInsert).toHaveBeenCalledWith(
+          expect.objectContaining({
+            status: 'settled',
+            network: 'hyperliquid:mainnet',
+            asset: 'USDC',
+            tx_hash: `hcx_${'a'.repeat(32)}`,
+          })
+        );
+      } finally {
+        global.fetch = originalFetch;
+      }
     });
   });
 });

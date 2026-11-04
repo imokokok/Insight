@@ -5,7 +5,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Insight AI — Decision-Input Integrity for Agents',
   description:
-    'Give AI agents decision-input integrity onchain: cross-source comparison, pre-trade verdicts, Oracle Watch, and signed evidence through 40 MCP tools. Oracle risk is the first assessment domain.',
+    'Give AI agents decision-input integrity onchain: cross-source comparison, execution preflights, Oracle Watch, and signed evidence through 40+ MCP tools. Oracle risk is the first assessment domain.',
   keywords: [
     'decision-input integrity',
     'AI agent safety',
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Insight AI — Decision-Input Integrity for Agents',
     description:
-      'Pre-trade verdicts, Oracle Watch, and 40 MCP tools. Give agents inspectable evidence before they act.',
+      'Execution preflights, Oracle Watch, and 40+ MCP tools. Give agents inspectable evidence before they act.',
     type: 'website',
   },
 };

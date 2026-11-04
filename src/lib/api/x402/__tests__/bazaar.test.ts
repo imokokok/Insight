@@ -3,7 +3,14 @@ import {
   validateDiscoveryExtensionSpec,
 } from '@x402/extensions/bazaar';
 
-import { BAZAAR_DISCOVERY_EXTENSION } from '../resourceServer';
+import {
+  BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME,
+  BAZAAR_BASE_AGENT_SWAP_GUARD_MCP_DISCOVERY_EXTENSION,
+  BAZAAR_DISCOVERY_EXTENSION,
+  BAZAAR_PREFLIGHT_DISCOVERY_EXTENSION,
+  BAZAAR_SERVICE_METADATA,
+  BAZAAR_SWAP_INTENT_DISCOVERY_EXTENSION,
+} from '../resourceServer';
 
 /**
  * The Bazaar discovery extension is the contract with Agentic.Market / CDP
@@ -36,7 +43,26 @@ interface QueryBazaarExtension {
   };
 }
 
+interface McpBazaarExtension {
+  info: {
+    input: {
+      type: string;
+      toolName: string;
+      description?: string;
+      transport?: string;
+      inputSchema: { type?: string; properties?: Record<string, unknown>; required?: string[] };
+      example?: Record<string, unknown>;
+    };
+  };
+}
+
 const declared = BAZAAR_DISCOVERY_EXTENSION.bazaar as unknown as QueryBazaarExtension;
+const preflightDeclared =
+  BAZAAR_PREFLIGHT_DISCOVERY_EXTENSION.bazaar as unknown as QueryBazaarExtension;
+const swapIntentDeclared =
+  BAZAAR_SWAP_INTENT_DISCOVERY_EXTENSION.bazaar as unknown as QueryBazaarExtension;
+const baseAgentSwapGuardDeclared =
+  BAZAAR_BASE_AGENT_SWAP_GUARD_MCP_DISCOVERY_EXTENSION.bazaar as unknown as McpBazaarExtension;
 
 /** The wire shape after bazaarResourceServerExtension.enrichDeclaration on a GET. */
 const enrichedGet = {
@@ -45,6 +71,14 @@ const enrichedGet = {
 };
 
 describe('bazaar discovery extension', () => {
+  it('declares searchable service metadata for every Bazaar-enabled resource', () => {
+    expect(BAZAAR_SERVICE_METADATA).toEqual({
+      serviceName: 'Insight Oracle',
+      tags: ['oracle-safety', 'defi', 'pre-trade', 'x402', 'agent'],
+      iconUrl: 'https://www.oracleinsight.xyz/logos/insight-glacier-cut.svg',
+    });
+  });
+
   it('declares the bazaar key as the only extension entry', () => {
     expect(Object.keys(BAZAAR_DISCOVERY_EXTENSION)).toEqual(['bazaar']);
   });
@@ -88,5 +122,94 @@ describe('bazaar discovery extension', () => {
       ])
     );
     expect(queryParams.required).toEqual(['asset', 'chainId', 'action', 'tradeAmountUsd']);
+  });
+
+  it('declares the execution-preflight contract with its own truthful wire shape', () => {
+    const enriched = {
+      ...preflightDeclared,
+      info: {
+        ...preflightDeclared.info,
+        input: { ...preflightDeclared.info.input, method: 'GET' },
+      },
+    };
+    expect(
+      validateDiscoveryExtensionSpec(
+        BAZAAR_PREFLIGHT_DISCOVERY_EXTENSION.bazaar as unknown as Record<string, unknown>
+      )
+    ).toEqual({ valid: true });
+    expect(validateDiscoveryExtension(enriched as never)).toEqual({ valid: true });
+    expect(preflightDeclared.info.input.queryParams).toMatchObject({
+      asset: 'MON',
+      chainId: 143,
+      action: 'swap',
+      tradeAmountUsd: 1000,
+      destinationAsset: 'USDC',
+    });
+    expect(preflightDeclared.info.output.example).toMatchObject({
+      verdict: 'caution',
+      recommendation: 'review_before_execution',
+    });
+  });
+
+  it('declares the paid two-gate Swap Intent contract for GET discovery', () => {
+    const enriched = {
+      ...swapIntentDeclared,
+      info: {
+        ...swapIntentDeclared.info,
+        input: { ...swapIntentDeclared.info.input, method: 'GET' },
+      },
+    };
+    expect(
+      validateDiscoveryExtensionSpec(
+        BAZAAR_SWAP_INTENT_DISCOVERY_EXTENSION.bazaar as unknown as Record<string, unknown>
+      )
+    ).toEqual({ valid: true });
+    expect(validateDiscoveryExtension(enriched as never)).toEqual({ valid: true });
+    expect(swapIntentDeclared.info.input.queryParams).toMatchObject({
+      sourceAsset: 'ETH',
+      destinationAsset: 'USDC',
+      subjectChainId: 1,
+      settlementChainId: 1,
+      declaredNotionalUsd: 1000,
+    });
+    expect(swapIntentDeclared.info.output.example).toHaveProperty('journeyId');
+  });
+
+  it('declares Base Swap Guard as a distinct, valid MCP discovery resource', () => {
+    expect(
+      validateDiscoveryExtensionSpec(
+        BAZAAR_BASE_AGENT_SWAP_GUARD_MCP_DISCOVERY_EXTENSION.bazaar as unknown as Record<
+          string,
+          unknown
+        >
+      )
+    ).toEqual({ valid: true });
+    // MCP declarations are not HTTP-route enriched: their exact tool name is
+    // already part of the wire contract consumed by Bazaar.
+    expect(validateDiscoveryExtension(baseAgentSwapGuardDeclared as never)).toEqual({
+      valid: true,
+    });
+    expect(baseAgentSwapGuardDeclared.info.input).toMatchObject({
+      type: 'mcp',
+      toolName: BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME,
+      transport: 'streamable-http',
+      example: {
+        profileId: 'base-aerodrome-slipstream-weth-usdc-cl100',
+        amountIn: '0.25',
+      },
+    });
+    expect(baseAgentSwapGuardDeclared.info.input.description).toContain('Base mainnet');
+    expect(baseAgentSwapGuardDeclared.info.input.description).toContain('ALLOW, CAUTION, or BLOCK');
+    expect(baseAgentSwapGuardDeclared.info.input.inputSchema.required).toEqual(
+      expect.arrayContaining([
+        'profileId',
+        'amountIn',
+        'recipient',
+        'deadlineUnixSeconds',
+        'sourceDecisionPriceUsd',
+        'destinationDecisionPriceUsd',
+        'policy',
+      ])
+    );
   });
 });

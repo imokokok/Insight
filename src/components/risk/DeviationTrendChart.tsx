@@ -14,9 +14,15 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import { z } from 'zod';
 
 import { Button } from '@/components/ui';
 import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
+import {
+  apiErrorMessage,
+  parseApiEnvelope,
+  requireApiData,
+} from '@/lib/api/client/responseValidation';
 import { chartColors } from '@/lib/config/colors';
 import { cn } from '@/lib/utils';
 import { getDaysAgoUtc, getTodayUtc } from '@/lib/utils/date';
@@ -34,6 +40,22 @@ interface DeviationApiResponse {
   providers: Array<{ provider: string }>;
   timeline: DeviationTimelineBucket[];
 }
+
+const DeviationApiResponseSchema: z.ZodType<DeviationApiResponse> = z.object({
+  symbol: z.string(),
+  dateRange: z.object({ from: z.string(), to: z.string() }),
+  providers: z.array(z.object({ provider: z.string() })),
+  timeline: z.array(
+    z.object({
+      timestamp: z.string(),
+      consensusPrice: z.number().nullable(),
+      providers: z.record(
+        z.string(),
+        z.object({ price: z.number(), deviationPct: z.number().nullable() })
+      ),
+    })
+  ),
+});
 
 interface DeviationTrendChartProps {
   symbol: string;
@@ -77,11 +99,11 @@ export function DeviationTrendChart({ symbol, className }: DeviationTrendChartPr
           setData(null);
           return;
         }
-        const result = await response.json();
+        const result = parseApiEnvelope(await response.json(), 'Deviation response');
         if (!response.ok || !result.success) {
-          throw new Error(result.error?.message || 'Failed to load trend data');
+          throw new Error(apiErrorMessage(result, 'Failed to load trend data'));
         }
-        setData(result.data as DeviationApiResponse);
+        setData(requireApiData(result, DeviationApiResponseSchema, 'Deviation response'));
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error');
       } finally {

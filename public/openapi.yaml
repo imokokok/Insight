@@ -218,6 +218,8 @@ tags:
     description: Service liveness and dependency readiness
   - name: Prices
     description: Historical and latest oracle price data
+  - name: DEX Markets
+    description: Reviewed execution-market evidence, separate from oracle consensus
   - name: Consensus
     description: Cross-oracle consensus pricing 🔒
   - name: Feeds
@@ -623,6 +625,44 @@ paths:
           description: Invalid or unprovable execution binding
         '503':
           description: Signing or durable persistence unavailable
+
+  /execution/attestation/issue/journey:
+    post:
+      operationId: redeemSwapIntentReceipt
+      tags: [Execution Evidence]
+      summary: Redeem the included Swap Intent Execution Receipt
+      description: |
+        Redeems the single receipt credit created by a settled x402 Swap Intent.
+        The caller must present the opaque `journeyId`, its caller-held
+        `outcomeToken`, both signed Pre-Trade gates, and the settlement transaction.
+        Both gates are signature-verified and must match the journey. This route
+        does not accept an API key in place of the one-time capability.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/ExecutionIssueRequest'
+                - type: object
+                  required: [journeyId, outcomeToken, destinationPreTradeUid, preTradeAttestations]
+                  properties:
+                    journeyId:
+                      type: string
+                      format: uuid
+                    outcomeToken:
+                      type: string
+                      minLength: 32
+                      description: Caller-held one-time lifecycle capability; do not log it.
+      responses:
+        '200':
+          description: Signed receipt issued, or the exact same persisted receipt returned idempotently.
+        '404':
+          description: Unknown journey or invalid caller capability.
+        '409':
+          description: Settlement is still pending, a receipt is being issued, or the credit is unavailable.
+        '503':
+          description: Durable receipt finalization temporarily unavailable; retry the identical request.
 
   /execution/solana/collect:
     post:
@@ -1106,6 +1146,613 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MetricsResponse'
+
+  # ── DEX Markets ─────────────────────────────────────────
+  /markets/dex/monad:
+    get:
+      operationId: getMonadDexMarket
+      tags: [DEX Markets]
+      summary: Monad WMON/USDC on-chain market evidence
+      description: >-
+        Returns a block-pinned, Factory-verified Uniswap V3 WMON/USDC snapshot
+        on Monad: spot, a 15-minute TWAP, active liquidity, token balances,
+        and fixed-size Quoter V2 execution quotes. Finalized Swap-event volume
+        is returned only after the contiguous local index covers each window.
+        This is DEX execution evidence, not an oracle feed and never an oracle-consensus vote.
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: Fresh block-pinned Monad DEX market evidence.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  data:
+                    type: object
+                    required: [source, venue, chainId, market, block, spot, twap, quotes, volume]
+                    properties:
+                      source: { type: string, const: dex-market }
+                      venue: { type: string, const: uniswap-v3 }
+                      chainId: { type: integer, const: 143 }
+                      market: { type: string, const: MON/USDC }
+                      block:
+                        type: object
+                        required: [number, hash, timestamp]
+                      spot:
+                        type: object
+                        required: [tick, usdcPerWmon]
+                      twap:
+                        type: object
+                        required: [windowSeconds, tick, usdcPerWmon, deviationBpsFromSpot]
+                      quotes:
+                        type: array
+                        items:
+                          type: object
+                          required:
+                            [amountInWmon, amountOutUsdc, effectiveUsdcPerWmon, priceImpactBps]
+                      volume:
+                        type: object
+                        description: Null volume fields mean the finalized event index is warming or unavailable, never zero volume.
+        '503':
+          description: Fresh Monad DEX evidence is unavailable.
+
+  /markets/dex/monad/hanji:
+    get:
+      operationId: getHanjiMonadMarket
+      tags: [DEX Markets]
+      summary: Monad Hanji MON/USDC CLOB market context
+      description: >-
+        Returns bounded, read-only Hanji MON/USDC CLOB context: a fresh public
+        L2 order book, displayed-depth and two-sided impact estimates, plus
+        block-pinned code identity checks for the reviewed order-book and
+        fast-quoter proxies and their implementations. It is venue context,
+        not an oracle feed, executable quote, order simulation, margin action,
+        or settlement guarantee.
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: Fresh Hanji Monad CLOB market evidence.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: { type: boolean, const: true }
+                  data:
+                    type: object
+                    required:
+                      [source, venue, chainId, market, block, contracts, book, estimates, caveats]
+                    properties:
+                      source: { type: string, const: dex-market }
+                      venue: { type: string, const: hanji }
+                      chainId: { type: integer, const: 143 }
+                      market: { type: string, const: MON/USDC }
+                      sourceFreshnessSeconds: { type: number, minimum: 0 }
+                      observedAt: { type: string, format: date-time }
+                      block: { type: object }
+                      contracts: { type: object }
+                      book:
+                        type: object
+                        required: [timestamp, bestBidUsdcPerMon, bestAskUsdcPerMon, spreadBps]
+                      estimates:
+                        type: array
+                        items:
+                          type: object
+                          required:
+                            [side, targetNotionalUsdc, filledNotionalUsdc, filledMon, complete]
+                      caveats:
+                        type: array
+                        items: { type: string }
+        '503':
+          description: Fresh Hanji Monad CLOB evidence is unavailable.
+
+  /markets/dex/base:
+    get:
+      operationId: getBaseDexMarket
+      tags: [DEX Markets]
+      summary: Base WETH/USDC on-chain market evidence
+      description: >-
+        Returns a block-pinned, Factory-verified Uniswap V3 WETH/USDC snapshot
+        on Base: spot, a 30-minute TWAP, active in-range liquidity, token
+        balances, and fixed-size Quoter V2 exact-input quotes. This is one DEX
+        market source, not an oracle feed, consensus vote, or statement about
+        every Base route.
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: Fresh block-pinned Base DEX market evidence.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  data:
+                    type: object
+                    required: [source, venue, chainId, market, block, spot, twap, quotes]
+                    properties:
+                      source: { type: string, const: dex-market }
+                      venue: { type: string, const: uniswap-v3 }
+                      chainId: { type: integer, const: 8453 }
+                      market: { type: string, const: WETH/USDC }
+                      block:
+                        type: object
+                        required: [number, hash, timestamp]
+                      spot:
+                        type: object
+                        required: [tick, token1PerToken0]
+                      twap:
+                        type: object
+                        required: [windowSeconds, tick, token1PerToken0, deviationBpsFromSpot]
+                      quotes:
+                        type: array
+                        items:
+                          type: object
+                          required: [amountIn, amountOut, effectiveToken1PerToken0, priceImpactBps]
+        '503':
+          description: Fresh Base DEX evidence is unavailable.
+
+  /markets/dex/base/quickswap:
+    get:
+      operationId: getQuickSwapV2BaseMarket
+      tags: [DEX Markets]
+      summary: Base QuickSwap V2 USDC/USDT market evidence
+      description: >-
+        Returns block-pinned, code-identity-verified evidence for one reviewed
+        Base QuickSwap V2 USDC/USDT pair: Factory, Router, Pair, token
+        bindings, reserves, spot, and a bounded exact-input quote ladder.
+        This is read-only venue context, not a generic QuickSwap route,
+        executable transaction, or oracle-consensus input. The response's
+        executionReadiness field is authoritative and remains fail-closed when
+        reserves are insufficient.
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: Fresh block-pinned QuickSwap V2 market evidence.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: { type: boolean, const: true }
+                  data:
+                    type: object
+                    required:
+                      [
+                        source,
+                        venue,
+                        chainId,
+                        market,
+                        block,
+                        contracts,
+                        reserves,
+                        executionReadiness,
+                        spot,
+                        quotes,
+                        caveats,
+                      ]
+                    properties:
+                      source: { type: string, const: dex-market }
+                      venue: { type: string, const: quickswap-v2 }
+                      chainId: { type: integer, const: 8453 }
+                      market: { type: string, const: USDC/USDT }
+                      sourceFreshnessSeconds: { type: number, minimum: 0 }
+                      observedAt: { type: string, format: date-time }
+                      block: { type: object }
+                      contracts: { type: object }
+                      reserves:
+                        type: object
+                        required: [token0Raw, token0, token1Raw, token1]
+                      executionReadiness:
+                        type: object
+                        required: [status, reason]
+                        properties:
+                          status: { type: string, enum: [unavailable, review-required] }
+                          reason: { type: string }
+                      spot:
+                        type: object
+                        required: [token1PerToken0]
+                      quotes:
+                        type: array
+                        items:
+                          type: object
+                          required:
+                            [
+                              amountIn,
+                              amountInRaw,
+                              amountOut,
+                              amountOutRaw,
+                              effectiveToken1PerToken0,
+                              priceImpactBps,
+                            ]
+                      caveats:
+                        type: array
+                        items: { type: string }
+        '503':
+          description: Fresh QuickSwap V2 Base market evidence is unavailable.
+
+  /markets/dex/aerodrome:
+    get:
+      operationId: getAerodromeSlipstreamMarket
+      tags: [DEX Markets]
+      summary: Base Aerodrome Slipstream WETH/USDC market evidence
+      description: >-
+        Returns a block-pinned, code-identity-verified Aerodrome Slipstream
+        WETH/USDC CL100 snapshot on Base: spot, a 30-minute TWAP, active
+        in-range liquidity, token balances, the live pool fee, and fixed-size
+        QuoterV2 exact-input quotes. Factory, QuoterV2, and Pool runtime
+        hashes are re-verified against the reviewed allowlist at the quoted
+        block. This is evidence for one reviewed pool, not an oracle feed,
+        consensus vote, executable route, or statement about every Aerodrome
+        or Base route.
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: Fresh block-pinned Aerodrome Slipstream market evidence.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  data:
+                    type: object
+                    required:
+                      [
+                        source,
+                        venue,
+                        chainId,
+                        market,
+                        block,
+                        contracts,
+                        spot,
+                        twap,
+                        activeLiquidityRaw,
+                        poolBalances,
+                        quotes,
+                        caveats,
+                      ]
+                    properties:
+                      source: { type: string, const: dex-market }
+                      venue: { type: string, const: aerodrome-slipstream }
+                      chainId: { type: integer, const: 8453 }
+                      market: { type: string, const: WETH/USDC }
+                      sourceFreshnessSeconds: { type: integer, minimum: 0 }
+                      observedAt: { type: string, format: date-time }
+                      block:
+                        type: object
+                        required: [number, hash, timestamp]
+                        properties:
+                          number: { type: string, pattern: '^[0-9]+$' }
+                          hash: { type: string, pattern: '^0x[0-9a-fA-F]{64}$' }
+                          timestamp: { type: string, format: date-time }
+                      contracts:
+                        type: object
+                        required: [factory, quoterV2, pool, token0, token1, tickSpacing, feePips]
+                        properties:
+                          factory: { type: string, pattern: '^0x[0-9a-fA-F]{40}$' }
+                          quoterV2: { type: string, pattern: '^0x[0-9a-fA-F]{40}$' }
+                          pool: { type: string, pattern: '^0x[0-9a-fA-F]{40}$' }
+                          token0: { type: string, pattern: '^0x[0-9a-fA-F]{40}$' }
+                          token1: { type: string, pattern: '^0x[0-9a-fA-F]{40}$' }
+                          tickSpacing: { type: integer, const: 100 }
+                          feePips: { type: integer, minimum: 0 }
+                      spot:
+                        type: object
+                        required: [tick, token1PerToken0]
+                      twap:
+                        type: object
+                        required: [windowSeconds, tick, token1PerToken0, deviationBpsFromSpot]
+                      activeLiquidityRaw: { type: string, pattern: '^[0-9]+$' }
+                      poolBalances:
+                        type: object
+                        required: [token0Raw, token0, token1Raw, token1]
+                      quotes:
+                        type: array
+                        items:
+                          type: object
+                          required:
+                            [
+                              amountIn,
+                              amountInRaw,
+                              amountOut,
+                              amountOutRaw,
+                              effectiveToken1PerToken0,
+                              initializedTicksCrossed,
+                              priceImpactBps,
+                            ]
+                      caveats:
+                        type: array
+                        items: { type: string }
+        '503':
+          description: Fresh Aerodrome Slipstream evidence is unavailable.
+
+  /markets/dex/pancakeswap:
+    get:
+      operationId: getPancakeSwapV3Market
+      tags: [DEX Markets]
+      summary: Base PancakeSwap V3 USDC/USDT market evidence
+      description: >-
+        Returns block-pinned, code-identity-verified PancakeSwap V3 evidence
+        for the reviewed Base USDC/USDT 0.01% pool. It is one venue witness,
+        not an oracle consensus input or a general PancakeSwap route quote.
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: Fresh block-pinned PancakeSwap V3 market evidence.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: { type: boolean, const: true }
+                  data:
+                    type: object
+                    required: [source, venue, chainId, market, block, contracts, spot, twap, quotes]
+                    properties:
+                      source: { type: string, const: dex-market }
+                      venue: { type: string, const: uniswap-v3 }
+                      chainId: { type: integer, const: 8453 }
+                      market: { type: string, const: USDC/USDT }
+                      block: { type: object }
+                      contracts: { type: object }
+                      spot: { type: object }
+                      twap: { type: object }
+                      quotes: { type: array, items: { type: object } }
+        '503':
+          description: Fresh PancakeSwap V3 market evidence is unavailable.
+
+  /markets/dex/base/venues:
+    get:
+      operationId: getBaseDexVenueIntegrations
+      tags: [DEX Markets]
+      summary: Reviewed Base DEX deployment identities
+      description: >-
+        Re-verifies pinned runtime bytecode for Insight's reviewed Base DEX
+        deployments at one block. The response distinguishes deployment
+        evidence from pool-specific execution support; dynamic hooks, fees,
+        bins, and Curve invariants are fail-closed until separately reviewed.
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: Fresh pinned Base DEX deployment evidence.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: { type: boolean, const: true }
+                  data:
+                    type: object
+                    required: [source, chainId, block, venues]
+                    properties:
+                      source: { type: string, const: dex-deployment }
+                      chainId: { type: integer, const: 8453 }
+                      block: { type: object }
+                      venues: { type: array, items: { type: object } }
+        '503':
+          description: Fresh Base DEX deployment evidence is unavailable.
+
+  /markets/dex/solana:
+    get:
+      operationId: getSolanaDexRoute
+      tags: [DEX Markets]
+      summary: Solana SOL/USDC route evidence
+      description: >-
+        Returns an authenticated Jupiter exact-input SOL/USDC quote ladder with
+        its selected AMM route, Jupiter context slot, and a verified Solana
+        mainnet-beta finalized RPC witness. This is an aggregator route quote,
+        not a block-pinned single-pool read, transaction simulation, or landing
+        guarantee. Use the signed Solana simulation endpoint for an exact
+        prepared transaction before authorization.
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: Fresh Solana route evidence.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  data:
+                    type: object
+                    required: [source, venue, network, market, finalizedSlot, quotes]
+                    properties:
+                      source: { type: string, const: dex-route }
+                      venue: { type: string, const: jupiter }
+                      network: { type: string, const: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' }
+                      market: { type: string, const: SOL/USDC }
+                      finalizedSlot: { type: integer, minimum: 0 }
+                      quotes:
+                        type: array
+                        items:
+                          type: object
+                          required: [amountInRaw, amountOutRaw, priceImpactPct, contextSlot, route]
+        '503':
+          description: Fresh Solana route evidence is unavailable.
+
+  /markets/dex/hyperliquid:
+    get:
+      operationId: getHyperliquidPerpMarket
+      tags: [DEX Markets]
+      summary: Hyperliquid perpetual CLOB market evidence
+      description: >-
+        Returns fresh, read-only Hyperliquid mainnet perpetual-market context
+        for a reviewed BTC, ETH, or HYPE market: exchange-reported mark, mid,
+        oracle, funding, open interest and 24-hour notional volume, plus a
+        fresh L2 book witness, displayed depth, and bounded two-sided impact
+        estimates. This is one exchange's CLOB context, not an oracle feed,
+        consensus vote, or executable quote. It never signs, simulates, or
+        submits an order.
+      security:
+        - apiKey: []
+      parameters:
+        - name: market
+          in: query
+          required: false
+          description: Reviewed Hyperliquid perpetual market. Defaults to BTC.
+          schema:
+            type: string
+            enum: [BTC, ETH, HYPE]
+            default: BTC
+      responses:
+        '200':
+          description: Fresh reviewed Hyperliquid perpetual-market evidence.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  data:
+                    type: object
+                    required: [source, venue, network, market, coin, book, perpetual, estimates]
+                    properties:
+                      source: { type: string, const: dex-market }
+                      venue: { type: string, const: hyperliquid-perp }
+                      network: { type: string, const: hyperliquid:mainnet }
+                      market: { type: string, example: BTC-PERP }
+                      coin: { type: string, enum: [BTC, ETH, HYPE] }
+                      sourceFreshnessSeconds: { type: number, minimum: 0 }
+                      book:
+                        type: object
+                        required:
+                          [
+                            timestamp,
+                            displayedLevelsPerSide,
+                            bestBid,
+                            bestAsk,
+                            spreadBps,
+                            bidDepthNotionalUsd,
+                            askDepthNotionalUsd,
+                          ]
+                      perpetual:
+                        type: object
+                        required:
+                          [
+                            markPrice,
+                            midPrice,
+                            oraclePrice,
+                            markDeviationBpsFromOracle,
+                            fundingRate,
+                            openInterest,
+                            dayNotionalVolume,
+                            sizeDecimals,
+                            maxLeverage,
+                          ]
+                      estimates:
+                        type: array
+                        items:
+                          type: object
+                          required:
+                            [
+                              side,
+                              targetNotionalUsd,
+                              filledNotionalUsd,
+                              filledBase,
+                              averagePrice,
+                              priceImpactBps,
+                              complete,
+                            ]
+        '400':
+          description: The market is not in Insight's reviewed Hyperliquid perpetual allowlist.
+        '503':
+          description: Fresh Hyperliquid perpetual-market evidence is unavailable.
+
+  /markets/settlement-evidence:
+    get:
+      operationId: getSettlementEvidence
+      tags: [Execution Evidence]
+      summary: Signed prediction-market settlement evidence
+      description: >-
+        Returns Insight's independently derived settlement-evidence pack for a
+        prediction-market price contract: the market's declared resolution
+        compared against independent sources (settlement-window derived
+        analytics and Insight's own oracle-consensus snapshots), with an EIP-712
+        attestation when the pack is signed. With the `slug` query parameter a
+        single pack is returned; without it the most recent packs are listed.
+        Packs carry derived analytics only — settlement-window venue candles
+        stay internal because their source is vendor-licensed
+        derived-analytics-only.
+      security:
+        - apiKey: []
+      parameters:
+        - name: slug
+          in: query
+          required: false
+          description: >-
+            Market slug of a watched prediction-market price contract. Omit to
+            list the most recent packs.
+          schema:
+            type: string
+            maxLength: 256
+        - name: limit
+          in: query
+          required: false
+          description: Maximum number of packs when listing. Defaults to 20.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Settlement-evidence pack(s).
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  data:
+                    type: object
+                    properties:
+                      pack:
+                        $ref: '#/components/schemas/SettlementEvidencePack'
+                      packs:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/SettlementEvidencePack'
+                      count: { type: integer, minimum: 0 }
+                      rightsNotice: { type: string }
+                      requestId: { type: string }
+        '404':
+          description: No settlement-evidence pack exists for this market. Packs are produced after a market resolves.
+        '503':
+          description: Settlement evidence is temporarily unavailable (infrastructure state; retryable).
 
   # ── Prices ──────────────────────────────────────────────
   /prices:
@@ -1840,6 +2487,234 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  /safety/oracle-watch-window:
+    post:
+      operationId: purchaseOracleWatchWindow
+      tags: [Safety]
+      summary: Purchase a 24h Oracle Watch monitored window
+      description: >-
+        Pre-pays continuous Oracle Watch coverage for one (symbol, chain)
+        subject for 24 hours — the first non-per-call product. The purchase
+        returns a one-time window token (shown exactly once; only its SHA-256
+        hash is stored) used to poll and close the window. In-window signal
+        polls are token-authenticated and never charged per call, bounded by
+        the plan's poll cap and minimum poll interval. Assessment and evidence
+        only — no custody, no execution authority. API-key access (charged as
+        one product-priced credit debit) or x402 payment is accepted.
+      security:
+        - apiKey: []
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [symbol]
+              properties:
+                symbol: { type: string, description: Asset to monitor, example: ETH }
+                chain:
+                  {
+                    type: string,
+                    description: Optional chain scope fixed for the window,
+                    example: arbitrum,
+                  }
+      responses:
+        '200':
+          { description: Window opened, with the one-time window token and poll/close usage hints. }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+
+  /safety/oracle-watch-window/{windowId}:
+    get:
+      operationId: pollOracleWatchWindow
+      tags: [Safety]
+      summary: Poll the current halt/proceed signal inside an open window
+      description: >-
+        Free in-window poll of the current Oracle Watch signal for the
+        monitored subject, authenticated by the one-time window token returned
+        at purchase (`Authorization: Bearer oww_<hex>`). Each poll is counted
+        against the window's poll budget and recorded as an auditable judgment.
+        Unknown window ids and wrong tokens are indistinguishable (401).
+      security: [{}]
+      parameters:
+        - in: path
+          name: windowId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Current signal with window usage (polls used, poll cap). }
+        '401': { description: Invalid or missing window token. }
+        '404': { description: Monitored window not found. }
+        '410': { description: Window closed or expired. }
+        '429': { description: Poll cap exhausted or polling before the minimum interval. }
+    post:
+      operationId: closeOracleWatchWindow
+      tags: [Safety]
+      summary: Close the window early and return its coverage summary
+      description: >-
+        Idempotent close. Returns the summary rebuilt from the per-issuance
+        audit rows: verdict/recommendation counts, halt count, and first/last
+        halt timestamps. Works on an expired window — the summary is the record
+        of what the window covered. Authenticated by the one-time window token.
+      security: [{}]
+      parameters:
+        - in: path
+          name: windowId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Window summary (polls issued, verdict counts, halt timeline). }
+        '401': { description: Invalid or missing window token. }
+        '404': { description: Monitored window not found. }
+
+  /safety/position-lifecycle:
+    post:
+      operationId: purchasePositionLifecycle
+      tags: [Safety]
+      summary: Purchase a 24h Position Lifecycle Bundle
+      description: >-
+        Pre-pays 24h of lifecycle coverage for one (symbol, chain) position
+        subject — the second non-per-call product, and the first bundle. One
+        purchase includes an embedded Oracle Watch monitored window (300 free
+        signal polls via the existing window routes with the same bearer
+        token), 4 bundled guard assessments across any position-guard family,
+        and 1 attested execution receipt. The purchase returns a one-time
+        lifecycle token (shown exactly once; only its SHA-256 hash is stored).
+        Assessment and evidence only — no custody, no execution authority.
+        API-key access (charged as one product-priced credit debit) or x402
+        payment is accepted.
+      security:
+        - apiKey: []
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [symbol]
+              properties:
+                symbol: { type: string, description: Position subject to cover, example: ETH }
+                chain:
+                  {
+                    type: string,
+                    description: Optional chain scope fixed for the lifecycle,
+                    example: arbitrum,
+                  }
+      responses:
+        '200': {
+            description: Lifecycle opened,
+            with the one-time lifecycle token,
+            embedded
+            windowId,
+            and usage hints for watch/guard/receipt/close.,
+          }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+
+  /safety/position-lifecycle/{lifecycleId}:
+    post:
+      operationId: closePositionLifecycle
+      tags: [Safety]
+      summary: Close the lifecycle early and return its combined summary
+      description: >-
+        Idempotent close. Returns the lifecycle's guard and receipt usage plus
+        the embedded monitored window's coverage summary (verdict and
+        recommendation counts, halt timeline). Works on an expired lifecycle —
+        the summary is the record of what the lifecycle covered. Authenticated
+        by the one-time lifecycle token (`Authorization: Bearer plc_<hex>`).
+        Unknown lifecycle ids and wrong tokens are indistinguishable (401).
+      security: [{}]
+      parameters:
+        - in: path
+          name: lifecycleId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          { description: Combined lifecycle summary (guard usage, receipt state, watch coverage). }
+        '401': { description: Invalid or missing lifecycle token. }
+        '404': { description: Position lifecycle not found. }
+
+  /safety/position-lifecycle/{lifecycleId}/guard:
+    post:
+      operationId: runBundledPositionGuard
+      tags: [Safety]
+      summary: Run one bundled guard assessment inside an open lifecycle
+      description: >-
+        One bundled guard assessment, free within the lifecycle's guard budget
+        (4 across the 24h window). The family is chosen per call
+        (base_perp, hyperliquid_perp, base_lending, monad_lending,
+        multichain_evm_lending, solana_lending) and params are validated against
+        that family's native route schema. A BLOCK verdict is a complete
+        assessment and consumes a budget slot; a schema or assessor technical
+        failure does not. solana_lending additionally requires the exact
+        unsigned Solana transaction as `transaction`. Assessment only — exact
+        call binding stays on the native guard routes.
+      security: [{}]
+      parameters:
+        - in: path
+          name: lifecycleId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [family, params]
+              properties:
+                family: { type: string, description: Guard family to assess with }
+                params: { type: object, description: Native guard input for the chosen family }
+                transaction:
+                  {
+                    type: object,
+                    description: Required for solana_lending — the exact unsigned transaction,
+                  }
+      responses:
+        '200': { description: Native guard result with guard budget usage. }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { description: Invalid or missing lifecycle token. }
+        '404': { description: Position lifecycle not found. }
+        '410': { description: Lifecycle closed or expired. }
+        '429': { description: Guard budget exhausted. }
+
+  /safety/position-lifecycle/{lifecycleId}/receipt:
+    post:
+      operationId: issueBundledExecutionReceipt
+      tags: [Safety]
+      summary: Issue the bundled attested execution receipt (one per lifecycle)
+      description: >-
+        Issues one attested Execution Receipt, free within the lifecycle's
+        single receipt credit. The body is identical to the native
+        /api/v1/execution/attestation/issue body — the receipt binds to the
+        caller's own pre-trade attestations exactly as it does à la carte; the
+        bundle only changes who pays. The credit is consumed only by a
+        successfully recorded issuance; failed attempts restore it.
+      security: [{}]
+      parameters:
+        - in: path
+          name: lifecycleId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExecutionIssueRequest'
+      responses:
+        '200': { description: Signed receipt with the lifecycle receipt state (consumed). }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { description: Invalid or missing lifecycle token. }
+        '404': { description: Position lifecycle not found. }
+        '409': { description: The bundled receipt was already issued. }
+        '410': { description: Lifecycle closed or expired. }
+        '502': { description: On-chain execution fact collection failed. }
+        '503': { description: Receipt signing unavailable. }
+
   /safety/position:
     post:
       operationId: calculatePositionSafety
@@ -1950,6 +2825,81 @@ paths:
             type: string
             pattern: '^0x[0-9a-fA-F]{40}$'
             example: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'
+        - name: decisionInputCheck
+          in: query
+          required: false
+          description: Set to `1` to request the separate signed decision-input sufficiency assessment. It does not change the oracle safety verdict or authorize execution.
+          schema: { type: string, enum: ['0', '1'] }
+        - name: decisionPriceUsd
+          in: query
+          required: false
+          description: Required with decisionInputCheck=1. Intended USD price for the operation.
+          schema: { type: number, exclusiveMinimum: 0 }
+        - name: quotePriceUsd
+          in: query
+          required: false
+          description: Required with decisionInputCheck=1. Price returned by the actual venue quote.
+          schema: { type: number, exclusiveMinimum: 0 }
+        - name: quoteObservedAt
+          in: query
+          required: false
+          description: Required with decisionInputCheck=1. Offset-qualified ISO-8601 venue quote timestamp.
+          schema: { type: string, format: date-time }
+        - name: maxReferenceDeviationBps
+          in: query
+          required: false
+          description: Required with decisionInputCheck=1. Maximum decision-price deviation from each reference, in basis points.
+          schema: { type: integer, minimum: 0, maximum: 10000 }
+        - name: maxSlippageBps
+          in: query
+          required: false
+          description: Required with decisionInputCheck=1. Maximum decision-price-to-venue-quote deviation, in basis points.
+          schema: { type: integer, minimum: 0, maximum: 10000 }
+        - name: maxQuoteAgeSeconds
+          in: query
+          required: false
+          description: Required with decisionInputCheck=1. Maximum accepted age of the venue quote, 1 to 300 seconds.
+          schema: { type: integer, minimum: 1, maximum: 300 }
+        - name: quoteProvenance
+          in: query
+          required: false
+          description: URL-encoded JSON hash-only quote-provenance envelope. Raw vendor request and response bytes stay with the caller. It binds source id, rights scope, asset, chain, price, timestamp, and request/response hashes.
+          schema: { type: string, minLength: 2, maxLength: 4096 }
+        - name: requireQuoteProvenance
+          in: query
+          required: false
+          description: With decisionInputCheck=1, set to `1` to fail closed unless a permitted quoteProvenance envelope binds the submitted quote. A missing or prohibited envelope returns INSUFFICIENT_EVIDENCE.
+          schema: { type: string, enum: ['0', '1'] }
+        - name: reviewedUniswapV3AmountIn
+          in: query
+          required: false
+          description: Exact source-token amount for the reviewed concentrated-liquidity pre-trade lane. Requires all reviewedUniswapV3 parameters, decisionInputCheck=1, and destinationAsset. Admitted routes are Monad MON/WMON→USDC, Base ETH/WETH→USDC, and Base PancakeSwap V3 USDC→USDT only.
+          schema: { type: string, pattern: '^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$' }
+        - name: reviewedUniswapV3MaxQuoteDeviationBps
+          in: query
+          required: false
+          description: Maximum divergence between the pinned reviewed-pool quote and the submitted venue quote, in basis points.
+          schema: { type: integer, minimum: 0, maximum: 10000 }
+        - name: reviewedUniswapV3MaxTwapDeviationBps
+          in: query
+          required: false
+          description: Maximum spot-to-TWAP divergence for the reviewed pool, in basis points.
+          schema: { type: integer, minimum: 0, maximum: 10000 }
+        - name: reviewedAerodromeSlipstreamAmountIn
+          in: query
+          required: false
+          description: Exact WETH input for the reviewed Base Aerodrome Slipstream WETH/USDC CL100 lane. Requires all reviewedAerodromeSlipstream parameters, decisionInputCheck=1, and destinationAsset=USDC. It cannot be combined with the reviewedUniswapV3 lane.
+          schema: { type: string, pattern: '^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$' }
+        - name: reviewedAerodromeSlipstreamMaxQuoteDeviationBps
+          in: query
+          required: false
+          description: Maximum divergence between the pinned reviewed Aerodrome pool quote and the submitted venue quote, in basis points.
+          schema: { type: integer, minimum: 0, maximum: 10000 }
+        - name: reviewedAerodromeSlipstreamMaxTwapDeviationBps
+          in: query
+          required: false
+          description: Maximum spot-to-TWAP divergence for the reviewed Aerodrome pool, in basis points.
+          schema: { type: integer, minimum: 0, maximum: 10000 }
       responses:
         '200':
           description: Pre-trade safety verdict, paid through x402 or MPP or authorized by API key.
@@ -1976,6 +2926,1103 @@ paths:
             WWW-Authenticate:
               description: MPP challenge when enabled on this deployment.
               schema: { type: string }
+
+  /safety/base-agent-swap-guard/verify:
+    get:
+      operationId: getBaseAgentSwapGuardVerificationSchema
+      tags: [Safety]
+      summary: Get Base Agent Swap Guard attestation schema
+      security: []
+      responses:
+        '200': { description: Attester status and supported EIP-712 schema. }
+    post:
+      operationId: verifyBaseAgentSwapGuardDecision
+      tags: [Safety]
+      summary: Verify a Base Agent Swap Guard decision
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: { type: object, additionalProperties: true }
+      responses:
+        '200': { description: Cryptographic verification result and expiry state. }
+
+  /safety/base-agent-swap-guard/settlement:
+    post:
+      operationId: settleBaseAgentSwapGuard
+      tags: [Safety]
+      summary: Post-settlement closure for a Base Agent Swap Guard decision
+      description: >-
+        Pair a signed Base Agent Swap Guard decision with the swap transaction
+        that settled it. Insight verifies the decision, requires the on-chain
+        to/value/calldata to match the guarded approval and swap calls
+        byte-for-byte, reconciles the observed ERC-20 input and output amounts
+        against the guarded quote (amountInRaw, quotedAmountOutRaw,
+        amountOutMinimumRaw, realized output-leg slippage vs the agent policy),
+        and returns a signed BaseAgentSwapGuardSettlement bound to the
+        decisionHash with explicit reason codes. A decision that does not
+        verify, or a transaction whose bytes differ from the guarded calls, is
+        rejected — never closed over. With verifyOnly=1 and a settlement
+        object, only the settlement's own EIP-712 signature and integrity are
+        checked.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision, swapTxHash]
+              properties:
+                decision:
+                  type: object
+                  additionalProperties: true
+                  description: The signed Base Agent Swap Guard decision the agent executed under.
+                swapTxHash:
+                  type: string
+                  pattern: '^0x[0-9a-fA-F]{64}$'
+                  description: Hash of the executed swap transaction.
+                approvalTxHash:
+                  type: string
+                  pattern: '^0x[0-9a-fA-F]{64}$'
+                  description: Optional hash of the executed approval transaction. When presented it must match the guarded approval call exactly; when absent the settlement carries APPROVAL_TX_NOT_PRESENTED.
+                verifyOnly:
+                  type: boolean
+                  description: Set to true to only verify a previously issued settlement signature; requires the settlement property.
+                settlement:
+                  type: object
+                  additionalProperties: true
+                  description: The signed settlement to verify in verifyOnly mode.
+      responses:
+        '200':
+          description: Signed settlement closure (or, in verifyOnly mode, the signature verification result).
+        '400':
+          description: Rejected — the decision did not verify, the chain is unsupported, or the executed bytes differ from the guarded calls (ON_CHAIN_CALL_MISMATCH).
+        '404':
+          description: The presented swap or approval transaction was not found on the configured RPC.
+        '502':
+          description: RPC or collection failure while reading settlement evidence.
+
+  /safety/base-lending-guard:
+    get:
+      operationId: assessBaseLendingGuard
+      tags: [Safety]
+      summary: Base lending risk decision
+      description: >-
+        Read-only risk gate for a caller-declared post-action lending position on
+        Base. It checks live reviewed protocol controls and oracle safety evidence;
+        it never signs, submits, or authorizes a transaction. API-key access or
+        x402 payment is accepted. Morpho Blue requires a marketId.
+      security:
+        - apiKey: []
+        - {}
+      parameters:
+        - {
+            name: protocolId,
+            in: query,
+            required: true,
+            schema:
+              {
+                type: string,
+                enum: [aave-v3-base, morpho-blue-base, compound-v3-base, moonwell-base],
+              },
+          }
+        - {
+            name: action,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [supply, borrow] },
+          }
+        - {
+            name: collateralSymbol,
+            in: query,
+            required: true,
+            schema: { type: string, example: ETH },
+          }
+        - { name: loanSymbol, in: query, required: true, schema: { type: string, example: USDC } }
+        - {
+            name: collateralValueUsd,
+            in: query,
+            required: true,
+            schema: { type: number, exclusiveMinimum: 0, example: 10000 },
+          }
+        - {
+            name: debtValueUsd,
+            in: query,
+            required: true,
+            schema: { type: number, minimum: 0, example: 5000 },
+          }
+        - {
+            name: marketId,
+            in: query,
+            required: false,
+            description: Required 32-byte Morpho Blue market ID.,
+            schema: { type: string, pattern: '^0x[0-9a-fA-F]{64}$' },
+          }
+      responses:
+        '200': { description: Complete ALLOW, CAUTION, or BLOCK lending decision. }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+    post:
+      operationId: createBaseLendingGuardExactDecision
+      tags: [Safety]
+      summary: Bind a Base lending decision to one exact direct call
+      description: >-
+        Creates a portable EIP-712 decision for a read-only assessment and one
+        unsigned direct Base lending call. The decision remains non-authorizing
+        and must be bound to user authorization before execution.
+      security:
+        - apiKey: []
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [guard, transaction]
+              properties:
+                guard: { type: object, description: The same lending fields accepted by GET. }
+                transaction:
+                  {
+                    type: object,
+                    description: Exact unsigned direct call,
+                    sender,
+                    nonce,
+                    and zero value.,
+                  }
+      responses:
+        '200':
+          {
+            description: Complete decision,
+            optionally carrying an attestation when an eligible attester is configured.,
+          }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+
+  /safety/base-lending-guard/verify:
+    get:
+      operationId: getBaseLendingGuardVerificationSchema
+      tags: [Safety]
+      summary: Get Base lending guard attestation schema
+      security: []
+      responses:
+        '200': { description: Attester status and supported EIP-712 schema. }
+    post:
+      operationId: verifyBaseLendingGuardDecision
+      tags: [Safety]
+      summary: Verify a Base lending guard decision
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: { type: object, additionalProperties: true }
+      responses:
+        '200': { description: Cryptographic verification result and expiry state. }
+
+  /safety/base-perp-guard:
+    get:
+      operationId: assessBasePerpGuard
+      tags: [Safety]
+      summary: Base perp risk decision
+      description: >-
+        Read-only risk gate for a caller-declared Synthetix Perps V3 Base
+        position. It separately evaluates the underlying and USDC margin oracle
+        integrity and checks the declared post-action leverage against reviewed
+        market caps; it never signs, submits, or authorizes an order. API-key
+        access or x402 payment is accepted.
+      security:
+        - apiKey: []
+        - {}
+      parameters:
+        - {
+            name: protocolId,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [synthetix-perps-v3-base] },
+          }
+        - {
+            name: action,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [open_long, open_short] },
+          }
+        - { name: assetSymbol, in: query, required: true, schema: { type: string, example: ETH } }
+        - {
+            name: marginAssetSymbol,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [USDC] },
+          }
+        - {
+            name: sizeUsd,
+            in: query,
+            required: true,
+            schema: { type: number, exclusiveMinimum: 0, example: 5000 },
+          }
+        - {
+            name: marginValueUsd,
+            in: query,
+            required: true,
+            schema: { type: number, exclusiveMinimum: 0, example: 2500 },
+          }
+      responses:
+        '200': { description: Complete ALLOW, CAUTION, or BLOCK perp decision. }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+    post:
+      operationId: createBasePerpGuardExactDecision
+      tags: [Safety]
+      summary: Bind a Base perp decision to one exact PerpsMarketProxy commitOrder
+      description: >-
+        Creates a portable EIP-712 decision that commits to the full
+        PerpsMarketProxy commitOrder calldata, sender, nonce, and zero
+        transaction value. The decision remains non-authorizing and must be
+        bound to user authorization before execution.
+      security:
+        - apiKey: []
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [guard, transaction]
+              properties:
+                guard: { type: object, description: The same perp fields accepted by GET. }
+                transaction:
+                  {
+                    type: object,
+                    description: Exact unsigned PerpsMarketProxy commitOrder call with zero value.,
+                  }
+      responses:
+        '200':
+          {
+            description: Complete decision,
+            optionally carrying an attestation when an eligible attester is configured.,
+          }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+
+  /safety/base-perp-guard/verify:
+    get:
+      operationId: getBasePerpGuardVerificationSchema
+      tags: [Safety]
+      summary: Get Base Perp Guard attestation schema
+      security: []
+      responses:
+        '200': { description: Attester status and supported EIP-712 schema. }
+    post:
+      operationId: verifyBasePerpGuardDecision
+      tags: [Safety]
+      summary: Verify a Base Perp Guard decision
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: { type: object, additionalProperties: true }
+      responses:
+        '200': { description: Cryptographic verification result and expiry state. }
+
+  /safety/hyperliquid-perp-guard:
+    get:
+      operationId: assessHyperliquidPerpGuard
+      tags: [Safety]
+      summary: Hyperliquid perp risk decision
+      description: >-
+        Read-only risk gate for a caller-declared Hyperliquid perpetual position.
+        It separately evaluates underlying and USDC cross-oracle consensus
+        integrity on canonical mainnet feeds, checks the declared post-action
+        leverage against a reviewed static profile capped by the freshly
+        observed venue leverage limit, and attaches disclosed venue evidence
+        (mark/oracle divergence, cross-venue consensus deviation) that can
+        escalate the verdict; it never signs, submits, or authorizes an order.
+        API-key access or x402 payment is accepted.
+      security:
+        - apiKey: []
+        - {}
+      parameters:
+        - {
+            name: protocolId,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [hyperliquid-perps-mainnet] },
+          }
+        - {
+            name: action,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [open_long, open_short] },
+          }
+        - { name: assetSymbol, in: query, required: true, schema: { type: string, example: BTC } }
+        - {
+            name: marginAssetSymbol,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [USDC] },
+          }
+        - {
+            name: sizeUsd,
+            in: query,
+            required: true,
+            schema: { type: number, exclusiveMinimum: 0, example: 25000 },
+          }
+        - {
+            name: marginValueUsd,
+            in: query,
+            required: true,
+            schema: { type: number, exclusiveMinimum: 0, example: 2500 },
+          }
+      responses:
+        '200': { description: Complete ALLOW, CAUTION, or BLOCK perp decision. }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+    post:
+      operationId: createHyperliquidPerpGuardExactDecision
+      tags: [Safety]
+      summary: Bind a Hyperliquid perp decision to one exact unsigned order envelope
+      description: >-
+        Creates a portable EIP-712 decision that commits to the exact unsigned
+        Hyperliquid IOC order envelope, including its intent hash, asset index,
+        size, price, and expiry. The decision remains non-authorizing and must
+        be bound to user authorization before the envelope is signed in the
+        user wallet process.
+      security:
+        - apiKey: []
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [guard, order]
+              properties:
+                guard: { type: object, description: The same perp fields accepted by GET. }
+                order:
+                  {
+                    type: object,
+                    description: Exact unsigned Hyperliquid exchange envelope from the reviewed IOC preflight.,
+                  }
+      responses:
+        '200':
+          {
+            description: Complete decision,
+            optionally carrying an attestation when an eligible attester is configured.,
+          }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+
+  /safety/hyperliquid-perp-guard/verify:
+    get:
+      operationId: getHyperliquidPerpGuardVerificationSchema
+      tags: [Safety]
+      summary: Get Hyperliquid Perp Guard attestation schema
+      security: []
+      responses:
+        '200': { description: Attester status and supported EIP-712 schema. }
+    post:
+      operationId: verifyHyperliquidPerpGuardDecision
+      tags: [Safety]
+      summary: Verify a Hyperliquid Perp Guard decision
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: { type: object, additionalProperties: true }
+      responses:
+        '200': { description: Cryptographic verification result and expiry state. }
+
+  /safety/solana-perp-guard:
+    get:
+      operationId: assessSolanaPerpGuard
+      tags: [Safety]
+      summary: Solana perp risk decision (Drift v2 on-chain evidence)
+      description: >-
+        Read-only risk gate for a caller-declared Drift Protocol v2 perpetual
+        position on Solana mainnet (reviewed SOL, BTC, and ETH markets, USDC
+        margin). It separately evaluates underlying and USDC cross-oracle
+        consensus integrity on canonical mainnet feeds, checks the declared
+        post-action leverage against a reviewed static profile capped by the
+        live Drift margin ratio, and attaches disclosed on-chain venue evidence
+        (Drift mark price vs Pyth Lazer oracle deviation, funding rate, open
+        interest, market status) that can escalate the verdict; it never signs,
+        submits, or authorizes an order. API-key access or x402 payment is
+        accepted.
+      security:
+        - apiKey: []
+        - {}
+      parameters:
+        - {
+            name: protocolId,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [drift-v2-mainnet] },
+          }
+        - {
+            name: action,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [open_long, open_short] },
+          }
+        - { name: assetSymbol, in: query, required: true, schema: { type: string, example: SOL } }
+        - {
+            name: marginAssetSymbol,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [USDC] },
+          }
+        - {
+            name: sizeUsd,
+            in: query,
+            required: true,
+            schema: { type: number, exclusiveMinimum: 0, example: 5000 },
+          }
+        - {
+            name: marginValueUsd,
+            in: query,
+            required: true,
+            schema: { type: number, exclusiveMinimum: 0, example: 500 },
+          }
+      responses:
+        '200': { description: Complete ALLOW, CAUTION, or BLOCK perp decision. }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+
+  /safety/monad-lending-guard:
+    get:
+      operationId: assessMonadLendingGuard
+      tags: [Safety]
+      summary: Monad lending risk decision
+      description: >-
+        Read-only risk gate for a caller-declared post-action lending position on
+        Monad (chain ID 143). It checks live Aave V3 or Morpho Blue controls and
+        oracle safety evidence; it never signs, submits, or authorizes a transaction.
+        API-key access or x402 payment is accepted. Morpho Blue requires a marketId.
+      security:
+        - apiKey: []
+        - {}
+      parameters:
+        - {
+            name: protocolId,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [aave-v3-monad, morpho-blue-monad] },
+          }
+        - {
+            name: action,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [supply, borrow] },
+          }
+        - {
+            name: collateralSymbol,
+            in: query,
+            required: true,
+            schema: { type: string, example: WETH },
+          }
+        - { name: loanSymbol, in: query, required: true, schema: { type: string, example: USDC } }
+        - {
+            name: collateralValueUsd,
+            in: query,
+            required: true,
+            schema: { type: number, exclusiveMinimum: 0, example: 10000 },
+          }
+        - {
+            name: debtValueUsd,
+            in: query,
+            required: true,
+            schema: { type: number, minimum: 0, example: 5000 },
+          }
+        - {
+            name: marketId,
+            in: query,
+            required: false,
+            description: Required 32-byte Morpho Blue market ID.,
+            schema: { type: string, pattern: '^0x[0-9a-fA-F]{64}$' },
+          }
+      responses:
+        '200': { description: Complete ALLOW, CAUTION, or BLOCK lending decision. }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+    post:
+      operationId: createMonadLendingGuardExactDecision
+      tags: [Safety]
+      summary: Bind a Monad lending decision to one exact direct call
+      description: >-
+        Creates a portable EIP-712 decision for a read-only assessment and one
+        unsigned direct Monad lending call. The decision remains non-authorizing
+        and must be bound to user authorization before execution.
+      security:
+        - apiKey: []
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [guard, transaction]
+              properties:
+                guard: { type: object, description: The same lending fields accepted by GET. }
+                transaction:
+                  {
+                    type: object,
+                    description: Exact unsigned direct call,
+                    sender,
+                    nonce,
+                    and zero value.,
+                  }
+      responses:
+        '200':
+          {
+            description: Complete decision,
+            optionally carrying an attestation when an eligible attester is configured.,
+          }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+
+  /safety/monad-lending-guard/verify:
+    get:
+      operationId: getMonadLendingGuardVerificationSchema
+      tags: [Safety]
+      summary: Get Monad lending guard attestation schema
+      security: []
+      responses:
+        '200': { description: Attester status and supported EIP-712 schema. }
+    post:
+      operationId: verifyMonadLendingGuardDecision
+      tags: [Safety]
+      summary: Verify a Monad lending guard decision
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: { type: object, additionalProperties: true }
+      responses:
+        '200': { description: Cryptographic verification result and expiry state. }
+
+  /safety/multichain-evm-lending-guard:
+    get:
+      operationId: assessMultichainEvmLendingGuard
+      tags: [Safety]
+      summary: Base, Polygon, Arbitrum, and BNB lending risk decision
+      description: >-
+        Read-only risk gate for a caller-declared post-action lending position on
+        Base, Polygon, Arbitrum, or BNB Chain. It validates the requested
+        reviewed direct-call market against live protocol controls and oracle
+        safety evidence. It never signs, submits, or authorizes a transaction.
+        API-key access or x402 payment is accepted.
+      security:
+        - apiKey: []
+        - {}
+      parameters:
+        - {
+            name: chainId,
+            in: query,
+            required: true,
+            schema: { type: integer, enum: [8453, 137, 42161, 56] },
+          }
+        - {
+            name: protocolId,
+            in: query,
+            required: true,
+            schema:
+              {
+                type: string,
+                enum:
+                  [
+                    aave-v3-polygon,
+                    aave-v3-arbitrum,
+                    aave-v3-bnb,
+                    venus-core-bnb,
+                    compound-v3-arbitrum,
+                    morpho-blue-polygon,
+                    morpho-blue-arbitrum,
+                    lista-moolah-bnb,
+                    euler-v2-base,
+                    euler-v2-arbitrum,
+                    dolomite-arbitrum,
+                    fluid-vault-t1-base,
+                    fluid-vault-t1-arbitrum,
+                  ],
+              },
+          }
+        - {
+            name: action,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [supply, borrow] },
+          }
+        - {
+            name: collateralSymbol,
+            in: query,
+            required: true,
+            schema: { type: string, example: WETH },
+          }
+        - { name: loanSymbol, in: query, required: true, schema: { type: string, example: USDC } }
+        - {
+            name: collateralValueUsd,
+            in: query,
+            required: true,
+            schema: { type: number, exclusiveMinimum: 0, example: 10000 },
+          }
+        - {
+            name: debtValueUsd,
+            in: query,
+            required: true,
+            schema: { type: number, minimum: 0, example: 5000 },
+          }
+      responses:
+        '200': { description: Complete ALLOW, CAUTION, or BLOCK lending decision. }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+    post:
+      operationId: createMultichainEvmLendingGuardExactDecision
+      tags: [Safety]
+      summary: Bind a multichain lending decision to one exact direct call
+      description: >-
+        Creates a portable EIP-712 decision for a read-only assessment and one
+        unsigned direct EVM lending call. The decision remains non-authorizing
+        and must be bound to user authorization before execution.
+      security:
+        - apiKey: []
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [guard, transaction]
+              properties:
+                guard: { type: object, description: The same lending fields accepted by GET. }
+                transaction:
+                  {
+                    type: object,
+                    description: Exact unsigned direct EVM call with sender,
+                    nonce,
+                    and zero value.,
+                  }
+      responses:
+        '200':
+          {
+            description: Complete decision,
+            optionally carrying an attestation when an eligible attester is configured.,
+          }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+
+  /safety/multichain-evm-lending-guard/verify:
+    get:
+      operationId: getMultichainEvmLendingGuardVerificationSchema
+      tags: [Safety]
+      summary: Get multichain EVM lending guard attestation schema
+      security: []
+      responses:
+        '200': { description: Attester status and supported EIP-712 schema. }
+    post:
+      operationId: verifyMultichainEvmLendingGuardDecision
+      tags: [Safety]
+      summary: Verify a multichain EVM lending guard decision
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: { type: object, additionalProperties: true }
+      responses:
+        '200': { description: Cryptographic verification result and expiry state. }
+
+  /safety/loopscale-vault-deposit:
+    post:
+      operationId: prepareLoopscaleVaultDeposit
+      tags: [Safety]
+      summary: Build and simulate one exact Loopscale vault deposit
+      description: >-
+        Read-only pre-signing gate that requests an unsigned deposit message
+        only from Loopscale's official API, resolves its address tables, checks
+        the vault and principal mint, and simulates the exact message on Solana
+        mainnet. An ALLOW never signs, submits, or authorizes a transaction.
+        API-key access or x402 payment is accepted.
+      security:
+        - apiKey: []
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                [
+                  wallet,
+                  vault,
+                  assetMint,
+                  collateralSymbol,
+                  loanSymbol,
+                  collateralValueUsd,
+                  principalAmount,
+                ]
+              properties:
+                wallet: { type: string, description: Solana wallet public key. }
+                vault: { type: string, description: Loopscale vault public key. }
+                assetMint: { type: string, description: Vault principal SPL mint. }
+                collateralSymbol: { type: string, example: USDC }
+                loanSymbol: { type: string, example: USDC }
+                collateralValueUsd: { type: number, exclusiveMinimum: 0, example: 1000 }
+                principalAmount: { type: string, pattern: '^[1-9][0-9]*$', example: '1000000' }
+                minLpAmount: { type: string, pattern: '^(?:0|[1-9][0-9]*)$', default: '0' }
+      responses:
+        '200':
+          {
+            description: Complete BLOCK,
+            CAUTION,
+            or ALLOW decision with an exact unsigned message when accepted.,
+          }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+
+  /safety/solana-lending-guard:
+    post:
+      operationId: createSolanaLendingGuardExactDecision
+      tags: [Safety]
+      summary: Simulate and attest one exact Solana lending instruction
+      description: >-
+        Read-only pre-signing gate for one direct Kamino Lend, Marginfi v2,
+        Jupiter Lend Earn, Save Lend, or Loopscale vault supply/borrow profile
+        on Solana mainnet. It verifies protocol-owned accounts and simulates the
+        exact unsigned message before issuing an Ed25519 decision when configured.
+        It never signs, submits, or authorizes a transaction. API-key access or
+        x402 payment is accepted.
+      security:
+        - apiKey: []
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [guard, transaction]
+              properties:
+                guard:
+                  type: object
+                  required:
+                    [
+                      protocolId,
+                      action,
+                      collateralSymbol,
+                      loanSymbol,
+                      collateralValueUsd,
+                      debtValueUsd,
+                    ]
+                  properties:
+                    protocolId:
+                      {
+                        type: string,
+                        enum:
+                          [kamino-lend, marginfi-v2, jupiter-lend-earn, save-lend, loopscale-vault],
+                      }
+                    action: { type: string, enum: [supply, borrow] }
+                    collateralSymbol: { type: string, example: SOL }
+                    loanSymbol: { type: string, example: USDC }
+                    collateralValueUsd: { type: number, exclusiveMinimum: 0, example: 10000 }
+                    debtValueUsd: { type: number, minimum: 0, example: 4000 }
+                transaction:
+                  type: object
+                  description: >-
+                    Complete unsigned legacy or v0 Solana message. Every
+                    address lookup table must include its resolved addresses.
+      responses:
+        '200':
+          {
+            description: Complete BLOCK/CAUTION/ALLOW decision,
+            optionally with a short-lived Ed25519 attestation.,
+          }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+
+  /safety/solana-lending-guard/verify:
+    get:
+      operationId: getSolanaLendingGuardVerificationSchema
+      tags: [Safety]
+      summary: Get Solana lending guard Ed25519 attester information
+      security: []
+      responses:
+        '200': { description: Attester public key and schema status. }
+    post:
+      operationId: verifySolanaLendingGuardDecision
+      tags: [Safety]
+      summary: Verify a Solana lending guard decision
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: { type: object, additionalProperties: true }
+      responses:
+        '200': { description: Cryptographic verification result and expiry state. }
+
+  /safety/solana-swap-guard:
+    post:
+      operationId: createSolanaSwapGuardExactDecision
+      tags: [Safety]
+      summary: Simulate and attest one exact Orca Whirlpool swap
+      description: >-
+        Read-only pre-signing gate for one legacy Whirlpool `swap` instruction in
+        the reviewed USDC/USDT pool on Solana mainnet. It re-derives every
+        reviewed identity from live mainnet state, prices the pool from its own
+        sqrtPrice, runs both oracle checks, and simulates the exact unsigned
+        message before issuing an Ed25519 decision when configured. It never
+        signs, submits, or authorizes a transaction. API-key access or x402
+        payment on the native Solana rail is accepted.
+      security:
+        - apiKey: []
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [guard, transaction]
+              properties:
+                guard:
+                  type: object
+                  required:
+                    [
+                      profileId,
+                      direction,
+                      sourceDecisionPriceUsd,
+                      destinationDecisionPriceUsd,
+                      policy,
+                    ]
+                  properties:
+                    profileId: { type: string, enum: [solana-orca-whirlpool-usdc-usdt-1] }
+                    direction: { type: string, enum: [usdc-to-usdt, usdt-to-usdc] }
+                    sourceDecisionPriceUsd: { type: number, exclusiveMinimum: 0, example: 1 }
+                    destinationDecisionPriceUsd:
+                      { type: number, exclusiveMinimum: 0, example: 0.9987 }
+                    policy:
+                      type: object
+                      required: [maxSlippageBps, maxReferenceDeviationBps]
+                      properties:
+                        maxSlippageBps: { type: integer, minimum: 0, maximum: 1000, example: 50 }
+                        maxReferenceDeviationBps:
+                          { type: integer, minimum: 0, maximum: 1000, example: 100 }
+                transaction:
+                  type: object
+                  description: >-
+                    Complete unsigned legacy Solana message containing exactly one
+                    reviewed Whirlpool swap instruction. Every address lookup table
+                    must include its resolved addresses.
+      responses:
+        '200':
+          {
+            description: Complete BLOCK/CAUTION/ALLOW decision,
+            optionally with a short-lived Ed25519 attestation.,
+          }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+
+  /safety/solana-swap-guard/verify:
+    get:
+      operationId: getSolanaSwapGuardVerificationSchema
+      tags: [Safety]
+      summary: Get Solana swap guard Ed25519 attester information
+      security: []
+      responses:
+        '200': { description: Attester public key and schema status. }
+    post:
+      operationId: verifySolanaSwapGuardDecision
+      tags: [Safety]
+      summary: Verify a Solana swap guard decision
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: { type: object, additionalProperties: true }
+      responses:
+        '200': { description: Cryptographic verification result and expiry state. }
+
+  /safety/solana-swap-guard/settlement:
+    post:
+      operationId: settleSolanaSwapGuard
+      tags: [Safety]
+      summary: Close a Solana swap guard decision against on-chain facts
+      description: >-
+        Presents the signed guard decision plus the on-chain transaction
+        signature. Insight re-verifies the decision, collects execution facts
+        from Solana JSON-RPC, reconciles the observed wallet-level SPL balance
+        deltas against the guarded exact amounts and minimum output, and returns
+        a signed `SolanaSwapGuardSettlement` bound to the `decisionHash`. With
+        `verifyOnly: true`, only the signed settlement's own Ed25519 signature is
+        verified.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision, signature]
+              properties:
+                decision: { type: object, additionalProperties: true }
+                signature:
+                  { type: string, description: Base58 on-chain transaction signature (87-88 chars) }
+                verifyOnly: { type: boolean, default: false }
+                settlement: { type: object, additionalProperties: true }
+      responses:
+        '200':
+          { description: Signed settlement receipt, or a verification result in verifyOnly mode. }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '404': { description: The on-chain transaction signature was not found. }
+
+  /safety/swap-intent:
+    get:
+      operationId: createPaidSwapIntent
+      tags: [Safety]
+      summary: Create a two-gate Swap Intent 🔒
+      description: |
+        The paid x402 path for a transaction-verifiable same-chain swap decision.
+        It issues two signed schema-v3 Pre-Trade gates, one for each asset, and
+        returns a `journeyId` plus one receipt credit once the x402 payment has
+        settled. `venue` and `router` are caller claims, not verified venue facts.
+        A `BLOCK` is a complete paid decision. Cross-chain intents are not supported.
+      security:
+        - apiKey: []
+        - {}
+      parameters:
+        - { name: sourceAsset, in: query, required: true, schema: { type: string, example: ETH } }
+        - {
+            name: destinationAsset,
+            in: query,
+            required: true,
+            schema: { type: string, example: USDC },
+          }
+        - { name: subjectChainId, in: query, required: true, schema: { type: integer, example: 1 } }
+        - {
+            name: settlementChainId,
+            in: query,
+            required: true,
+            schema: { type: integer, example: 1 },
+          }
+        - {
+            name: declaredNotionalUsd,
+            in: query,
+            required: true,
+            schema: { type: number, exclusiveMinimum: 0, example: 1000 },
+          }
+        - { name: venue, in: query, required: false, schema: { type: string, example: uniswap-v3 } }
+        - {
+            name: router,
+            in: query,
+            required: false,
+            schema: { type: string, pattern: '^0x[0-9a-fA-F]{40}$' },
+          }
+      responses:
+        '200':
+          description: Two signed checks and next actions for receipt redemption or a voluntary non-execution report.
+        '402':
+          description: x402 v2 quote in PAYMENT-REQUIRED for anonymous calls.
+    post:
+      operationId: createApiKeySwapIntent
+      tags: [Safety]
+      summary: Create a two-gate Swap Intent with an API key 🔒
+      description: API-key variant of Swap Intent. JSON body uses the same fields as the GET query contract.
+      security:
+        - apiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                [
+                  sourceAsset,
+                  destinationAsset,
+                  subjectChainId,
+                  settlementChainId,
+                  declaredNotionalUsd,
+                ]
+              properties:
+                sourceAsset: { type: string }
+                destinationAsset: { type: string }
+                subjectChainId: { type: integer }
+                settlementChainId: { type: integer }
+                declaredNotionalUsd: { type: number, exclusiveMinimum: 0 }
+                venue: { type: string }
+                router: { type: string, pattern: '^0x[0-9a-fA-F]{40}$' }
+      responses:
+        '200': { description: Two signed gates and a receipt capability. }
+
+  /trade-journeys/outcome:
+    post:
+      operationId: reportSwapJourneyNotExecuted
+      tags: [Execution Evidence]
+      summary: Record a voluntary non-execution report
+      description: |
+        Records a caller statement that it did not execute the checked journey.
+        It is intentionally not a claim about chain state: no callback or report
+        is ever interpreted as proof that a transaction did not occur.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [journeyId, outcomeToken, reason]
+              properties:
+                journeyId: { type: string, format: uuid }
+                outcomeToken: { type: string, minLength: 32 }
+                reason:
+                  type: string
+                  enum: [risk_caution, market_changed, user_cancelled, integration_failed, other]
+      responses:
+        '200': { description: Voluntary report recorded. }
+        '404': { description: Unknown journey or invalid caller capability. }
+        '409': { description: Journey already has an execution or terminal state. }
 
   /oracle-watch:
     get:
@@ -2547,6 +4594,139 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ApiErrorResponse' }
+
+  /safety/preflight:
+    get:
+      operationId: executionPreflight
+      tags: [Safety]
+      summary: Chain-neutral execution preflight decision 🔒
+      description: |
+        Converts Insight's strict oracle assessment and an optional fresh venue quote into a
+        data-sufficiency decision: `allow` / `caution` / `block`. A result evaluates only the
+        declared data inputs; it never certifies contract code, custody, MEV outcome, execution,
+        or profitability. On Monad (chain ID 143), the result surfaces Pyth Core evidence when
+        available. `allow` requires both a passing oracle assessment and an eligible supplied
+        venue quote; without decision-input evidence, a healthy oracle result remains `caution`.
+
+        **Ways to pay:** use an API key with sufficient credits, or pay $0.02 USDC per successful
+        check through x402. A payment settles only after the preflight returns successfully.
+      security:
+        - apiKey: []
+        - {}
+      parameters:
+        - name: asset
+          in: query
+          required: true
+          description: Asset symbol, e.g. MON, ETH, BTC.
+          schema: { type: string, example: MON }
+        - name: chainId
+          in: query
+          required: true
+          description: Execution chain ID; Monad mainnet is 143.
+          schema: { type: integer, example: 143 }
+        - name: action
+          in: query
+          required: true
+          description: Type of intended DeFi operation.
+          schema: { type: string, enum: [swap, borrow, lend, liquidate, repay], example: swap }
+        - name: tradeAmountUsd
+          in: query
+          required: true
+          description: Intended operation size in USD.
+          schema: { type: number, exclusiveMinimum: 0, example: 1000 }
+        - name: targetProviders
+          in: query
+          required: false
+          description: Optional comma-separated provider scope. On Monad, `pyth` reads the pinned Pyth Core fast path; one provider remains insufficient for an `allow` response.
+          schema: { type: string, example: pyth }
+        - name: destinationAsset
+          in: query
+          required: false
+          description: Optional route destination asset, e.g. USDC.
+          schema: { type: string, example: USDC }
+        - name: decisionInputCheck
+          in: query
+          required: false
+          description: Set to `1` to supply a venue quote and explicit limits. Required for an `allow` response.
+          schema: { type: string, enum: ['0', '1'] }
+        - name: decisionPriceUsd
+          in: query
+          required: false
+          description: Required with decisionInputCheck=1. Intended USD decision price.
+          schema: { type: number, exclusiveMinimum: 0 }
+        - name: quotePriceUsd
+          in: query
+          required: false
+          description: Required with decisionInputCheck=1. Fresh venue quote in USD.
+          schema: { type: number, exclusiveMinimum: 0 }
+        - name: quoteObservedAt
+          in: query
+          required: false
+          description: Required with decisionInputCheck=1. Offset-qualified ISO-8601 quote time.
+          schema: { type: string, format: date-time }
+        - name: maxReferenceDeviationBps
+          in: query
+          required: false
+          schema: { type: integer, minimum: 0, maximum: 10000 }
+        - name: maxSlippageBps
+          in: query
+          required: false
+          schema: { type: integer, minimum: 0, maximum: 10000 }
+        - name: maxQuoteAgeSeconds
+          in: query
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 300 }
+        - name: reviewedUniswapV3AmountIn
+          in: query
+          required: false
+          description: Exact source-token amount for the reviewed Monad/Base concentrated-liquidity lane. Requires decisionInputCheck=1, destinationAsset, and both reviewedUniswapV3 bps limits. The Base USDC→USDT profile is PancakeSwap V3; all other admitted profiles are Uniswap V3.
+          schema: { type: string, pattern: '^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$' }
+        - name: reviewedUniswapV3MaxQuoteDeviationBps
+          in: query
+          required: false
+          description: Maximum reviewed-pool quote divergence from the submitted venue quote, in basis points.
+          schema: { type: integer, minimum: 0, maximum: 10000 }
+        - name: reviewedUniswapV3MaxTwapDeviationBps
+          in: query
+          required: false
+          description: Maximum reviewed-pool spot-to-TWAP divergence, in basis points.
+          schema: { type: integer, minimum: 0, maximum: 10000 }
+        - name: reviewedAerodromeSlipstreamAmountIn
+          in: query
+          required: false
+          description: Exact WETH input for the reviewed Base Aerodrome Slipstream WETH/USDC CL100 lane. Requires all reviewedAerodromeSlipstream parameters, decisionInputCheck=1, and destinationAsset=USDC. It cannot be combined with the reviewedUniswapV3 lane.
+          schema: { type: string, pattern: '^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$' }
+        - name: reviewedAerodromeSlipstreamMaxQuoteDeviationBps
+          in: query
+          required: false
+          description: Maximum divergence between the pinned reviewed Aerodrome pool quote and the submitted venue quote, in basis points.
+          schema: { type: integer, minimum: 0, maximum: 10000 }
+        - name: reviewedAerodromeSlipstreamMaxTwapDeviationBps
+          in: query
+          required: false
+          description: Maximum spot-to-TWAP divergence for the reviewed Aerodrome pool, in basis points.
+          schema: { type: integer, minimum: 0, maximum: 10000 }
+      responses:
+        '200':
+          description: Completed preflight decision with gates, reasons, and underlying strict assessment.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    required: [verdict, recommendation, gates, assessment]
+                    properties:
+                      verdict: { type: string, enum: [allow, caution, block] }
+                      recommendation:
+                        { type: string, enum: [proceed, review_before_execution, do_not_execute] }
+                      gates: { type: object, additionalProperties: true }
+                      assessment: { type: object, additionalProperties: true }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
 
   /safety/pre-trade/recheck:
     post:
@@ -3409,6 +5589,87 @@ components:
           $ref: '#/components/schemas/ApiMeta'
 
     # ── Feeds ─────────────────────────────────────────
+    SettlementEvidencePack:
+      type: object
+      description: >-
+        Hash-bound derived-analytics pack for one prediction-market settlement.
+        Payload field order and semantics are frozen for schemaVersion 1 — this
+        is what the attestation hash-binds.
+      required: [payload, payloadHash]
+      properties:
+        payload:
+          type: object
+          required:
+            [
+              schemaVersion,
+              marketSlug,
+              question,
+              asset,
+              settlementVenue,
+              windowStartMs,
+              windowEndMs,
+              windowSeconds,
+              grade,
+              gradeReasonCodes,
+              generatedAtMs,
+            ]
+          properties:
+            schemaVersion: { type: integer, const: 1 }
+            marketSlug: { type: string }
+            question: { type: string }
+            asset: { type: string }
+            settlementVenue:
+              type: string
+              enum: [chainlink-stream, binance, unknown]
+            resolutionSourceUrl: { type: [string, 'null'] }
+            windowStartMs: { type: integer, minimum: 0 }
+            windowEndMs: { type: integer, minimum: 0 }
+            windowSeconds: { type: integer, minimum: 60, maximum: 604800 }
+            declaredOutcome: { type: [string, 'null'], enum: [Up, Down, null] }
+            independentOutcome: { type: [string, 'null'], enum: [Up, Down, null] }
+            priceChangeBps: { type: [number, 'null'] }
+            oracleDeviationBps: { type: [number, 'null'] }
+            oracleConsensusPrice: { type: [number, 'null'] }
+            oracleSlotMs: { type: [integer, 'null'], minimum: 0 }
+            candleCoverageE4: { type: [integer, 'null'], minimum: 0, maximum: 10000 }
+            candleSource: { type: [string, 'null'] }
+            candleRightsScope: { type: [string, 'null'] }
+            candleDeliveryPolicy: { type: [string, 'null'] }
+            grade:
+              type: string
+              enum: [consistent, inconsistent, insufficient_data]
+            gradeReasonCodes:
+              type: array
+              items: { type: string }
+            generatedAtMs: { type: integer, minimum: 0 }
+        payloadHash:
+          type: string
+          description: keccak256 of the canonical payload JSON — the byte-stable identity.
+        attestation:
+          type: [object, 'null']
+          description: >-
+            EIP-712 attestation against Insight's published attester; null when
+            the pack was persisted unsigned (signing key unavailable).
+          required: [uid, schemaVersion, attester, signedAt, signature, eip712]
+          properties:
+            uid: { type: string }
+            schemaVersion: { type: integer, const: 1 }
+            attester: { type: string }
+            attesterLabel: { type: string }
+            signedAt: { type: string }
+            validForSeconds: { type: integer }
+            signature: { type: string }
+            eip712:
+              type: object
+              properties:
+                domain:
+                  type: object
+                  properties:
+                    name: { type: string }
+                    version: { type: string }
+                    chainId: { type: integer }
+                primaryType: { type: string }
+
     FeedEntry:
       type: object
       properties:

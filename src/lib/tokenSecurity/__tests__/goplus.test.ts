@@ -69,6 +69,25 @@ describe('fetchGoPlusTokenSecurity', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
+  it('coalesces concurrent cache misses for the same contract', async () => {
+    let resolveResponse!: (value: Response) => void;
+    const pendingResponse = new Promise<Response>((resolve) => {
+      resolveResponse = resolve;
+    });
+    fetchMock.mockReturnValue(pendingResponse);
+
+    const first = fetchGoPlusTokenSecurity(8453, USDC_BASE);
+    const second = fetchGoPlusTokenSecurity(8453, USDC_BASE);
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    resolveResponse(new Response(goPlusOkBody(HEALTHY_RECORD), { status: 200 }));
+
+    const [firstResult, secondResult] = await Promise.all([first, second]);
+    expect(firstResult?.record).toEqual(HEALTHY_RECORD);
+    expect(secondResult?.record).toEqual(HEALTHY_RECORD);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
   it('exchanges app credentials, caches the access token, and sends it raw', async () => {
     process.env.GOPLUS_APP_KEY = 'test-app-key';
     process.env.GOPLUS_APP_SECRET = 'test-app-secret';

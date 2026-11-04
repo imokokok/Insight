@@ -91,6 +91,14 @@ describe('content-addressed oracle registry routes', () => {
       'sha256',
       'byteLength',
     ]);
+    expect(releaseBody.release.schemaCatalog.InterAIEconomicEvidenceCommitment).toEqual(
+      expect.objectContaining({
+        schema: 'insight.interai-economic-commitment/v1-proposed',
+        admission: expect.objectContaining({
+          signingAdmission: 'registry-admitted-but-not-enabled-for-issuance',
+        }),
+      })
+    );
   });
 
   it('serves an immutable activation set and independently addressable partner policy', async () => {

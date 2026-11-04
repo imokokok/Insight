@@ -20,7 +20,38 @@ permissions:
   contents: read
 
 jobs:
-  validate:
+  runtime-impact:
+    name: Classify runtime impact
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      runtime: ${{ steps.impact.outputs.runtime }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 22.23.2
+      - name: Determine whether this change can affect the running web app
+        id: impact
+        env:
+          CHANGE_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.event.before }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$CHANGE_BASE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            # workflow_dispatch and a first push have no reliable comparison.
+            # Treat them as runtime-impacting rather than risk a skipped gate.
+            echo "runtime=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if ! git cat-file -e "${CHANGE_BASE_SHA}^{commit}" 2>/dev/null; then
+            git fetch --no-tags --depth=1 origin "$CHANGE_BASE_SHA"
+          fi
+          node scripts/determine-runtime-impact.mts
+
+  validate-static:
+    name: Static, protocol, and SDK checks
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     # Next builds in production mode and validates required configuration while
@@ -58,6 +89,11 @@ jobs:
           node-version: 22.23.2
           cache: npm
       - run: npm ci
+      # Generated bundles are deterministic repository outputs. Check them
+      # before the expensive verifier and replay work, so contributors get a
+      # fast, actionable failure instead of waiting through unrelated gates.
+      - name: Reject stale generated cron bundles
+        run: npm run validate:generated
       - name: Check the documented offline verifier example
         run: |
           npm run build --prefix verifier
@@ -71,18 +107,61 @@ jobs:
         # captured observations rather than repo fixtures, so CI has none.
         # Only a replay that actually disagreed fails this step.
         run: npm run oracle:test:replay-check
-      - name: Reject stale generated cron bundles
-        run: npm run validate:generated
       - name: Reject mutable or bypassing workflow configuration
         run: npm run workflow:check
       - name: Enforce pinned RWA source and frozen-vector integrity
         run: npm run rwa:parity
       - name: Enforce main-only protocol isolation
         run: npm run protocol:check
-      - name: Run remaining validation checks
-        run: npm run validate:ci:checks
+      - name: Run remaining static validation checks
+        run: npm run validate:ci:static
+
+  validate-tests:
+    name: Unit and reliability tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-anon-key
+      SUPABASE_SERVICE_ROLE_KEY: ci-service-role-key
+      INTERNAL_API_SECRET: ci-internal-secret-that-is-not-used-in-production
+      CSRF_SECRET: ci-csrf-secret-that-is-not-used-in-production
+      JWT_SECRET: ci-jwt-secret-that-is-not-used-in-production
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 22.23.2
+          cache: npm
+      - run: npm ci
+      # The test suite can import the packed verifier through the same boundary
+      # as the static type checks. Build it in this independent job as well.
+      - run: npm run build --prefix verifier
+      - name: Run coverage and reliability tests
+        run: npm run validate:ci:tests
+
+  # Keep the historical required-check name. This status only passes after both
+  # independent validation paths pass, so branch protection cannot be bypassed
+  # while the two paths run concurrently.
+  validate:
+    needs: [validate-static, validate-tests]
+    if: ${{ always() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Require every validation path to pass
+        env:
+          STATIC_RESULT: ${{ needs.validate-static.result }}
+          TEST_RESULT: ${{ needs.validate-tests.result }}
+        run: |
+          if [ "$STATIC_RESULT" != 'success' ] || [ "$TEST_RESULT" != 'success' ]; then
+            echo "::error::Validation paths finished with static=$STATIC_RESULT tests=$TEST_RESULT"
+            exit 1
+          fi
 
   smoke:
+    needs: runtime-impact
+    if: ${{ always() }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
@@ -97,36 +176,87 @@ jobs:
       # drop the gate. Deploy targets only warn (see the script).
       HOME_JS_BUDGET_REQUIRE_ARTIFACT: '1'
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+      - name: Require a successful runtime-impact classification
+        if: needs.runtime-impact.result != 'success'
+        run: |
+          echo "::error::Unable to classify the change; refusing to skip browser verification."
+          exit 1
+      - name: Skip browser smoke for non-runtime-only changes
+        if: needs.runtime-impact.outputs.runtime != 'true'
+        run: echo "Only docs, GitHub automation, or repository metadata changed."
+      - if: needs.runtime-impact.outputs.runtime == 'true'
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - if: needs.runtime-impact.outputs.runtime == 'true'
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: 22.23.2
           cache: npm
-      - run: npm ci
-      - run: npm run build
+      - if: needs.runtime-impact.outputs.runtime == 'true'
+        run: npm ci
+      - name: Restore Next.js build cache
+        if: needs.runtime-impact.outputs.runtime == 'true'
+        id: next-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .next/cache
+          # Next invalidates changed source entries itself.  Keeping this key at
+          # dependency granularity makes the incremental cache a true hit for
+          # every commit with the same dependency graph, rather than only for
+          # an explicit re-run of the same SHA.
+          key: nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - if: needs.runtime-impact.outputs.runtime == 'true'
+        run: npm run build
+      - name: Cache Next.js build state
+        if: needs.runtime-impact.outputs.runtime == 'true' && steps.next-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .next/cache
+          key: nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - name: Restore Playwright Chromium
+        if: needs.runtime-impact.outputs.runtime == 'true'
         id: playwright-cache
-        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - run: npx playwright install --with-deps chromium
+      # System dependencies belong to the disposable Linux runner and must be
+      # installed every time. The Chromium binary is safe to reuse from the
+      # versioned cache, so avoid re-downloading it when the cache hits.
+      - name: Install Chromium system dependencies
+        if: needs.runtime-impact.outputs.runtime == 'true'
+        run: npx playwright install-deps chromium
+      - name: Install Chromium when the browser cache misses
+        if: needs.runtime-impact.outputs.runtime == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install chromium
       - name: Cache Playwright Chromium
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        if: needs.runtime-impact.outputs.runtime == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - name: Verify the packed package shape in Chromium without network
+        if: needs.runtime-impact.outputs.runtime == 'true'
         run: npm run verifier:release:check -- --browser
-      - run: npm run test:e2e -- --project=chromium
+      - if: needs.runtime-impact.outputs.runtime == 'true'
+        run: npm run test:e2e -- --project=chromium
+      - name: Retain browser failure evidence
+        if: failure() && needs.runtime-impact.outputs.runtime == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: chromium-smoke-diagnostics
+          path: |
+            playwright-report
+            test-results
+          if-no-files-found: ignore
+          retention-days: 7
 
   deploy-production:
     name: Deploy production (gated and verified)
     if: >-
       github.ref == 'refs/heads/main' &&
-      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
-    needs: [validate, smoke]
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+      needs.runtime-impact.outputs.runtime == 'true'
+    needs: [validate, smoke, runtime-impact]
     runs-on: ubuntu-24.04
     # Environment-scoped deployment: only the `main` branch may deploy to
     # production, and the VERCEL_* secrets are (or will be) scoped to this
@@ -135,6 +265,15 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      # This job runs on a fresh runner rather than reusing the validation
+      # jobs. The deployment script imports the lockfile-pinned `tsx` loader,
+      # so install dependencies here before invoking it.
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 22.23.2
+          cache: npm
+      - name: Install pinned deployment dependencies
+        run: npm ci
       - name: Refuse to release an outdated commit
         run: |
           current_sha="$(git ls-remote origin refs/heads/main | cut -f1)"
@@ -163,13 +302,7 @@ jobs:
             exit 1
           fi
 
-          response_path="$RUNNER_TEMP/vercel-deploy-response.json"
-          curl --fail-with-body --silent --show-error \
-            --request POST \
-            --max-time 30 \
-            --output "$response_path" \
-            "$VERCEL_DEPLOY_HOOK_URL"
-          node scripts/verify-vercel-deploy.mjs "$response_path"
+          node --import tsx scripts/deploy-vercel-production.mts
 
           current_sha="$(git ls-remote origin refs/heads/main | cut -f1)"
           if [ "$current_sha" != "$GITHUB_SHA" ]; then
@@ -186,4 +319,16 @@ jobs:
         env:
           SMOKE_BASE_URL: https://www.oracleinsight.xyz
           SMOKE_EXPECT_MPP: ${{ vars.SMOKE_EXPECT_MPP || 'true' }}
-        run: node scripts/smoke-live-payment-rails.mjs
+        run: |
+          set -euo pipefail
+          for attempt in 1 2; do
+            if node scripts/smoke-live-payment-rails.mjs; then
+              exit 0
+            fi
+            if [ "$attempt" -lt 2 ]; then
+              echo "::warning::Payment-rail smoke failed immediately after deployment; retrying once in 30 seconds."
+              sleep 30
+            fi
+          done
+          echo "::error::Payment-rail smoke failed after the post-deploy retry."
+          exit 1

@@ -11,7 +11,10 @@
 import { parseCaip19 } from '@/lib/attestations/caip19';
 
 export const SOLANA_MAINNET_CAIP2 = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
-const SOLANA_MAINNET_GENESIS_HASH = '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+// CAIP-2 keeps only the customary 32-character reference. Solana JSON-RPC
+// returns the complete genesis blockhash, which is required for a safe
+// mainnet-beta endpoint check.
+const SOLANA_MAINNET_GENESIS_HASH = '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d';
 const BASE58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 
 export type SolanaExecutionCollectionFailure = {

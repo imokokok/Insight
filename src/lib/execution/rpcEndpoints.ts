@@ -12,13 +12,17 @@
  * produce a confident receipt built on unreachable evidence.
  */
 
-import { ALCHEMY_RPC } from '@/lib/config/serverEnv';
+import { ALCHEMY_RPC, HELIUS_RPC } from '@/lib/config/serverEnv';
 
 /** Public fallback RPCs, matching the fallbacks already used in the oracle
  *  layer. Alchemy is preferred when configured; these are the safety net. */
 const PUBLIC_FALLBACKS: Record<number, string[]> = {
-  0: ['https://api.mainnet-beta.solana.com'],
+  // The official Solana endpoint is authoritative but rate-limits program-account
+  // reads aggressively. Keep an independent public endpoint so read-only guard
+  // validation can fail over without weakening identity checks.
+  0: ['https://api.mainnet-beta.solana.com', 'https://solana-rpc.publicnode.com'],
   1: ['https://eth.llamarpc.com', 'https://ethereum.publicnode.com'],
+  56: ['https://bsc-dataseed.binance.org', 'https://bsc.publicnode.com'],
   42161: ['https://arb1.arbitrum.io/rpc', 'https://arbitrum.publicnode.com'],
   8453: ['https://mainnet.base.org', 'https://base.publicnode.com'],
   137: ['https://polygon-rpc.com', 'https://polygon.publicnode.com'],
@@ -26,6 +30,7 @@ const PUBLIC_FALLBACKS: Record<number, string[]> = {
 
 /** Map an Alchemy network key to its chain id. */
 const ALCHEMY_BY_CHAIN: Record<number, string | undefined> = {
+  0: ALCHEMY_RPC.solana,
   1: ALCHEMY_RPC.ethereum,
   42161: ALCHEMY_RPC.arbitrum,
   8453: ALCHEMY_RPC.base,
@@ -34,12 +39,16 @@ const ALCHEMY_BY_CHAIN: Record<number, string | undefined> = {
   59144: ALCHEMY_RPC.linea,
 };
 
+function distinctEndpoints(endpoints: Array<string | undefined>): string[] {
+  return [...new Set(endpoints.filter((endpoint): endpoint is string => Boolean(endpoint)))];
+}
+
 /**
  * Resolve RPC endpoints for a chain. Returns null for chains we do not support
  * (the caller must treat that as a hard error, not a silent default).
  *
  * Priority: explicit env override (EXECUTION_RPC_<CHAINID>, comma-separated) >
- * configured Alchemy endpoint > public fallbacks.
+ * Helius for Solana > configured Alchemy endpoint > public fallbacks.
  */
 export function getRpcEndpoints(chainId: number): string[] | null {
   const override = process.env[`EXECUTION_RPC_${chainId}`];
@@ -50,10 +59,10 @@ export function getRpcEndpoints(chainId: number): string[] | null {
       .filter((s) => s.length > 0);
   }
 
+  const helius = chainId === 0 ? HELIUS_RPC.solana : undefined;
   const alchemy = ALCHEMY_BY_CHAIN[chainId];
   const fallbacks = PUBLIC_FALLBACKS[chainId];
-  if (alchemy && fallbacks) return [alchemy, ...fallbacks];
-  if (alchemy) return [alchemy];
-  if (fallbacks) return fallbacks;
+  const endpoints = distinctEndpoints([helius, alchemy, ...(fallbacks ?? [])]);
+  if (endpoints.length) return endpoints;
   return null;
 }

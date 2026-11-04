@@ -124,11 +124,15 @@ export const chainColors = {
   stellar: '#14B8A6',
   supra: '#3B82F6',
   bandchain: '#4520E6',
+  monad: '#836EF9',
 } as const;
 
 export const chartColors = {
   oracle: {
     chainlink: '#2563EB',
+    pyth: '#8B5CF6',
+    stork: '#00A7B5',
+    chronicle: '#1D4ED8',
     api3: '#DB2777',
     redstone: '#FF6B6B',
     dia: '#6366F1',
