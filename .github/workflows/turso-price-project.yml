@@ -1,0 +1,68 @@
+name: Turso Price Projection
+
+# The collector durably commits to Turso first. This separate worker delivers
+# the immutable outbox to Supabase, so transient Supabase failures never delay
+# high-frequency price collection. Every delivery is receipt-backed and
+# idempotent.
+on:
+  workflow_dispatch:
+    inputs:
+      dispatch_id:
+        description: Supabase fallback dispatch ledger ID
+        required: false
+        type: string
+      scheduled_for:
+        description: UTC fallback dispatch timestamp
+        required: false
+        type: string
+
+concurrency:
+  group: turso-price-projection
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+  SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+  TURSO_PRICE_DATABASE_URL: libsql://insight-imokokok.aws-ap-southeast-1.turso.io
+  TURSO_PRICE_AUTH_TOKEN: ${{ secrets.TURSO_PRICE_AUTH_TOKEN }}
+  TURSO_PRICE_PARTITION_KEY: ${{ vars.TURSO_PRICE_PARTITION_KEY || 'bootstrap' }}
+  TURSO_PRICE_WRITE_MODE: ${{ vars.TURSO_PRICE_WRITE_MODE || 'legacy' }}
+  TURSO_PRICE_READ_CUTOVER_AT: ${{ vars.TURSO_PRICE_READ_CUTOVER_AT || '' }}
+  CRON_WORKFLOW: turso-price-project.yml
+  CRON_DISPATCH_ID: ${{ inputs.dispatch_id || '' }}
+  CRON_SCHEDULED_FOR: ${{ inputs.scheduled_for || '' }}
+  # Defaults are enforced in the TypeScript runner; variables permit an
+  # operator to tune the recovery ceiling without changing source.
+  TURSO_PRICE_PROJECTION_BATCH_SIZE: ${{ vars.TURSO_PRICE_PROJECTION_BATCH_SIZE || '16' }}
+  TURSO_PRICE_PROJECTION_MAX_BATCHES: ${{ vars.TURSO_PRICE_PROJECTION_MAX_BATCHES || '4' }}
+  TURSO_PRICE_PROJECTION_MAX_LAG_SECONDS: ${{ vars.TURSO_PRICE_PROJECTION_MAX_LAG_SECONDS || '1800' }}
+  TURSO_PRICE_RAW_RETENTION_DAYS: ${{ vars.TURSO_PRICE_RAW_RETENTION_DAYS || '30' }}
+
+jobs:
+  project:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - name: Verify required secrets
+        run: |
+          set -u
+          if [ -z "${SUPABASE_URL}" ] || [ -z "${SUPABASE_SERVICE_ROLE_KEY}" ] || [ -z "${TURSO_PRICE_AUTH_TOKEN}" ]; then
+            echo "::error::SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, and TURSO_PRICE_AUTH_TOKEN are required."
+            exit 1
+          fi
+
+      - name: Project pending Turso price slots
+        run: node .github/cron-dist/project-turso-price.mjs
+
+      # Supabase owns the high-frequency clock and creates the dispatch row.
+      # A direct manual run has no ID and deliberately adds no telemetry row.
+      - name: Finish fallback dispatch ledger
+        if: always() && env.CRON_DISPATCH_ID != ''
+        env:
+          CRON_CONCLUSION: ${{ job.status }}
+        run: node scripts/cron-control.mjs finish

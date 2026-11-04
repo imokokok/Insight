@@ -88,8 +88,10 @@ describe('Footer', () => {
   describe('Platform links', () => {
     it.each([
       ['Home', '/'],
+      ['Decision Integrity', '/decision-integrity'],
       ['Oracle Evidence', '/price-insight?stage=observe'],
       ['Compare & Assess', '/price-insight?stage=compare'],
+      ['Risk Intelligence', '/risk-intelligence'],
       ['Oracle Directory', '/reputation'],
       ['Daily Reports', '/reports'],
       ['API', '/api'],
@@ -103,10 +105,11 @@ describe('Footer', () => {
     });
   });
 
-  describe('Safety links', () => {
+  describe('Risk tool links', () => {
     it.each([
-      ['Safety Check', '/safety-check'],
-      ['Pre-Trade Safety Check', '/ai#safety-check'],
+      ['Position Stress Test', '/safety-check'],
+      ['Pre-Trade Assessment', '/decision-integrity#pre-trade'],
+      ['Oracle Watch', '/decision-integrity#oracle-watch-demo'],
       ['Peg Risk', '/peg-risk'],
     ])('should render %s link', (label, href) => {
       renderFooter();

@@ -699,6 +699,22 @@ async function fetchProtocolRiskParams(
   }
 }
 
+/** Fetch a single protocol's current risk parameters without fanning out to every integration. */
+export async function fetchProtocolRiskParamsForId(
+  protocolId: string
+): Promise<ProtocolRiskParamsResult> {
+  const protocol = PROTOCOL_REGISTRY.find((candidate) => candidate.id === protocolId);
+  if (!protocol) {
+    return {
+      protocolId,
+      params: [],
+      source: 'unsupported',
+      error: 'Unknown protocol id',
+    };
+  }
+  return fetchProtocolRiskParams(protocol);
+}
+
 // Bound parallel on-chain RPC fetches so concurrent protocols don't
 // saturate RPC provider rate limits. Each protocol internally fans out
 // to multiple contract reads (markets, symbols, exchange rates), so a

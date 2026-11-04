@@ -37,16 +37,16 @@ export function HeroSection() {
               <span>the price.</span>
             </h1>
             <p className="home-hero-description home-hero-reveal home-hero-reveal-3">
-              A price is a surface. Insight reveals the oracle sources, their agreement, their
-              freshness, and the risk of acting on them — and returns a signed pre-trade verdict for
-              AI agents that act on prices without a human in the loop.
+              A price is a surface. Insight reveals the oracle sources, their agreement, and their
+              freshness, then turns that evidence into an explainable assessment before a person or
+              agent acts. Optional attestations preserve what was assessed and when.
             </p>
             <div className="home-hero-actions home-hero-reveal home-hero-reveal-4">
-              <Link href="#live-evidence" className="home-hero-primary">
-                Explore the evidence <ArrowRight aria-hidden="true" />
+              <Link href="/decision-integrity#pre-trade" className="home-hero-primary">
+                Run a pre-trade assessment <ArrowRight aria-hidden="true" />
               </Link>
-              <Link href="/safety-check" className="home-hero-secondary">
-                Run a safety check <ArrowUpRight aria-hidden="true" />
+              <Link href="#live-evidence" className="home-hero-secondary">
+                Explore oracle evidence <ArrowUpRight aria-hidden="true" />
               </Link>
             </div>
           </div>

@@ -1,6 +1,7 @@
 /** @jest-environment node */
 import {
   getRpcUsage,
+  recordRpcUsage,
   RpcApplicationError,
   RpcClientWithFallback,
   rpcUsageSince,
@@ -75,6 +76,31 @@ test('transport failure still fails over and resource counters contain no endpoi
     }),
   ]);
   expect(JSON.stringify(rpcUsageSince(before))).not.toMatch(/private|https/);
+});
+
+test('native RPC instrumentation records aggregate-only counters', () => {
+  const before = getRpcUsage();
+  recordRpcUsage({
+    context: 'native-solana-test',
+    chain: 'solana',
+    method: 'getMultipleAccounts',
+    success: true,
+    durationMs: 17.2,
+  });
+
+  expect(rpcUsageSince(before)).toContainEqual(
+    expect.objectContaining({
+      context: 'native-solana-test',
+      chain: 'solana',
+      method: 'getMultipleAccounts',
+      kind: 'read',
+      attempts: 1,
+      successes: 1,
+      failures: 0,
+      durationMs: 17,
+    })
+  );
+  expect(JSON.stringify(rpcUsageSince(before))).not.toMatch(/endpoint|calldata|private/i);
 });
 
 test('caller cancellation does not try another endpoint', async () => {

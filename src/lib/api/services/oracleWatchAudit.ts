@@ -37,6 +37,8 @@ export interface WatchAuditMeta {
   latencyMs?: number;
   /** Resolved chain id the receipt is bound to, when the caller computed it. */
   subjectChainId?: number;
+  /** Monitored window the judgment was issued inside, when one paid for it. */
+  windowId?: string | null;
 }
 
 /**
@@ -86,6 +88,7 @@ export async function recordOracleWatchCheck(
 
       source: meta.source,
       api_key_id: meta.apiKeyId ?? null,
+      window_id: meta.windowId ?? null,
       latency_ms: meta.latencyMs ?? null,
     });
 

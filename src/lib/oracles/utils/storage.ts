@@ -1,6 +1,9 @@
 import { type PriceRecordInsert, type PriceRecord } from '@/lib/supabase/queries';
 import { createServiceRoleClient, getAdminQueries } from '@/lib/supabase/server';
 import { loadSnapshotHistoryRange } from '@/lib/supabase/snapshotHistory';
+import { getTursoPriceClient, readTursoPriceWriteMode } from '@/lib/turso/price/client';
+import { loadTursoLatestPrice } from '@/lib/turso/price/historyRepository';
+import { ensureTursoPriceSchema } from '@/lib/turso/price/schema';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
 import { type PriceData, type OracleProvider, type Blockchain } from '@/types/oracle';
 import { type FailureMode, type OracleSignalVector } from '@/types/oracle/signals';
@@ -83,6 +86,60 @@ interface HistoricalSnapshotRow {
   chain_id: number;
   price: number | string;
   confidence: number | string | null;
+  data_age_seconds?: number | null;
+}
+
+/**
+ * Read the newest successful 15-minute observation only after a live price
+ * request has failed. Normal request paths keep their existing single
+ * `price_records` cache lookup, so this resilience path does not turn routine
+ * API traffic into an additional database read.
+ */
+export async function getLatestPriceSnapshotFromDatabase(
+  provider: OracleProvider,
+  symbol: string,
+  chain?: Blockchain
+): Promise<PriceData | null> {
+  if (!shouldUseDatabase()) return null;
+
+  try {
+    const client = createServiceRoleClient();
+    if (readTursoPriceWriteMode() !== 'primary') {
+      let query = client
+        .from('price_snapshots')
+        .select('snapshot_ts, provider, symbol, chain_id, price, confidence, data_age_seconds')
+        .eq('provider', provider)
+        .eq('symbol', symbol)
+        .eq('is_success', true)
+        .gt('price', 0)
+        .order('snapshot_ts', { ascending: false })
+        .limit(1);
+
+      if (chain) {
+        query = query.eq('chain_id', BLOCKCHAIN_TO_CHAIN_ID[chain] ?? 0);
+      }
+
+      const { data, error } = await query.maybeSingle();
+      if (error) {
+        logger.error('Failed to get latest price snapshot fallback', normalizeError(error));
+        return null;
+      }
+
+      return data ? snapshotToPriceData(data as HistoricalSnapshotRow, chain) : null;
+    }
+    const turso = getTursoPriceClient();
+    await ensureTursoPriceSchema(turso);
+    const latest = await loadTursoLatestPrice(turso, {
+      provider,
+      symbol: symbol.toUpperCase(),
+      chainId: chain ? (BLOCKCHAIN_TO_CHAIN_ID[chain] ?? 0) : undefined,
+      successOnly: true,
+    });
+    return latest ? snapshotToPriceData(latest, chain) : null;
+  } catch (error) {
+    logger.error('Failed to get latest price snapshot fallback', normalizeError(error));
+    return null;
+  }
 }
 
 function snapshotToPriceData(
@@ -90,19 +147,24 @@ function snapshotToPriceData(
   requestedChain?: Blockchain
 ): PriceData | null {
   const price = Number(row.price);
-  const timestamp = new Date(row.snapshot_ts).getTime();
-  if (!Number.isFinite(price) || price <= 0 || !Number.isFinite(timestamp)) {
+  const snapshotTimestamp = new Date(row.snapshot_ts).getTime();
+  if (!Number.isFinite(price) || price <= 0 || !Number.isFinite(snapshotTimestamp)) {
     return null;
   }
 
   const confidence = row.confidence === null ? undefined : Number(row.confidence);
+  const dataAgeSeconds = row.data_age_seconds;
+  const timestamp =
+    typeof dataAgeSeconds === 'number' && Number.isFinite(dataAgeSeconds) && dataAgeSeconds >= 0
+      ? snapshotTimestamp - dataAgeSeconds * 1000
+      : snapshotTimestamp;
   return {
     provider: row.provider as OracleProvider,
     symbol: row.symbol,
     chain: requestedChain ?? getBlockchainByChainId(row.chain_id),
     price,
     timestamp,
-    ingestionTimestamp: timestamp,
+    ingestionTimestamp: snapshotTimestamp,
     confidence: Number.isFinite(confidence) ? confidence : undefined,
     source: 'price_snapshots',
   };

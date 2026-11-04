@@ -1,9 +1,15 @@
+import type { ReviewedAerodromeSlipstreamPreTradeEvidence } from '@/lib/dex/preTradeAerodromeSlipstream';
+import type { ReviewedUniswapV3PreTradeEvidence } from '@/lib/dex/preTradeUniswapV3';
 import type { ManipCostAdvisory } from '@/lib/manipCost/baseline';
 import type { ChainlinkMarketReference } from '@/lib/marketReference/chainlink';
 import type { MarketReference } from '@/lib/marketReference/client';
 import type { RedStoneMarketReference } from '@/lib/marketReference/redstone';
 
-import { assessDecisionInput, DecisionInputAssessmentSchema } from '../assessment';
+import {
+  assessDecisionInput,
+  DecisionInputAssessmentSchema,
+  type DecisionInputCheckRequest,
+} from '../assessment';
 
 import type { DecisionInputQuoteProvenance } from '../quoteProvenance';
 
@@ -68,18 +74,22 @@ const dex: ManipCostAdvisory = {
 
 function assess(
   overrides: {
-    request?: Partial<typeof request>;
+    request?: Partial<DecisionInputCheckRequest>;
     chainlink?: ChainlinkMarketReference | null;
     redstone?: RedStoneMarketReference | null;
     cex?: MarketReference | null;
     dex?: ManipCostAdvisory | null;
     asset?: string;
+    destinationAsset?: string;
     chainId?: number;
     evidenceUse?: 'staging' | 'customer';
+    reviewedUniswapV3?: ReviewedUniswapV3PreTradeEvidence | null;
+    reviewedAerodromeSlipstream?: ReviewedAerodromeSlipstreamPreTradeEvidence | null;
   } = {}
 ) {
   return assessDecisionInput({
     asset: overrides.asset ?? 'ETH',
+    destinationAsset: overrides.destinationAsset,
     chainId: overrides.chainId ?? 1,
     action: 'swap',
     tradeAmountUsd: 10_000,
@@ -88,6 +98,8 @@ function assess(
     redstone: overrides.redstone ?? null,
     cex: overrides.cex === undefined ? cex : overrides.cex,
     dex: overrides.dex === undefined ? dex : overrides.dex,
+    reviewedUniswapV3: overrides.reviewedUniswapV3,
+    reviewedAerodromeSlipstream: overrides.reviewedAerodromeSlipstream,
     evidenceUse: overrides.evidenceUse,
     now: NOW,
   });
@@ -104,6 +116,71 @@ const customerQuoteProvenance: DecisionInputQuoteProvenance = {
   observedAt: '2026-10-13T06:29:58.000Z',
   requestHash: `0x${'11'.repeat(32)}`,
   responseHash: `0x${'22'.repeat(32)}`,
+};
+
+const reviewedBaseQuote: ReviewedUniswapV3PreTradeEvidence = {
+  profile: 'base-weth-usdc',
+  venue: 'uniswap-v3',
+  market: 'WETH/USDC',
+  sourceFreshnessSeconds: 2,
+  observedAt: '2026-10-13T06:29:59.000Z',
+  block: {
+    number: '123456',
+    hash: `0x${'33'.repeat(32)}`,
+    timestamp: '2026-10-13T06:29:58.000Z',
+  },
+  contracts: {
+    factory: '0x0000000000000000000000000000000000000002',
+    pool: '0x0000000000000000000000000000000000000003',
+    quoterV2: '0x0000000000000000000000000000000000000004',
+    feeTier: 3_000,
+  },
+  quote: {
+    direction: 'token0-to-token1',
+    amountIn: 5,
+    amountInRaw: '5000000000000000000',
+    amountOut: 10_000,
+    amountOutRaw: '10000000000',
+    effectiveToken1PerToken0: 2000,
+    initializedTicksCrossed: 1,
+    priceImpactBps: 5,
+  },
+  spotToken1PerToken0: 2001,
+  twapToken1PerToken0: 2000,
+  twapDeviationBpsFromSpot: 5,
+};
+
+const reviewedAerodromeQuote: ReviewedAerodromeSlipstreamPreTradeEvidence = {
+  profile: 'base-aerodrome-slipstream-weth-usdc-cl100',
+  venue: 'aerodrome-slipstream',
+  market: 'WETH/USDC',
+  sourceFreshnessSeconds: 2,
+  observedAt: '2026-10-13T06:29:59.000Z',
+  block: {
+    number: '123456',
+    hash: `0x${'44'.repeat(32)}`,
+    timestamp: '2026-10-13T06:29:58.000Z',
+  },
+  contracts: {
+    factory: '0x0000000000000000000000000000000000000005',
+    quoterV2: '0x0000000000000000000000000000000000000006',
+    pool: '0x0000000000000000000000000000000000000007',
+    tickSpacing: 100,
+    feePips: 150,
+  },
+  quote: {
+    direction: 'token0-to-token1',
+    amountIn: 5,
+    amountInRaw: '5000000000000000000',
+    amountOut: 10_000,
+    amountOutRaw: '10000000000',
+    effectiveToken1PerToken0: 2000,
+    initializedTicksCrossed: 1,
+    priceImpactBps: 5,
+  },
+  spotToken1PerToken0: 2001,
+  twapToken1PerToken0: 2000,
+  twapDeviationBpsFromSpot: 5,
 };
 
 describe('assessDecisionInput', () => {
@@ -193,6 +270,178 @@ describe('assessDecisionInput', () => {
     expect(result.status).toBe('INSUFFICIENT_EVIDENCE');
     expect(result.evidence.dexManipulationCost).toBeNull();
     expect(result.reasons.map(({ code }) => code)).toContain('DEX_DEPTH_UNAVAILABLE');
+  });
+
+  it('uses a reviewed Base Uniswap V3 quote instead of Ethereum-only depth evidence', () => {
+    const result = assess({
+      asset: 'WETH',
+      destinationAsset: 'USDC',
+      chainId: 8453,
+      chainlink: { ...chainlink, chainId: 8453 },
+      dex: null,
+      reviewedUniswapV3: reviewedBaseQuote,
+      request: {
+        reviewedUniswapV3: {
+          amountIn: '5',
+          maxQuoteDeviationBps: 50,
+          maxTwapDeviationBps: 50,
+        },
+      },
+    });
+
+    expect(result.status).toBe('SUFFICIENT');
+    expect(result.evidence.dexManipulationCost).toBeNull();
+    expect(result.evidence.reviewedUniswapV3).toMatchObject({
+      profile: 'base-weth-usdc',
+      amountInRaw: '5000000000000000000',
+      pool: reviewedBaseQuote.contracts.pool,
+    });
+    expect(DecisionInputAssessmentSchema.safeParse(result).success).toBe(true);
+  });
+
+  it('uses reviewed Aerodrome Slipstream evidence for its exact Base WETH/USDC amount', () => {
+    const result = assess({
+      asset: 'WETH',
+      destinationAsset: 'USDC',
+      chainId: 8453,
+      chainlink: { ...chainlink, chainId: 8453 },
+      dex: null,
+      reviewedAerodromeSlipstream: reviewedAerodromeQuote,
+      request: {
+        reviewedAerodromeSlipstream: {
+          amountIn: '5',
+          maxQuoteDeviationBps: 50,
+          maxTwapDeviationBps: 50,
+        },
+      },
+    });
+
+    expect(result.status).toBe('SUFFICIENT');
+    expect(result.evidence.dexManipulationCost).toBeNull();
+    expect(result.evidence.reviewedAerodromeSlipstream).toMatchObject({
+      profile: 'base-aerodrome-slipstream-weth-usdc-cl100',
+      amountInRaw: '5000000000000000000',
+      pool: reviewedAerodromeQuote.contracts.pool,
+      tickSpacing: 100,
+      feePips: 150,
+    });
+    expect(DecisionInputAssessmentSchema.safeParse(result).success).toBe(true);
+  });
+
+  it('blocks when the reviewed Uniswap quote violates its own divergence policy', () => {
+    const result = assess({
+      asset: 'WETH',
+      destinationAsset: 'USDC',
+      chainId: 8453,
+      chainlink: { ...chainlink, chainId: 8453 },
+      dex: null,
+      reviewedUniswapV3: {
+        ...reviewedBaseQuote,
+        quote: { ...reviewedBaseQuote.quote, effectiveToken1PerToken0: 2100 },
+      },
+      request: {
+        reviewedUniswapV3: {
+          amountIn: '5',
+          maxQuoteDeviationBps: 50,
+          maxTwapDeviationBps: 50,
+        },
+      },
+    });
+
+    expect(result.status).toBe('BLOCK');
+    expect(result.reasons.map(({ code }) => code)).toContain(
+      'REVIEWED_UNISWAP_V3_QUOTE_DIVERGENCE'
+    );
+  });
+
+  it('compares the reviewed Aerodrome quote against the same-unit route rate for a stablecoin source', () => {
+    // Regression: the guard's prepared route rate (destination tokens per
+    // source token) must be compared token-per-token. Comparing it against
+    // the USD-per-source quote price is only numerically valid when the
+    // destination is a $1 stablecoin; a USDC source with a WETH destination
+    // was falsely diverging by ~9995 bps in production.
+    const usdcSourceRequest = {
+      decisionPriceUsd: 1,
+      quotePriceUsd: 0.9999,
+      quoteObservedAt: '2026-10-13T06:29:58.000Z',
+      maxReferenceDeviationBps: 50,
+      maxSlippageBps: 50,
+      maxQuoteAgeSeconds: 30,
+      reviewedAerodromeSlipstream: {
+        amountIn: '2',
+        maxQuoteDeviationBps: 50,
+        maxTwapDeviationBps: 50,
+        routeEffectiveDestinationPerSource: 0.0004356,
+      },
+    };
+    const usdcSourceEvidence: ReviewedAerodromeSlipstreamPreTradeEvidence = {
+      ...reviewedAerodromeQuote,
+      quote: {
+        direction: 'token1-to-token0',
+        amountIn: 2,
+        amountInRaw: '2000000',
+        amountOut: 0.000871233635703046,
+        amountOutRaw: '871233635703046',
+        effectiveToken0PerToken1: 0.000435616817851523,
+        initializedTicksCrossed: 1,
+        priceImpactBps: 0,
+      },
+      spotToken1PerToken0: undefined as unknown as number,
+      twapToken1PerToken0: 0.0004356,
+    };
+
+    const sufficient = assess({
+      asset: 'USDC',
+      destinationAsset: 'WETH',
+      chainId: 8453,
+      chainlink: {
+        ...chainlink,
+        symbol: 'USDC',
+        chainId: 8453,
+        price: 0.9998,
+        updatedAt: '2026-10-13T06:29:00.000Z',
+        ageSeconds: 60,
+      },
+      cex: { ...cex, symbol: 'USDC', refPrice: 0.9999 },
+      dex: null,
+      reviewedAerodromeSlipstream: usdcSourceEvidence,
+      request: usdcSourceRequest,
+    });
+
+    expect(sufficient.status).toBe('SUFFICIENT');
+    expect(sufficient.reasons.map(({ code }) => code)).not.toContain(
+      'REVIEWED_AERODROME_SLIPSTREAM_QUOTE_DIVERGENCE'
+    );
+
+    // The same evidence against a materially different route rate still blocks.
+    const blocked = assess({
+      asset: 'USDC',
+      destinationAsset: 'WETH',
+      chainId: 8453,
+      chainlink: {
+        ...chainlink,
+        symbol: 'USDC',
+        chainId: 8453,
+        price: 0.9998,
+        updatedAt: '2026-10-13T06:29:00.000Z',
+        ageSeconds: 60,
+      },
+      cex: { ...cex, symbol: 'USDC', refPrice: 0.9999 },
+      dex: null,
+      reviewedAerodromeSlipstream: usdcSourceEvidence,
+      request: {
+        ...usdcSourceRequest,
+        reviewedAerodromeSlipstream: {
+          ...usdcSourceRequest.reviewedAerodromeSlipstream,
+          routeEffectiveDestinationPerSource: 0.0005,
+        },
+      },
+    });
+
+    expect(blocked.status).toBe('BLOCK');
+    expect(blocked.reasons.map(({ code }) => code)).toContain(
+      'REVIEWED_AERODROME_SLIPSTREAM_QUOTE_DIVERGENCE'
+    );
   });
 
   it('includes a fresh RedStone reference in the signed assessment inputs', () => {

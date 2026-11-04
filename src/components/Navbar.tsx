@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { Suspense, useState, useMemo, useRef } from 'react';
 
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 
 import { Menu } from 'lucide-react';
 
@@ -13,6 +13,10 @@ import { Button } from '@/components/ui/Button';
 import { useKeyboardShortcuts } from '@/hooks/ui/useKeyboardShortcuts';
 
 import { DropdownMenu, MegaMenu, MobileDrawer, navigationConfig } from './navigation';
+import {
+  isNavigationGroupActive,
+  isNavigationLinkActive,
+} from './navigation/isNavigationLinkActive';
 import { type NavGroup, type NavStructure } from './navigation/types';
 import { SearchButton } from './search/SearchButton';
 
@@ -23,10 +27,25 @@ const AuthNavigation = dynamic(
 );
 
 export default function Navbar() {
+  return (
+    <Suspense fallback={<NavbarContent currentSearch="" />}>
+      <NavbarSearchAware />
+    </Suspense>
+  );
+}
+
+function NavbarSearchAware() {
+  const searchParams = useSearchParams();
+
+  return <NavbarContent currentSearch={searchParams.toString()} />;
+}
+
+function NavbarContent({ currentSearch }: { currentSearch: string }) {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isOpsOwner, setIsOpsOwner] = useState(false);
+  const mobileMenuTriggerRef = useRef<HTMLButtonElement>(null);
 
   const navItems: NavStructure = navigationConfig;
 
@@ -35,9 +54,8 @@ export default function Navbar() {
     const pathWithoutQuery = pathname.split('?')[0];
     return pathWithoutQuery;
   }, [pathname]);
-
   const isActive = (href: string) => {
-    return currentPath === href || currentPath.startsWith(href + '/');
+    return isNavigationLinkActive(href, currentPath, currentSearch);
   };
 
   useKeyboardShortcuts([
@@ -85,7 +103,11 @@ export default function Navbar() {
               {navItems.map((navItem) => {
                 if ('items' in navItem) {
                   const group = navItem as NavGroup;
-                  const isGroupActive = group.items.some((item) => isActive(item.href));
+                  const isGroupActive = isNavigationGroupActive(
+                    group.items,
+                    currentPath,
+                    currentSearch
+                  );
 
                   if (group.megaMenu) {
                     return (
@@ -94,6 +116,7 @@ export default function Navbar() {
                         group={group}
                         isActive={isGroupActive}
                         currentPath={currentPath}
+                        currentSearch={currentSearch}
                       />
                     );
                   }
@@ -104,6 +127,7 @@ export default function Navbar() {
                       group={group}
                       isActive={isGroupActive}
                       currentPath={currentPath}
+                      currentSearch={currentSearch}
                     />
                   );
                 }
@@ -137,6 +161,9 @@ export default function Navbar() {
                 onClick={() => setIsMobileMenuOpen(true)}
                 className="lg:hidden"
                 aria-label="Open menu"
+                aria-expanded={isMobileMenuOpen}
+                aria-controls="mobile-navigation-drawer"
+                ref={mobileMenuTriggerRef}
               >
                 <Menu className="w-6 h-6" />
               </Button>
@@ -149,7 +176,9 @@ export default function Navbar() {
           onClose={() => setIsMobileMenuOpen(false)}
           navStructure={navItems}
           currentPath={currentPath}
+          currentSearch={currentSearch}
           isOpsOwner={isOpsOwner}
+          triggerRef={mobileMenuTriggerRef}
         />
       </nav>
 

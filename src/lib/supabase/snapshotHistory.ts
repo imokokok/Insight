@@ -1,5 +1,12 @@
 import { z } from 'zod';
 
+import {
+  getTursoPriceClient,
+  readTursoPriceReadCutoverMs,
+  readTursoPriceWriteMode,
+} from '@/lib/turso/price/client';
+import { loadTursoPriceHistoryPage } from '@/lib/turso/price/historyRepository';
+
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 const timestamp = z.string().refine((value) => Number.isFinite(Date.parse(value)));
@@ -34,15 +41,22 @@ interface PageOptions {
   inclusiveBefore?: boolean;
 }
 
-/** The database expands only dates needed for this page, with hot rows preferred. */
-export async function loadSnapshotHistoryPage<C extends Column>(
-  client: SupabaseClient,
+interface ValidatedPage {
+  start: number;
+  end: number;
+  limit: number;
+  offset: number;
+  time: 'snapshot_ts' | 'snapshot_hour';
+  selected: Column[];
+}
+
+function validatePage<C extends Column>(
   kind: 'price' | 'hourly',
   from: string,
   before: string,
   columns: readonly C[],
-  options: PageOptions = {}
-): Promise<Pick<Snapshot, C>[]> {
+  options: PageOptions
+): ValidatedPage {
   const start = Date.parse(from);
   const end = Date.parse(before);
   const limit = options.limit ?? 1000;
@@ -72,7 +86,17 @@ export async function loadSnapshotHistoryPage<C extends Column>(
       ...(options.successOnly ? (['price', 'is_success'] as const) : []),
     ]),
   ];
-  const schema = z.object(Object.fromEntries(selected.map((column) => [column, fields[column]])));
+  return { start, end, limit, offset, time, selected };
+}
+
+async function loadSupabaseRows(
+  client: SupabaseClient,
+  kind: 'price' | 'hourly',
+  from: string,
+  before: string,
+  selected: readonly Column[],
+  options: PageOptions
+): Promise<Snapshot[]> {
   const { data, error } = await client
     .rpc('get_snapshot_history_page', {
       p_kind: kind,
@@ -84,17 +108,73 @@ export async function loadSnapshotHistoryPage<C extends Column>(
       p_chain_id: options.chainId ?? null,
       p_success_only: options.successOnly ?? false,
       p_ascending: options.ascending ?? false,
-      p_limit: limit,
-      p_offset: offset,
+      p_limit: options.limit ?? 1000,
+      p_offset: options.offset ?? 0,
       p_inclusive_before: options.inclusiveBefore ?? false,
     })
     .abortSignal(AbortSignal.timeout(30_000));
   if (error) throw new Error(`Snapshot history read failed: ${error.message}`);
-  const rows = z.array(schema).max(limit).parse(data);
+  return z
+    .array(z.object(Object.fromEntries(selected.map((column) => [column, fields[column]]))))
+    .parse(data) as Snapshot[];
+}
+
+async function loadTursoRows(
+  fromMs: number,
+  beforeMs: number,
+  options: PageOptions
+): Promise<Snapshot[]> {
+  return (await loadTursoPriceHistoryPage(
+    getTursoPriceClient(),
+    fromMs,
+    beforeMs,
+    options
+  )) as unknown as Snapshot[];
+}
+
+type FetchRows = (offset: number, limit: number) => Promise<Snapshot[]>;
+
+/**
+ * A cutover can split one history request into two time-ordered sources. Read
+ * in bounded chunks so an offset remains stable without a cross-database count.
+ */
+async function pageAcrossSources(
+  sources: FetchRows[],
+  offset: number,
+  limit: number
+): Promise<Snapshot[]> {
+  const result: Snapshot[] = [];
+  let remainingOffset = offset;
+  for (const source of sources) {
+    let sourceOffset = 0;
+    while (result.length < limit) {
+      const chunkSize = Math.min(10_001, Math.max(limit - result.length, 1));
+      const chunk = await source(sourceOffset, chunkSize);
+      if (chunk.length === 0) break;
+      sourceOffset += chunk.length;
+      if (remainingOffset >= chunk.length) {
+        remainingOffset -= chunk.length;
+      } else {
+        result.push(...chunk.slice(remainingOffset, remainingOffset + (limit - result.length)));
+        remainingOffset = 0;
+      }
+      if (chunk.length < chunkSize) break;
+    }
+    if (result.length === limit) break;
+  }
+  return result;
+}
+
+function assertPageRows(
+  rows: Snapshot[],
+  start: number,
+  end: number,
+  time: 'snapshot_ts' | 'snapshot_hour',
+  options: PageOptions
+): void {
   const ids = new Set<number>();
   let previous: { time: number; id: number } | undefined;
-  return rows.map((raw) => {
-    const row = raw as Pick<Snapshot, C> & Snapshot;
+  for (const row of rows) {
     const at = Date.parse(row[time]);
     if (
       at < start ||
@@ -103,18 +183,69 @@ export async function loadSnapshotHistoryPage<C extends Column>(
       (options.providers && !options.providers.includes(row.provider)) ||
       (options.symbol !== undefined && row.symbol !== options.symbol) ||
       (options.chainId !== undefined && row.chain_id !== options.chainId) ||
-      (options.successOnly && (!row.is_success || !(row.price! > 0))) ||
+      (options.successOnly && (!row.is_success || !(row.price > 0))) ||
       ids.has(row.id) ||
       (previous &&
         (options.ascending
           ? at < previous.time || (at === previous.time && row.id <= previous.id)
           : at > previous.time || (at === previous.time && row.id >= previous.id)))
-    )
+    ) {
       throw new Error('Snapshot history identity, order or window mismatch');
+    }
     ids.add(row.id);
     previous = { time: at, id: row.id };
-    return Object.fromEntries(columns.map((column) => [column, row[column]])) as Pick<Snapshot, C>;
-  });
+  }
+}
+
+/** The database expands only dates needed for this page, with hot rows preferred. */
+export async function loadSnapshotHistoryPage<C extends Column>(
+  client: SupabaseClient,
+  kind: 'price' | 'hourly',
+  from: string,
+  before: string,
+  columns: readonly C[],
+  options: PageOptions = {}
+): Promise<Pick<Snapshot, C>[]> {
+  const page = validatePage(kind, from, before, columns, options);
+  let rows: Snapshot[];
+  if (kind === 'hourly' || readTursoPriceWriteMode() !== 'primary') {
+    rows = await loadSupabaseRows(client, kind, from, before, page.selected, options);
+  } else {
+    const cutoverMs = readTursoPriceReadCutoverMs();
+    const legacyEnd = Math.min(page.end, cutoverMs);
+    const tursoStart = Math.max(page.start, cutoverMs);
+    const legacy: FetchRows | undefined =
+      page.start < cutoverMs
+        ? (offset, limit) =>
+            loadSupabaseRows(
+              client,
+              'price',
+              from,
+              new Date(legacyEnd).toISOString(),
+              page.selected,
+              {
+                ...options,
+                offset,
+                limit,
+                inclusiveBefore: false,
+              }
+            )
+        : undefined;
+    const turso: FetchRows | undefined =
+      page.end > cutoverMs || (options.inclusiveBefore && page.end === cutoverMs)
+        ? (offset, limit) => loadTursoRows(tursoStart, page.end, { ...options, offset, limit })
+        : undefined;
+    const sources = options.ascending ? [legacy, turso] : [turso, legacy];
+    rows = await pageAcrossSources(
+      sources.filter((source): source is FetchRows => source !== undefined),
+      page.offset,
+      page.limit
+    );
+  }
+  assertPageRows(rows, page.start, page.end, page.time, options);
+  return rows.map(
+    (row) => Object.fromEntries(columns.map((column) => [column, row[column]])) as Pick<Snapshot, C>
+  );
 }
 
 export async function loadSnapshotHistoryRange<C extends Column>(

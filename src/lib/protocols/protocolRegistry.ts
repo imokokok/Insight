@@ -337,21 +337,18 @@ export const PROTOCOL_REGISTRY: ProtocolConfig[] = [
     protocolType: 'lending',
     tvlUsd: 1_000_000_000,
     assets: [
-      // Compound V3 Base: same as Ethereum — ETH CF=83%, liquidation factor ~86%
-      makeAsset('ETH', 'major', OracleProvider.CHAINLINK, 1.15, 0.83, 0.83),
-      // WBTC CF=78%, liquidation factor ~81%
-      makeAsset('WBTC', 'major', OracleProvider.CHAINLINK, 1.2, 0.78, 0.78),
-      // USDC CF=82%, liquidation factor ~85%
-      makeAsset('USDC', 'stablecoin', OracleProvider.CHAINLINK, 1.2, 0.82, 0.82),
-      // USDT CF=80%, liquidation factor ~83%
-      makeAsset('USDT', 'stablecoin', OracleProvider.CHAINLINK, 1.2, 0.8, 0.8),
+      // Compound's Base USDC Comet lists WETH and cbETH as collateral.
+      makeAsset('WETH', 'major', OracleProvider.CHAINLINK, 1.1112, 0.8, 0.8),
+      makeAsset('cbETH', 'major', OracleProvider.CHAINLINK, 1.25, 0.75, 0.75),
+      // USDC is the sole base/borrow asset; its risk factor is not a collateral factor.
+      makeAsset('USDC', 'stablecoin', OracleProvider.CHAINLINK, 1, 0, 0),
     ],
     defaultPosition: {
-      collaterals: [{ symbol: 'ETH', amount: 2.5 }],
+      collaterals: [{ symbol: 'WETH', amount: 2.5 }],
       borrows: [{ symbol: 'USDC', amount: 1000 }],
     },
     contracts: {
-      comet: '0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf',
+      comet: '0xb125E6687d4313864e53df431d5425969c15Eb2F',
     },
   },
   {

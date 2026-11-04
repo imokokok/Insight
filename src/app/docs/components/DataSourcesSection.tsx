@@ -12,7 +12,7 @@ const providers = [
   { name: 'RedStone', type: 'API / On-chain', chains: 'EVM L1s & L2s' },
   { name: 'DIA', type: 'API / On-chain', chains: 'EVM L1s & L2s' },
   { name: 'WINkLink', type: 'On-chain', chains: 'TRON' },
-  { name: 'Supra', type: 'API / On-chain', chains: 'EVM, Move, Cosmos ecosystems' },
+  { name: 'Supra DORA Push', type: 'On-chain push', chains: 'Monad; API coverage elsewhere' },
   { name: 'TWAP', type: 'On-chain', chains: 'DEX TWAP oracles' },
   { name: 'Reflector', type: 'On-chain', chains: 'Stellar / Soroban' },
   { name: 'Flare', type: 'On-chain', chains: 'Flare Network' },
@@ -173,6 +173,21 @@ export default function DataSourcesSection() {
               commercial use is covered by written data permissions and the deployment is
               configured. These market references are evidence for comparison; they are not counted
               among the 13 oracle providers and do not enter oracle consensus.
+            </p>
+          </motion.div>
+
+          <motion.div
+            variants={itemVariants}
+            className="border-l-2 border-violet-600 bg-violet-50/70 p-6"
+          >
+            <h3 className="font-semibold text-slate-900 mb-2">Monad DEX market evidence</h3>
+            <p className="text-sm text-slate-600 leading-relaxed">
+              The reviewed Uniswap V3 WMON/USDC market on Monad contributes block-pinned spot and
+              15-minute TWAP observations, in-range liquidity, and Quoter V2 execution quotes at
+              fixed MON sizes. Finalized Swap events are indexed separately for rolling source-local
+              volume, and the API reports a warming state until 24 hours of contiguous coverage
+              exists. This is execution and manipulation-context evidence, not an oracle provider
+              and never an oracle-consensus vote.
             </p>
           </motion.div>
 

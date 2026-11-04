@@ -1,6 +1,10 @@
 import { z } from 'zod';
 
 import { DecisionInputQuoteTimestampSchema } from '@/lib/decisionInputTrust/validation';
+import { REVIEWED_AERODROME_SLIPSTREAM_PROFILE_IDS } from '@/lib/dex/aerodromeSlipstream';
+import { BASE_DEX_VENUE_IDS } from '@/lib/dex/baseDexVenues';
+import { REVIEWED_PANCAKE_SWAP_V3_PROFILE_IDS } from '@/lib/dex/pancakeSwapV3';
+import { REVIEWED_QUICKSWAP_V2_PROFILE_IDS } from '@/lib/dex/quickSwapV2';
 import { STABLECOINS } from '@/lib/stablecoins/config';
 import { WRAPPED_ASSETS } from '@/lib/wrapped-assets/config';
 import { BLOCKCHAIN_VALUES, ORACLE_PROVIDER_VALUES } from '@/types/oracle/enums';
@@ -208,6 +212,22 @@ export const IncidentsJsonSchema = z.object({
   offset: z.number().int().min(0).optional().describe('Pagination offset'),
 });
 
+export const SettlementEvidenceJsonSchema = z.object({
+  slug: z
+    .string()
+    .min(1)
+    .max(256)
+    .optional()
+    .describe('Polymarket market slug, e.g. btc-updown-5m-1766162100. Omit to list recent packs'),
+  limit: z
+    .number()
+    .int()
+    .min(1)
+    .max(100)
+    .optional()
+    .describe('Maximum packs when listing, default 20'),
+});
+
 export const FeedsJsonSchema = z.object({
   provider: providerEnum.optional().describe('Filter by oracle provider'),
   symbol: z.string().optional().describe('Filter by asset symbol'),
@@ -259,6 +279,412 @@ export const CorrelationJsonSchema = z.object({
 });
 
 export const CoverageJsonSchema = z.object({});
+
+/** Wire schema for the one reviewed WMON/USDC Monad DEX market. */
+export const MonadDexMarketJsonSchema = z.object({});
+
+/** Wire schema for the reviewed Hanji Monad CLOB market. */
+export const HanjiMonadMarketJsonSchema = z.object({});
+
+/** Wire schema for the one reviewed WETH/USDC Base DEX market. */
+export const BaseDexMarketJsonSchema = z.object({});
+
+/** Wire schema for the Base DEX deployment identity catalog. */
+export const BaseDexVenueIntegrationJsonSchema = z.object({
+  venues: z
+    .array(z.enum(BASE_DEX_VENUE_IDS))
+    .min(1)
+    .max(BASE_DEX_VENUE_IDS.length)
+    .optional()
+    .describe('Optional reviewed Base venues to inspect; defaults to every reviewed venue'),
+});
+
+/** Wire schema for a named allowlisted Aerodrome Slipstream Base market. */
+export const AerodromeSlipstreamMarketJsonSchema = z.object({
+  profileId: z
+    .enum(REVIEWED_AERODROME_SLIPSTREAM_PROFILE_IDS)
+    .optional()
+    .describe('Reviewed Aerodrome Slipstream pool id; defaults to Base WETH/USDC CL100'),
+});
+
+/** Wire schema for a named allowlisted PancakeSwap V3 market. */
+export const PancakeSwapV3MarketJsonSchema = z.object({
+  profileId: z
+    .enum(REVIEWED_PANCAKE_SWAP_V3_PROFILE_IDS)
+    .optional()
+    .describe(
+      'Reviewed PancakeSwap V3 pool id (Base or BNB Smart Chain); defaults to Base USDC/USDT 0.01%'
+    ),
+});
+
+/** Wire schema for a named allowlisted QuickSwap V2 Base pair. */
+export const QuickSwapV2MarketJsonSchema = z.object({
+  profileId: z
+    .enum(REVIEWED_QUICKSWAP_V2_PROFILE_IDS)
+    .optional()
+    .describe('Reviewed QuickSwap V2 pair id; defaults to Base USDC/USDT'),
+});
+
+/** Wire schema for the Base-only pre-signing lending gate. */
+export const BaseLendingGuardJsonSchema = z
+  .object({
+    protocolId: z.enum(['aave-v3-base', 'morpho-blue-base', 'compound-v3-base', 'moonwell-base']),
+    action: z.enum(['supply', 'borrow']),
+    collateralSymbol: z.string().regex(/^[A-Za-z][A-Za-z0-9.-]{0,15}$/),
+    loanSymbol: z.string().regex(/^[A-Za-z][A-Za-z0-9.-]{0,15}$/),
+    collateralValueUsd: z.number().positive().max(1_000_000_000_000),
+    debtValueUsd: z.number().min(0).max(1_000_000_000_000),
+    marketId: z
+      .string()
+      .regex(/^0x[a-fA-F0-9]{64}$/)
+      .optional(),
+  })
+  .superRefine((value, context) => {
+    if (value.protocolId === 'morpho-blue-base' && !value.marketId) {
+      context.addIssue({
+        code: 'custom',
+        path: ['marketId'],
+        message: 'marketId is required for Morpho Blue',
+      });
+    }
+  });
+
+/** Wire schema for exact-call Base Lending Guard decision evidence. */
+export const BaseLendingGuardExactJsonSchema = z
+  .object({
+    guard: BaseLendingGuardJsonSchema,
+    transaction: z
+      .object({
+        chainId: z.literal(8453),
+        from: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
+        to: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
+        data: z.string().regex(/^0x(?:[a-fA-F0-9]{2})+$/),
+        nonce: z.union([z.string().regex(/^0$|^[1-9][0-9]*$/), z.number().int().nonnegative()]),
+        value: z
+          .union([z.string().regex(/^0$|^[1-9][0-9]*$/), z.number().int().nonnegative()])
+          .optional(),
+      })
+      .strict(),
+  })
+  .strict();
+
+/** Wire schema for the Base Synthetix Perps V3 pre-trade gate. */
+export const BasePerpGuardJsonSchema = z.object({
+  protocolId: z.enum(['synthetix-perps-v3-base']),
+  action: z.enum(['open_long', 'open_short']),
+  assetSymbol: z.string().regex(/^[A-Za-z][A-Za-z0-9.-]{0,15}$/),
+  marginAssetSymbol: z.literal('USDC'),
+  sizeUsd: z.number().positive().max(1_000_000_000_000),
+  marginValueUsd: z.number().positive().max(1_000_000_000_000),
+});
+
+/** Wire schema for exact-call Base Perp Guard decision evidence. */
+export const BasePerpGuardExactJsonSchema = z
+  .object({
+    guard: BasePerpGuardJsonSchema,
+    transaction: z
+      .object({
+        chainId: z.literal(8453),
+        from: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
+        to: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
+        data: z.string().regex(/^0x(?:[a-fA-F0-9]{2})+$/),
+        nonce: z.union([z.string().regex(/^0$|^[1-9][0-9]*$/), z.number().int().nonnegative()]),
+        value: z
+          .union([z.string().regex(/^0$|^[1-9][0-9]*$/), z.number().int().nonnegative()])
+          .optional(),
+      })
+      .strict(),
+  })
+  .strict();
+
+/** Wire schema for the Hyperliquid perp pre-trade gate. */
+export const HyperliquidPerpGuardJsonSchema = z.object({
+  protocolId: z.enum(['hyperliquid-perps-mainnet']),
+  action: z.enum(['open_long', 'open_short']),
+  assetSymbol: z.string().regex(/^[A-Za-z][A-Za-z0-9.-]{0,15}$/),
+  marginAssetSymbol: z.literal('USDC'),
+  sizeUsd: z.number().positive().max(1_000_000_000_000),
+  marginValueUsd: z.number().positive().max(1_000_000_000_000),
+});
+
+/** Wire schema for the Solana Drift v2 perp pre-trade gate. */
+export const SolanaPerpGuardJsonSchema = z.object({
+  protocolId: z.enum(['drift-v2-mainnet']),
+  action: z.enum(['open_long', 'open_short']),
+  assetSymbol: z.string().regex(/^[A-Za-z][A-Za-z0-9.-]{0,15}$/),
+  marginAssetSymbol: z.literal('USDC'),
+  sizeUsd: z.number().positive().max(1_000_000_000_000),
+  marginValueUsd: z.number().positive().max(1_000_000_000_000),
+});
+
+/** Wire schema for exact-order Hyperliquid Perp Guard decision evidence. */
+export const HyperliquidPerpGuardExactJsonSchema = z
+  .object({
+    guard: HyperliquidPerpGuardJsonSchema,
+    order: z
+      .object({
+        action: z.object({
+          type: z.literal('order'),
+          orders: z
+            .array(
+              z.object({
+                a: z.number().int().nonnegative(),
+                b: z.boolean(),
+                p: z.string().regex(/^(?:0|[1-9][0-9]*)(?:\.[0-9]+)?$/),
+                s: z.string().regex(/^(?:0|[1-9][0-9]*)(?:\.[0-9]+)?$/),
+                r: z.literal(false),
+                t: z.object({ limit: z.object({ tif: z.literal('Ioc') }) }),
+                c: z.string().regex(/^0x[0-9a-fA-F]{32}$/),
+              })
+            )
+            .min(1)
+            .max(1),
+          grouping: z.literal('na'),
+          builder: z
+            .object({
+              b: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
+              f: z.number().int().min(1).max(100),
+            })
+            .optional(),
+        }),
+        expiresAfter: z.number().int().nonnegative(),
+      })
+      .strict(),
+  })
+  .strict();
+
+/** Wire schema for the reviewed Base, Polygon, Arbitrum and BNB lending gate. */
+export const MultichainEvmLendingGuardJsonSchema = z
+  .object({
+    chainId: z.union([z.literal(8453), z.literal(137), z.literal(42161), z.literal(56)]),
+    protocolId: z.enum([
+      'aave-v3-polygon',
+      'aave-v3-arbitrum',
+      'aave-v3-bnb',
+      'venus-core-bnb',
+      'compound-v3-arbitrum',
+      'morpho-blue-polygon',
+      'morpho-blue-arbitrum',
+      'lista-moolah-bnb',
+      'euler-v2-base',
+      'euler-v2-arbitrum',
+      'dolomite-arbitrum',
+      'fluid-vault-t1-base',
+      'fluid-vault-t1-arbitrum',
+    ]),
+    action: z.enum(['supply', 'borrow']),
+    collateralSymbol: z.string().regex(/^[A-Za-z][A-Za-z0-9.-]{0,15}$/),
+    loanSymbol: z.string().regex(/^[A-Za-z][A-Za-z0-9.-]{0,15}$/),
+    collateralValueUsd: z.number().finite().positive().max(1_000_000_000_000),
+    debtValueUsd: z.number().finite().nonnegative().max(1_000_000_000_000),
+    marketId: z
+      .string()
+      .regex(/^0x[a-fA-F0-9]{64}$/)
+      .optional(),
+    marketAddress: z
+      .string()
+      .regex(/^0x[a-fA-F0-9]{40}$/)
+      .optional(),
+    collateralVaultAddress: z
+      .string()
+      .regex(/^0x[a-fA-F0-9]{40}$/)
+      .optional(),
+    collateralMarketId: z
+      .string()
+      .regex(/^(?:0|[1-9][0-9]*)$/)
+      .optional(),
+    loanMarketId: z
+      .string()
+      .regex(/^(?:0|[1-9][0-9]*)$/)
+      .optional(),
+    accountNumber: z
+      .string()
+      .regex(/^(?:0|[1-9][0-9]*)$/)
+      .optional(),
+  })
+  .superRefine((value, context) => {
+    const isolated = ['morpho-blue-polygon', 'morpho-blue-arbitrum', 'lista-moolah-bnb'].includes(
+      value.protocolId
+    );
+    const euler = ['euler-v2-base', 'euler-v2-arbitrum'].includes(value.protocolId);
+    const fluid = ['fluid-vault-t1-base', 'fluid-vault-t1-arbitrum'].includes(value.protocolId);
+    if (isolated && !value.marketId) {
+      context.addIssue({ code: 'custom', path: ['marketId'], message: 'marketId is required' });
+    }
+    if (euler && !value.marketAddress) {
+      context.addIssue({
+        code: 'custom',
+        path: ['marketAddress'],
+        message: 'marketAddress is required for Euler v2',
+      });
+    }
+    if (euler && value.action === 'borrow' && !value.collateralVaultAddress) {
+      context.addIssue({
+        code: 'custom',
+        path: ['collateralVaultAddress'],
+        message: 'collateralVaultAddress is required for an Euler v2 borrow batch',
+      });
+    }
+    if (fluid && !value.marketAddress) {
+      context.addIssue({
+        code: 'custom',
+        path: ['marketAddress'],
+        message: 'marketAddress is required for Fluid T1',
+      });
+    }
+    if (fluid && value.action !== 'supply') {
+      context.addIssue({
+        code: 'custom',
+        path: ['action'],
+        message: 'Fluid T1 only supports collateral-only supply',
+      });
+    }
+    if (
+      value.protocolId === 'dolomite-arbitrum' &&
+      (!value.collateralMarketId || !value.loanMarketId || value.accountNumber === undefined)
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['collateralMarketId'],
+        message: 'Dolomite requires collateralMarketId, loanMarketId, and accountNumber',
+      });
+    }
+  });
+
+export const MultichainEvmLendingGuardExactJsonSchema = z
+  .object({
+    guard: MultichainEvmLendingGuardJsonSchema,
+    transaction: z
+      .object({
+        chainId: z.union([z.literal(8453), z.literal(137), z.literal(42161), z.literal(56)]),
+        from: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
+        to: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
+        data: z.string().regex(/^0x(?:[a-fA-F0-9]{2})+$/),
+        nonce: z.union([z.string().regex(/^0$|^[1-9][0-9]*$/), z.number().int().nonnegative()]),
+        value: z
+          .union([z.string().regex(/^0$|^[1-9][0-9]*$/), z.number().int().nonnegative()])
+          .optional(),
+      })
+      .strict(),
+  })
+  .strict();
+
+/** Wire schema for the one reviewed SOL/USDC Solana route market. */
+export const SolanaDexRouteJsonSchema = z.object({});
+
+/** Wire schema for the reviewed Hyperliquid perpetual-market set. */
+export const HyperliquidPerpMarketJsonSchema = z.object({
+  market: z
+    .enum(['BTC', 'ETH', 'HYPE'])
+    .optional()
+    .describe('Reviewed Hyperliquid perpetual market: BTC, ETH, or HYPE. Defaults to BTC.'),
+});
+
+/** Wire schema for the Monad pre-signing lending gate. */
+export const MonadLendingGuardJsonSchema = z
+  .object({
+    protocolId: z.enum(['aave-v3-monad', 'morpho-blue-monad']),
+    action: z.enum(['supply', 'borrow']),
+    collateralSymbol: z.string().regex(/^[A-Za-z][A-Za-z0-9.-]{0,15}$/),
+    loanSymbol: z.string().regex(/^[A-Za-z][A-Za-z0-9.-]{0,15}$/),
+    collateralValueUsd: z.number().finite().positive(),
+    debtValueUsd: z.number().finite().nonnegative(),
+    marketId: z
+      .string()
+      .regex(/^0x[a-fA-F0-9]{64}$/)
+      .optional(),
+  })
+  .superRefine((value, context) => {
+    if (value.protocolId === 'morpho-blue-monad' && !value.marketId) {
+      context.addIssue({
+        code: 'custom',
+        path: ['marketId'],
+        message: 'marketId is required for Morpho Blue',
+      });
+    }
+  });
+
+export const MonadLendingGuardExactJsonSchema = z
+  .object({
+    guard: MonadLendingGuardJsonSchema,
+    transaction: z
+      .object({
+        chainId: z.literal(143),
+        from: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
+        to: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
+        data: z.string().regex(/^0x(?:[a-fA-F0-9]{2})+$/),
+        nonce: z.union([z.string().regex(/^0$|^[1-9][0-9]*$/), z.number().int().nonnegative()]),
+        value: z
+          .union([z.string().regex(/^0$|^[1-9][0-9]*$/), z.number().int().nonnegative()])
+          .optional(),
+      })
+      .strict(),
+  })
+  .strict();
+
+/** Wire schema for a user-signed, IOC-only reviewed Hyperliquid perp order. */
+export const HyperliquidPerpOrderPreflightJsonSchema = z
+  .object({
+    market: z.enum(['BTC', 'ETH', 'HYPE']),
+    side: z.enum(['buy', 'sell']),
+    size: z
+      .string()
+      .regex(/^(?:0|[1-9][0-9]*)(?:\.[0-9]+)?$/)
+      .max(80),
+    limitPrice: z
+      .string()
+      .regex(/^(?:0|[1-9][0-9]*)(?:\.[0-9]+)?$/)
+      .max(80),
+    reduceOnly: z.boolean(),
+    clientOrderId: z.string().regex(/^0x[0-9a-fA-F]{32}$/),
+    maxNotionalUsd: z.number().finite().min(1).max(1_000_000_000),
+    maxPriceImpactBps: z.number().finite().min(0).max(10_000),
+    maxMarkOracleDeviationBps: z.number().finite().min(0).max(10_000),
+    requireFullFill: z.boolean().optional(),
+    expiresAfterSeconds: z.number().int().min(5).max(120).optional(),
+    builderFee: z
+      .object({
+        builder: z.string().regex(/^0x[0-9a-fA-F]{40}$/),
+        feeTenthsOfBasisPoint: z.number().int().min(1).max(100),
+        maximumFeeTenthsOfBasisPoint: z.number().int().min(1).max(100).optional(),
+      })
+      .strict()
+      .optional(),
+  })
+  .strict();
+
+/** Wire schema for a bounded, read-only Hyperliquid order/fill observation. */
+export const HyperliquidPerpExecutionVerificationJsonSchema = z
+  .object({
+    user: z.string().regex(/^0x[0-9a-fA-F]{40}$/),
+    orderId: z.string().regex(/^(?:[1-9][0-9]{0,19}|0x[0-9a-fA-F]{32})$/),
+    submittedAt: z.string().datetime({ offset: true }),
+    expectedOrder: z
+      .object({
+        market: z.enum(['BTC', 'ETH', 'HYPE']),
+        side: z.enum(['buy', 'sell']),
+        size: z
+          .string()
+          .regex(/^(?:0|[1-9][0-9]*)(?:\.[0-9]+)?$/)
+          .max(80),
+        limitPrice: z
+          .string()
+          .regex(/^(?:0|[1-9][0-9]*)(?:\.[0-9]+)?$/)
+          .max(80),
+        reduceOnly: z.boolean(),
+        clientOrderId: z.string().regex(/^0x[0-9a-fA-F]{32}$/),
+        builderFee: z
+          .object({
+            builder: z.string().regex(/^0x[0-9a-fA-F]{40}$/),
+            feeTenthsOfBasisPoint: z.number().int().min(1).max(100),
+            maximumFeeTenthsOfBasisPoint: z.number().int().min(1).max(100).optional(),
+          })
+          .strict()
+          .optional(),
+      })
+      .strict(),
+  })
+  .strict();
 
 const AssetEntryJsonSchema = z.object({
   symbol: z.string().min(1).describe('Asset symbol'),
@@ -316,11 +742,102 @@ export const ExecutionPreflightJsonSchema = PreTradeSafetyJsonSchema.extend({
       maxQuoteAgeSeconds: z.number().int().min(1).max(300),
       quoteProvenance: decisionInputQuoteProvenanceJsonSchema.optional(),
       requireQuoteProvenance: z.boolean().optional(),
+      reviewedUniswapV3: z
+        .object({
+          amountIn: z
+            .string()
+            .regex(/^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$/)
+            .max(128)
+            .describe('Exact source-token amount for the reviewed concentrated-liquidity quote'),
+          maxQuoteDeviationBps: z.number().int().min(0).max(10_000),
+          maxTwapDeviationBps: z.number().int().min(0).max(10_000),
+        })
+        .strict()
+        .optional()
+        .describe(
+          'Optional strict reviewed-pool lane. Admits Monad MON/WMON→USDC and Base ETH/WETH→USDC through Uniswap V3, Base USDC↔USDT through PancakeSwap V3, and Base USDC↔USDT through the reviewed Uniswap V3 0.05% pool; other routes fail closed.'
+        ),
+      reviewedAerodromeSlipstream: z
+        .object({
+          amountIn: z
+            .string()
+            .regex(/^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$/)
+            .max(128)
+            .describe(
+              'Exact input amount for the reviewed Base Aerodrome Slipstream quote (WETH/USDC CL100 or USDC/USDT CL1, both directions)'
+            ),
+          maxQuoteDeviationBps: z.number().int().min(0).max(10_000),
+          maxTwapDeviationBps: z.number().int().min(0).max(10_000),
+        })
+        .strict()
+        .optional()
+        .describe(
+          'Optional strict reviewed-pool lane. Admits Base WETH↔USDC through the Aerodrome Slipstream CL100 pool and Base USDC↔USDT through the CL1 stable pool, both directions; unsupported routes fail closed.'
+        ),
     })
     .optional()
     .describe(
       'Optional fresh venue quote and explicit limits. This evidence is required for an ALLOW result; without it a healthy oracle result remains CAUTION.'
     ),
+});
+
+/** Wire schema for a user-signable transaction against one reviewed Base pool. */
+export const AerodromeSlipstreamSwapPreparationJsonSchema = z.object({
+  profileId: z
+    .enum(REVIEWED_AERODROME_SLIPSTREAM_PROFILE_IDS)
+    .optional()
+    .describe('Reviewed Aerodrome Slipstream pool id; defaults to Base WETH/USDC CL100'),
+  direction: z
+    .enum(['token0-to-token1', 'token1-to-token0'])
+    .describe(
+      'Quote direction inside the reviewed pool: token0→token1 (e.g. WETH→USDC, USDC→USDT) or the reverse (USDC→WETH, USDT→USDC). Defaults to token0→token1.'
+    ),
+  amountIn: z
+    .string()
+    .regex(/^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$/)
+    .max(128)
+    .describe('Exact input amount of the direction input token; the tool never handles native ETH'),
+  recipient: z
+    .string()
+    .regex(/^0x[0-9a-fA-F]{40}$/)
+    .describe('Output-token recipient encoded into the unsigned router transaction'),
+  deadlineUnixSeconds: z
+    .number()
+    .int()
+    .positive()
+    .describe('User-selected Unix deadline, no more than 30 minutes ahead'),
+  maxSlippageBps: z
+    .number()
+    .int()
+    .min(0)
+    .max(9999)
+    .describe('Maximum shortfall versus the pinned quote, encoded as amountOutMinimum'),
+});
+
+/** Wire schema for a user-signable PancakeSwap V3 transaction. */
+export const PancakeSwapV3SwapPreparationJsonSchema = z.object({
+  profileId: z
+    .enum(REVIEWED_PANCAKE_SWAP_V3_PROFILE_IDS)
+    .optional()
+    .describe(
+      'Reviewed PancakeSwap V3 pool id (Base or BNB Smart Chain); defaults to Base USDC/USDT 0.01%'
+    ),
+  direction: z
+    .enum(['token0-to-token1', 'token1-to-token0'])
+    .describe(
+      'Quote direction inside the reviewed pool, stated in its token0/token1 order (e.g. Base USDC/USDT: USDC→USDT; BNB USDT/USDC: USDT→USDC) or the reverse. Defaults to token0→token1.'
+    ),
+  amountIn: z
+    .string()
+    .regex(/^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$/)
+    .max(128)
+    .describe('Exact input amount of the direction input token; the tool never handles native ETH'),
+  recipient: z
+    .string()
+    .regex(/^0x[0-9a-fA-F]{40}$/)
+    .describe('Output-token recipient'),
+  deadlineUnixSeconds: z.number().int().positive().describe('User-selected short Unix deadline'),
+  maxSlippageBps: z.number().int().min(0).max(9999).describe('Maximum quote shortfall in bps'),
 });
 
 /** Wire schema for `agent_begin_trade`. No `.default()` so zod v4 toJSONSchema()
@@ -450,4 +967,56 @@ export const VerifyExecutionPairJsonSchema = z.object({
     })
     .passthrough()
     .describe('The Execution Receipt to check against the pre-trade attestation.'),
+});
+
+/** `oracle_watch_window_begin` / `position_lifecycle_begin`. Defaults are not
+ *  applied so zod v4's toJSONSchema() stays happy. */
+export const ProductBeginJsonSchema = z.object({
+  symbol: z.string().describe('Asset monitored for the whole coverage, e.g. ETH'),
+  chain: chainEnum.optional().describe('Optional chain scope fixed for the coverage'),
+});
+
+/** In-window token-authed operations: poll/close and the lifecycle equivalents. */
+export const ProductTokenJsonSchema = z.object({
+  windowId: z.string().describe('windowId returned at purchase'),
+  windowToken: z.string().describe('The one-time token returned at purchase (oww_<hex>)'),
+});
+
+export const LifecycleTokenJsonSchema = z.object({
+  lifecycleId: z.string().describe('lifecycleId returned at purchase'),
+  lifecycleToken: z.string().describe('The one-time token returned at purchase (plc_<hex>)'),
+});
+
+/** `position_lifecycle_guard`. Params are the chosen family's native input. */
+export const PositionLifecycleGuardJsonSchema = z.object({
+  lifecycleId: z.string().describe('lifecycleId returned by position_lifecycle_begin'),
+  lifecycleToken: z.string().describe('The one-time lifecycle token (plc_<hex>)'),
+  family: z
+    .enum([
+      'base_perp',
+      'hyperliquid_perp',
+      'base_lending',
+      'monad_lending',
+      'multichain_evm_lending',
+      'solana_lending',
+    ])
+    .describe('Guard family to assess with'),
+  params: z
+    .record(z.string(), z.any())
+    .describe('The native guard input for the chosen family (same schema as the family tool)'),
+  transaction: z
+    .unknown()
+    .optional()
+    .describe(
+      'Required for solana_lending: the exact unsigned Solana lending transaction the guard evaluates'
+    ),
+});
+
+/** `position_lifecycle_receipt`. Same fields as execution_receipt. */
+export const PositionLifecycleReceiptJsonSchema = z.object({
+  lifecycleId: z.string().describe('lifecycleId returned by position_lifecycle_begin'),
+  lifecycleToken: z.string().describe('The one-time lifecycle token (plc_<hex>)'),
+  receipt: z
+    .record(z.string(), z.any())
+    .describe('The same pre-trade + settlement fields execution_receipt takes'),
 });

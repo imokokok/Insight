@@ -189,6 +189,7 @@ interface CacheSlot {
 }
 
 const cache = new Map<string, CacheSlot>();
+const inFlight = new Map<string, Promise<GoPlusRawResult | null>>();
 
 export function goPlusCacheKey(chainId: number, contractAddress: string): string {
   return `${chainId}:${contractAddress.toLowerCase()}`;
@@ -197,6 +198,7 @@ export function goPlusCacheKey(chainId: number, contractAddress: string): string
 /** Test seam — clears the in-process cache. */
 export function clearGoPlusCacheForTest(): void {
   cache.clear();
+  inFlight.clear();
   cachedAccessToken = null;
   accessTokenPromise = null;
 }
@@ -233,9 +235,28 @@ export async function fetchGoPlusTokenSecurity(
     return cached.value;
   }
 
-  const result = await fetchOnce(chainId, address, fetchImpl, onOutcome);
-  cache.set(key, { value: result, expiresAt: Date.now() + GOPLUS_CACHE_TTL_MS });
-  return result;
+  let request = inFlight.get(key);
+  let startedRequest = false;
+  if (!request) {
+    startedRequest = true;
+    request = fetchOnce(chainId, address, fetchImpl, onOutcome);
+    inFlight.set(key, request);
+  }
+
+  try {
+    const result = await request;
+    // A concurrent caller did not initiate a second scan, but it still
+    // received the same completed evidence (or explicit lack of evidence).
+    // Preserve the debug lane contract without exposing a timing-dependent
+    // internal state to the API.
+    if (!startedRequest) {
+      onOutcome?.(result ? 'fetched' : 'cached_null');
+    }
+    cache.set(key, { value: result, expiresAt: Date.now() + GOPLUS_CACHE_TTL_MS });
+    return result;
+  } finally {
+    if (inFlight.get(key) === request) inFlight.delete(key);
+  }
 }
 
 async function fetchOnce(

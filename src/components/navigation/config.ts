@@ -25,17 +25,36 @@ export const navigationConfig: NavStructure = [
     icon: Search,
   },
   {
-    id: 'safety',
-    label: 'Safety',
+    href: '/decision-integrity',
+    label: 'Decision Integrity',
     icon: ShieldCheck,
+  },
+  {
+    id: 'risk-intelligence',
+    label: 'Risk Intelligence',
+    icon: BarChart3,
     megaMenu: true,
     items: [
       {
+        href: '/risk-intelligence',
+        label: 'Risk Intelligence Overview',
+        icon: Eye,
+        description:
+          'Choose the right oracle-risk instrument for source comparison, position stress, and ongoing monitoring',
+      },
+      {
+        href: '/price-insight?stage=compare',
+        label: 'Compare & Assess',
+        icon: Search,
+        description:
+          'Compare oracle prices across providers and chains with divergence, freshness, and source context',
+      },
+      {
         href: '/safety-check',
-        label: 'Safety Check',
+        label: 'Position Stress Test',
         icon: ShieldCheck,
         description:
-          'Calculate your personal position critical deviation and liquidation risk across protocols',
+          'Calculate a position critical deviation and liquidation risk across supported lending protocols',
       },
       {
         href: '/peg-risk',
@@ -43,21 +62,6 @@ export const navigationConfig: NavStructure = [
         icon: Gauge,
         description:
           'Assess stablecoins, wrapped assets and LSTs across source deviation and protocol impact',
-      },
-    ],
-  },
-  {
-    id: 'analysis',
-    label: 'Analysis',
-    icon: BarChart3,
-    megaMenu: true,
-    items: [
-      {
-        href: '/price-insight',
-        label: 'Price Insight',
-        icon: Eye,
-        description:
-          'Compare oracle prices across providers and blockchains with risk analysis and divergence tracking',
       },
       {
         href: '/reputation',
@@ -81,6 +85,12 @@ export const navigationConfig: NavStructure = [
     icon: Code,
     megaMenu: true,
     items: [
+      {
+        href: '/build',
+        label: 'Build Overview',
+        icon: Code,
+        description: 'Choose REST, AI / MCP, or Guard SDK for your integration path',
+      },
       {
         href: '/sdk',
         label: 'Guard SDK',

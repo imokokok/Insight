@@ -20,4 +20,16 @@ describe('MCP tool metering', () => {
     expect(getToolCreditCost('execution_preflight')).toBe(5);
     expect(getCreditCost('/api/v1/safety/preflight')).toBe(5);
   });
+
+  it('prices reviewed Aerodrome evidence as C1 and unsigned preparation as C3', () => {
+    expect(getCreditCost('/api/v1/markets/dex/aerodrome')).toBe(0.5);
+    expect(getToolCreditCost('get_aerodrome_slipstream_market')).toBe(0.5);
+    expect(getToolCreditCost('prepare_aerodrome_slipstream_swap')).toBe(5);
+  });
+
+  it('prices both Base Perp Guard tools and their REST route as C3 decision gates', () => {
+    expect(getToolCreditCost('base_perp_guard')).toBe(5);
+    expect(getToolCreditCost('base_perp_guard_exact_call')).toBe(5);
+    expect(getCreditCost('/api/v1/safety/base-perp-guard')).toBe(5);
+  });
 });

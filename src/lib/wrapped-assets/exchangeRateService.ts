@@ -5,6 +5,7 @@ import { RpcClientWithFallback } from '@/lib/oracles/utils/rpcClientWithFallback
 import { createLogger, normalizeError } from '@/lib/utils/logger';
 
 const logger = createLogger('lst-exchange-rate');
+const LST_RPC_DEADLINE_MS = 12_000;
 
 interface LSTExchangeRateConfig {
   symbol: string;
@@ -77,6 +78,7 @@ function formatRate(raw: bigint, decimals: number): number {
 class LSTExchangeRateService {
   private rpcClient = new RpcClientWithFallback({ contextLabel: 'lst-exchange-rate' });
   private cache = new Map<string, { rate: number; timestamp: number }>();
+  private inFlight = new Map<string, Promise<number>>();
   // LST exchange rates change slowly (staking rewards accrue over hours/days).
   // 10-minute cache keeps safety-check calculations fresh while avoiding
   // repeated RPC calls when multiple users query the same asset.
@@ -98,6 +100,23 @@ class LSTExchangeRateService {
       return cached.rate;
     }
 
+    const pending = this.inFlight.get(cacheKey);
+    if (pending) return pending;
+
+    const request = this.loadExchangeRate(config, chainId, cacheKey);
+    this.inFlight.set(cacheKey, request);
+    try {
+      return await request;
+    } finally {
+      if (this.inFlight.get(cacheKey) === request) this.inFlight.delete(cacheKey);
+    }
+  }
+
+  private async loadExchangeRate(
+    config: LSTExchangeRateConfig,
+    chainId: number,
+    cacheKey: string
+  ): Promise<number> {
     const rpcConfig = getChainlinkRPCConfig(chainId);
     if (!rpcConfig || rpcConfig.endpoints.length === 0) {
       throw new Error(`No RPC config for chain ${chainId}`);
@@ -112,23 +131,29 @@ class LSTExchangeRateService {
       String(chainId),
       rpcConfig.endpoints,
       config.contractAddress,
-      data
+      data,
+      AbortSignal.timeout(LST_RPC_DEADLINE_MS)
     );
 
     const raw = decodeUint256(result);
     if (raw === BigInt(0)) {
-      throw new Error(`Invalid exchange rate for ${symbol}`);
+      throw new Error(`Invalid exchange rate for ${config.symbol}`);
     }
 
     const rate = formatRate(raw, config.decimals);
     this.cache.set(cacheKey, { rate, timestamp: Date.now() });
 
-    logger.info(`Fetched ${symbol} exchange rate`, { symbol, chainId, rate });
+    logger.info(`Fetched ${config.symbol} exchange rate`, {
+      symbol: config.symbol,
+      chainId,
+      rate,
+    });
     return rate;
   }
 
   clearCache(): void {
     this.cache.clear();
+    this.inFlight.clear();
   }
 }
 

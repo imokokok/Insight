@@ -250,6 +250,14 @@ describe('getPriceRecords', () => {
 
     expect(result).toBeNull();
   });
+
+  it('caps an internal price-record history read to a bounded page', async () => {
+    mockQuery._resolveWith({ data: [], error: null });
+
+    await queries.getPriceRecords({ limit: 100_000, offset: 0 });
+
+    expect(mockQuery.range).toHaveBeenCalledWith(0, 999);
+  });
 });
 
 describe('User Profile operations - getUserProfile', () => {
@@ -318,6 +326,7 @@ describe('getOracleFeeds paging', () => {
   const createPageThenable = (value: unknown) => {
     const promise = new Promise((resolve) => resolve(value));
     const thenable = {
+      abortSignal: jest.fn().mockReturnThis(),
       eq: jest.fn().mockReturnThis(),
       then: promise.then.bind(promise),
       catch: promise.catch.bind(promise),
@@ -376,6 +385,15 @@ describe('getOracleFeeds paging', () => {
     const result = await queries.getOracleFeeds('redstone');
 
     expect(result).toEqual([]);
+  });
+
+  it('preserves the database-failure bit for availability-sensitive callers', async () => {
+    mockRangePages([{ data: [], error: { message: 'boom' }, count: null }]);
+
+    await expect(queries.getOracleFeedsWithStatus('redstone')).resolves.toEqual({
+      feeds: [],
+      errored: true,
+    });
   });
 
   it('fails closed when the exact count does not match the loaded rows (server-side truncation)', async () => {
@@ -437,5 +455,31 @@ describe('bounded bulk price persistence', () => {
         { provider: 'dia', symbol: 'ETH', price: 100, timestamp: 1780000000000 },
       ])
     ).rejects.toThrow('unavailable');
+  });
+});
+
+describe('atomic feed-health lifecycle', () => {
+  it('uses one validated RPC response for health updates and deactivation', async () => {
+    mockClient.rpc.mockResolvedValueOnce({
+      data: { updated: 4, deactivated: 1 },
+      error: null,
+    } as never);
+
+    await expect(
+      queries.applyFeedHealthAndDeactivate([
+        { provider: 'chainlink', symbol: 'ETH', chainId: 1, isSuccess: true },
+        { provider: 'pyth', symbol: 'SOL', chainId: 1, isSuccess: false },
+      ])
+    ).resolves.toEqual({ updated: 4, deactivated: 1 });
+
+    expect(mockClient.rpc).toHaveBeenCalledTimes(1);
+    expect(mockClient.rpc).toHaveBeenCalledWith('apply_feed_health_batch', {
+      p_results: {
+        successes: [{ provider: 'chainlink', symbol: 'ETH', chainId: 1 }],
+        failures: [{ provider: 'pyth', symbol: 'SOL', chainId: 1 }],
+      },
+      p_failure_threshold: 3,
+    });
+    expect(mockClient.from).not.toHaveBeenCalled();
   });
 });

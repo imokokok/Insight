@@ -19,7 +19,16 @@ import type { SourcePriceSnapshot } from '../risk/types';
 const logger = createLogger('wrapped-asset-monitor');
 
 const SNAPSHOT_CACHE_TTL = ORACLE_CACHE_TTL.PRICE;
-const snapshotCache = new TTLCache({ maxSize: 16, cleanupIntervalMs: 60000 });
+// Capacity is bounded and entries expire lazily on reads, so a per-instance
+// interval only wakes an otherwise idle server. Keep this cache timer-free.
+const snapshotCache = new TTLCache({ maxSize: 16, cleanupIntervalMs: 0 });
+const snapshotInFlight = new Map<string, Promise<WrappedAssetSnapshot>>();
+
+/** Test seam — clears completed and pending process-local snapshots. */
+export function resetWrappedAssetSnapshotCacheForTests(): void {
+  snapshotCache.clear();
+  snapshotInFlight.clear();
+}
 
 // Fallback exchange rates used when on-chain read fails.
 const LST_EXCHANGE_RATE_FALLBACK: Record<string, number> = {
@@ -127,6 +136,23 @@ export async function calculateWrappedAssetSnapshot(symbol: string): Promise<Wra
   if (cached) {
     return cached;
   }
+
+  const pending = snapshotInFlight.get(cacheKey);
+  if (pending) return pending;
+
+  const request = loadWrappedAssetSnapshot(symbol);
+  snapshotInFlight.set(cacheKey, request);
+  try {
+    return await request;
+  } finally {
+    if (snapshotInFlight.get(cacheKey) === request) {
+      snapshotInFlight.delete(cacheKey);
+    }
+  }
+}
+
+async function loadWrappedAssetSnapshot(symbol: string): Promise<WrappedAssetSnapshot> {
+  const cacheKey = `snapshot:${symbol}`;
 
   const config = getWrappedAssetConfig(symbol);
   if (!config) {

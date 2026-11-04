@@ -12,7 +12,20 @@ const logger = createLogger('protocol-dynamic-data');
 
 // 服务端缓存：动态数据由 cron 每 4-6 小时更新，2 分钟 TTL 可有效吸收并发请求
 const DYNAMIC_DATA_CACHE_TTL_MS = 2 * 60 * 1000;
-const dynamicDataCache = new TTLCache({ cleanupIntervalMs: 60_000 });
+const DYNAMIC_DATA_QUERY_TIMEOUT_MS = 6_000;
+// The registry has a finite set of protocol ids, but keep this process-local
+// cache bounded in case a future caller uses an ad-hoc subset key.
+const dynamicDataCache = new TTLCache({ maxSize: 32, cleanupIntervalMs: 0 });
+// A cache TTL does not protect the first request after expiry. Coalesce that
+// miss so a burst of safety/API calls performs one pair of set-based reads,
+// instead of two database queries per caller.
+const dynamicDataInFlight = new Map<string, Promise<Record<string, DynamicProtocolData>>>();
+
+/** Test seam — clears warm-instance cached protocol parameters and pending reads. */
+export function resetDynamicDataCacheForTests(): void {
+  dynamicDataCache.clear();
+  dynamicDataInFlight.clear();
+}
 
 interface ProtocolMetricsRow {
   protocol_id: string;
@@ -48,7 +61,8 @@ async function fetchLatestMetrics(
   const { data, error } = await supabase
     .from('protocol_metrics')
     .select('protocol_id, tvl_usd, fetched_at')
-    .in('protocol_id', protocolIds);
+    .in('protocol_id', protocolIds)
+    .abortSignal(AbortSignal.timeout(DYNAMIC_DATA_QUERY_TIMEOUT_MS));
 
   if (error) {
     logger.error('Failed to fetch protocol metrics', error);
@@ -71,7 +85,8 @@ async function fetchLatestRiskParams(
     .select(
       'protocol_id, asset_symbol, liquidation_threshold, max_ltv, collateral_factor, exchange_rate, fetched_at'
     )
-    .in('protocol_id', protocolIds);
+    .in('protocol_id', protocolIds)
+    .abortSignal(AbortSignal.timeout(DYNAMIC_DATA_QUERY_TIMEOUT_MS));
 
   if (error) {
     logger.error('Failed to fetch protocol risk params', error);
@@ -91,51 +106,66 @@ async function getDynamicDataForProtocols(
 ): Promise<Record<string, DynamicProtocolData>> {
   if (protocolIds.length === 0) return {};
 
-  // 尝试从缓存获取
-  const cacheKey = protocolIds.sort().join(',');
+  // Never sort the caller's array in place: registry arrays are shared by a
+  // few request paths, and mutation makes cache optimization observable.
+  const canonicalProtocolIds = [...new Set(protocolIds)].sort();
+  const cacheKey = canonicalProtocolIds.join(',');
   const cached = dynamicDataCache.get<Record<string, DynamicProtocolData>>(cacheKey);
   if (cached) return cached;
 
-  const [metricsByProtocol, riskParamsByProtocol] = await Promise.all([
-    fetchLatestMetrics(protocolIds),
-    fetchLatestRiskParams(protocolIds),
-  ]);
+  const pending = dynamicDataInFlight.get(cacheKey);
+  if (pending) return pending;
 
-  const result: Record<string, DynamicProtocolData> = {};
+  const request = (async () => {
+    const [metricsByProtocol, riskParamsByProtocol] = await Promise.all([
+      fetchLatestMetrics(canonicalProtocolIds),
+      fetchLatestRiskParams(canonicalProtocolIds),
+    ]);
 
-  for (const protocolId of protocolIds) {
-    const metrics = metricsByProtocol[protocolId];
-    const riskParams = riskParamsByProtocol[protocolId];
+    const result: Record<string, DynamicProtocolData> = {};
 
-    const dynamicData: DynamicProtocolData = {
-      assets: {},
-    };
+    for (const protocolId of canonicalProtocolIds) {
+      const metrics = metricsByProtocol[protocolId];
+      const riskParams = riskParamsByProtocol[protocolId];
 
-    if (metrics && metrics.tvl_usd != null && metrics.tvl_usd > 0) {
-      dynamicData.tvlUsd = Number(metrics.tvl_usd);
-      dynamicData.metricsFetchedAt = metrics.fetched_at;
-    }
+      const dynamicData: DynamicProtocolData = {
+        assets: {},
+      };
 
-    if (riskParams && Object.keys(riskParams).length > 0) {
-      for (const [symbol, row] of Object.entries(riskParams)) {
-        dynamicData.assets[symbol] = {
-          liquidationThreshold:
-            row.liquidation_threshold != null ? Number(row.liquidation_threshold) : undefined,
-          maxLtv: row.max_ltv != null ? Number(row.max_ltv) : undefined,
-          collateralFactor:
-            row.collateral_factor != null ? Number(row.collateral_factor) : undefined,
-          exchangeRate: row.exchange_rate != null ? Number(row.exchange_rate) : undefined,
-        };
+      if (metrics && metrics.tvl_usd != null && metrics.tvl_usd > 0) {
+        dynamicData.tvlUsd = Number(metrics.tvl_usd);
+        dynamicData.metricsFetchedAt = metrics.fetched_at;
       }
-      dynamicData.riskParamsFetchedAt = Object.values(riskParams)[0]?.fetched_at;
+
+      if (riskParams && Object.keys(riskParams).length > 0) {
+        for (const [symbol, row] of Object.entries(riskParams)) {
+          dynamicData.assets[symbol] = {
+            liquidationThreshold:
+              row.liquidation_threshold != null ? Number(row.liquidation_threshold) : undefined,
+            maxLtv: row.max_ltv != null ? Number(row.max_ltv) : undefined,
+            collateralFactor:
+              row.collateral_factor != null ? Number(row.collateral_factor) : undefined,
+            exchangeRate: row.exchange_rate != null ? Number(row.exchange_rate) : undefined,
+          };
+        }
+        dynamicData.riskParamsFetchedAt = Object.values(riskParams)[0]?.fetched_at;
+      }
+
+      result[protocolId] = dynamicData;
     }
 
-    result[protocolId] = dynamicData;
-  }
+    dynamicDataCache.set(cacheKey, result, DYNAMIC_DATA_CACHE_TTL_MS);
+    return result;
+  })();
 
-  // 写入缓存
-  dynamicDataCache.set(cacheKey, result, DYNAMIC_DATA_CACHE_TTL_MS);
-  return result;
+  dynamicDataInFlight.set(cacheKey, request);
+  try {
+    return await request;
+  } finally {
+    if (dynamicDataInFlight.get(cacheKey) === request) {
+      dynamicDataInFlight.delete(cacheKey);
+    }
+  }
 }
 
 async function getDynamicDataForProtocol(protocolId: string): Promise<DynamicProtocolData> {

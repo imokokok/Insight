@@ -3,21 +3,54 @@ import { after } from 'next/server';
 import { type HTTPAdapter, type HTTPResponseInstructions } from '@x402/core/server';
 
 import { getToolCreditCost } from '@/lib/billing/metering';
+import {
+  isEntitlementCoveredMcpTool,
+  PRODUCT_MCP_TOOL_USD_PRICES,
+} from '@/lib/billing/productPricing';
 import { enqueueReputationAnchor } from '@/lib/erc8004/reputationAnchor';
 import { createLogger } from '@/lib/utils/logger';
 
-import { type X402Config, X402_CREDIT_USD, X402_MCP_ROUTE } from './config';
+import {
+  x402ConfigForPaymentScope,
+  x402PaymentScopeForMcpTool,
+  type X402PaymentScope,
+} from './capabilityPayment';
+import { type X402Config, usdToAtomicUnits, X402_CREDIT_USD, X402_MCP_ROUTE } from './config';
 import {
   atomicUnitsToUsdc,
   logBazaarExtensionStatus,
   paymentAuditFields,
-  quoteAuditFields,
   recordX402Settlement,
+  x402AcquisitionSource,
   x402ResponseBody,
 } from './guard';
-import { getMcpX402HttpServer } from './resourceServer';
+import { BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME, getMcpX402HttpServer } from './resourceServer';
 
 const logger = createLogger('x402-mcp-bridge');
+
+// Directory crawlers legitimately ask for unsigned quotes before deciding to
+// pay. Sample those routine events, but keep every signed rejection and every
+// completed-payment lifecycle event visible to operators.
+const UNSIGNED_MCP_QUOTE_LOG_SAMPLE_EVERY = 100;
+let unsignedMcpQuoteLogCount = 0;
+
+function logUnsignedMcpQuoteSample(
+  event: 'indexer quote issued' | 'payment quote issued',
+  fields: { requestId: string; priceAtomic: string; toolName?: string }
+): void {
+  unsignedMcpQuoteLogCount += 1;
+  if (
+    unsignedMcpQuoteLogCount !== 1 &&
+    unsignedMcpQuoteLogCount % UNSIGNED_MCP_QUOTE_LOG_SAMPLE_EVERY !== 0
+  ) {
+    return;
+  }
+  logger.info(`x402 MCP ${event}`, {
+    ...fields,
+    sampleEvery: UNSIGNED_MCP_QUOTE_LOG_SAMPLE_EVERY,
+    sampleOrdinal: unsignedMcpQuoteLogCount,
+  });
+}
 
 /**
  * x402 pay-per-call bridge for the MCP streamable-HTTP endpoint.
@@ -81,15 +114,59 @@ export function toResponse(instructions: HTTPResponseInstructions): Response {
 }
 
 /**
- * USDC atomic units (6 decimals) for one call of `toolName`: credit cost ×
- * the per-credit USD factor, floored onto the micro-dollar grid with integer
- * math. A zero/negative result can only come from a zero cost, which the
- * metering table never produces (C1 = 0.5); still guarded so a misconfigured
- * table can never mint a free-quote.
+ * USDC atomic units (6 decimals) for one call of `toolName`: the product list
+ * price for a product begin tool, otherwise credit cost × the per-credit USD
+ * factor, floored onto the micro-dollar grid with integer math. A zero/negative
+ * result can only come from a zero cost, which the metering table never
+ * produces (C1 = 0.5); still guarded so a misconfigured table can never mint a
+ * free-quote.
  */
 export function priceAtomicForTool(toolName: string): string {
+  const productUsd = PRODUCT_MCP_TOOL_USD_PRICES[toolName];
+  if (productUsd !== undefined) {
+    // Product purchases quote the plan's USD list price directly — the same
+    // value the REST begin route charges — never a per-call class price.
+    return usdToAtomicUnits(productUsd);
+  }
   const microUsd = Math.round(getToolCreditCost(toolName) * X402_CREDIT_USD * 1_000_000);
   return String(Math.max(1, microUsd));
+}
+
+/**
+ * Quote an unauthenticated GET probe of the MCP endpoint. Directory indexers
+ * (CDP Bazaar's validator among them) probe the resource URL with GET and
+ * require the x402 402 challenge; the streamable transport's protocol 405
+ * reads as "unindexable" to them. The challenge mirrors the canonical POST
+ * tools/call quote for the flagship tool so the discovery metadata keeps the
+ * resource's real method and shape; the actual per-tool price is still issued
+ * by the POST handshake, where the requested tool name is known.
+ */
+export async function handleMcpIndexerQuote(request: Request, cfg: X402Config): Promise<Response> {
+  const requestId = newRequestId();
+  const price = priceAtomicForTool(REPUTATION_OPT_IN_TOOL);
+  const httpServer = await getMcpX402HttpServer(cfg, price);
+  const result = await httpServer.processHTTPRequest({
+    adapter: new PlainRequestAdapter(request),
+    path: X402_MCP_ROUTE,
+    method: 'POST',
+  });
+  if (result.type !== 'payment-error' || request.headers.has('payment-signature')) {
+    return new Response(
+      JSON.stringify({
+        jsonrpc: '2.0',
+        error: { code: -32000, message: 'Method not allowed.' },
+        id: null,
+      }),
+      { status: 405, headers: { 'Content-Type': 'application/json', Allow: 'POST' } }
+    );
+  }
+  // A directory's initial GET is only a non-binding quote. Persisting every
+  // crawl through after() keeps the Vercel function alive for a Supabase
+  // write without adding settlement evidence. Match the REST x402 guard:
+  // audit signatures that were rejected and all verified/settled payments,
+  // but leave an unsigned quote to request logs and edge metrics.
+  logUnsignedMcpQuoteSample('indexer quote issued', { requestId, priceAtomic: price });
+  return attachRequestId(toResponse(result.response), requestId);
 }
 
 /**
@@ -136,6 +213,33 @@ async function extractReputationOptIn(
   } catch {
     return { optedIn: false, agentId: null };
   }
+}
+
+/** Read JSON-RPC arguments from a clone so the MCP transport retains the body. */
+async function extractMcpToolArguments(request: Request): Promise<unknown> {
+  try {
+    const body = (await request.clone().json()) as { params?: { arguments?: unknown } };
+    return body?.params?.arguments;
+  } catch {
+    return undefined;
+  }
+}
+
+function unavailablePaymentScopeResponse(
+  toolName: string,
+  scope: X402PaymentScope | null
+): Response {
+  const scopeLabel = scope?.label ?? 'the declared execution chain';
+  return new Response(
+    JSON.stringify({
+      error: 'X402_PAYMENT_RAIL_UNAVAILABLE',
+      message: `${toolName} requires a matching x402 payment rail for ${scopeLabel}; Insight will not substitute another chain.`,
+    }),
+    {
+      status: 503,
+      headers: { 'Cache-Control': 'no-store', 'Content-Type': 'application/json' },
+    }
+  );
 }
 
 /**
@@ -193,7 +297,37 @@ export async function handleMcpPaidToolCall({
   runBusiness,
 }: McpPaidCallInput): Promise<Response> {
   const requestId = newRequestId();
-  const httpServer = await getMcpX402HttpServer(cfg, priceAtomicForTool(toolName));
+  // In-window product tools (poll/close/guard/receipt/close-summary) are
+  // covered by the purchase that returned their one-time token; the token in
+  // the tool arguments is the entitlement check and fails closed without it.
+  // No x402 lifecycle runs, so a window buyer is never re-charged per call.
+  if (isEntitlementCoveredMcpTool(toolName)) {
+    return attachRequestId(await runBusiness(), requestId);
+  }
+  const priceAtomic = priceAtomicForTool(toolName);
+  const paymentScope = x402PaymentScopeForMcpTool(toolName, await extractMcpToolArguments(request));
+  const paymentConfig = paymentScope ? x402ConfigForPaymentScope(cfg, paymentScope) : null;
+  if (!paymentConfig) {
+    return attachRequestId(unavailablePaymentScopeResponse(toolName, paymentScope), requestId);
+  }
+  const isBaseAgentSwapGuard = toolName === BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME;
+  let httpServer: Awaited<ReturnType<typeof getMcpX402HttpServer>>;
+  try {
+    httpServer = await getMcpX402HttpServer(
+      paymentConfig,
+      priceAtomic,
+      isBaseAgentSwapGuard ? toolName : undefined
+    );
+  } catch (error) {
+    logger.warn('x402 MCP payment rail unavailable', {
+      requestId,
+      toolName,
+      paymentScope: paymentScope?.kind ?? 'undeclared',
+      errorName: error instanceof Error ? error.name : 'unknown',
+    });
+    return attachRequestId(unavailablePaymentScopeResponse(toolName, paymentScope), requestId);
+  }
+  const acquisitionSource = x402AcquisitionSource(request);
   const requestStartedAt = Date.now();
   // Clone-read before the transport consumes the body in runBusiness.
   const reputation = await extractReputationOptIn(request, toolName);
@@ -206,22 +340,25 @@ export async function handleMcpPaidToolCall({
 
   if (result.type === 'payment-error') {
     const hasPaymentSignature = request.headers.has('payment-signature');
-    logger.info('x402 MCP payment required / rejected', {
-      requestId,
-      toolName,
-      priceAtomic: priceAtomicForTool(toolName),
-    });
-    recordX402Settlement({
-      requestId,
-      status: hasPaymentSignature ? 'payment_rejected' : 'quote_issued',
-      ...(hasPaymentSignature
-        ? { network: null }
-        : quoteAuditFields(cfg, priceAtomicForTool(toolName))),
-      surface: 'mcp',
-      resource: `mcp:${toolName}`,
-      responseTimeMs: Date.now() - requestStartedAt,
-      errorReason: hasPaymentSignature ? 'facilitator_rejected_payment' : undefined,
-    });
+    // A bare quote is not a billing event. It is especially common when a
+    // catalog crawler is deciding whether to pay, so do not turn it into an
+    // after()-scheduled Supabase insert. A signed but rejected request is
+    // materially different and remains an auditable payment lifecycle event.
+    if (hasPaymentSignature) {
+      recordX402Settlement({
+        requestId,
+        status: 'payment_rejected',
+        network: null,
+        surface: 'mcp',
+        resource: `mcp:${toolName}`,
+        responseTimeMs: Date.now() - requestStartedAt,
+        errorReason: 'facilitator_rejected_payment',
+        acquisitionSource,
+      });
+      logger.warn('x402 MCP payment rejected', { requestId, toolName, priceAtomic });
+    } else {
+      logUnsignedMcpQuoteSample('payment quote issued', { requestId, toolName, priceAtomic });
+    }
     return attachRequestId(toResponse(result.response), requestId);
   }
 
@@ -245,6 +382,7 @@ export async function handleMcpPaidToolCall({
     surface: 'mcp',
     resource: `mcp:${toolName}`,
     responseTimeMs: Date.now() - requestStartedAt,
+    acquisitionSource,
   });
 
   // payment-verified: dispatch first, settle only on success.
@@ -261,6 +399,7 @@ export async function handleMcpPaidToolCall({
       resource: `mcp:${toolName}`,
       responseTimeMs: Date.now() - businessStartedAt,
       errorReason: `handler_error:${error instanceof Error ? error.name : 'unknown'}`,
+      acquisitionSource,
     });
     throw error;
   }
@@ -279,6 +418,7 @@ export async function handleMcpPaidToolCall({
       resource: `mcp:${toolName}`,
       responseTimeMs: Date.now() - businessStartedAt,
       errorReason: toolFailed ? `handler_failed:${businessResponse.status}` : 'mcp_tool_error',
+      acquisitionSource,
     });
     logger.info('x402 MCP business failed, settlement skipped', {
       requestId,
@@ -296,6 +436,7 @@ export async function handleMcpPaidToolCall({
     surface: 'mcp',
     resource: `mcp:${toolName}`,
     responseTimeMs: Date.now() - businessStartedAt,
+    acquisitionSource,
   });
 
   const settlementStartedAt = Date.now();
@@ -326,6 +467,7 @@ export async function handleMcpPaidToolCall({
       responseTimeMs: Date.now() - settlementStartedAt,
       // Reuse the verdict column to record which MCP tool was paid for.
       verdict: `mcp:${toolName}`,
+      acquisitionSource,
     });
 
     if (reputation.optedIn && reputation.agentId != null) {
@@ -358,6 +500,7 @@ export async function handleMcpPaidToolCall({
       resource: `mcp:${toolName}`,
       responseTimeMs: Date.now() - settlementStartedAt,
       errorReason: settle.errorReason,
+      acquisitionSource,
     });
     logger.warn('x402 MCP settlement failed after successful tool call', {
       requestId,

@@ -1,3 +1,5 @@
+import { encodeFunctionResult } from 'viem';
+
 import { PythMonadClient } from '@/lib/oracles/clients/pythMonad';
 import {
   PYTH_MONAD_CORE_ADDRESS,
@@ -10,6 +12,7 @@ import {
   pythMonadOnChainService,
   scalePythValue,
 } from '@/lib/oracles/services/pythMonadOnChainService';
+import { MULTICALL3_ABI, MULTICALL3_ADDRESS } from '@/lib/oracles/utils/multicall3';
 import { type RpcClientWithFallback } from '@/lib/oracles/utils/rpcClientWithFallback';
 import { Blockchain, OracleProvider } from '@/types/oracle';
 
@@ -75,6 +78,40 @@ describe('PythMonadOnChainService', () => {
       PYTH_MONAD_RPC_ENDPOINTS,
       PYTH_MONAD_CORE_ADDRESS,
       expect.stringMatching(/^0x96834ad3/),
+      undefined
+    );
+  });
+
+  it('reads fresh reviewed feeds through one Monad Multicall request', async () => {
+    const eth = resolvePythMonadFeed('ETH');
+    if (!eth) throw new Error('ETH must be present in the sponsored registry');
+    const publishedAt = Math.floor(Date.now() / 1000) - 15;
+    const aggregate = encodeFunctionResult({
+      abi: MULTICALL3_ABI,
+      functionName: 'aggregate3',
+      result: [
+        {
+          success: true,
+          returnData: pythResponse(8_126_529_211_069n, 417_946_651n, -8n, BigInt(publishedAt)),
+        },
+        {
+          success: true,
+          returnData: pythResponse(198_123_456_789n, 100_000_000n, -8n, BigInt(publishedAt)),
+        },
+      ],
+    });
+    const rpc = rpcReturning(aggregate);
+    const service = new PythMonadOnChainService(rpc);
+
+    const results = await service.getPrices([btc!, eth]);
+
+    expect(results.map((reading) => reading.symbol)).toEqual(['BTC/USD', 'ETH/USD']);
+    expect(rpc.ethCall).toHaveBeenCalledTimes(1);
+    expect(rpc.ethCall).toHaveBeenCalledWith(
+      '143',
+      PYTH_MONAD_RPC_ENDPOINTS,
+      MULTICALL3_ADDRESS,
+      expect.any(String),
       undefined
     );
   });

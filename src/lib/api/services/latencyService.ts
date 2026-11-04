@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { loadSnapshotHistoryPage } from '@/lib/supabase/snapshotHistory';
+import { readTursoPriceWriteMode } from '@/lib/turso/price/client';
 import { addDay, endOfDayExclusiveUtc, startOfDayUtc } from '@/lib/utils/date';
 
 export interface LatencyServiceInput {
@@ -80,15 +81,19 @@ function percentile(sorted: number[], p: number): number | null {
   return sorted[Math.max(0, Math.ceil((p / 100) * sorted.length) - 1)];
 }
 
-/** Preserve the existing endpoint until migration 0074 is installed. */
-async function getHourlyFallback(input: LatencyServiceInput): Promise<LatencyServiceResult> {
+/** Bounded client aggregation for the fallback and Turso's fine-grained spine. */
+async function getSnapshotFallback(
+  input: LatencyServiceInput,
+  kind: 'price' | 'hourly'
+): Promise<LatencyServiceResult> {
   const { provider, symbol, from, to } = input;
+  const time = kind === 'price' ? 'snapshot_ts' : 'snapshot_hour';
   const page = await loadSnapshotHistoryPage(
     createServiceRoleClient(),
-    'hourly',
+    kind,
     from,
     addDay(to),
-    ['provider', 'symbol', 'latency_ms', 'is_success', 'snapshot_hour'],
+    ['provider', 'symbol', 'latency_ms', 'is_success', time],
     { providers: provider ? [provider] : undefined, symbol, ascending: true, limit: 10001 }
   );
   const rows = page.slice(0, 10000);
@@ -132,7 +137,7 @@ async function getHourlyFallback(input: LatencyServiceInput): Promise<LatencySer
   return {
     from,
     to,
-    observationSource: 'hourly_price_snapshots',
+    observationSource: kind === 'price' ? 'price_snapshots' : 'hourly_price_snapshots',
     latencyDataAvailable: allLatencies.length > 0,
     sampleSize: allLatencies.length,
     rowsExamined: rows.length,
@@ -158,6 +163,7 @@ async function getHourlyFallback(input: LatencyServiceInput): Promise<LatencySer
 export async function getLatencyStatistics(
   input: LatencyServiceInput
 ): Promise<LatencyServiceResult> {
+  if (readTursoPriceWriteMode() === 'primary') return getSnapshotFallback(input, 'price');
   const { provider, symbol, from, to } = input;
   const { data, error } = await createServiceRoleClient()
     .rpc('get_oracle_latency_statistics', {
@@ -168,7 +174,7 @@ export async function getLatencyStatistics(
     })
     .abortSignal(AbortSignal.timeout(30_000));
   if (error?.code === 'PGRST202' || error?.code === '42883') {
-    return getHourlyFallback(input);
+    return getSnapshotFallback(input, 'hourly');
   }
   if (error) throw new Error(`Latency statistics read failed: ${error.message}`);
 

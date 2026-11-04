@@ -5,8 +5,14 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 
 import { AlertCircle, Check, Coins, Copy, Key, Loader2, Plus, Trash2 } from 'lucide-react';
+import { z } from 'zod';
 
 import { Button } from '@/components/ui/Button';
+import {
+  apiErrorMessage,
+  parseApiEnvelope,
+  requireApiData,
+} from '@/lib/api/client/responseValidation';
 import { PLANS, normalizePlan } from '@/lib/billing/plans';
 
 interface ApiKeyItem {
@@ -27,6 +33,39 @@ interface CreatedKey {
   rateLimit: number;
   createdAt: string;
 }
+
+const ApiKeyItemSchema: z.ZodType<ApiKeyItem> = z.object({
+  id: z.string(),
+  name: z.string(),
+  prefix: z.string(),
+  plan: z.string(),
+  rateLimit: z.number(),
+  lastUsedAt: z.string().nullable(),
+  createdAt: z.string(),
+});
+
+const ApiKeyListSchema = z.object({ keys: z.array(ApiKeyItemSchema) });
+
+const CreatedKeySchema: z.ZodType<CreatedKey> = z.object({
+  id: z.string(),
+  name: z.string(),
+  prefix: z.string(),
+  plainKey: z.string(),
+  rateLimit: z.number(),
+  createdAt: z.string(),
+});
+
+const CreateApiKeyDataSchema = z.object({
+  key: z.object({
+    id: z.string(),
+    name: z.string(),
+    prefix: z.string(),
+    plan: z.string(),
+    rateLimit: z.number(),
+    createdAt: z.string(),
+  }),
+  plainKey: z.string(),
+});
 
 const PLAN_BADGE_STYLES: Record<string, string> = {
   developer: 'bg-blue-100 text-blue-700',
@@ -73,13 +112,15 @@ export function ApiKeyManager({
         },
       });
 
-      const result = await response.json();
+      const result = parseApiEnvelope(await response.json(), 'API key list response');
 
       if (!response.ok || !result.success) {
-        throw new Error(result.error?.message || 'Failed to load API keys');
+        throw new Error(apiErrorMessage(result, 'Failed to load API keys'));
       }
 
-      if (!controller.signal.aborted) setKeys(result.data.keys);
+      if (!controller.signal.aborted) {
+        setKeys(requireApiData(result, ApiKeyListSchema, 'API key list response').keys);
+      }
     } catch (err) {
       if (!controller.signal.aborted) {
         setError(err instanceof Error ? err.message : 'Failed to load API keys');
@@ -118,22 +159,17 @@ export function ApiKeyManager({
         body: JSON.stringify({ name: newKeyName.trim() }),
       });
 
-      const result = await response.json();
+      const result = parseApiEnvelope(await response.json(), 'Create API key response');
 
       if (!response.ok || !result.success) {
-        throw new Error(result.error?.message || 'Failed to create API key');
+        throw new Error(apiErrorMessage(result, 'Failed to create API key'));
       }
 
       if (activeTokenRef.current !== accessToken) return;
+      const data = requireApiData(result, CreateApiKeyDataSchema, 'Create API key response');
+      const created = CreatedKeySchema.parse({ ...data.key, plainKey: data.plainKey });
 
-      setCreatedKey({
-        id: result.data.key.id,
-        name: result.data.key.name,
-        prefix: result.data.key.prefix,
-        plainKey: result.data.plainKey,
-        rateLimit: result.data.key.rateLimit,
-        createdAt: result.data.key.createdAt,
-      });
+      setCreatedKey(created);
       setNewKeyName('');
       void fetchKeys();
     } catch (err) {
@@ -157,10 +193,10 @@ export function ApiKeyManager({
         },
       });
 
-      const result = await response.json();
+      const result = parseApiEnvelope(await response.json(), 'Revoke API key response');
 
       if (!response.ok || !result.success) {
-        throw new Error(result.error?.message || 'Failed to revoke API key');
+        throw new Error(apiErrorMessage(result, 'Failed to revoke API key'));
       }
 
       if (activeTokenRef.current !== accessToken) return;
