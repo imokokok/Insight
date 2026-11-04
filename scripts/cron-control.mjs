@@ -5,8 +5,9 @@
  * Commands:
  *   guard  - skip a low-frequency GitHub fallback when a recent Supabase-
  *            dispatched run already succeeded.
- *   start  - attach the GitHub run id to the dispatch ledger row.
- *   finish - record the final GitHub job conclusion.
+ *   start  - records local run metadata; primary dispatches defer their sole
+ *            ledger update until completion.
+ *   finish - records the final GitHub job conclusion and run metadata.
  *
  * Telemetry is deliberately fail-open: a temporary ledger/API failure must
  * never prevent the actual data pipeline from running.
@@ -43,7 +44,7 @@ function ready() {
   return false;
 }
 
-async function guard() {
+export async function guard() {
   // Every workflow_dispatch invocation is intentional. Only native GitHub
   // `schedule` events are stale-data fallbacks that may be skipped.
   if (process.env.GITHUB_EVENT_NAME !== 'schedule') {
@@ -58,6 +59,7 @@ async function guard() {
 
   const maxAgeMinutes = Math.max(1, Number(process.env.FALLBACK_MAX_AGE_MINUTES) || 60);
   const cutoff = new Date(Date.now() - maxAgeMinutes * 60_000).toISOString();
+
   const query = new URL(`${baseUrl}/rest/v1/cron_dispatch_runs`);
   query.searchParams.set('select', 'completed_at');
   query.searchParams.set('workflow_file', `eq.${workflow}`);
@@ -71,7 +73,44 @@ async function guard() {
     const response = await requestLedger(query, { headers: headers() });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const rows = await response.json();
-    const shouldRun = rows.length === 0;
+    if (rows.length > 0) {
+      await writeGithubFile('should_run', 'false');
+      console.log(`[cron-control] dispatcher is healthy for ${workflow}; fallback skipped`);
+      return;
+    }
+
+    // A primary dispatcher creates its durable row before GitHub begins the
+    // workflow. For the Turso raw-capture fallback, regard a very recent
+    // in-flight primary as healthy too; otherwise the native schedule can
+    // start an identical runner in the same minute. The short window ensures
+    // a genuinely stuck dispatcher still falls back on the next quarter-hour.
+    if (process.env.FALLBACK_REQUIRE_NO_PRIMARY_IN_FLIGHT === 'true') {
+      const activeWindowMinutes = Math.max(
+        1,
+        Number(process.env.FALLBACK_PRIMARY_IN_FLIGHT_MAX_AGE_MINUTES) || 8
+      );
+      const activeCutoff = new Date(Date.now() - activeWindowMinutes * 60_000).toISOString();
+      const activeQuery = new URL(`${baseUrl}/rest/v1/cron_dispatch_runs`);
+      activeQuery.searchParams.set('select', 'id');
+      activeQuery.searchParams.set('workflow_file', `eq.${workflow}`);
+      activeQuery.searchParams.set('source', 'eq.supabase_cron');
+      activeQuery.searchParams.set('status', 'in.(dispatching,running)');
+      activeQuery.searchParams.set('created_at', `gte.${activeCutoff}`);
+      activeQuery.searchParams.set('limit', '1');
+
+      const activeResponse = await requestLedger(activeQuery, { headers: headers() });
+      if (!activeResponse.ok) throw new Error(`HTTP ${activeResponse.status}`);
+      const activeRows = await activeResponse.json();
+      if (activeRows.length > 0) {
+        await writeGithubFile('should_run', 'false');
+        console.log(
+          `[cron-control] primary ${workflow} dispatch is still in flight; fallback skipped`
+        );
+        return;
+      }
+    }
+
+    const shouldRun = true;
     await writeGithubFile('should_run', String(shouldRun));
     console.log(
       shouldRun
@@ -93,21 +132,12 @@ async function start() {
   const now = new Date().toISOString();
 
   try {
+    await writeGithubFile('CRON_STARTED_AT', now, process.env.GITHUB_ENV);
     if (dispatchId) {
-      const response = await requestLedger(
-        `${baseUrl}/rest/v1/cron_dispatch_runs?id=eq.${encodeURIComponent(dispatchId)}`,
-        {
-          method: 'PATCH',
-          headers: headers({ Prefer: 'return=minimal' }),
-          body: JSON.stringify({
-            status: 'running',
-            github_run_id: runId,
-            github_run_url: runUrl,
-            started_at: now,
-          }),
-        }
-      );
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      // Supabase-created rows are already durable and `dispatching` is a
+      // sufficient in-flight state for the timeout guard. Deferring metadata
+      // to finish collapses insert → start update → finish update into an
+      // insert plus one terminal update, avoiding needless MVCC tuples.
     } else {
       const response = await requestLedger(`${baseUrl}/rest/v1/cron_dispatch_runs`, {
         method: 'POST',
@@ -146,15 +176,36 @@ async function finish() {
   const conclusion = process.env.CRON_CONCLUSION || 'failure';
   const status =
     conclusion === 'success' ? 'succeeded' : conclusion === 'cancelled' ? 'cancelled' : 'failed';
+  const completedAt = new Date().toISOString();
+  const startedAt = process.env.CRON_STARTED_AT?.trim() || completedAt;
+  const runId = Number(process.env.GITHUB_RUN_ID);
+  const runUrl =
+    Number.isSafeInteger(runId) && process.env.GITHUB_SERVER_URL && process.env.GITHUB_REPOSITORY
+      ? `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${runId}`
+      : undefined;
+  const body = {
+    status,
+    conclusion,
+    completed_at: completedAt,
+    ...(Number.isSafeInteger(runId)
+      ? {
+          github_run_id: runId,
+          github_run_url: runUrl,
+          started_at: startedAt,
+        }
+      : {}),
+  };
+  const query = new URL(`${baseUrl}/rest/v1/cron_dispatch_runs`);
+  query.searchParams.set('id', `eq.${dispatchId}`);
+  // A duplicated callback after a terminal write is a no-op rather than a
+  // fresh row version. The same predicate protects a slot already timed out.
+  query.searchParams.set('status', 'in.(dispatching,running)');
   try {
-    const response = await requestLedger(
-      `${baseUrl}/rest/v1/cron_dispatch_runs?id=eq.${encodeURIComponent(dispatchId)}`,
-      {
-        method: 'PATCH',
-        headers: headers({ Prefer: 'return=minimal' }),
-        body: JSON.stringify({ status, conclusion, completed_at: new Date().toISOString() }),
-      }
-    );
+    const response = await requestLedger(query, {
+      method: 'PATCH',
+      headers: headers({ Prefer: 'return=minimal' }),
+      body: JSON.stringify(body),
+    });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     console.log(`[cron-control] ledger finished for ${workflow}: ${status}`);
   } catch (error) {

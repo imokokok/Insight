@@ -1,6 +1,9 @@
 import { type PriceRecordInsert, type PriceRecord } from '@/lib/supabase/queries';
 import { createServiceRoleClient, getAdminQueries } from '@/lib/supabase/server';
 import { loadSnapshotHistoryRange } from '@/lib/supabase/snapshotHistory';
+import { getTursoPriceClient, readTursoPriceWriteMode } from '@/lib/turso/price/client';
+import { loadTursoLatestPrice } from '@/lib/turso/price/historyRepository';
+import { ensureTursoPriceSchema } from '@/lib/turso/price/schema';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
 import { type PriceData, type OracleProvider, type Blockchain } from '@/types/oracle';
 import { type FailureMode, type OracleSignalVector } from '@/types/oracle/signals';
@@ -100,27 +103,39 @@ export async function getLatestPriceSnapshotFromDatabase(
   if (!shouldUseDatabase()) return null;
 
   try {
-    let query = createServiceRoleClient()
-      .from('price_snapshots')
-      .select('snapshot_ts, provider, symbol, chain_id, price, confidence, data_age_seconds')
-      .eq('provider', provider)
-      .eq('symbol', symbol)
-      .eq('is_success', true)
-      .gt('price', 0)
-      .order('snapshot_ts', { ascending: false })
-      .limit(1);
+    const client = createServiceRoleClient();
+    if (readTursoPriceWriteMode() !== 'primary') {
+      let query = client
+        .from('price_snapshots')
+        .select('snapshot_ts, provider, symbol, chain_id, price, confidence, data_age_seconds')
+        .eq('provider', provider)
+        .eq('symbol', symbol)
+        .eq('is_success', true)
+        .gt('price', 0)
+        .order('snapshot_ts', { ascending: false })
+        .limit(1);
 
-    if (chain) {
-      query = query.eq('chain_id', BLOCKCHAIN_TO_CHAIN_ID[chain] ?? 0);
+      if (chain) {
+        query = query.eq('chain_id', BLOCKCHAIN_TO_CHAIN_ID[chain] ?? 0);
+      }
+
+      const { data, error } = await query.maybeSingle();
+      if (error) {
+        logger.error('Failed to get latest price snapshot fallback', normalizeError(error));
+        return null;
+      }
+
+      return data ? snapshotToPriceData(data as HistoricalSnapshotRow, chain) : null;
     }
-
-    const { data, error } = await query.maybeSingle();
-    if (error) {
-      logger.error('Failed to get latest price snapshot fallback', normalizeError(error));
-      return null;
-    }
-
-    return data ? snapshotToPriceData(data as HistoricalSnapshotRow, chain) : null;
+    const turso = getTursoPriceClient();
+    await ensureTursoPriceSchema(turso);
+    const latest = await loadTursoLatestPrice(turso, {
+      provider,
+      symbol: symbol.toUpperCase(),
+      chainId: chain ? (BLOCKCHAIN_TO_CHAIN_ID[chain] ?? 0) : undefined,
+      successOnly: true,
+    });
+    return latest ? snapshotToPriceData(latest, chain) : null;
   } catch (error) {
     logger.error('Failed to get latest price snapshot fallback', normalizeError(error));
     return null;

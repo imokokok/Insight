@@ -1689,6 +1689,71 @@ paths:
         '503':
           description: Fresh Hyperliquid perpetual-market evidence is unavailable.
 
+  /markets/settlement-evidence:
+    get:
+      operationId: getSettlementEvidence
+      tags: [Execution Evidence]
+      summary: Signed prediction-market settlement evidence
+      description: >-
+        Returns Insight's independently derived settlement-evidence pack for a
+        prediction-market price contract: the market's declared resolution
+        compared against independent sources (settlement-window derived
+        analytics and Insight's own oracle-consensus snapshots), with an EIP-712
+        attestation when the pack is signed. With the `slug` query parameter a
+        single pack is returned; without it the most recent packs are listed.
+        Packs carry derived analytics only — settlement-window venue candles
+        stay internal because their source is vendor-licensed
+        derived-analytics-only.
+      security:
+        - apiKey: []
+      parameters:
+        - name: slug
+          in: query
+          required: false
+          description: >-
+            Market slug of a watched prediction-market price contract. Omit to
+            list the most recent packs.
+          schema:
+            type: string
+            maxLength: 256
+        - name: limit
+          in: query
+          required: false
+          description: Maximum number of packs when listing. Defaults to 20.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Settlement-evidence pack(s).
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  data:
+                    type: object
+                    properties:
+                      pack:
+                        $ref: '#/components/schemas/SettlementEvidencePack'
+                      packs:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/SettlementEvidencePack'
+                      count: { type: integer, minimum: 0 }
+                      rightsNotice: { type: string }
+                      requestId: { type: string }
+        '404':
+          description: No settlement-evidence pack exists for this market. Packs are produced after a market resolves.
+        '503':
+          description: Settlement evidence is temporarily unavailable (infrastructure state; retryable).
+
   # ── Prices ──────────────────────────────────────────────
   /prices:
     get:
@@ -2422,6 +2487,234 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  /safety/oracle-watch-window:
+    post:
+      operationId: purchaseOracleWatchWindow
+      tags: [Safety]
+      summary: Purchase a 24h Oracle Watch monitored window
+      description: >-
+        Pre-pays continuous Oracle Watch coverage for one (symbol, chain)
+        subject for 24 hours — the first non-per-call product. The purchase
+        returns a one-time window token (shown exactly once; only its SHA-256
+        hash is stored) used to poll and close the window. In-window signal
+        polls are token-authenticated and never charged per call, bounded by
+        the plan's poll cap and minimum poll interval. Assessment and evidence
+        only — no custody, no execution authority. API-key access (charged as
+        one product-priced credit debit) or x402 payment is accepted.
+      security:
+        - apiKey: []
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [symbol]
+              properties:
+                symbol: { type: string, description: Asset to monitor, example: ETH }
+                chain:
+                  {
+                    type: string,
+                    description: Optional chain scope fixed for the window,
+                    example: arbitrum,
+                  }
+      responses:
+        '200':
+          { description: Window opened, with the one-time window token and poll/close usage hints. }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+
+  /safety/oracle-watch-window/{windowId}:
+    get:
+      operationId: pollOracleWatchWindow
+      tags: [Safety]
+      summary: Poll the current halt/proceed signal inside an open window
+      description: >-
+        Free in-window poll of the current Oracle Watch signal for the
+        monitored subject, authenticated by the one-time window token returned
+        at purchase (`Authorization: Bearer oww_<hex>`). Each poll is counted
+        against the window's poll budget and recorded as an auditable judgment.
+        Unknown window ids and wrong tokens are indistinguishable (401).
+      security: [{}]
+      parameters:
+        - in: path
+          name: windowId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Current signal with window usage (polls used, poll cap). }
+        '401': { description: Invalid or missing window token. }
+        '404': { description: Monitored window not found. }
+        '410': { description: Window closed or expired. }
+        '429': { description: Poll cap exhausted or polling before the minimum interval. }
+    post:
+      operationId: closeOracleWatchWindow
+      tags: [Safety]
+      summary: Close the window early and return its coverage summary
+      description: >-
+        Idempotent close. Returns the summary rebuilt from the per-issuance
+        audit rows: verdict/recommendation counts, halt count, and first/last
+        halt timestamps. Works on an expired window — the summary is the record
+        of what the window covered. Authenticated by the one-time window token.
+      security: [{}]
+      parameters:
+        - in: path
+          name: windowId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Window summary (polls issued, verdict counts, halt timeline). }
+        '401': { description: Invalid or missing window token. }
+        '404': { description: Monitored window not found. }
+
+  /safety/position-lifecycle:
+    post:
+      operationId: purchasePositionLifecycle
+      tags: [Safety]
+      summary: Purchase a 24h Position Lifecycle Bundle
+      description: >-
+        Pre-pays 24h of lifecycle coverage for one (symbol, chain) position
+        subject — the second non-per-call product, and the first bundle. One
+        purchase includes an embedded Oracle Watch monitored window (300 free
+        signal polls via the existing window routes with the same bearer
+        token), 4 bundled guard assessments across any position-guard family,
+        and 1 attested execution receipt. The purchase returns a one-time
+        lifecycle token (shown exactly once; only its SHA-256 hash is stored).
+        Assessment and evidence only — no custody, no execution authority.
+        API-key access (charged as one product-priced credit debit) or x402
+        payment is accepted.
+      security:
+        - apiKey: []
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [symbol]
+              properties:
+                symbol: { type: string, description: Position subject to cover, example: ETH }
+                chain:
+                  {
+                    type: string,
+                    description: Optional chain scope fixed for the lifecycle,
+                    example: arbitrum,
+                  }
+      responses:
+        '200': {
+            description: Lifecycle opened,
+            with the one-time lifecycle token,
+            embedded
+            windowId,
+            and usage hints for watch/guard/receipt/close.,
+          }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+
+  /safety/position-lifecycle/{lifecycleId}:
+    post:
+      operationId: closePositionLifecycle
+      tags: [Safety]
+      summary: Close the lifecycle early and return its combined summary
+      description: >-
+        Idempotent close. Returns the lifecycle's guard and receipt usage plus
+        the embedded monitored window's coverage summary (verdict and
+        recommendation counts, halt timeline). Works on an expired lifecycle —
+        the summary is the record of what the lifecycle covered. Authenticated
+        by the one-time lifecycle token (`Authorization: Bearer plc_<hex>`).
+        Unknown lifecycle ids and wrong tokens are indistinguishable (401).
+      security: [{}]
+      parameters:
+        - in: path
+          name: lifecycleId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          { description: Combined lifecycle summary (guard usage, receipt state, watch coverage). }
+        '401': { description: Invalid or missing lifecycle token. }
+        '404': { description: Position lifecycle not found. }
+
+  /safety/position-lifecycle/{lifecycleId}/guard:
+    post:
+      operationId: runBundledPositionGuard
+      tags: [Safety]
+      summary: Run one bundled guard assessment inside an open lifecycle
+      description: >-
+        One bundled guard assessment, free within the lifecycle's guard budget
+        (4 across the 24h window). The family is chosen per call
+        (base_perp, hyperliquid_perp, base_lending, monad_lending,
+        multichain_evm_lending, solana_lending) and params are validated against
+        that family's native route schema. A BLOCK verdict is a complete
+        assessment and consumes a budget slot; a schema or assessor technical
+        failure does not. solana_lending additionally requires the exact
+        unsigned Solana transaction as `transaction`. Assessment only — exact
+        call binding stays on the native guard routes.
+      security: [{}]
+      parameters:
+        - in: path
+          name: lifecycleId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [family, params]
+              properties:
+                family: { type: string, description: Guard family to assess with }
+                params: { type: object, description: Native guard input for the chosen family }
+                transaction:
+                  {
+                    type: object,
+                    description: Required for solana_lending — the exact unsigned transaction,
+                  }
+      responses:
+        '200': { description: Native guard result with guard budget usage. }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { description: Invalid or missing lifecycle token. }
+        '404': { description: Position lifecycle not found. }
+        '410': { description: Lifecycle closed or expired. }
+        '429': { description: Guard budget exhausted. }
+
+  /safety/position-lifecycle/{lifecycleId}/receipt:
+    post:
+      operationId: issueBundledExecutionReceipt
+      tags: [Safety]
+      summary: Issue the bundled attested execution receipt (one per lifecycle)
+      description: >-
+        Issues one attested Execution Receipt, free within the lifecycle's
+        single receipt credit. The body is identical to the native
+        /api/v1/execution/attestation/issue body — the receipt binds to the
+        caller's own pre-trade attestations exactly as it does à la carte; the
+        bundle only changes who pays. The credit is consumed only by a
+        successfully recorded issuance; failed attempts restore it.
+      security: [{}]
+      parameters:
+        - in: path
+          name: lifecycleId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExecutionIssueRequest'
+      responses:
+        '200': { description: Signed receipt with the lifecycle receipt state (consumed). }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { description: Invalid or missing lifecycle token. }
+        '404': { description: Position lifecycle not found. }
+        '409': { description: The bundled receipt was already issued. }
+        '410': { description: Lifecycle closed or expired. }
+        '502': { description: On-chain execution fact collection failed. }
+        '503': { description: Receipt signing unavailable. }
+
   /safety/position:
     post:
       operationId: calculatePositionSafety
@@ -2634,6 +2927,87 @@ paths:
               description: MPP challenge when enabled on this deployment.
               schema: { type: string }
 
+  /safety/base-agent-swap-guard/verify:
+    get:
+      operationId: getBaseAgentSwapGuardVerificationSchema
+      tags: [Safety]
+      summary: Get Base Agent Swap Guard attestation schema
+      security: []
+      responses:
+        '200': { description: Attester status and supported EIP-712 schema. }
+    post:
+      operationId: verifyBaseAgentSwapGuardDecision
+      tags: [Safety]
+      summary: Verify a Base Agent Swap Guard decision
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: { type: object, additionalProperties: true }
+      responses:
+        '200': { description: Cryptographic verification result and expiry state. }
+
+  /safety/base-agent-swap-guard/settlement:
+    post:
+      operationId: settleBaseAgentSwapGuard
+      tags: [Safety]
+      summary: Post-settlement closure for a Base Agent Swap Guard decision
+      description: >-
+        Pair a signed Base Agent Swap Guard decision with the swap transaction
+        that settled it. Insight verifies the decision, requires the on-chain
+        to/value/calldata to match the guarded approval and swap calls
+        byte-for-byte, reconciles the observed ERC-20 input and output amounts
+        against the guarded quote (amountInRaw, quotedAmountOutRaw,
+        amountOutMinimumRaw, realized output-leg slippage vs the agent policy),
+        and returns a signed BaseAgentSwapGuardSettlement bound to the
+        decisionHash with explicit reason codes. A decision that does not
+        verify, or a transaction whose bytes differ from the guarded calls, is
+        rejected — never closed over. With verifyOnly=1 and a settlement
+        object, only the settlement's own EIP-712 signature and integrity are
+        checked.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision, swapTxHash]
+              properties:
+                decision:
+                  type: object
+                  additionalProperties: true
+                  description: The signed Base Agent Swap Guard decision the agent executed under.
+                swapTxHash:
+                  type: string
+                  pattern: '^0x[0-9a-fA-F]{64}$'
+                  description: Hash of the executed swap transaction.
+                approvalTxHash:
+                  type: string
+                  pattern: '^0x[0-9a-fA-F]{64}$'
+                  description: Optional hash of the executed approval transaction. When presented it must match the guarded approval call exactly; when absent the settlement carries APPROVAL_TX_NOT_PRESENTED.
+                verifyOnly:
+                  type: boolean
+                  description: Set to true to only verify a previously issued settlement signature; requires the settlement property.
+                settlement:
+                  type: object
+                  additionalProperties: true
+                  description: The signed settlement to verify in verifyOnly mode.
+      responses:
+        '200':
+          description: Signed settlement closure (or, in verifyOnly mode, the signature verification result).
+        '400':
+          description: Rejected — the decision did not verify, the chain is unsupported, or the executed bytes differ from the guarded calls (ON_CHAIN_CALL_MISMATCH).
+        '404':
+          description: The presented swap or approval transaction was not found on the configured RPC.
+        '502':
+          description: RPC or collection failure while reading settlement evidence.
+
   /safety/base-lending-guard:
     get:
       operationId: assessBaseLendingGuard
@@ -2755,6 +3129,286 @@ paths:
                 decision: { type: object, additionalProperties: true }
       responses:
         '200': { description: Cryptographic verification result and expiry state. }
+
+  /safety/base-perp-guard:
+    get:
+      operationId: assessBasePerpGuard
+      tags: [Safety]
+      summary: Base perp risk decision
+      description: >-
+        Read-only risk gate for a caller-declared Synthetix Perps V3 Base
+        position. It separately evaluates the underlying and USDC margin oracle
+        integrity and checks the declared post-action leverage against reviewed
+        market caps; it never signs, submits, or authorizes an order. API-key
+        access or x402 payment is accepted.
+      security:
+        - apiKey: []
+        - {}
+      parameters:
+        - {
+            name: protocolId,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [synthetix-perps-v3-base] },
+          }
+        - {
+            name: action,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [open_long, open_short] },
+          }
+        - { name: assetSymbol, in: query, required: true, schema: { type: string, example: ETH } }
+        - {
+            name: marginAssetSymbol,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [USDC] },
+          }
+        - {
+            name: sizeUsd,
+            in: query,
+            required: true,
+            schema: { type: number, exclusiveMinimum: 0, example: 5000 },
+          }
+        - {
+            name: marginValueUsd,
+            in: query,
+            required: true,
+            schema: { type: number, exclusiveMinimum: 0, example: 2500 },
+          }
+      responses:
+        '200': { description: Complete ALLOW, CAUTION, or BLOCK perp decision. }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+    post:
+      operationId: createBasePerpGuardExactDecision
+      tags: [Safety]
+      summary: Bind a Base perp decision to one exact PerpsMarketProxy commitOrder
+      description: >-
+        Creates a portable EIP-712 decision that commits to the full
+        PerpsMarketProxy commitOrder calldata, sender, nonce, and zero
+        transaction value. The decision remains non-authorizing and must be
+        bound to user authorization before execution.
+      security:
+        - apiKey: []
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [guard, transaction]
+              properties:
+                guard: { type: object, description: The same perp fields accepted by GET. }
+                transaction:
+                  {
+                    type: object,
+                    description: Exact unsigned PerpsMarketProxy commitOrder call with zero value.,
+                  }
+      responses:
+        '200':
+          {
+            description: Complete decision,
+            optionally carrying an attestation when an eligible attester is configured.,
+          }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+
+  /safety/base-perp-guard/verify:
+    get:
+      operationId: getBasePerpGuardVerificationSchema
+      tags: [Safety]
+      summary: Get Base Perp Guard attestation schema
+      security: []
+      responses:
+        '200': { description: Attester status and supported EIP-712 schema. }
+    post:
+      operationId: verifyBasePerpGuardDecision
+      tags: [Safety]
+      summary: Verify a Base Perp Guard decision
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: { type: object, additionalProperties: true }
+      responses:
+        '200': { description: Cryptographic verification result and expiry state. }
+
+  /safety/hyperliquid-perp-guard:
+    get:
+      operationId: assessHyperliquidPerpGuard
+      tags: [Safety]
+      summary: Hyperliquid perp risk decision
+      description: >-
+        Read-only risk gate for a caller-declared Hyperliquid perpetual position.
+        It separately evaluates underlying and USDC cross-oracle consensus
+        integrity on canonical mainnet feeds, checks the declared post-action
+        leverage against a reviewed static profile capped by the freshly
+        observed venue leverage limit, and attaches disclosed venue evidence
+        (mark/oracle divergence, cross-venue consensus deviation) that can
+        escalate the verdict; it never signs, submits, or authorizes an order.
+        API-key access or x402 payment is accepted.
+      security:
+        - apiKey: []
+        - {}
+      parameters:
+        - {
+            name: protocolId,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [hyperliquid-perps-mainnet] },
+          }
+        - {
+            name: action,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [open_long, open_short] },
+          }
+        - { name: assetSymbol, in: query, required: true, schema: { type: string, example: BTC } }
+        - {
+            name: marginAssetSymbol,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [USDC] },
+          }
+        - {
+            name: sizeUsd,
+            in: query,
+            required: true,
+            schema: { type: number, exclusiveMinimum: 0, example: 25000 },
+          }
+        - {
+            name: marginValueUsd,
+            in: query,
+            required: true,
+            schema: { type: number, exclusiveMinimum: 0, example: 2500 },
+          }
+      responses:
+        '200': { description: Complete ALLOW, CAUTION, or BLOCK perp decision. }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+    post:
+      operationId: createHyperliquidPerpGuardExactDecision
+      tags: [Safety]
+      summary: Bind a Hyperliquid perp decision to one exact unsigned order envelope
+      description: >-
+        Creates a portable EIP-712 decision that commits to the exact unsigned
+        Hyperliquid IOC order envelope, including its intent hash, asset index,
+        size, price, and expiry. The decision remains non-authorizing and must
+        be bound to user authorization before the envelope is signed in the
+        user wallet process.
+      security:
+        - apiKey: []
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [guard, order]
+              properties:
+                guard: { type: object, description: The same perp fields accepted by GET. }
+                order:
+                  {
+                    type: object,
+                    description: Exact unsigned Hyperliquid exchange envelope from the reviewed IOC preflight.,
+                  }
+      responses:
+        '200':
+          {
+            description: Complete decision,
+            optionally carrying an attestation when an eligible attester is configured.,
+          }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+
+  /safety/hyperliquid-perp-guard/verify:
+    get:
+      operationId: getHyperliquidPerpGuardVerificationSchema
+      tags: [Safety]
+      summary: Get Hyperliquid Perp Guard attestation schema
+      security: []
+      responses:
+        '200': { description: Attester status and supported EIP-712 schema. }
+    post:
+      operationId: verifyHyperliquidPerpGuardDecision
+      tags: [Safety]
+      summary: Verify a Hyperliquid Perp Guard decision
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: { type: object, additionalProperties: true }
+      responses:
+        '200': { description: Cryptographic verification result and expiry state. }
+
+  /safety/solana-perp-guard:
+    get:
+      operationId: assessSolanaPerpGuard
+      tags: [Safety]
+      summary: Solana perp risk decision (Drift v2 on-chain evidence)
+      description: >-
+        Read-only risk gate for a caller-declared Drift Protocol v2 perpetual
+        position on Solana mainnet (reviewed SOL, BTC, and ETH markets, USDC
+        margin). It separately evaluates underlying and USDC cross-oracle
+        consensus integrity on canonical mainnet feeds, checks the declared
+        post-action leverage against a reviewed static profile capped by the
+        live Drift margin ratio, and attaches disclosed on-chain venue evidence
+        (Drift mark price vs Pyth Lazer oracle deviation, funding rate, open
+        interest, market status) that can escalate the verdict; it never signs,
+        submits, or authorizes an order. API-key access or x402 payment is
+        accepted.
+      security:
+        - apiKey: []
+        - {}
+      parameters:
+        - {
+            name: protocolId,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [drift-v2-mainnet] },
+          }
+        - {
+            name: action,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [open_long, open_short] },
+          }
+        - { name: assetSymbol, in: query, required: true, schema: { type: string, example: SOL } }
+        - {
+            name: marginAssetSymbol,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [USDC] },
+          }
+        - {
+            name: sizeUsd,
+            in: query,
+            required: true,
+            schema: { type: number, exclusiveMinimum: 0, example: 5000 },
+          }
+        - {
+            name: marginValueUsd,
+            in: query,
+            required: true,
+            schema: { type: number, exclusiveMinimum: 0, example: 500 },
+          }
+      responses:
+        '200': { description: Complete ALLOW, CAUTION, or BLOCK perp decision. }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
 
   /safety/monad-lending-guard:
     get:
@@ -3143,6 +3797,126 @@ paths:
                 decision: { type: object, additionalProperties: true }
       responses:
         '200': { description: Cryptographic verification result and expiry state. }
+
+  /safety/solana-swap-guard:
+    post:
+      operationId: createSolanaSwapGuardExactDecision
+      tags: [Safety]
+      summary: Simulate and attest one exact Orca Whirlpool swap
+      description: >-
+        Read-only pre-signing gate for one legacy Whirlpool `swap` instruction in
+        the reviewed USDC/USDT pool on Solana mainnet. It re-derives every
+        reviewed identity from live mainnet state, prices the pool from its own
+        sqrtPrice, runs both oracle checks, and simulates the exact unsigned
+        message before issuing an Ed25519 decision when configured. It never
+        signs, submits, or authorizes a transaction. API-key access or x402
+        payment on the native Solana rail is accepted.
+      security:
+        - apiKey: []
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [guard, transaction]
+              properties:
+                guard:
+                  type: object
+                  required:
+                    [
+                      profileId,
+                      direction,
+                      sourceDecisionPriceUsd,
+                      destinationDecisionPriceUsd,
+                      policy,
+                    ]
+                  properties:
+                    profileId: { type: string, enum: [solana-orca-whirlpool-usdc-usdt-1] }
+                    direction: { type: string, enum: [usdc-to-usdt, usdt-to-usdc] }
+                    sourceDecisionPriceUsd: { type: number, exclusiveMinimum: 0, example: 1 }
+                    destinationDecisionPriceUsd:
+                      { type: number, exclusiveMinimum: 0, example: 0.9987 }
+                    policy:
+                      type: object
+                      required: [maxSlippageBps, maxReferenceDeviationBps]
+                      properties:
+                        maxSlippageBps: { type: integer, minimum: 0, maximum: 1000, example: 50 }
+                        maxReferenceDeviationBps:
+                          { type: integer, minimum: 0, maximum: 1000, example: 100 }
+                transaction:
+                  type: object
+                  description: >-
+                    Complete unsigned legacy Solana message containing exactly one
+                    reviewed Whirlpool swap instruction. Every address lookup table
+                    must include its resolved addresses.
+      responses:
+        '200':
+          {
+            description: Complete BLOCK/CAUTION/ALLOW decision,
+            optionally with a short-lived Ed25519 attestation.,
+          }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+
+  /safety/solana-swap-guard/verify:
+    get:
+      operationId: getSolanaSwapGuardVerificationSchema
+      tags: [Safety]
+      summary: Get Solana swap guard Ed25519 attester information
+      security: []
+      responses:
+        '200': { description: Attester public key and schema status. }
+    post:
+      operationId: verifySolanaSwapGuardDecision
+      tags: [Safety]
+      summary: Verify a Solana swap guard decision
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: { type: object, additionalProperties: true }
+      responses:
+        '200': { description: Cryptographic verification result and expiry state. }
+
+  /safety/solana-swap-guard/settlement:
+    post:
+      operationId: settleSolanaSwapGuard
+      tags: [Safety]
+      summary: Close a Solana swap guard decision against on-chain facts
+      description: >-
+        Presents the signed guard decision plus the on-chain transaction
+        signature. Insight re-verifies the decision, collects execution facts
+        from Solana JSON-RPC, reconciles the observed wallet-level SPL balance
+        deltas against the guarded exact amounts and minimum output, and returns
+        a signed `SolanaSwapGuardSettlement` bound to the `decisionHash`. With
+        `verifyOnly: true`, only the signed settlement's own Ed25519 signature is
+        verified.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision, signature]
+              properties:
+                decision: { type: object, additionalProperties: true }
+                signature:
+                  { type: string, description: Base58 on-chain transaction signature (87-88 chars) }
+                verifyOnly: { type: boolean, default: false }
+                settlement: { type: object, additionalProperties: true }
+      responses:
+        '200':
+          { description: Signed settlement receipt, or a verification result in verifyOnly mode. }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '404': { description: The on-chain transaction signature was not found. }
 
   /safety/swap-intent:
     get:
@@ -4815,6 +5589,87 @@ components:
           $ref: '#/components/schemas/ApiMeta'
 
     # ── Feeds ─────────────────────────────────────────
+    SettlementEvidencePack:
+      type: object
+      description: >-
+        Hash-bound derived-analytics pack for one prediction-market settlement.
+        Payload field order and semantics are frozen for schemaVersion 1 — this
+        is what the attestation hash-binds.
+      required: [payload, payloadHash]
+      properties:
+        payload:
+          type: object
+          required:
+            [
+              schemaVersion,
+              marketSlug,
+              question,
+              asset,
+              settlementVenue,
+              windowStartMs,
+              windowEndMs,
+              windowSeconds,
+              grade,
+              gradeReasonCodes,
+              generatedAtMs,
+            ]
+          properties:
+            schemaVersion: { type: integer, const: 1 }
+            marketSlug: { type: string }
+            question: { type: string }
+            asset: { type: string }
+            settlementVenue:
+              type: string
+              enum: [chainlink-stream, binance, unknown]
+            resolutionSourceUrl: { type: [string, 'null'] }
+            windowStartMs: { type: integer, minimum: 0 }
+            windowEndMs: { type: integer, minimum: 0 }
+            windowSeconds: { type: integer, minimum: 60, maximum: 604800 }
+            declaredOutcome: { type: [string, 'null'], enum: [Up, Down, null] }
+            independentOutcome: { type: [string, 'null'], enum: [Up, Down, null] }
+            priceChangeBps: { type: [number, 'null'] }
+            oracleDeviationBps: { type: [number, 'null'] }
+            oracleConsensusPrice: { type: [number, 'null'] }
+            oracleSlotMs: { type: [integer, 'null'], minimum: 0 }
+            candleCoverageE4: { type: [integer, 'null'], minimum: 0, maximum: 10000 }
+            candleSource: { type: [string, 'null'] }
+            candleRightsScope: { type: [string, 'null'] }
+            candleDeliveryPolicy: { type: [string, 'null'] }
+            grade:
+              type: string
+              enum: [consistent, inconsistent, insufficient_data]
+            gradeReasonCodes:
+              type: array
+              items: { type: string }
+            generatedAtMs: { type: integer, minimum: 0 }
+        payloadHash:
+          type: string
+          description: keccak256 of the canonical payload JSON — the byte-stable identity.
+        attestation:
+          type: [object, 'null']
+          description: >-
+            EIP-712 attestation against Insight's published attester; null when
+            the pack was persisted unsigned (signing key unavailable).
+          required: [uid, schemaVersion, attester, signedAt, signature, eip712]
+          properties:
+            uid: { type: string }
+            schemaVersion: { type: integer, const: 1 }
+            attester: { type: string }
+            attesterLabel: { type: string }
+            signedAt: { type: string }
+            validForSeconds: { type: integer }
+            signature: { type: string }
+            eip712:
+              type: object
+              properties:
+                domain:
+                  type: object
+                  properties:
+                    name: { type: string }
+                    version: { type: string }
+                    chainId: { type: integer }
+                primaryType: { type: string }
+
     FeedEntry:
       type: object
       properties:

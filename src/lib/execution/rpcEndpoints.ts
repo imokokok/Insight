@@ -22,6 +22,7 @@ const PUBLIC_FALLBACKS: Record<number, string[]> = {
   // validation can fail over without weakening identity checks.
   0: ['https://api.mainnet-beta.solana.com', 'https://solana-rpc.publicnode.com'],
   1: ['https://eth.llamarpc.com', 'https://ethereum.publicnode.com'],
+  56: ['https://bsc-dataseed.binance.org', 'https://bsc.publicnode.com'],
   42161: ['https://arb1.arbitrum.io/rpc', 'https://arbitrum.publicnode.com'],
   8453: ['https://mainnet.base.org', 'https://base.publicnode.com'],
   137: ['https://polygon-rpc.com', 'https://polygon.publicnode.com'],

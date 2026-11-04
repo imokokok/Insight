@@ -2,12 +2,16 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+import { z } from 'zod';
+
 import { calculateConsensusPrice } from '@/lib/analytics/consensusPrice';
+import { parseApiEnvelope, requireApiData } from '@/lib/api/client/responseValidation';
 import { oracleColors } from '@/lib/constants';
 import { DASHBOARD_ASSETS } from '@/lib/home/dashboardConstants';
 import type { DashboardPriceItem, ServerDashboardData } from '@/lib/home/dashboardData';
+import type { OracleReputation } from '@/lib/oracles/services/reputationService';
 import { roundTo } from '@/lib/utils/format';
-import { type OracleProvider } from '@/types/oracle';
+import { Blockchain, OracleProvider, type PriceData } from '@/types/oracle';
 
 import { AssetTable } from './AssetTable';
 import { ConsensusCore } from './ConsensusCore';
@@ -16,11 +20,53 @@ import { OracleHealthGrid } from './OracleHealthGrid';
 
 import type { AssetConsensusData } from './types';
 
+const PriceDataSchema: z.ZodType<PriceData> = z
+  .object({
+    symbol: z.string(),
+    price: z.number(),
+    timestamp: z.number(),
+    provider: z.nativeEnum(OracleProvider),
+    chain: z.nativeEnum(Blockchain).optional(),
+  })
+  .passthrough();
+
+const DashboardPriceItemSchema: z.ZodType<DashboardPriceItem> = z.object({
+  provider: z.string(),
+  symbol: z.string(),
+  price: PriceDataSchema.nullable(),
+  error: z.string().nullable(),
+});
+
+const OracleReputationSchema: z.ZodType<OracleReputation> = z.object({
+  provider: z.nativeEnum(OracleProvider),
+  overall_score: z.number(),
+  accuracy_score: z.number(),
+  uptime_percentage: z.number(),
+  avg_latency_ms: z.number(),
+  avg_deviation_pct: z.number(),
+  reliability_score: z.number(),
+  freshness_score: z.number(),
+  total_queries: z.number(),
+  failed_queries: z.number(),
+  supported_symbols_count: z.number(),
+  supported_chains_count: z.number(),
+  last_calculated_at: z.string().nullable(),
+});
+
+const ServerDashboardDataSchema: z.ZodType<ServerDashboardData> = z.object({
+  prices: z.array(DashboardPriceItemSchema),
+  fetchedAt: z.number(),
+  hasError: z.boolean(),
+  mainOracles: z.array(z.nativeEnum(OracleProvider)),
+  reputations: z.array(OracleReputationSchema),
+});
+
 async function fetchDashboardSnapshot(signal?: AbortSignal): Promise<ServerDashboardData> {
   const response = await fetch('/api/home/dashboard', { signal });
   if (!response.ok) throw new Error('Failed to fetch dashboard data');
-  const payload = await response.json();
-  return payload.data;
+  const payload = parseApiEnvelope(await response.json(), 'Dashboard response');
+  if (!payload.success) throw new Error('Dashboard response reported failure');
+  return requireApiData(payload, ServerDashboardDataSchema, 'Dashboard response');
 }
 
 function computeAssetData(

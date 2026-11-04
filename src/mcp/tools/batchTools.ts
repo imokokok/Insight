@@ -1,3 +1,4 @@
+import { apiErrorMessage, parseApiEnvelope } from '@/lib/api/client/responseValidation';
 import { fetchPriceWithDatabase } from '@/lib/oracles/base/databaseOperations';
 import { type Blockchain, type OracleProvider } from '@/types/oracle';
 
@@ -87,10 +88,10 @@ export const getPriceHistoryTool: McpToolDefinition<typeof PriceHistoryInputSche
       `mcp_${Date.now()}`
     );
 
-    const data = await response.json();
+    const data = parseApiEnvelope(await response.json(), 'Price history response');
 
     if (!data.success) {
-      throw new Error(data.error?.message || 'Failed to fetch price history');
+      throw new Error(apiErrorMessage(data, 'Failed to fetch price history'));
     }
 
     return formatAsText(data.data);

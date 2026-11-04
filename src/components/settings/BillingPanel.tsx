@@ -14,8 +14,14 @@ import {
   TrendingUp,
   Zap,
 } from 'lucide-react';
+import { z } from 'zod';
 
 import { Button } from '@/components/ui/Button';
+import {
+  apiErrorMessage,
+  parseApiEnvelope,
+  requireApiData,
+} from '@/lib/api/client/responseValidation';
 import { PLANS, normalizePlan, type Plan } from '@/lib/billing/plans';
 import { announceNavigationStart } from '@/lib/navigation/progress';
 import { useSession } from '@/stores/authStore';
@@ -41,6 +47,31 @@ interface SubscriptionData {
     budgetMonthly: number | null;
   }>;
 }
+
+const SubscriptionDataSchema: z.ZodType<SubscriptionData> = z.object({
+  subscription: z
+    .object({
+      id: z.string(),
+      plan: z.string(),
+      status: z.string(),
+      interval: z.string(),
+      current_period_end: z.string(),
+      nowpayments_payment_id: z.string().nullable(),
+    })
+    .nullable(),
+  apiKeys: z.array(
+    z.object({
+      id: z.string(),
+      name: z.string(),
+      plan: z.string(),
+      rateLimit: z.number(),
+      budgetMonthly: z.number().nullable(),
+    })
+  ),
+});
+
+const CheckoutDataSchema = z.object({ url: z.string().url() });
+const ReconcileDataSchema = z.object({ status: z.string().optional() }).passthrough();
 
 const PLAN_BADGE_STYLES: Record<string, string> = {
   developer: 'bg-blue-100 text-blue-700',
@@ -77,13 +108,13 @@ export function BillingPanel() {
       const response = await fetch('/api/billing/subscription', {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
-      const result = await response.json();
+      const result = parseApiEnvelope(await response.json(), 'Subscription response');
 
       if (!response.ok || !result.success) {
-        throw new Error(result.error?.message || 'Failed to load billing data');
+        throw new Error(apiErrorMessage(result, 'Failed to load billing data'));
       }
 
-      setData(result.data);
+      setData(requireApiData(result, SubscriptionDataSchema, 'Subscription response'));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load billing data');
     } finally {
@@ -119,13 +150,17 @@ export function BillingPanel() {
         },
         body: JSON.stringify({ plan: currentPlan, interval: currentInterval }),
       });
-      const result = await response.json();
+      const result = parseApiEnvelope(await response.json(), 'Renewal checkout response');
 
       if (!response.ok || !result.success) {
-        throw new Error(result.error?.message || 'Failed to start renewal checkout');
+        throw new Error(apiErrorMessage(result, 'Failed to start renewal checkout'));
       }
 
-      window.location.href = result.data.url;
+      window.location.href = requireApiData(
+        result,
+        CheckoutDataSchema,
+        'Renewal checkout response'
+      ).url;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to start renewal');
       setActionLoading(false);
@@ -152,13 +187,19 @@ export function BillingPanel() {
           ...(paymentIdInput.trim() ? { paymentId: paymentIdInput.trim() } : {}),
         }),
       });
-      const result = await response.json();
+      const result = parseApiEnvelope(
+        await response.json(),
+        'Subscription reconciliation response'
+      );
 
       if (!response.ok || !result.success) {
-        throw new Error(result.error?.message || 'Failed to check payment');
+        throw new Error(apiErrorMessage(result, 'Failed to check payment'));
       }
 
-      if (result.data?.status === 'active') {
+      if (
+        requireApiData(result, ReconcileDataSchema, 'Subscription reconciliation response')
+          .status === 'active'
+      ) {
         setError('Payment confirmed — your subscription is now active');
       }
       await fetchSubscription();

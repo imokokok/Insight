@@ -18,12 +18,14 @@ import {
   TrendingUp,
   Zap,
 } from 'lucide-react';
+import { z } from 'zod';
 
 import { ApiKeyManager } from '@/components/api-keys';
 import { DeveloperPathSwitch } from '@/components/developer/DeveloperPathSwitch';
 import { EditorialWorkspaceHeader, EvidenceProcessRail } from '@/components/editorial';
 import { PricingCtaSection } from '@/components/pricing';
 import { Button } from '@/components/ui/Button';
+import { parseApiEnvelope, requireApiData } from '@/lib/api/client/responseValidation';
 import { PLANS } from '@/lib/billing/plans';
 import { announceNavigationStart } from '@/lib/navigation/progress';
 import { createLogger } from '@/lib/utils/logger';
@@ -44,6 +46,17 @@ interface ApiKeyItem {
   prefix: string;
   plainKey?: string;
 }
+
+const ApiKeyListSchema = z.object({
+  keys: z.array(
+    z.object({
+      id: z.string(),
+      name: z.string(),
+      prefix: z.string(),
+      plainKey: z.string().optional(),
+    })
+  ),
+});
 
 const CAPABILITIES = [
   {
@@ -175,10 +188,11 @@ export function AiPageContent() {
       headers: { Authorization: `Bearer ${session.access_token}` },
     })
       .then((res) => res.json())
-      .then((result) => {
+      .then((payload: unknown) => {
         if (cancelled) return;
+        const result = parseApiEnvelope(payload, 'API key list response');
         if (result.success) {
-          setKeys(result.data.keys as ApiKeyItem[]);
+          setKeys(requireApiData(result, ApiKeyListSchema, 'API key list response').keys);
         }
       })
       .catch((err) => {

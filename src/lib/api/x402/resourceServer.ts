@@ -7,20 +7,30 @@ import { ExactEvmScheme } from '@x402/evm/exact/server';
 import { bazaarResourceServerExtension, declareDiscoveryExtension } from '@x402/extensions/bazaar';
 import { ExactSvmScheme } from '@x402/svm/exact/server';
 
+import { ORACLE_WATCH_WINDOW_PLAN } from '@/lib/billing/oracleWatchWindow';
+import { POSITION_LIFECYCLE_PLAN } from '@/lib/billing/positionLifecycle';
+import { BaseAgentSwapGuardInputSchema } from '@/lib/dex/baseAgentSwapGuard';
+
 import {
   facilitatorBearerTokenForNetwork,
   facilitatorUrlForNetwork,
   type X402Config,
   X402_BASE_LENDING_GUARD_ROUTE,
+  X402_BASE_PERP_GUARD_ROUTE,
+  X402_HYPERLIQUID_PERP_GUARD_ROUTE,
   X402_MONAD_LENDING_GUARD_ROUTE,
   X402_MULTICHAIN_EVM_LENDING_GUARD_ROUTE,
+  X402_ORACLE_WATCH_WINDOW_ROUTE,
+  X402_POSITION_LIFECYCLE_ROUTE,
   X402_SOLANA_LENDING_GUARD_ROUTE,
+  X402_SOLANA_PERP_GUARD_ROUTE,
   X402_LOOPSCALE_VAULT_DEPOSIT_ROUTE,
   X402_EXECUTION_PREFLIGHT_ROUTE,
   X402_MCP_ROUTE,
   X402_PRE_TRADE_ROUTE,
   X402_SWAP_INTENT_ROUTE,
   getX402PaymentOptions,
+  usdToAtomicUnits,
 } from './config';
 import { createResilientFacilitator } from './facilitatorResilience';
 import { isSolanaPublicKey } from './solanaEncoding';
@@ -38,6 +48,18 @@ import { isSolanaPublicKey } from './solanaEncoding';
 
 let cached: x402HTTPResourceServer | null = null;
 let cachedKey = '';
+
+/**
+ * Optional, searchable service fields carried in the `resource` object of
+ * every Bazaar-enabled payment requirement. They let facilitator catalogs
+ * identify Insight consistently without changing a quote's price, payee, or
+ * execution semantics.
+ */
+export const BAZAAR_SERVICE_METADATA = {
+  serviceName: 'Insight Oracle',
+  tags: ['oracle-safety', 'defi', 'pre-trade', 'x402', 'agent'],
+  iconUrl: 'https://www.oracleinsight.xyz/logos/insight-glacier-cut.svg',
+};
 
 type SvmPaymentRequirements = Parameters<ExactSvmScheme['enhancePaymentRequirements']>[0];
 type SvmSupportedKind = Parameters<ExactSvmScheme['enhancePaymentRequirements']>[1];
@@ -330,6 +352,60 @@ export const BAZAAR_BASE_LENDING_GUARD_DISCOVERY_EXTENSION = declareDiscoveryExt
   },
 });
 
+/** Marketplace contract for the Base Synthetix Perps V3 pre-trade decision gate. */
+export const BAZAAR_BASE_PERP_GUARD_DISCOVERY_EXTENSION = declareDiscoveryExtension({
+  input: {
+    protocolId: 'synthetix-perps-v3-base',
+    action: 'open_long',
+    assetSymbol: 'ETH',
+    marginAssetSymbol: 'USDC',
+    sizeUsd: 25_000,
+    marginValueUsd: 5_000,
+  },
+  inputSchema: {
+    type: 'object',
+    properties: {
+      protocolId: { type: 'string', enum: ['synthetix-perps-v3-base'] },
+      action: { type: 'string', enum: ['open_long', 'open_short'] },
+      assetSymbol: { type: 'string', description: 'Perp market underlying asset symbol' },
+      marginAssetSymbol: { type: 'string', enum: ['USDC'], description: 'Margin asset symbol' },
+      sizeUsd: {
+        type: 'number',
+        description: 'Caller-declared post-action notional position value in USD',
+      },
+      marginValueUsd: {
+        type: 'number',
+        description: 'Caller-declared post-action margin value in USD',
+      },
+      transaction: {
+        type: 'object',
+        description:
+          'POST only: exact unsigned Base transaction {chainId,from,to,data,nonce,value} for one direct PerpsMarketProxy commitOrder; required for portable signed decision evidence.',
+      },
+    },
+    required: [
+      'protocolId',
+      'action',
+      'assetSymbol',
+      'marginAssetSymbol',
+      'sizeUsd',
+      'marginValueUsd',
+    ],
+  },
+  output: {
+    example: {
+      schema: 'insight.base-perp-guard.v1',
+      verdict: 'ALLOW',
+      projected: {
+        effectiveLeverage: 5,
+        liquidationBufferPct: 80,
+        conservativeMaxSizeUsd: 112_500,
+      },
+      next: { execution: 'not_performed' },
+    },
+  },
+});
+
 /** Marketplace contract for the Monad direct-lending decision gate. */
 export const BAZAAR_MONAD_LENDING_GUARD_DISCOVERY_EXTENSION = declareDiscoveryExtension({
   input: {
@@ -539,23 +615,29 @@ function acceptsFor(cfg: X402Config, amountOverride?: string) {
 function routeConfigFor(
   cfg: X402Config,
   extension = BAZAAR_DISCOVERY_EXTENSION,
-  description = 'Pre-trade safety check: oracle-immune-system verdict for one trade, with verifiable EIP-712 attestation support. BLOCK verdicts are complete checks and are charged.'
+  description = 'Pre-trade safety check: oracle-immune-system verdict for one trade, with verifiable EIP-712 attestation support. BLOCK verdicts are complete checks and are charged.',
+  amountOverride?: string
 ) {
   return {
     description,
     mimeType: 'application/json',
-    accepts: acceptsFor(cfg),
+    accepts: acceptsFor(cfg, amountOverride),
+    ...BAZAAR_SERVICE_METADATA,
     extensions: extension,
     x402Version: 2,
   };
 }
 
 /** A POST-only exact-message route cannot truthfully use Bazaar's GET-query discovery schema. */
-function routeConfigWithoutDiscovery(cfg: X402Config, description: string) {
+function routeConfigWithoutDiscovery(
+  cfg: X402Config,
+  description: string,
+  amountOverride?: string
+) {
   return {
     description,
     mimeType: 'application/json',
-    accepts: acceptsFor(cfg),
+    accepts: acceptsFor(cfg, amountOverride),
     x402Version: 2,
   };
 }
@@ -599,13 +681,64 @@ export const BAZAAR_MCP_DISCOVERY_EXTENSION = declareDiscoveryExtension({
   },
 });
 
-function mcpRouteConfigFor(cfg: X402Config, amountAtomic: string) {
+/**
+ * The Base Swap Guard is sold as a distinct x402 MCP resource, not merely as
+ * an opaque member of the wider Insight catalog. Bazaar identifies MCP
+ * resources by (resource URL, tool name), so its payment challenge needs the
+ * exact tool name, an agent-searchable description, and the same argument
+ * schema the MCP server validates at execution time.
+ */
+export const BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME = 'prepare_base_agent_swap_guard';
+
+export const BAZAAR_BASE_AGENT_SWAP_GUARD_MCP_DISCOVERY_EXTENSION = declareDiscoveryExtension({
+  toolName: BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME,
+  description:
+    'Pre-signing Swap Guard for an AI agent on Base mainnet or BNB Smart Chain. Reviews one supported direct Aerodrome Slipstream WETH→USDC CL100 (Base), PancakeSwap V3 USDC→USDT 0.01% (Base), or PancakeSwap V3 USDT→USDC 0.01% (BNB) swap; independently validates source and destination decision prices, a pinned venue quote, price impact, TWAP, slippage, route contract identities, and byte-exact unsigned approval/swap calldata. Returns ALLOW, CAUTION, or BLOCK; only ALLOW includes calls for human confirmation. It never signs, routes, relays, or broadcasts a trade.',
+  transport: 'streamable-http',
+  inputSchema: BaseAgentSwapGuardInputSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  example: {
+    profileId: 'base-aerodrome-slipstream-weth-usdc-cl100',
+    amountIn: '0.25',
+    recipient: '0x1111111111111111111111111111111111111111',
+    deadlineUnixSeconds: 1_800_000_000,
+    sourceDecisionPriceUsd: 3500,
+    destinationDecisionPriceUsd: 1,
+    policy: {
+      maxSlippageBps: 50,
+      maxPriceImpactBps: 30,
+      maxTwapDeviationBps: 50,
+      maxReferenceDeviationBps: 100,
+      maxQuoteAgeSeconds: 60,
+    },
+  },
+  output: {
+    example: {
+      content: [
+        {
+          type: 'text',
+          text: '{"verdict":"ALLOW","decisionHash":"0x…","transactionsToSign":["approval","swap"]}',
+        },
+      ],
+    },
+  },
+});
+
+function mcpRouteConfigFor(cfg: X402Config, amountAtomic: string, discoveryToolName?: string) {
+  const baseSwapGuard = discoveryToolName === BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME;
   return {
-    description:
-      'MCP tools/call over JSON-RPC (streamable HTTP): pay-per-call access to the Insight oracle tool catalog for x402 agents without an API key. Price scales with the tool metering class (C1..C4).',
+    description: baseSwapGuard
+      ? 'AI-agent Swap Guard (Base mainnet and BNB Smart Chain): a paid pre-signing decision for one reviewed Aerodrome Slipstream WETH→USDC CL100 (Base), PancakeSwap V3 USDC→USDT 0.01% (Base), or PancakeSwap V3 USDT→USDC 0.01% (BNB) direct swap. It returns ALLOW, CAUTION, or BLOCK and only returns unsigned calldata on ALLOW; it never signs, routes, relays, or broadcasts a trade.'
+      : 'MCP tools/call over JSON-RPC (streamable HTTP): pay-per-call access to the Insight oracle tool catalog for x402 agents without an API key. Price scales with the tool metering class (C1..C4).',
     mimeType: 'application/json',
     accepts: acceptsFor(cfg, amountAtomic),
-    extensions: BAZAAR_MCP_DISCOVERY_EXTENSION,
+    ...BAZAAR_SERVICE_METADATA,
+    extensions: baseSwapGuard
+      ? BAZAAR_BASE_AGENT_SWAP_GUARD_MCP_DISCOVERY_EXTENSION
+      : BAZAAR_MCP_DISCOVERY_EXTENSION,
     x402Version: 2,
   };
 }
@@ -697,7 +830,7 @@ function buildFacilitatorClients(
 export async function buildX402HttpServer(
   cfg: X402Config,
   deps?: Partial<X402ServerDeps>,
-  options?: { mcpAmountAtomic?: string }
+  options?: { mcpAmountAtomic?: string; mcpDiscoveryToolName?: string }
 ): Promise<x402HTTPResourceServer> {
   const facilitators = buildFacilitatorClients(cfg, deps);
 
@@ -745,6 +878,15 @@ export async function buildX402HttpServer(
       BAZAAR_BASE_LENDING_GUARD_DISCOVERY_EXTENSION,
       'Base Lending Guard: a read-only, pre-signing decision for Aave V3, exact Morpho Blue markets, Compound V3 Base USDC Comet, or reviewed Moonwell Base markets. GET returns a preview; POST accepts one unsigned direct call and may return an Insight EIP-712 decision attestation. It never authorizes or broadcasts a transaction.'
     ),
+    [X402_BASE_PERP_GUARD_ROUTE]: routeConfigFor(
+      cfg,
+      BAZAAR_BASE_PERP_GUARD_DISCOVERY_EXTENSION,
+      'Base Perp Guard: a read-only, pre-trade decision-input integrity gate for opening a Synthetix Perps V3 position on Base (reviewed BTC, ETH, SOL, XRP, DOGE, and PEPE markets, USDC margin). It separately evaluates the underlying and USDC margin oracle integrity and checks caller-declared post-action leverage against reviewed market caps. GET returns a preview; POST accepts one unsigned direct PerpsMarketProxy commitOrder call and may return an Insight EIP-712 decision attestation. It never signs, broadcasts, or authorizes an order.'
+    ),
+    [X402_HYPERLIQUID_PERP_GUARD_ROUTE]: routeConfigWithoutDiscovery(
+      cfg,
+      'Hyperliquid Perp Guard: a read-only, pre-trade decision-input integrity gate for one declared Hyperliquid HyperCore order intent (asset index, size, leverage, price). It evaluates underlying oracle integrity and the declared leverage against Hyperliquid margin requirements, and POST binds the exact unsigned exchange envelope — including intent hash, asset index, size, price, and expiry — into an Insight EIP-712 decision attestation. It never signs, submits, or authorizes an order.'
+    ),
     [X402_MONAD_LENDING_GUARD_ROUTE]: routeConfigFor(
       cfg,
       BAZAAR_MONAD_LENDING_GUARD_DISCOVERY_EXTENSION,
@@ -759,6 +901,10 @@ export async function buildX402HttpServer(
       cfg,
       'Solana Lending Guard: a read-only, pre-signing decision for one direct Kamino Lend, Marginfi v2, Jupiter Lend Earn deposit, or Save Lend reserve-liquidity deposit instruction. Save deposits must provide an asset mint that is live-verified against the source SPL token account. POST verifies program-owned accounts and simulates the exact unsigned Solana message before optionally returning an Insight Ed25519 decision attestation. It never authorizes or broadcasts a transaction.'
     ),
+    [X402_SOLANA_PERP_GUARD_ROUTE]: routeConfigWithoutDiscovery(
+      cfg,
+      'Solana Perp Guard: a read-only, pre-trade decision gate for opening a Drift Protocol v2 perpetual position on Solana mainnet (reviewed SOL, BTC, and ETH markets, USDC margin). It evaluates underlying and USDC cross-oracle consensus integrity on canonical mainnet feeds, checks caller-declared post-action leverage against a reviewed static profile capped by the live Drift margin ratio, and attaches disclosed on-chain venue evidence (Drift mark price vs Pyth Lazer oracle deviation, funding rate, open interest, market status). It never signs, submits, or authorizes an order.'
+    ),
     [X402_LOOPSCALE_VAULT_DEPOSIT_ROUTE]: routeConfigWithoutDiscovery(
       cfg,
       'Loopscale Vault Deposit Guard: a read-only, pre-signing preparation for one official Loopscale Solana lending-vault deposit. POST validates live vault metadata and principal mint, accepts only a single returned message with no preliminary transactions, resolves address lookup tables, simulates the exact unsigned message, and may return an Insight Ed25519 decision attestation. It never authorizes or broadcasts a transaction.'
@@ -768,7 +914,21 @@ export async function buildX402HttpServer(
       BAZAAR_SWAP_INTENT_DISCOVERY_EXTENSION,
       'Verified Swap Intent: two signed schema-v3 Pre-Trade gates for one same-chain swap, plus one Execution Receipt credit after x402 settlement. A BLOCK is a complete, charged decision.'
     ),
-    [X402_MCP_ROUTE]: mcpRouteConfigFor(cfg, options?.mcpAmountAtomic ?? cfg.amountAtomic),
+    [X402_ORACLE_WATCH_WINDOW_ROUTE]: routeConfigWithoutDiscovery(
+      cfg,
+      'Oracle Watch Monitored Window (24h): one settlement pre-pays continuous Oracle Watch halt/proceed signal coverage for one (symbol, chain) position for 24 hours. The purchase returns a one-time window token; in-window signal polls are token-authenticated and never charged per call. Assessment and evidence only — no custody, no execution authority.',
+      usdToAtomicUnits(ORACLE_WATCH_WINDOW_PLAN.priceUsd)
+    ),
+    [X402_POSITION_LIFECYCLE_ROUTE]: routeConfigWithoutDiscovery(
+      cfg,
+      'Position Lifecycle Bundle (24h): one settlement pre-pays a full monitored lifecycle for one (symbol, chain) position — an embedded Oracle Watch window (300 free signal polls), 4 bundled guard assessments across any position-guard family, and 1 attested execution receipt. The purchase returns a one-time lifecycle token; bundled calls are token-authenticated and never charged per call. Assessment and evidence only — no custody, no execution authority.',
+      usdToAtomicUnits(POSITION_LIFECYCLE_PLAN.priceUsd)
+    ),
+    [X402_MCP_ROUTE]: mcpRouteConfigFor(
+      cfg,
+      options?.mcpAmountAtomic ?? cfg.amountAtomic,
+      options?.mcpDiscoveryToolName
+    ),
   });
   await httpServer.initialize();
 
@@ -813,23 +973,26 @@ export function resetX402HttpServerForTests(): void {
 }
 
 /**
- * Per-price MCP HTTP server cache. Tool calls are priced by metering class
- * (C1..C4 → 4 distinct USDC amounts), and each x402HTTPResourceServer bakes
- * its 402 quote amounts in at construction time — so one instance per price
- * is kept warm instead of paying a facilitator `getSupported()` round trip
- * per request.
+ * Per-price-and-discovery-tool MCP HTTP server cache. Tool calls are priced by
+ * metering class (C1..C4 → 4 distinct USDC amounts), and a Bazaar-listed MCP
+ * tool also bakes its own discovery extension into the quote. Each server
+ * therefore keeps one exact (price, discovery tool) contract warm instead of
+ * paying a facilitator `getSupported()` round trip per request.
  */
 const mcpCache = new Map<string, x402HTTPResourceServer>();
 
 /**
  * Get (or build) an initialized HTTP resource server whose `/api/mcp` route
- * quotes `amountAtomic` USDC for a tools/call. The pre-trade route on the
- * same instance always carries the default configured amount, which is
+ * quotes `amountAtomic` USDC for a tools/call. `discoveryToolName` is only
+ * set for a specifically Bazaar-listed MCP tool; omitted callers retain the
+ * existing catalog-level pre-trade discovery contract. The pre-trade route on
+ * the same instance always carries the default configured amount, which is
  * irrelevant to MCP callers.
  */
 export async function getMcpX402HttpServer(
   cfg: X402Config,
-  amountAtomic: string
+  amountAtomic: string,
+  discoveryToolName?: string
 ): Promise<x402HTTPResourceServer> {
   const key = JSON.stringify({
     options: getX402PaymentOptions(cfg, amountAtomic),
@@ -837,12 +1000,16 @@ export async function getMcpX402HttpServer(
     u: cfg.facilitatorUrls,
     c: cfg.facilitatorCdpAuth ? 'cdp' : 'none',
     r: cfg.solana?.rpcUrl ?? null,
+    t: discoveryToolName ?? null,
   });
   const hit = mcpCache.get(key);
   if (hit) {
     return hit;
   }
-  const built = await buildX402HttpServer(cfg, undefined, { mcpAmountAtomic: amountAtomic });
+  const built = await buildX402HttpServer(cfg, undefined, {
+    mcpAmountAtomic: amountAtomic,
+    mcpDiscoveryToolName: discoveryToolName,
+  });
   mcpCache.set(key, built);
   return built;
 }

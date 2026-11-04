@@ -10,6 +10,11 @@
 
 import { keccak256, stringToHex } from 'viem';
 
+import {
+  createExecutionCommercialTerms,
+  noVenueFeeCommercialTerms,
+  type ExecutionCommercialTerms,
+} from '@/lib/execution/commerce';
 import { canonicalJsonString } from '@/lib/utils/canonicalJson';
 
 import {
@@ -21,9 +26,41 @@ import {
 
 const POSITIVE_DECIMAL = /^(?:0|[1-9][0-9]*)(?:\.[0-9]+)?$/;
 const CLIENT_ORDER_ID = /^0x[0-9a-fA-F]{32}$/;
+const ADDRESS = /^0x[0-9a-fA-F]{40}$/;
 const MAX_ORDER_NOTIONAL_USD = 1_000_000_000;
+/** Hyperliquid caps perpetual builder fees at 10 basis points (100 tenths). */
+export const HYPERLIQUID_MAX_PERP_BUILDER_FEE_TENTHS_BPS = 100;
 
 export type HyperliquidPerpOrderSide = 'buy' | 'sell';
+
+/**
+ * A fee policy is opt-in and becomes part of the order intent.  It does not
+ * prove that the main account has already approved the builder: that approval
+ * is a separate user-signed Hyperliquid action returned below.
+ */
+export interface HyperliquidPerpBuilderFeePolicy {
+  builder: string;
+  /** Actual per-order fee in Hyperliquid tenths of one basis point. */
+  feeTenthsOfBasisPoint: number;
+  /** User-approved ceiling. Defaults to the exact per-order fee. */
+  maximumFeeTenthsOfBasisPoint?: number;
+}
+
+export interface HyperliquidBuilderFeeApproval {
+  schema: 'insight.hyperliquid-builder-fee-approval.v1';
+  venue: 'hyperliquid';
+  network: 'hyperliquid:mainnet';
+  builder: `0x${string}`;
+  maximumFeeTenthsOfBasisPoint: number;
+  maximumFeeRate: string;
+  approvalState: 'USER_SIGNATURE_REQUIRED_OR_UNVERIFIED';
+  unsignedExchangeAction: {
+    type: 'approveBuilderFee';
+    builder: `0x${string}`;
+    maxFeeRate: string;
+  };
+  caveats: readonly string[];
+}
 
 export interface HyperliquidPerpOrderPreflightRequest {
   market: HyperliquidReviewedPerpMarket;
@@ -45,6 +82,8 @@ export interface HyperliquidPerpOrderPreflightRequest {
   requireFullFill?: boolean;
   /** Short expiry, included in the user-signed exchange envelope. Defaults to 30 seconds. */
   expiresAfterSeconds?: number;
+  /** Optional venue-native revenue policy. Omit it for a fee-free order. */
+  builderFee?: HyperliquidPerpBuilderFeePolicy;
 }
 
 export interface HyperliquidPerpOrderPreflight {
@@ -85,6 +124,10 @@ export interface HyperliquidPerpOrderPreflight {
     maxMarkOracleDeviationBps: number;
     requireFullFill: boolean;
   };
+  /** Common commercial record that consumers can display and bind to receipts. */
+  commerce: ExecutionCommercialTerms;
+  /** Separate main-account action; signing it is always user controlled. */
+  builderFeeApproval: HyperliquidBuilderFeeApproval | null;
   blockingReasons: string[];
   /** Present only when every preflight gate passed. Sign this envelope locally. */
   unsignedExchangeEnvelope: {
@@ -102,6 +145,7 @@ export interface HyperliquidPerpOrderPreflight {
         },
       ];
       grouping: 'na';
+      builder?: { b: `0x${string}`; f: number };
     };
     /** The signer chooses a fresh nonce immediately before signing. */
     expiresAfter: number;
@@ -120,6 +164,100 @@ function assertFiniteInRange(value: number, field: string, minimum: number, maxi
   if (!Number.isFinite(value) || value < minimum || value > maximum) {
     throw new HyperliquidPerpOrderPreflightError(`Hyperliquid order ${field} is invalid.`);
   }
+}
+
+function decimalPercentageFromTenthsOfBasisPoint(value: number): string {
+  // 10 tenths of one bps = 1 bps = 0.01%.
+  const scaled = BigInt(value);
+  const whole = scaled / 1000n;
+  const fraction = (scaled % 1000n).toString().padStart(3, '0').replace(/0+$/, '');
+  return `${whole.toString()}${fraction ? `.${fraction}` : ''}%`;
+}
+
+function normalizedBuilderFee(value: HyperliquidPerpBuilderFeePolicy | undefined): {
+  policy: {
+    builder: `0x${string}`;
+    feeTenthsOfBasisPoint: number;
+    maximumFeeTenthsOfBasisPoint: number;
+  } | null;
+  commerce: ExecutionCommercialTerms;
+  approval: HyperliquidBuilderFeeApproval | null;
+} {
+  if (value === undefined) {
+    return { policy: null, commerce: noVenueFeeCommercialTerms(), approval: null };
+  }
+  if (!value || typeof value.builder !== 'string' || !ADDRESS.test(value.builder)) {
+    throw new HyperliquidPerpOrderPreflightError('Hyperliquid builder address is invalid.');
+  }
+  const rate = value.feeTenthsOfBasisPoint;
+  const maximumRate = value.maximumFeeTenthsOfBasisPoint ?? rate;
+  if (
+    !Number.isSafeInteger(rate) ||
+    !Number.isSafeInteger(maximumRate) ||
+    rate < 1 ||
+    maximumRate < rate ||
+    maximumRate > HYPERLIQUID_MAX_PERP_BUILDER_FEE_TENTHS_BPS
+  ) {
+    throw new HyperliquidPerpOrderPreflightError(
+      'Hyperliquid builder fee must be a positive integer no greater than the perpetual builder-fee cap.'
+    );
+  }
+  const builder = value.builder.toLowerCase() as `0x${string}`;
+  const commerce = createExecutionCommercialTerms({
+    schema: 'execution.commerce.v1',
+    productId: 'verified-execution',
+    metering: { preflight: 'C3', observation: 'C4', evidenceExport: 'C4' },
+    venueFee: {
+      kind: 'venue-native',
+      venue: 'hyperliquid',
+      beneficiary: builder,
+      unit: 'tenths-of-basis-point',
+      rate,
+      maximumRate,
+      approval: 'USER_SIGNATURE_REQUIRED_OR_UNVERIFIED',
+      settlement: 'VENUE_RECONCILIATION_REQUIRED',
+    },
+  });
+  const maximumFeeRate = decimalPercentageFromTenthsOfBasisPoint(maximumRate);
+  return {
+    policy: { builder, feeTenthsOfBasisPoint: rate, maximumFeeTenthsOfBasisPoint: maximumRate },
+    commerce,
+    approval: {
+      schema: 'insight.hyperliquid-builder-fee-approval.v1',
+      venue: 'hyperliquid',
+      network: 'hyperliquid:mainnet',
+      builder,
+      maximumFeeTenthsOfBasisPoint: maximumRate,
+      maximumFeeRate,
+      approvalState: 'USER_SIGNATURE_REQUIRED_OR_UNVERIFIED',
+      unsignedExchangeAction: { type: 'approveBuilderFee', builder, maxFeeRate: maximumFeeRate },
+      caveats: [
+        'Sign this approval only with the Hyperliquid main account in the user-controlled wallet process.',
+        'Insight cannot verify an approval from caller input and does not submit this action.',
+        'The approval is a maximum; each order remains limited to the lower per-order fee committed below.',
+      ],
+    },
+  };
+}
+
+/** Build only the explicit builder-fee approval action; no order is created. */
+export function prepareHyperliquidBuilderFeeApproval(
+  policy: HyperliquidPerpBuilderFeePolicy
+): HyperliquidBuilderFeeApproval {
+  const normalized = normalizedBuilderFee(policy);
+  if (!normalized.approval) {
+    throw new HyperliquidPerpOrderPreflightError(
+      'Hyperliquid builder fee approval requires a policy.'
+    );
+  }
+  return normalized.approval;
+}
+
+/** Convert an opt-in Hyperliquid fee policy into the shared commerce record. */
+export function hyperliquidBuilderFeeCommercialTerms(
+  policy: HyperliquidPerpBuilderFeePolicy | undefined
+): ExecutionCommercialTerms {
+  return normalizedBuilderFee(policy).commerce;
 }
 
 function canonicalDecimal(
@@ -251,6 +389,7 @@ export async function prepareHyperliquidPerpOrder(
       'Hyperliquid order expiresAfterSeconds must be an integer between 5 and 120.'
     );
   }
+  const builderFee = normalizedBuilderFee(request.builderFee);
 
   const state = await getHyperliquidPerpExecutionMarketState(
     hyperliquidPerpMarketProfile(request.market),
@@ -319,6 +458,9 @@ export async function prepareHyperliquidPerpOrder(
       },
     ] as const,
     grouping: 'na' as const,
+    ...(builderFee.policy
+      ? { builder: { b: builderFee.policy.builder, f: builderFee.policy.feeTenthsOfBasisPoint } }
+      : {}),
   };
   const intentHash = keccak256(
     stringToHex(
@@ -330,6 +472,7 @@ export async function prepareHyperliquidPerpOrder(
         bookTimestamp: state.book.timestamp,
         requestedNotionalUsd,
         markOracleDeviationBps,
+        commerce: builderFee.commerce,
       })
     )
   );
@@ -363,6 +506,8 @@ export async function prepareHyperliquidPerpOrder(
       maxMarkOracleDeviationBps: request.maxMarkOracleDeviationBps,
       requireFullFill,
     },
+    commerce: builderFee.commerce,
+    builderFeeApproval: builderFee.approval,
     blockingReasons,
     unsignedExchangeEnvelope:
       blockingReasons.length === 0
@@ -373,6 +518,11 @@ export async function prepareHyperliquidPerpOrder(
         : null,
     caveats: [
       'Insight did not create a nonce, signature, API wallet, or exchange submission. Sign this exact envelope only in the account or approved agent wallet process.',
+      ...(builderFee.approval
+        ? [
+            'This order includes an explicit Hyperliquid builder fee. Complete or independently verify the separate main-account fee approval before submitting the order.',
+          ]
+        : []),
       'The estimate consumes only the current displayed L2 levels. Matching priority, fees, margin, open-interest limits, exchange price bands, and later book changes can still prevent or change a fill.',
       'IOC is intentional: this reviewed lane never prepares a resting order. A blocked result must not be signed or submitted.',
     ],

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 
+import { isJsonRecord } from '@/lib/api/client/responseValidation';
 import { errorToResponse, isAppError, classifyByStringMatching } from '@/lib/errors';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -36,9 +37,16 @@ export function createErrorMiddleware(options: ErrorMiddlewareOptions = {}) {
       if (requestId) {
         try {
           const clonedResponse = response.clone();
-          const body = await clonedResponse.json();
+          const payload: unknown = await clonedResponse.json();
+          if (!isJsonRecord(payload)) throw new Error('Error response is not a JSON object');
           return NextResponse.json(
-            { ...body, meta: { ...body.meta, requestId } },
+            {
+              ...payload,
+              meta: {
+                ...(isJsonRecord(payload.meta) ? payload.meta : {}),
+                requestId,
+              },
+            },
             { status: response.status, headers: response.headers }
           );
         } catch {

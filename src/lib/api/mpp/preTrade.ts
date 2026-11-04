@@ -17,6 +17,7 @@ import {
 import {
   atomicUnitsToUsdc,
   recordX402Settlement,
+  x402AcquisitionSource,
   type X402SettlementAudit,
 } from '@/lib/api/x402/guard';
 import { createLogger } from '@/lib/utils/logger';
@@ -198,6 +199,7 @@ export async function issueMppPreTradeQuote(
   audit(cfg, requestId, 'quote_issued', {
     amountUsdc: atomicUnitsToUsdc(cfg.amountAtomic),
     responseTimeMs: Date.now() - startedAt,
+    acquisitionSource: x402AcquisitionSource(request),
   });
 
   return mergeChallenges(x402Response, mppChallenge);
@@ -221,6 +223,7 @@ export async function handleMppPaidPreTradeRequest(
   const server = getServer(cfg, secretKey);
   const options = getRouteOptions(request, cfg);
   const requestId = newRequestId();
+  const acquisitionSource = x402AcquisitionSource(request);
   const startedAt = Date.now();
 
   let credential: ReturnType<typeof Credential.fromRequest>;
@@ -231,6 +234,7 @@ export async function handleMppPaidPreTradeRequest(
     audit(cfg, requestId, 'payment_rejected', {
       responseTimeMs: Date.now() - startedAt,
       errorReason: 'malformed_mpp_credential',
+      acquisitionSource,
     });
     return attachRequestId(challenge, requestId);
   }
@@ -247,6 +251,7 @@ export async function handleMppPaidPreTradeRequest(
       audit(cfg, requestId, 'verify_failed', {
         responseTimeMs: Date.now() - startedAt,
         errorReason: facilitatorError.name,
+        acquisitionSource,
       });
       logger.warn('MPP facilitator validation unavailable', {
         requestId,
@@ -269,6 +274,7 @@ export async function handleMppPaidPreTradeRequest(
     audit(cfg, requestId, 'payment_rejected', {
       responseTimeMs: Date.now() - startedAt,
       errorReason: error.name,
+      acquisitionSource,
     });
     const challenge = await issueMppChallenge(server, options, request);
     return attachRequestId(challenge, requestId);
@@ -286,6 +292,7 @@ export async function handleMppPaidPreTradeRequest(
     amountUsdc: atomicUnitsToUsdc(cfg.amountAtomic),
     payer,
     responseTimeMs: Date.now() - startedAt,
+    acquisitionSource,
   });
 
   const businessStartedAt = Date.now();
@@ -296,6 +303,7 @@ export async function handleMppPaidPreTradeRequest(
     audit(cfg, requestId, 'business_failed', {
       responseTimeMs: Date.now() - businessStartedAt,
       errorReason: `handler_error:${error instanceof Error ? error.name : 'unknown'}`,
+      acquisitionSource,
     });
     throw error;
   }
@@ -304,6 +312,7 @@ export async function handleMppPaidPreTradeRequest(
     audit(cfg, requestId, 'business_failed', {
       responseTimeMs: Date.now() - businessStartedAt,
       errorReason: `handler_failed:${businessResponse.status}`,
+      acquisitionSource,
     });
     businessResponse.headers.set('X-Request-Id', requestId);
     return withCors(businessResponse);
@@ -312,6 +321,7 @@ export async function handleMppPaidPreTradeRequest(
   audit(cfg, requestId, 'business_succeeded', {
     amountUsdc: atomicUnitsToUsdc(cfg.amountAtomic),
     responseTimeMs: Date.now() - businessStartedAt,
+    acquisitionSource,
   });
 
   const settlementStartedAt = Date.now();
@@ -329,6 +339,7 @@ export async function handleMppPaidPreTradeRequest(
       asset: usdcForNetwork(cfg.network),
       responseTimeMs: Date.now() - settlementStartedAt,
       verdict: 'pre_trade_safety_check',
+      acquisitionSource,
     });
 
     const response = server.transport.respondReceipt({
@@ -345,6 +356,7 @@ export async function handleMppPaidPreTradeRequest(
       payer,
       responseTimeMs: Date.now() - settlementStartedAt,
       errorReason: error instanceof Error ? error.name : 'unknown',
+      acquisitionSource,
     });
     logger.error(
       'MPP settlement failed after successful pre-trade check',

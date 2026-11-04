@@ -1,5 +1,15 @@
 import { type OracleFeed } from '@/lib/supabase/queries';
 import { getAdminQueries } from '@/lib/supabase/server';
+import {
+  getTursoPriceClient,
+  readTursoFeedRegistryPolicy,
+  readTursoPriceWriteMode,
+} from '@/lib/turso/price/client';
+import {
+  publishTursoFeedRegistry,
+  readTursoFeedRegistry,
+} from '@/lib/turso/price/controlPlaneRepository';
+import { ensureTursoPriceSchema } from '@/lib/turso/price/schema';
 import { createLogger } from '@/lib/utils/logger';
 
 import { extractBaseSymbol } from './oracleDataUtils';
@@ -7,6 +17,11 @@ import { extractBaseSymbol } from './oracleDataUtils';
 const logger = createLogger('DynamicFeedResolver');
 
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+// A database outage used to be represented as an empty registry, which made
+// the snapshot collector skip every candidate and repeatedly retried the same
+// failed read for every feed. Keep fallback reads available, but bound retry
+// pressure while the registry dependency is unavailable.
+const REGISTRY_FAILURE_BACKOFF_MS = 30_000;
 
 interface FeedCacheEntry {
   /** Every active feed, keyed by its exact DB symbol and chain. */
@@ -35,16 +50,124 @@ interface AllFeedsCacheEntry {
 let allFeedsCache: AllFeedsCacheEntry | null = null;
 let allFeedsFetchPromise: Promise<AllFeedsCacheEntry | null> | null = null;
 let cacheGeneration = 0;
+let registryFailureUntilMs = 0;
 
 function isAllFeedsCacheStale(): boolean {
   if (!allFeedsCache) return true;
   return Date.now() - allFeedsCache.timestamp > CACHE_TTL_MS;
 }
 
+function buildAllFeedsCacheEntry(feeds: OracleFeed[], timestamp: number): AllFeedsCacheEntry {
+  const providerSet = new Set<string>();
+  const symbolSet = new Set<string>();
+  const chainCountByProvider = new Map<string, Set<number>>();
+
+  for (const feed of feeds) {
+    // twap-token rows are address metadata consumed by the TWAP resolver, not
+    // an oracle that can cast an independent price vote.
+    if (feed.provider !== 'twap-token') providerSet.add(feed.provider);
+    symbolSet.add(extractBaseSymbol(feed.symbol).toUpperCase());
+
+    let chainSet = chainCountByProvider.get(feed.provider);
+    if (!chainSet) {
+      chainSet = new Set<number>();
+      chainCountByProvider.set(feed.provider, chainSet);
+    }
+    // chain_id === 0 means chain-agnostic (Supra/DIA/RedStone); count it as
+    // one chain so the metric remains meaningful.
+    chainSet.add(feed.chain_id);
+  }
+
+  return {
+    feeds,
+    providers: Array.from(providerSet).sort(),
+    symbols: Array.from(symbolSet).sort(),
+    chainCountByProvider: new Map(
+      Array.from(chainCountByProvider.entries()).map(([provider, chains]) => [
+        provider,
+        chains.size,
+      ])
+    ),
+    timestamp,
+  };
+}
+
+/** Keep aggregate and provider views coherent when a full registry is loaded. */
+function hydrateFeedCaches(entry: AllFeedsCacheEntry): void {
+  allFeedsCache = entry;
+  providerCaches.clear();
+  const grouped = new Map<string, OracleFeed[]>();
+  for (const feed of entry.feeds) {
+    const providerFeeds = grouped.get(feed.provider) ?? [];
+    providerFeeds.push(feed);
+    grouped.set(feed.provider, providerFeeds);
+  }
+  for (const [provider, providerFeeds] of grouped) {
+    providerCaches.set(provider, buildProviderCache(providerFeeds, entry.timestamp));
+  }
+}
+
+/**
+ * In primary mode, the mirrored registry keeps intake independent from a
+ * Supabase read. A stale mirror is deliberately rejected: configuration
+ * changes such as a deliberate feed deactivation must take effect within the
+ * operator-selected maximum age.
+ */
+async function loadFreshTursoFeedRegistry(): Promise<AllFeedsCacheEntry | null> {
+  if (readTursoPriceWriteMode() !== 'primary') return null;
+  try {
+    const client = getTursoPriceClient();
+    await ensureTursoPriceSchema(client);
+    const snapshot = await readTursoFeedRegistry(client);
+    if (!snapshot) return null;
+    const { maxAgeMs } = readTursoFeedRegistryPolicy();
+    const ageMs = Date.now() - snapshot.publishedAtMs;
+    if (ageMs < 0 || ageMs > maxAgeMs) {
+      logger.warn('Turso feed registry mirror is stale', { ageMs, maxAgeMs });
+      return null;
+    }
+    return buildAllFeedsCacheEntry(snapshot.feeds, Date.now());
+  } catch (error) {
+    // Turso is the primary dependency in this mode. Preserve the Supabase
+    // fallback for a bounded recovery attempt, but never let a mirror failure
+    // crash unrelated server paths.
+    logger.warn(
+      'Failed to load Turso feed registry mirror',
+      error instanceof Error ? error : undefined
+    );
+    return null;
+  }
+}
+
+async function publishFreshTursoFeedRegistry(feeds: OracleFeed[]): Promise<void> {
+  if (readTursoPriceWriteMode() !== 'primary') return;
+  try {
+    const client = getTursoPriceClient();
+    await ensureTursoPriceSchema(client);
+    await publishTursoFeedRegistry(client, feeds);
+  } catch (error) {
+    // Supabase remains authoritative for the registry. A mirror write failure
+    // must not discard a successful authoritative read or prevent capture.
+    logger.warn(
+      'Failed to publish Turso feed registry mirror',
+      error instanceof Error ? error : undefined
+    );
+  }
+}
+
 async function loadAllActiveFeeds(): Promise<AllFeedsCacheEntry | null> {
   if (allFeedsCache && !isAllFeedsCacheStale()) {
     return allFeedsCache;
   }
+
+  const mirrored = await loadFreshTursoFeedRegistry();
+  if (mirrored) {
+    hydrateFeedCaches(mirrored);
+    logger.debug(`Loaded ${mirrored.feeds.length} active feeds from Turso registry mirror`);
+    return mirrored;
+  }
+
+  if (Date.now() < registryFailureUntilMs) return null;
 
   // Deduplicate concurrent callers — the cron job and dashboard SSR may
   // both request this in the same tick.
@@ -55,58 +178,30 @@ async function loadAllActiveFeeds(): Promise<AllFeedsCacheEntry | null> {
     try {
       const queries = getAdminQueries();
       // Empty provider string returns all active feeds (see getOracleFeeds).
-      const feeds = await queries.getOracleFeeds('');
-
-      const providerSet = new Set<string>();
-      const symbolSet = new Set<string>();
-      const chainCountByProvider = new Map<string, Set<number>>();
-
-      for (const feed of feeds) {
-        // twap-token rows are address metadata consumed by the TWAP resolver,
-        // not an oracle that can cast an independent price vote.
-        if (feed.provider !== 'twap-token') providerSet.add(feed.provider);
-        symbolSet.add(extractBaseSymbol(feed.symbol).toUpperCase());
-
-        let chainSet = chainCountByProvider.get(feed.provider);
-        if (!chainSet) {
-          chainSet = new Set<number>();
-          chainCountByProvider.set(feed.provider, chainSet);
-        }
-        // chain_id === 0 means chain-agnostic (Supra/DIA/RedStone);
-        // count it as a single "chain" so the metric is meaningful.
-        chainSet.add(feed.chain_id);
+      const result = await queries.getOracleFeedsWithStatus('');
+      if (result.errored) {
+        registryFailureUntilMs = Date.now() + REGISTRY_FAILURE_BACKOFF_MS;
+        return null;
       }
+      const feeds = result.feeds;
+      const entry = buildAllFeedsCacheEntry(feeds, Date.now());
 
-      const entry: AllFeedsCacheEntry = {
-        feeds,
-        providers: Array.from(providerSet).sort(),
-        symbols: Array.from(symbolSet).sort(),
-        chainCountByProvider: new Map(
-          Array.from(chainCountByProvider.entries()).map(([p, s]) => [p, s.size])
-        ),
-        timestamp: Date.now(),
-      };
+      // Bootstrap or refresh the Turso mirror only after the complete,
+      // authoritative Supabase read succeeds. Cold GitHub/Vercel processes
+      // subsequently use Turso and no longer issue a registry query each run.
+      await publishFreshTursoFeedRegistry(feeds);
 
       if (generation === cacheGeneration) {
-        allFeedsCache = entry;
-        providerCaches.clear();
         // The complete registry already contains each provider's rows. Reuse
         // it for exact-feed validation instead of loading every provider again.
-        const grouped = new Map<string, OracleFeed[]>();
-        for (const feed of feeds) {
-          const group = grouped.get(feed.provider) ?? [];
-          group.push(feed);
-          grouped.set(feed.provider, group);
-        }
-        for (const [provider, providerFeeds] of grouped) {
-          providerCaches.set(provider, buildProviderCache(providerFeeds, entry.timestamp));
-        }
+        hydrateFeedCaches(entry);
       }
       logger.debug(
         `Loaded ${feeds.length} active feeds across ${entry.providers.length} providers`
       );
       return entry;
     } catch (error) {
+      registryFailureUntilMs = Date.now() + REGISTRY_FAILURE_BACKOFF_MS;
       logger.warn(
         'Failed to load all active feeds from database',
         error instanceof Error ? error : undefined
@@ -183,10 +278,21 @@ async function loadFeedsForProvider(provider: string): Promise<Map<string, Oracl
     providerCaches.set(provider, entry);
     return entry.feeds;
   }
+
+  // Provider-specific resolver paths (notably individual upstream adapters)
+  // must enjoy the same control-plane independence as batch collection. A
+  // fresh full mirror can answer this exact request without a Supabase query.
+  const mirrored = await loadFreshTursoFeedRegistry();
+  if (mirrored) {
+    hydrateFeedCaches(mirrored);
+    return providerCaches.get(provider)?.feeds ?? new Map();
+  }
+
   const cache = providerCaches.get(provider);
   if (cache && !isCacheStale(provider)) {
     return cache.feeds;
   }
+  if (Date.now() < registryFailureUntilMs) return new Map();
 
   const map = new Map<string, OracleFeed>();
   const lookup = new Map<string, OracleFeed>();
@@ -214,6 +320,7 @@ async function loadFeedsForProvider(provider: string): Promise<Map<string, Oracl
     }
     logger.debug(`Loaded ${map.size} feeds for ${provider} from database`);
   } catch (error) {
+    registryFailureUntilMs = Date.now() + REGISTRY_FAILURE_BACKOFF_MS;
     logger.warn(
       `Failed to load feeds for ${provider} from database`,
       error instanceof Error ? error : undefined
@@ -390,4 +497,5 @@ export function invalidateAllFeedsCache(): void {
   allFeedsCache = null;
   allFeedsFetchPromise = null;
   providerCaches.clear();
+  registryFailureUntilMs = 0;
 }

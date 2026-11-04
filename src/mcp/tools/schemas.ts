@@ -293,12 +293,14 @@ export const AerodromeSlipstreamMarketInputSchema = z.object({
     .describe('Reviewed Aerodrome Slipstream pool id; defaults to Base WETH/USDC CL100'),
 });
 
-/** A fixed profile id selects one code-reviewed PancakeSwap V3 Base pool. */
+/** A fixed profile id selects one code-reviewed PancakeSwap V3 pool. */
 export const PancakeSwapV3MarketInputSchema = z.object({
   profileId: z
     .enum(REVIEWED_PANCAKE_SWAP_V3_PROFILE_IDS)
     .optional()
-    .describe('Reviewed PancakeSwap V3 pool id; defaults to Base USDC/USDT 0.01%'),
+    .describe(
+      'Reviewed PancakeSwap V3 pool id (Base or BNB Smart Chain); defaults to Base USDC/USDT 0.01%'
+    ),
 });
 
 /** A fixed profile id selects one code-reviewed QuickSwap V2 Base pair. */
@@ -359,6 +361,31 @@ export const HyperliquidPerpOrderPreflightInputSchema = z
       .describe(
         'Short expiry to include in the locally signed Hyperliquid exchange envelope. Defaults to 30.'
       ),
+    builderFee: z
+      .object({
+        builder: z
+          .string()
+          .regex(/^0x[0-9a-fA-F]{40}$/)
+          .describe('Configured Hyperliquid builder address; visible in the user-signed order.'),
+        feeTenthsOfBasisPoint: z
+          .number()
+          .int()
+          .min(1)
+          .max(100)
+          .describe('Per-order builder fee in tenths of a basis point. 10 means one basis point.'),
+        maximumFeeTenthsOfBasisPoint: z
+          .number()
+          .int()
+          .min(1)
+          .max(100)
+          .optional()
+          .describe('Maximum user-approved fee; defaults to the exact per-order fee.'),
+      })
+      .strict()
+      .optional()
+      .describe(
+        'Optional venue-native fee policy. The response includes a separate user-signed approval action.'
+      ),
   })
   .strict();
 
@@ -393,6 +420,17 @@ export const HyperliquidPerpExecutionVerificationInputSchema = z
           .max(80),
         reduceOnly: z.boolean(),
         clientOrderId: z.string().regex(/^0x[0-9a-fA-F]{32}$/),
+        builderFee: z
+          .object({
+            builder: z.string().regex(/^0x[0-9a-fA-F]{40}$/),
+            feeTenthsOfBasisPoint: z.number().int().min(1).max(100),
+            maximumFeeTenthsOfBasisPoint: z.number().int().min(1).max(100).optional(),
+          })
+          .strict()
+          .optional()
+          .describe(
+            'Optional fee terms from the original preflight; returns an estimate, not a payout claim.'
+          ),
       })
       .strict(),
   })
@@ -538,15 +576,21 @@ export const AerodromeSlipstreamSwapPreparationInputSchema = z.object({
     .enum(REVIEWED_AERODROME_SLIPSTREAM_PROFILE_IDS)
     .optional()
     .describe('Reviewed Aerodrome Slipstream pool id; defaults to Base WETH/USDC CL100'),
+  direction: z
+    .enum(['token0-to-token1', 'token1-to-token0'])
+    .default('token0-to-token1')
+    .describe(
+      'Quote direction inside the reviewed pool: token0→token1 (e.g. WETH→USDC, USDC→USDT) or the reverse (USDC→WETH, USDT→USDC)'
+    ),
   amountIn: z
     .string()
     .regex(/^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$/)
     .max(128)
-    .describe('Exact WETH input amount; native ETH and reverse direction are not supported'),
+    .describe('Exact input amount of the direction input token; native ETH remains out of scope'),
   recipient: z
     .string()
     .regex(/^0x[0-9a-fA-F]{40}$/)
-    .describe('USDC recipient encoded into the unsigned router transaction'),
+    .describe('Output-token recipient encoded into the unsigned router transaction'),
   deadlineUnixSeconds: z
     .number()
     .int()
@@ -565,16 +609,24 @@ export const PancakeSwapV3SwapPreparationInputSchema = z.object({
   profileId: z
     .enum(REVIEWED_PANCAKE_SWAP_V3_PROFILE_IDS)
     .optional()
-    .describe('Reviewed PancakeSwap V3 pool id; defaults to Base USDC/USDT 0.01%'),
+    .describe(
+      'Reviewed PancakeSwap V3 pool id (Base or BNB Smart Chain); defaults to Base USDC/USDT 0.01%'
+    ),
+  direction: z
+    .enum(['token0-to-token1', 'token1-to-token0'])
+    .default('token0-to-token1')
+    .describe(
+      'Quote direction inside the reviewed pool, stated in its token0/token1 order (e.g. Base USDC/USDT: USDC→USDT; BNB USDT/USDC: USDT→USDC) or the reverse'
+    ),
   amountIn: z
     .string()
     .regex(/^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$/)
     .max(128)
-    .describe('Exact USDC input amount; reverse direction is not supported'),
+    .describe('Exact input amount of the direction input token'),
   recipient: z
     .string()
     .regex(/^0x[0-9a-fA-F]{40}$/)
-    .describe('USDT recipient encoded into the unsigned router transaction'),
+    .describe('Output-token recipient encoded into the unsigned router transaction'),
   deadlineUnixSeconds: z
     .number()
     .int()
@@ -818,4 +870,92 @@ export const VerifyExecutionPairInputSchema = z.object({
     .describe(
       'v3 only: the SECOND pre-trade gate (destination leg) when the Execution Receipt commits to one via data.destinationPreTradeUid. Required for v3 receipts signed with a two-gate VERIFIED binding; omitting it fails the destination-gate binding check.'
     ),
+});
+
+/** Purchase a 24h Oracle Watch monitored window (`oracle_watch_window_begin`). */
+export const OracleWatchWindowBeginInputSchema = z.object({
+  symbol: SafeSymbolSchema.describe('Asset to monitor for the whole window, e.g. ETH'),
+  chain: SafeChainSchema.optional().describe('Optional chain scope fixed for the window'),
+});
+
+/** In-window operations (`oracle_watch_window_poll` / `oracle_watch_window_close`). */
+export const OracleWatchWindowTokenInputSchema = z.object({
+  windowId: z.string().min(1).describe('windowId returned by oracle_watch_window_begin'),
+  windowToken: z
+    .string()
+    .min(1)
+    .describe('The one-time window token returned by oracle_watch_window_begin (oww_<hex>)'),
+});
+
+/** Purchase a 24h Position Lifecycle Bundle (`position_lifecycle_begin`). */
+export const PositionLifecycleBeginInputSchema = z.object({
+  symbol: SafeSymbolSchema.describe('Position subject monitored for the whole lifecycle, e.g. ETH'),
+  chain: SafeChainSchema.optional().describe('Optional chain scope fixed for the lifecycle'),
+});
+
+/** One bundled guard assessment (`position_lifecycle_guard`). */
+export const PositionLifecycleGuardInputSchema = z.object({
+  lifecycleId: z.string().min(1).describe('lifecycleId returned by position_lifecycle_begin'),
+  lifecycleToken: z
+    .string()
+    .min(1)
+    .describe('The one-time lifecycle token returned by position_lifecycle_begin (plc_<hex>)'),
+  family: z
+    .enum([
+      'base_perp',
+      'hyperliquid_perp',
+      'base_lending',
+      'monad_lending',
+      'multichain_evm_lending',
+      'solana_lending',
+    ])
+    .describe('Guard family to assess with'),
+  params: z
+    .record(z.string(), z.any())
+    .describe('The native guard input for the chosen family (same schema as the family tool)'),
+  transaction: z
+    .unknown()
+    .optional()
+    .describe(
+      'Required for solana_lending: the exact unsigned Solana lending transaction the guard evaluates'
+    ),
+});
+
+/** Issue the bundled attested execution receipt (`position_lifecycle_receipt`). */
+export const PositionLifecycleReceiptInputSchema = z.object({
+  lifecycleId: z.string().min(1).describe('lifecycleId returned by position_lifecycle_begin'),
+  lifecycleToken: z
+    .string()
+    .min(1)
+    .describe('The one-time lifecycle token returned by position_lifecycle_begin (plc_<hex>)'),
+  receipt: ExecutionReceiptInputSchema.describe(
+    'The same pre-trade + settlement fields execution_receipt takes'
+  ),
+});
+
+/** Close a lifecycle and return the combined summary (`position_lifecycle_close`). */
+export const PositionLifecycleCloseInputSchema = z.object({
+  lifecycleId: z.string().min(1).describe('lifecycleId returned by position_lifecycle_begin'),
+  lifecycleToken: z
+    .string()
+    .min(1)
+    .describe('The one-time lifecycle token returned by position_lifecycle_begin (plc_<hex>)'),
+});
+
+/** Settlement-evidence read input (`get_settlement_evidence`). */
+export const SettlementEvidenceInputSchema = z.object({
+  slug: z
+    .string()
+    .min(1)
+    .max(256)
+    .optional()
+    .describe('Polymarket market slug, e.g. btc-updown-5m-1766162100. Omit to list recent packs'),
+  limit: z
+    .number()
+    .int()
+    .min(1)
+    .max(100)
+    .optional()
+    .default(20)
+    .describe('Maximum packs when listing, default 20'),
 });

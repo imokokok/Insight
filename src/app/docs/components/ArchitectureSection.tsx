@@ -54,7 +54,7 @@ const layers = [
     title: 'Automation',
     subtitle: 'pg_cron + GitHub Actions',
     description:
-      'Supabase pg_cron dispatches six product-critical workflows through pg_net using a token encrypted in Vault. Dependency-free GitHub runners perform the heavy work, guarded native schedules provide fallback, and a 30-day ledger records completion. Vercel is not used for background compute.',
+      'Supabase pg_cron dispatches eight product-critical workflows through pg_net using a token encrypted in Vault. Dependency-free GitHub runners perform the heavy work, guarded native schedules provide fallback, and a 30-day ledger records completion. Vercel is not used for background compute.',
   },
 ];
 
@@ -83,12 +83,12 @@ const cronJobs = [
   },
   {
     name: 'oracle-watch-collect',
-    schedule: '30 min',
+    schedule: 'Hourly',
     purpose: 'Persist the Oracle Watch credibility history and trust signal',
   },
   {
     name: 'reputation',
-    schedule: 'Hourly',
+    schedule: '2 hours',
     purpose: 'Fetch provider samples and recompute 7-day rolling scores (GitHub Actions)',
   },
   {
@@ -110,6 +110,11 @@ const cronJobs = [
     name: 'protocol-metrics (risk-params)',
     schedule: '6 hours',
     purpose: 'Sync per-asset risk parameters from lending protocols',
+  },
+  {
+    name: 'monad-dex-market',
+    schedule: '10 min',
+    purpose: 'Index finalized Monad Uniswap V3 swaps through a durable event cursor',
   },
   {
     name: 'feed-reactivation',

@@ -7,12 +7,14 @@ import {
   V1_STANDARD_MIDDLEWARES,
 } from '@/lib/api/handler';
 import { CACHE_PRESETS } from '@/lib/api/utils';
+import { x402ConfigForPaymentScope, X402_PAYMENT_SCOPE } from '@/lib/api/x402/capabilityPayment';
 import { getX402Config } from '@/lib/api/x402/config';
 import { handlePaidPreTradeRequest, hasAuthCredentials, isPaidRequest } from '@/lib/api/x402/guard';
+import { executionAdapterRegistry } from '@/lib/execution/adapters';
 import {
   SolanaLendingGuardExactInputSchema,
-  assessSolanaLendingGuard,
   type SolanaLendingGuardExactInput,
+  type SolanaLendingGuardResult,
 } from '@/lib/lending/solanaLendingGuard';
 import { createSolanaLendingGuardDecision } from '@/lib/lending/solanaLendingGuardAttestation';
 
@@ -24,7 +26,11 @@ async function executeDecision(
   input: SolanaLendingGuardExactInput,
   requestId: string
 ): Promise<NextResponse> {
-  const guard = await assessSolanaLendingGuard(input.guard, input.transaction);
+  const prepared = await executionAdapterRegistry.preflight<
+    SolanaLendingGuardExactInput,
+    SolanaLendingGuardResult
+  >('insight.solana.direct-lending-guard.v1', input);
+  const guard = prepared.native;
   const decision = createSolanaLendingGuardDecision(guard, input.transaction);
   return NextResponse.json(
     ApiResponseBuilder.success(decision, {
@@ -54,8 +60,8 @@ export const POST = async (
   request: NextRequest,
   routeContext: { params: Promise<Record<string, string>> }
 ): Promise<NextResponse> => {
-  const config = getX402Config();
-  if (config.enabled && (isPaidRequest(request) || !hasAuthCredentials(request))) {
+  const config = x402ConfigForPaymentScope(getX402Config(), X402_PAYMENT_SCOPE.solana);
+  if (config && (isPaidRequest(request) || !hasAuthCredentials(request))) {
     return handlePaidPreTradeRequest(request, config, async (requestId) => {
       let body: unknown;
       try {

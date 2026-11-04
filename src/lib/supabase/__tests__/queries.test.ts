@@ -387,6 +387,15 @@ describe('getOracleFeeds paging', () => {
     expect(result).toEqual([]);
   });
 
+  it('preserves the database-failure bit for availability-sensitive callers', async () => {
+    mockRangePages([{ data: [], error: { message: 'boom' }, count: null }]);
+
+    await expect(queries.getOracleFeedsWithStatus('redstone')).resolves.toEqual({
+      feeds: [],
+      errored: true,
+    });
+  });
+
   it('fails closed when the exact count does not match the loaded rows (server-side truncation)', async () => {
     // A server cap below the page size clamps the first page short, so the
     // loop ends early; only the exact count reveals the missing rows.
@@ -446,5 +455,31 @@ describe('bounded bulk price persistence', () => {
         { provider: 'dia', symbol: 'ETH', price: 100, timestamp: 1780000000000 },
       ])
     ).rejects.toThrow('unavailable');
+  });
+});
+
+describe('atomic feed-health lifecycle', () => {
+  it('uses one validated RPC response for health updates and deactivation', async () => {
+    mockClient.rpc.mockResolvedValueOnce({
+      data: { updated: 4, deactivated: 1 },
+      error: null,
+    } as never);
+
+    await expect(
+      queries.applyFeedHealthAndDeactivate([
+        { provider: 'chainlink', symbol: 'ETH', chainId: 1, isSuccess: true },
+        { provider: 'pyth', symbol: 'SOL', chainId: 1, isSuccess: false },
+      ])
+    ).resolves.toEqual({ updated: 4, deactivated: 1 });
+
+    expect(mockClient.rpc).toHaveBeenCalledTimes(1);
+    expect(mockClient.rpc).toHaveBeenCalledWith('apply_feed_health_batch', {
+      p_results: {
+        successes: [{ provider: 'chainlink', symbol: 'ETH', chainId: 1 }],
+        failures: [{ provider: 'pyth', symbol: 'SOL', chainId: 1 }],
+      },
+      p_failure_threshold: 3,
+    });
+    expect(mockClient.from).not.toHaveBeenCalled();
   });
 });

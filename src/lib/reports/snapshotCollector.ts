@@ -5,8 +5,8 @@
  * runs from BOTH the Vercel cron route AND the GitHub Actions
  * `scripts/collect-snapshot.ts` job. The GH Actions job escapes Vercel's 60s
  * serverless timeout and runs at 15-minute cadence, dual-writing to
- * `hourly_price_snapshots` (upsert, for the daily report) and the new
- * `price_snapshots` table (append, 15-min grain, for ML/anomaly detection).
+ * `hourly_price_snapshots` (upsert, for the daily report) and a
+ * policy-controlled `price_snapshots` history for ML/anomaly detection.
  *
  * The route's behaviour is unchanged: `collectSnapshot()` performs exactly the
  * steps the old GET handler did (fetch → consensus → build inputs → upsert
@@ -69,12 +69,11 @@ const MAX_DEVIATION_PCT = 9_999.9999;
  * Keep the rich, short-lived record stream useful for signals and exports
  * without duplicating every normal 15-minute snapshot.
  *
- * `price_snapshots` remains the durable 15-minute source for all successful
- * observations. `price_records` retains one rich checkpoint per hour plus
- * every observation that carries an audit-relevant degradation. That preserves
- * the near-term evidence needed to investigate a fallback or stale source,
- * while avoiding three out of four normal record inserts and their later TTL
- * deletes.
+ * `price_snapshots` retains every 15-minute core-asset observation; adaptive
+ * feeds retain an hourly baseline plus material changes. `price_records` keeps
+ * one rich checkpoint per hour plus every observation that carries an
+ * audit-relevant degradation. That preserves near-term investigation evidence
+ * without writing redundant normal samples and their later TTL deletes.
  */
 export function selectPriceRecordsForPersistence(
   prices: PriceData[],
@@ -731,6 +730,14 @@ export interface SnapshotCollectionResult {
   snapshotTs: Date;
   results: BatchResultItem[];
   inputs: HourlySnapshotInput[];
+  /** Selected rich observations, held for post-capture best-effort persistence when requested. */
+  priceRecords: PriceData[];
+  /**
+   * One normalized health observation per probed feed. The Actions collector
+   * passes these to the post-commit lifecycle step; normal API callers keep
+   * the existing immediate path.
+   */
+  healthUpdates: Array<{ provider: string; symbol: string; chainId: number; isSuccess: boolean }>;
   insertedHourly: number;
   updatedHealth: number;
   deactivated: number;
@@ -767,7 +774,23 @@ export function resolveSnapshotSlot(scheduledFor?: string, now: Date = new Date(
  */
 export async function collectSnapshot(
   snapshotTs: Date = resolveSnapshotSlot(),
-  options: { includeAdditionalHealthChecks?: boolean; reuseRpcMetadata?: boolean } = {}
+  options: {
+    includeAdditionalHealthChecks?: boolean;
+    reuseRpcMetadata?: boolean;
+    /**
+     * Let a trusted caller atomically commit hourly + fine-grained evidence
+     * before applying the non-critical feed-health lifecycle. This removes a
+     * commit/WAL flush from the high-frequency Actions path while preserving
+     * the existing API-route behaviour by default.
+     */
+    deferDurableSnapshotWrites?: boolean;
+    /**
+     * Keep the rich Supabase cache out of the intake critical path. Trusted
+     * callers persist this returned batch only after Turso durably owns the
+     * raw slot.
+     */
+    deferPriceRecordPersistence?: boolean;
+  } = {}
 ): Promise<SnapshotCollectionResult> {
   const now = snapshotTs;
   const snapshotDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
@@ -781,29 +804,15 @@ export async function collectSnapshot(
     options.includeAdditionalHealthChecks ?? true,
     options.reuseRpcMetadata ?? false
   );
-  // The collector is the sole durable writer for the short-term rich record
-  // stream. Normal observations are checkpointed hourly; the durable
-  // 15-minute snapshot stream below preserves the full price history. Ordinary
-  // live request paths deliberately read this cache but never append to it.
-  try {
-    const prices = results.flatMap((result) => (result.price ? [result.price] : []));
-    const records = selectPriceRecordsForPersistence(prices, snapshotTs);
-    if (records.length > 0) {
-      const saved = await savePricesToDatabase(records);
-      logger.info('Persisted rich price-record batch', {
-        observations: prices.length,
-        selected: records.length,
-        saved,
-        checkpoint: snapshotTs.getUTCMinutes() === 0 ? 'hourly' : 'audit-exception',
-      });
-    } else {
-      logger.info('Skipped normal rich price-record batch between hourly checkpoints', {
-        observations: prices.length,
-      });
-    }
-  } catch (error) {
-    // Durable snapshots and feed failure evidence still need to be recorded.
-    logger.warn('Price cache batch persistence failed', normalizeError(error));
+  const prices = results.flatMap((result) => (result.price ? [result.price] : []));
+  const priceRecords = selectPriceRecordsForPersistence(prices, snapshotTs);
+  if (options.deferPriceRecordPersistence) {
+    logger.info('Deferred rich price-record cache persistence until after raw capture', {
+      observations: prices.length,
+      selected: priceRecords.length,
+    });
+  } else {
+    await persistSelectedPriceRecords(priceRecords, prices.length, snapshotTs);
   }
   const consensusBySymbol = calculateConsensusBySymbol(results);
 
@@ -813,6 +822,7 @@ export async function collectSnapshot(
   // "ETH" + "ETH/USDC") can't violate hourly_price_snapshots' unique key and
   // crash the whole run. See dedupeHourlySnapshotInputs for the full rationale.
   const hourlyInputs = dedupeHourlySnapshotInputs(inputs);
+  const healthUpdates = buildFeedHealthUpdates(results);
 
   const successCount = inputs.filter((i) => i.isSuccess).length;
   const failedCount = inputs.length - successCount;
@@ -820,6 +830,25 @@ export async function collectSnapshot(
   logger.info(
     `Price batch completed for ${snapshotDate}: ${successCount} success, ${failedCount} failed, ${skippedCount} skipped out of ${results.length}`
   );
+
+  if (options.deferDurableSnapshotWrites) {
+    logger.info('Deferred durable snapshot writes for atomic collection-slot commit', {
+      hourlyRows: hourlyInputs.length,
+      healthRows: healthUpdates.length,
+    });
+    return {
+      snapshotDate,
+      snapshotHour,
+      snapshotTs,
+      results,
+      inputs: hourlyInputs,
+      priceRecords,
+      healthUpdates,
+      insertedHourly: 0,
+      updatedHealth: 0,
+      deactivated: 0,
+    };
+  }
 
   let insertedHourly = 0;
   try {
@@ -840,12 +869,98 @@ export async function collectSnapshot(
     throw new SnapshotCollectionError('upsert_snapshots', error.message);
   }
 
+  const { updatedHealth, deactivated } = await applyFeedHealthLifecycle(healthUpdates);
+
+  return {
+    snapshotDate,
+    snapshotHour,
+    snapshotTs,
+    results,
+    inputs: hourlyInputs,
+    priceRecords,
+    healthUpdates,
+    insertedHourly,
+    updatedHealth,
+    deactivated,
+  };
+}
+
+/**
+ * The rich cache is useful but never allowed to determine whether evidence is
+ * captured. Primary-mode callers invoke this only after Turso commits.
+ */
+export async function persistSelectedPriceRecords(
+  records: PriceData[],
+  observationCount: number,
+  snapshotTs: Date
+): Promise<number> {
+  try {
+    if (records.length === 0) {
+      logger.info('Skipped normal rich price-record batch between hourly checkpoints', {
+        observations: observationCount,
+      });
+      return 0;
+    }
+    const saved = await savePricesToDatabase(records);
+    logger.info('Persisted rich price-record batch', {
+      observations: observationCount,
+      selected: records.length,
+      saved,
+      checkpoint: snapshotTs.getUTCMinutes() === 0 ? 'hourly' : 'audit-exception',
+    });
+    return saved;
+  } catch (error) {
+    // Durable snapshots and feed failure evidence still need to be recorded.
+    logger.warn('Price cache batch persistence failed', normalizeError(error));
+    return 0;
+  }
+}
+
+/**
+ * Apply the intentionally non-critical feed-health side effects after the
+ * snapshot evidence transaction has committed. Failures remain isolated from
+ * snapshot collection exactly as they were before the slot-commit path.
+ */
+export async function applyFeedHealthLifecycle(
+  healthUpdates: Array<{ provider: string; symbol: string; chainId: number; isSuccess: boolean }>
+): Promise<{ updatedHealth: number; deactivated: number }> {
+  const adminQueries = getAdminQueries();
+
+  // This lifecycle is deliberately a non-critical side effect. Preserve that
+  // contract even when an incomplete rolling deployment (or an unavailable
+  // service-role query facade) cannot supply the admin query implementation.
+  if (!adminQueries) {
+    logger.warn('Feed-health lifecycle unavailable (non-critical)');
+    return { updatedHealth: 0, deactivated: 0 };
+  }
+
+  // Newer deployments complete health mutation and threshold deactivation in
+  // one RPC transaction. Keep the compatibility path below for a rolling
+  // deploy or a partial database rollout: health remains non-critical and a
+  // failure here must never make the evidence collector fail.
+  if (typeof adminQueries.applyFeedHealthAndDeactivate === 'function') {
+    try {
+      const { updated, deactivated } = await adminQueries.applyFeedHealthAndDeactivate(
+        healthUpdates,
+        3
+      );
+      logger.info(`Updated feed health for ${updated} feeds`);
+      if (deactivated > 0) {
+        logger.info(`Auto-deactivated ${deactivated} feeds with persistent failures`);
+      }
+      return { updatedHealth: updated, deactivated };
+    } catch (healthLifecycleError) {
+      logger.warn(
+        'Failed atomic feed-health lifecycle; using compatibility path',
+        healthLifecycleError instanceof Error ? healthLifecycleError : undefined
+      );
+    }
+  }
+
   // Update feed health based on this batch's results. Each result carries
   // the chain_id of the feed it was sampled from (one result per feed).
   let updatedHealth = 0;
   try {
-    const adminQueries = getAdminQueries();
-    const healthUpdates = buildFeedHealthUpdates(results);
     const { updated } = await adminQueries.batchUpdateFeedHealth(healthUpdates);
     updatedHealth = updated;
     logger.info(`Updated feed health for ${updatedHealth} feeds`);
@@ -865,7 +980,7 @@ export async function collectSnapshot(
   // threw, ensuring persistently-broken feeds are taken offline promptly.
   let deactivated = 0;
   try {
-    deactivated = await getAdminQueries().deactivateStaleFeeds(3);
+    deactivated = await adminQueries.deactivateStaleFeeds(3);
     if (deactivated > 0) {
       logger.info(`Auto-deactivated ${deactivated} feeds with persistent failures`);
     }
@@ -876,14 +991,5 @@ export async function collectSnapshot(
     );
   }
 
-  return {
-    snapshotDate,
-    snapshotHour,
-    snapshotTs,
-    results,
-    inputs: hourlyInputs,
-    insertedHourly,
-    updatedHealth,
-    deactivated,
-  };
+  return { updatedHealth, deactivated };
 }

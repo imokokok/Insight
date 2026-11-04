@@ -118,6 +118,7 @@ const eslintConfig = defineConfig([
     '.worktrees/**',
     '.local/**',
     '.github/cron-dist/**',
+    'workers/**/worker-configuration.d.ts',
     'playwright-report/**',
     'test-results/**',
     'ml/.venv/**',

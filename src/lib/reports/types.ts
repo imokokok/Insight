@@ -197,6 +197,26 @@ export interface DailyReportData {
   protocolLiquidationRisks: ProtocolLiquidationRisk[];
   stablecoinDepeg: StablecoinDepegSummary[];
   wrappedAssetPeg: WrappedAssetPegSummary[];
+  /**
+   * Optional settlement-evidence section (prediction markets): packs created
+   * during the report day with inconsistent windows called out. Absent when
+   * the settlement store is unavailable or the day had no activity.
+   */
+  settlementEvidence?: SettlementEvidenceReportSection;
+}
+
+export interface SettlementEvidenceReportSection {
+  packsCreated: number;
+  grades: Record<string, number>;
+  inconsistent: Array<{
+    marketSlug: string;
+    asset: string;
+    declaredOutcome: string | null;
+    independentOutcome: string | null;
+    priceChangeBps: number | null;
+    windowStartMs: number;
+    windowEndMs: number;
+  }>;
 }
 
 /**

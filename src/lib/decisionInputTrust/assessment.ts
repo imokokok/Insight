@@ -67,6 +67,16 @@ export interface DecisionInputCheckRequest {
     amountIn: string;
     maxQuoteDeviationBps: number;
     maxTwapDeviationBps: number;
+    /**
+     * Destination-per-source token rate of the caller's own prepared route
+     * quote (same pool, same direction). When present, the reviewed-pool
+     * divergence check compares the independently fetched reviewed quote
+     * against this rate — token per token — instead of against the USD
+     * `quotePriceUsd`, because a token-per-token rate and a USD-per-source
+     * price are only numerically comparable when the destination is a $1
+     * stablecoin (the comparison is otherwise dimensionally wrong).
+     */
+    routeEffectiveDestinationPerSource?: number;
   };
   /**
    * Opt in to one exact-input quote from the reviewed Base Aerodrome
@@ -77,6 +87,8 @@ export interface DecisionInputCheckRequest {
     amountIn: string;
     maxQuoteDeviationBps: number;
     maxTwapDeviationBps: number;
+    /** Same-unit anchor as `reviewedUniswapV3.routeEffectiveDestinationPerSource`. */
+    routeEffectiveDestinationPerSource?: number;
   };
   /** Optional route quote captured by the gated execution workflow. */
   operationRouteQuote?: DecisionInputRouteQuote;
@@ -194,9 +206,17 @@ export interface DecisionInputAssessment {
       tradeSizeTo1PctManipulationCostRatio: number | null;
     } | null;
     reviewedUniswapV3?: {
-      profile: 'monad-wmon-usdc' | 'base-weth-usdc' | 'base-pancakeswap-v3-usdc-usdt';
+      profile:
+        | 'monad-wmon-usdc'
+        | 'base-weth-usdc'
+        | 'base-uniswap-v3-weth-usdc-500'
+        | 'base-pancakeswap-v3-usdc-usdt'
+        | 'bnb-pancakeswap-v3-usdt-usdc'
+        | 'bnb-pancakeswap-v3-usdt-wbnb';
       venue: 'uniswap-v3' | 'pancakeswap-v3';
       market: string;
+      /** Direction of the reviewed quote inside the pinned pool. */
+      direction: 'token0-to-token1' | 'token1-to-token0';
       sourceFreshnessSeconds: number;
       observedAt: string;
       blockNumber: string;
@@ -214,15 +234,22 @@ export interface DecisionInputAssessment {
       amountInRaw: string;
       amountOut: number;
       amountOutRaw: string;
-      effectiveToken1PerToken0: number;
+      /** Forward quotes: token1 received per token0 submitted. */
+      effectiveToken1PerToken0?: number;
+      /** Reverse quotes: token0 received per token1 submitted. */
+      effectiveToken0PerToken1?: number;
       priceImpactBps: number;
       quoteDeviationBps: number | null;
       twapDeviationBpsFromSpot: number;
     } | null;
     reviewedAerodromeSlipstream?: {
-      profile: 'base-aerodrome-slipstream-weth-usdc-cl100';
+      profile:
+        | 'base-aerodrome-slipstream-weth-usdc-cl100'
+        | 'base-aerodrome-slipstream-usdc-usdt-cl1';
       venue: 'aerodrome-slipstream';
       market: string;
+      /** Direction of the reviewed quote inside the pinned pool. */
+      direction: 'token0-to-token1' | 'token1-to-token0';
       sourceFreshnessSeconds: number;
       observedAt: string;
       blockNumber: string;
@@ -236,7 +263,10 @@ export interface DecisionInputAssessment {
       amountInRaw: string;
       amountOut: number;
       amountOutRaw: string;
-      effectiveToken1PerToken0: number;
+      /** Forward quotes: token1 received per token0 submitted. */
+      effectiveToken1PerToken0?: number;
+      /** Reverse quotes: token0 received per token1 submitted. */
+      effectiveToken0PerToken1?: number;
       priceImpactBps: number;
       quoteDeviationBps: number | null;
       twapDeviationBpsFromSpot: number;
@@ -471,6 +501,7 @@ export const DecisionInputAssessmentSchema = z
               .max(128),
             maxQuoteDeviationBps: z.number().int().min(0).max(10_000),
             maxTwapDeviationBps: z.number().int().min(0).max(10_000),
+            routeEffectiveDestinationPerSource: FinitePositiveNumberSchema.optional(),
           })
           .strict()
           .optional(),
@@ -482,6 +513,7 @@ export const DecisionInputAssessmentSchema = z
               .max(128),
             maxQuoteDeviationBps: z.number().int().min(0).max(10_000),
             maxTwapDeviationBps: z.number().int().min(0).max(10_000),
+            routeEffectiveDestinationPerSource: FinitePositiveNumberSchema.optional(),
           })
           .strict()
           .optional(),
@@ -553,9 +585,15 @@ export const DecisionInputAssessmentSchema = z
           .nullable(),
         reviewedUniswapV3: z
           .object({
-            profile: z.enum(['monad-wmon-usdc', 'base-weth-usdc', 'base-pancakeswap-v3-usdc-usdt']),
+            profile: z.enum([
+              'monad-wmon-usdc',
+              'base-weth-usdc',
+              'base-uniswap-v3-weth-usdc-500',
+              'base-pancakeswap-v3-usdc-usdt',
+            ]),
             venue: z.enum(['uniswap-v3', 'pancakeswap-v3']),
             market: z.string().min(1).max(80),
+            direction: z.enum(['token0-to-token1', 'token1-to-token0']),
             sourceFreshnessSeconds: FiniteNonnegativeNumberSchema,
             observedAt: EvidenceTimestampSchema,
             blockNumber: z
@@ -585,7 +623,8 @@ export const DecisionInputAssessmentSchema = z
               .string()
               .regex(/^[1-9][0-9]*$/)
               .max(80),
-            effectiveToken1PerToken0: FinitePositiveNumberSchema,
+            effectiveToken1PerToken0: FinitePositiveNumberSchema.optional(),
+            effectiveToken0PerToken1: FinitePositiveNumberSchema.optional(),
             priceImpactBps: FiniteNonnegativeNumberSchema,
             quoteDeviationBps: NullableNonnegativeNumberSchema,
             twapDeviationBpsFromSpot: FiniteNonnegativeNumberSchema,
@@ -595,9 +634,13 @@ export const DecisionInputAssessmentSchema = z
           .optional(),
         reviewedAerodromeSlipstream: z
           .object({
-            profile: z.literal('base-aerodrome-slipstream-weth-usdc-cl100'),
+            profile: z.enum([
+              'base-aerodrome-slipstream-weth-usdc-cl100',
+              'base-aerodrome-slipstream-usdc-usdt-cl1',
+            ]),
             venue: z.literal('aerodrome-slipstream'),
             market: z.string().min(1).max(80),
+            direction: z.enum(['token0-to-token1', 'token1-to-token0']),
             sourceFreshnessSeconds: FiniteNonnegativeNumberSchema,
             observedAt: EvidenceTimestampSchema,
             blockNumber: z
@@ -620,7 +663,8 @@ export const DecisionInputAssessmentSchema = z
               .string()
               .regex(/^[1-9][0-9]*$/)
               .max(80),
-            effectiveToken1PerToken0: FinitePositiveNumberSchema,
+            effectiveToken1PerToken0: FinitePositiveNumberSchema.optional(),
+            effectiveToken0PerToken1: FinitePositiveNumberSchema.optional(),
             priceImpactBps: FiniteNonnegativeNumberSchema,
             quoteDeviationBps: NullableNonnegativeNumberSchema,
             twapDeviationBpsFromSpot: FiniteNonnegativeNumberSchema,
@@ -1043,7 +1087,10 @@ function assessChainlink(
   chainlink: ChainlinkMarketReference | null,
   reasons: DecisionInputReason[]
 ): ChainlinkChecks {
-  const referenceSymbol = asset === 'WETH' ? 'ETH' : asset;
+  // Canonical wrapped natives price against their native reference: WETH→ETH
+  // (Ethereum/Base) and WBNB→BNB (BNB Smart Chain), matching the consensus
+  // service's PRICE_REFERENCE_ALIASES.
+  const referenceSymbol = asset === 'WETH' ? 'ETH' : asset === 'WBNB' ? 'BNB' : asset;
   const usable =
     chainlink !== null &&
     chainlink.symbol === referenceSymbol &&
@@ -1102,7 +1149,7 @@ function assessRedStone(
   nowMs: number,
   reasons: DecisionInputReason[]
 ): RedStoneChecks {
-  const referenceSymbol = asset === 'WETH' ? 'ETH' : asset;
+  const referenceSymbol = asset === 'WETH' ? 'ETH' : asset === 'WBNB' ? 'BNB' : asset;
   const updatedAtMs = redstone ? Date.parse(redstone.updatedAt) : Number.NaN;
   const valid =
     redstone !== null &&
@@ -1303,10 +1350,29 @@ function assessReviewedUniswapV3(
     return { evidence: null };
   }
 
-  const quoteDeviationBps = deviationBps(
-    evidence.quote.effectiveToken1PerToken0,
-    request.quotePriceUsd
-  );
+  const forward = evidence.quote.direction !== 'token1-to-token0';
+  const effectivePerSource = forward
+    ? evidence.quote.effectiveToken1PerToken0
+    : evidence.quote.effectiveToken0PerToken1;
+  if (effectivePerSource === undefined || !Number.isFinite(effectivePerSource)) {
+    addReason(
+      reasons,
+      'REVIEWED_UNISWAP_V3_UNAVAILABLE',
+      'insufficient_evidence',
+      'The reviewed Uniswap V3 quote is missing a usable effective price for the bound direction.'
+    );
+    return { evidence: null };
+  }
+  // Prefer the same-unit anchor (destination tokens per source token) supplied
+  // by the caller's own prepared route quote; fall back to the USD-per-source
+  // `quotePriceUsd`, which is only numerically comparable when the destination
+  // token is a $1 stablecoin.
+  const anchorRate = request.reviewedUniswapV3.routeEffectiveDestinationPerSource;
+  const anchor =
+    anchorRate !== undefined && Number.isFinite(anchorRate) && anchorRate > 0
+      ? anchorRate
+      : request.quotePriceUsd;
+  const quoteDeviationBps = deviationBps(effectivePerSource, anchor);
   if (
     quoteDeviationBps !== null &&
     quoteDeviationBps > request.reviewedUniswapV3.maxQuoteDeviationBps
@@ -1340,6 +1406,7 @@ function assessReviewedUniswapV3(
       profile: evidence.profile,
       venue: evidence.venue,
       market: evidence.market,
+      direction: evidence.quote.direction,
       sourceFreshnessSeconds: evidence.sourceFreshnessSeconds,
       observedAt: evidence.observedAt,
       blockNumber: evidence.block.number,
@@ -1353,7 +1420,9 @@ function assessReviewedUniswapV3(
       amountInRaw: evidence.quote.amountInRaw,
       amountOut: evidence.quote.amountOut,
       amountOutRaw: evidence.quote.amountOutRaw,
-      effectiveToken1PerToken0: evidence.quote.effectiveToken1PerToken0,
+      ...(forward
+        ? { effectiveToken1PerToken0: evidence.quote.effectiveToken1PerToken0 }
+        : { effectiveToken0PerToken1: evidence.quote.effectiveToken0PerToken1 }),
       priceImpactBps: evidence.quote.priceImpactBps,
       quoteDeviationBps,
       twapDeviationBpsFromSpot: evidence.twapDeviationBpsFromSpot,
@@ -1385,10 +1454,29 @@ function assessReviewedAerodromeSlipstream(
     return { evidence: null };
   }
 
-  const quoteDeviationBps = deviationBps(
-    evidence.quote.effectiveToken1PerToken0,
-    request.quotePriceUsd
-  );
+  const forward = evidence.quote.direction !== 'token1-to-token0';
+  const effectivePerSource = forward
+    ? evidence.quote.effectiveToken1PerToken0
+    : evidence.quote.effectiveToken0PerToken1;
+  if (effectivePerSource === undefined || !Number.isFinite(effectivePerSource)) {
+    addReason(
+      reasons,
+      'REVIEWED_AERODROME_SLIPSTREAM_UNAVAILABLE',
+      'insufficient_evidence',
+      'The reviewed Aerodrome Slipstream quote is missing a usable effective price for the bound direction.'
+    );
+    return { evidence: null };
+  }
+  // Prefer the same-unit anchor (destination tokens per source token) supplied
+  // by the caller's own prepared route quote; fall back to the USD-per-source
+  // `quotePriceUsd`, which is only numerically comparable when the destination
+  // token is a $1 stablecoin.
+  const anchorRate = request.reviewedAerodromeSlipstream.routeEffectiveDestinationPerSource;
+  const anchor =
+    anchorRate !== undefined && Number.isFinite(anchorRate) && anchorRate > 0
+      ? anchorRate
+      : request.quotePriceUsd;
+  const quoteDeviationBps = deviationBps(effectivePerSource, anchor);
   if (
     quoteDeviationBps !== null &&
     quoteDeviationBps > request.reviewedAerodromeSlipstream.maxQuoteDeviationBps
@@ -1422,6 +1510,7 @@ function assessReviewedAerodromeSlipstream(
       profile: evidence.profile,
       venue: evidence.venue,
       market: evidence.market,
+      direction: evidence.quote.direction,
       sourceFreshnessSeconds: evidence.sourceFreshnessSeconds,
       observedAt: evidence.observedAt,
       blockNumber: evidence.block.number,
@@ -1435,7 +1524,9 @@ function assessReviewedAerodromeSlipstream(
       amountInRaw: evidence.quote.amountInRaw,
       amountOut: evidence.quote.amountOut,
       amountOutRaw: evidence.quote.amountOutRaw,
-      effectiveToken1PerToken0: evidence.quote.effectiveToken1PerToken0,
+      ...(forward
+        ? { effectiveToken1PerToken0: evidence.quote.effectiveToken1PerToken0 }
+        : { effectiveToken0PerToken1: evidence.quote.effectiveToken0PerToken1 }),
       priceImpactBps: evidence.quote.priceImpactBps,
       quoteDeviationBps,
       twapDeviationBpsFromSpot: evidence.twapDeviationBpsFromSpot,
