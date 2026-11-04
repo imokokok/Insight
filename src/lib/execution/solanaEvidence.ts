@@ -9,7 +9,8 @@ export type SolanaEvidenceSchema =
   | 'insight.solana-simulation-receipt.v1'
   | 'insight.solana-lending-guard-decision.v1'
   | 'insight.solana-swap-guard-decision.v1'
-  | 'insight.solana-swap-guard-settlement.v1';
+  | 'insight.solana-swap-guard-settlement.v1'
+  | 'insight.solana-perp-guard-decision.v1';
 
 export type SolanaSignedEvidence<
   TPayload extends Record<string, unknown> = Record<string, unknown>,

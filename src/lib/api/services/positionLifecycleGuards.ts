@@ -35,6 +35,10 @@ import {
   assessHyperliquidPerpGuard,
   HyperliquidPerpGuardInputSchema,
 } from '@/lib/perps/hyperliquidPerpGuard';
+import {
+  assessSolanaPerpGuardExact,
+  SolanaPerpGuardInputSchema,
+} from '@/lib/perps/solanaPerpGuard';
 
 export interface PositionLifecycleGuardFamilyEntry {
   /** Params schema — identical to the family's native route input schema. */
@@ -74,6 +78,11 @@ export const POSITION_LIFECYCLE_GUARD_REGISTRY: Record<
     paramsSchema: SolanaLendingGuardInputSchema,
     requiresTransaction: true,
     assess: assessSolanaLendingGuard,
+  },
+  solana_perp: {
+    paramsSchema: SolanaPerpGuardInputSchema,
+    requiresTransaction: true,
+    assess: assessSolanaPerpGuardExact,
   },
 };
 
