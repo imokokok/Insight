@@ -90,6 +90,16 @@ describe('assessPolymarketGuard', () => {
     expect(result.reasons).toContain('market closed');
   });
 
+  it('cautions when the metadata cannot state its own lifecycle state', async () => {
+    // Fail-closed honesty: closed/active both absent means lifecycle unknown.
+    const market = gammaMarket({ closed: null, active: null });
+    const result = await assessPolymarketGuard(BASE_INPUT, deps(market));
+    expect(result.verdict).toBe('CAUTION');
+    expect(result.reasons).toContain('market lifecycle state unknown');
+    const lifecycle = result.checks.find((c) => c.id === 'lifecycle');
+    expect(lifecycle?.status).toBe('caution');
+  });
+
   it('blocks a market whose resolution window has ended', async () => {
     const now = new Date(WINDOW_END_MS + 60_000);
     const result = await assessPolymarketGuard(BASE_INPUT, deps(gammaMarket(), now));

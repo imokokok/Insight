@@ -276,8 +276,10 @@ export async function assessBnbPerpGuard(
 
   // Cross-venue deviation between the Insight consensus price and Aster's
   // external-oracle index price. Computed only when both sides are observed;
-  // the escalation layer below consumes it (fail closed is handled by the
-  // mark/index divergence check when venue evidence is unavailable).
+  // when venue evidence is unavailable neither this check nor the mark/index
+  // divergence check can run, so unavailability is disclosed in `reasons`
+  // without escalating the verdict (by design: the verdict then rests on
+  // cross-oracle consensus and the declared leverage band only).
   if (
     venue.status === 'observed' &&
     venue.indexPrice !== null &&

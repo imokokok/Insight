@@ -153,6 +153,18 @@
       ]
     },
     {
+      "url": "https://www.oracleinsight.xyz/api/v1/safety/bnb-perp-guard",
+      "method": "GET",
+      "description": "BNB Perp Guard: a read-only, pre-trade decision gate for opening an Aster Perps USDT-margined perpetual position on BNB Smart Chain (reviewed BTCUSDT and ETHUSDT markets). It separately evaluates the underlying and USDT margin cross-oracle consensus integrity on canonical mainnet feeds, binds the declared leverage to a reviewed static profile capped by the live Aster required-margin ratio, and attaches disclosed venue evidence (Aster mark/index divergence, funding rate, open interest, market status, consensus-vs-index deviation). It never signs, submits, or authorizes an order.",
+      "accepts": []
+    },
+    {
+      "url": "https://www.oracleinsight.xyz/api/v1/safety/prediction-guard",
+      "method": "GET",
+      "description": "Prediction Guard: a read-only screening gate for one Polymarket market entry. Cross-oracle consensus is deliberately not applied to event markets; the guard verifies machine-parseable price-contract metadata, lifecycle and resolution timing, quoted-probability integrity, and whether the declared settlement venue can be verified post-hoc by the settlement-evidence pipeline. It never signs, submits, or authorizes an order.",
+      "accepts": []
+    },
+    {
       "url": "https://www.oracleinsight.xyz/api/v1/safety/multichain-evm-lending-guard",
       "method": "GET",
       "description": "Multichain EVM Lending Guard: a read-only, pre-signing decision for direct Aave V3 calls on Polygon, Arbitrum or BNB Chain; Venus Core or Lista Moolah isolated-market calls on BNB Chain; Compound V3, Dolomite, Euler v2, and Fluid T1 collateral-only supply on Arbitrum; Euler v2 and Fluid T1 collateral-only supply on Base; and exact Morpho Blue markets on Polygon or Arbitrum. GET returns a preview; POST binds one unsigned direct call and may return an Insight EIP-712 decision attestation. It never authorizes or broadcasts a transaction.",
@@ -219,27 +231,6 @@
       "url": "https://www.oracleinsight.xyz/api/v1/safety/solana-swap-guard",
       "method": "POST",
       "description": "Solana Swap Guard: a read-only, pre-signing decision for exactly one unsigned Orca Whirlpool USDC/USDT 0.01% swap on Solana mainnet (both directions). POST canonical-decodes the single Whirlpool swap instruction, re-verifies the pool, vaults, tick array, oracle, and both user token accounts from live mainnet state, prices the pool from its own sqrtPrice against independent oracle consensus, and simulates the exact unsigned message before optionally returning an Insight Ed25519 decision attestation bound to the message hash. CAUTION or BLOCK returns no executable payload. It never authorizes or broadcasts a transaction.",
-      "accepts": [
-        {
-          "scheme": "exact",
-          "network": "eip155:999",
-          "amount": "20000",
-          "asset": "0xb88339CB7199b77E23DB6E890353E22632Ba630f",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USDC",
-            "version": "2"
-          }
-        }
-      ]
-    },
-    {
-      "url": "https://www.oracleinsight.xyz/api/v1/safety/solana-perp-guard",
-      "method": "GET",
-      "description": "Solana Perp Guard: a read-only, pre-trade decision gate for opening a Drift Protocol v2 perpetual position on Solana mainnet (reviewed SOL, BTC, and ETH markets, USDC margin). It evaluates underlying and USDC cross-oracle consensus integrity on canonical mainnet feeds, checks caller-declared post-action leverage against a reviewed static profile capped by the live Drift margin ratio, and attaches disclosed on-chain venue evidence (Drift mark price vs Pyth Lazer oracle deviation, funding rate, open interest, market status). It never signs, submits, or authorizes an order.",
       "accepts": [
         {
           "scheme": "exact",
