@@ -114,6 +114,10 @@ jobs:
       - name: Enforce main-only protocol isolation
         run: npm run protocol:check
       - name: Run remaining static validation checks
+        # Bounded parallelism: the default (cores - 2) is too conservative on
+        # the 4-core CI runner for these mostly-single-threaded checks.
+        env:
+          CHECKS_PARALLEL_LIMIT: 4
         run: npm run validate:ci:static
 
   validate-tests:
