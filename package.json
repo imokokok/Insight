@@ -113,7 +113,8 @@
     "integration:doctor": "node scripts/integration-doctor.mjs",
     "skills:build": "node --import tsx scripts/build-agent-skill-packages.mts",
     "skills:check": "node --import tsx scripts/build-agent-skill-packages.mts --check",
-    "test:reliability": "node --import tsx --test scripts/tests/*.test.mjs scripts/tests/*.test.mts"
+    "test:reliability": "node --import tsx --test scripts/tests/*.test.mjs scripts/tests/*.test.mts",
+    "interai:shadow:fixed": "node --import tsx scripts/interai-shadow-evaluation.mts"
   },
   "dependencies": {
     "@api3/contracts": "^27.4.0",
