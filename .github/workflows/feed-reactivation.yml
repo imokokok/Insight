@@ -14,9 +14,9 @@ name: Feed Reactivation
 
 on:
   schedule:
-    # Every 12 hours at minute 15 (offset from the snapshot collector so
-    # reactivation completes before the next 15-min snapshot).
-    - cron: '15 */12 * * *'
+    # Every 12 hours at minute 20 (was :15 — kept off the snapshot collector's
+    # :15 dispatch slot so reactivation never stacks on it; see 2026-11-04 hang).
+    - cron: '20 */12 * * *'
   workflow_dispatch:
 
 permissions:

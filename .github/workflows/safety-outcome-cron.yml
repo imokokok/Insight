@@ -15,7 +15,8 @@ name: Safety Outcome Backfill
 on:
   schedule:
     # Existing two-hour clock remains as a guarded fallback.
-    - cron: '15 */2 * * *'
+    # :18 (was :15) stays clear of the snapshot collector's :15 dispatch slot.
+    - cron: '18 */2 * * *'
   workflow_dispatch:
     inputs:
       dispatch_id:

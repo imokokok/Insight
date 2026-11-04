@@ -1,0 +1,120 @@
+name: DB Health Watch
+
+# Lightweight watchdog for the Supabase free-tier nano instance. The
+# 2026-11-04T20:00Z incident (db+rest UNHEALTHY, queries hanging 90s+) was only
+# noticed because a Snapshot Collect run failed; this watch detects the same
+# condition directly and files/updates a GitHub issue so it is visible within
+# 15 minutes.
+#
+# Schedule is deliberately offset from every other writer:
+#   :00/:15/:30/:45  Snapshot Collect (Supabase-dispatched)
+#   :07/:17/:27/…    Monad DEX collector
+#   :10              Oracle Watch Collect
+#   :12/:27/:42/:57  Coverage SLO / Turso alert
+#   → :08/:23/:38/:53 is free.
+#
+# Detection: an authenticated REST round-trip against the production schema
+# with a 20s per-try timeout (the incident showed unauthenticated 401s stayed
+# fast while authenticated queries hung, so the probe must carry the key).
+# Retries 3x before declaring unhealthy to avoid flapping on transient blips.
+#
+# The watch never auto-restarts the database: that would require the Supabase
+# management token in CI, which conflicts with the repo posture that powerful
+# production credentials stay out of Actions. Restart stays a manual/ops step.
+
+on:
+  schedule:
+    - cron: '8,23,38,53 * * * *'
+  workflow_dispatch:
+
+# Let a slow probe finish rather than stacking overlapping probes.
+concurrency:
+  group: db-health-watch
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+env:
+  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+  SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Probe Supabase DB/REST health
+        id: probe
+        run: |
+          set -u
+          if [ -z "${SUPABASE_URL}" ] || [ -z "${SUPABASE_SERVICE_ROLE_KEY}" ]; then
+            echo "::error::SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY secrets are required."
+            exit 1
+          fi
+          if node -e '
+            const url = process.env.SUPABASE_URL.replace(/\/$/, "");
+            const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+            const headers = { apikey: key, Authorization: "Bearer " + key };
+            async function once() {
+              const ac = new AbortController();
+              const timer = setTimeout(() => ac.abort(), 20000);
+              try {
+                const r = await fetch(url + "/rest/v1/x402_settlements?select=*&limit=1", { headers, signal: ac.signal });
+                // Any HTTP status returned in time means the data plane is serving.
+                return r.status < 500;
+              } catch { return false; } finally { clearTimeout(timer); }
+            }
+            (async () => {
+              for (let i = 1; i <= 3; i++) {
+                if (await once()) { console.log("healthy (attempt " + i + ")"); process.exit(0); }
+                console.log("attempt " + i + " failed");
+                if (i < 3) await new Promise((r) => setTimeout(r, 10000));
+              }
+              process.exit(10);
+            })();
+          '; then
+            echo "healthy=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "healthy=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: File or update incident issue (unhealthy)
+        if: steps.probe.outputs.healthy == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -eu
+          stamp="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          marker="Supabase DB unhealthy"
+          existing="$(gh issue list --repo "$REPO" --state open --search "in:title \"$marker\"" --json number --jq '.[0].number' || true)"
+          body="🚨 Authenticated Supabase REST probes failed 3x (20s timeout each) at ${stamp}.
+          Known signature: db+rest UNHEALTHY, queries hang while unauthenticated 401s stay fast.
+          Ops runbook: restart via \`POST /v1/projects/{ref}/restart {\"restart_type\":\"postgresql\"}\` (management token is local-only, never in CI)."
+          if [ -n "${existing:-}" ]; then
+            gh issue comment "$existing" --repo "$REPO" --body "$body"
+            echo "updated issue #$existing"
+          else
+            gh issue create --repo "$REPO" --title "🚨 $marker (auto-watch)" --body "$body"
+            echo "created issue"
+          fi
+          exit 1
+
+      - name: Auto-recover incident issue (healthy again)
+        if: steps.probe.outputs.healthy == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -eu
+          marker="Supabase DB unhealthy"
+          existing="$(gh issue list --repo "$REPO" --state open --search "in:title \"$marker\"" --json number --jq '.[0].number' || true)"
+          if [ -n "${existing:-}" ]; then
+            stamp="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            gh issue close "$existing" --repo "$REPO" --comment "✅ Probe healthy again at ${stamp} (3 attempts budget passed). Auto-closing."
+            echo "closed issue #$existing"
+          else
+            echo "no open incident issue"
+          fi
