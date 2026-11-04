@@ -33,6 +33,11 @@ const PRICE_REFERENCE_ALIASES: Readonly<Record<string, string>> = {
   // router WBNB is the canonical BNB wrapper, so USD price discovery routes
   // through the BNB oracle set while binding stays chain-specific.
   WBNB: 'BNB',
+  // Same canonical-wrap argument on Monad: the pinned PancakeSwap router's
+  // WETH9() binding (verified on-chain 2026-11-05) is canonical WMON, so USD
+  // price discovery routes through the MON oracle set while binding stays
+  // chain-specific.
+  WMON: 'MON',
 };
 
 export interface ConsensusProviderPrice {

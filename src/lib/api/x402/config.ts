@@ -653,6 +653,9 @@ export const X402_HYPERLIQUID_PERP_GUARD_ROUTE = '/api/v1/safety/hyperliquid-per
 /** Monad lending decision gate; x402 quotes are bound to Monad mainnet. */
 export const X402_MONAD_LENDING_GUARD_ROUTE = '/api/v1/safety/monad-lending-guard';
 
+/** Monad Perpl perp decision gate; x402 quotes are bound to Monad mainnet. */
+export const X402_MONAD_PERP_GUARD_ROUTE = '/api/v1/safety/monad-perp-guard';
+
 /** Base, Polygon, Arbitrum and BNB lending gate; x402 quotes derive from the validated chain ID. */
 export const X402_MULTICHAIN_EVM_LENDING_GUARD_ROUTE =
   '/api/v1/safety/multichain-evm-lending-guard';

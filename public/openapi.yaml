@@ -3240,6 +3240,59 @@ paths:
       responses:
         '200': { description: Cryptographic verification result and expiry state. }
 
+  /safety/monad-perp-guard:
+    get:
+      operationId: assessMonadPerpGuard
+      tags: [Safety]
+      summary: Monad perp risk decision (Perpl)
+      description: >-
+        Read-only risk gate for a caller-declared Perpl AUSD-margined position
+        on Monad mainnet. It evaluates the underlying cross-oracle consensus
+        integrity on canonical mainnet feeds, binds the declared leverage to
+        the reviewed profile capped by the live venue initial-margin
+        requirement, and escalates on observed Perpl mark/oracle or consensus
+        divergence; the AUSD margin peg is disclosed as not independently
+        verified. It never signs, submits, or authorizes an order. API-key
+        access or x402 payment is accepted.
+      security:
+        - apiKey: []
+        - {}
+      parameters:
+        - {
+            name: protocolId,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [perpl-perps-monad-mainnet] },
+          }
+        - {
+            name: action,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [open_long, open_short] },
+          }
+        - { name: assetSymbol, in: query, required: true, schema: { type: string, example: BTC } }
+        - {
+            name: marginAssetSymbol,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [AUSD] },
+          }
+        - {
+            name: sizeUsd,
+            in: query,
+            required: true,
+            schema: { type: number, exclusiveMinimum: 0, example: 20000 },
+          }
+        - {
+            name: marginValueUsd,
+            in: query,
+            required: true,
+            schema: { type: number, exclusiveMinimum: 0, example: 4000 },
+          }
+      responses:
+        '200': { description: Complete ALLOW, CAUTION, or BLOCK perp decision. }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
   /safety/bnb-perp-guard:
     get:
       operationId: assessBnbPerpGuard

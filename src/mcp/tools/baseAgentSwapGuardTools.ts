@@ -92,16 +92,16 @@ export const verifyBaseAgentSwapGuardSettlementTool: McpToolDefinition<
 
 /**
  * One agent-facing boundary for the initial reviewed direct-swap profiles on
- * Base and BNB.  The guard deliberately returns no executable calls for
- * CAUTION or BLOCK, so a caller cannot accidentally treat risk evidence as
- * permission to trade.
+ * Base, BNB, and Monad.  The guard deliberately returns no executable calls
+ * for CAUTION or BLOCK, so a caller cannot accidentally treat risk evidence
+ * as permission to trade.
  */
 export const prepareBaseAgentSwapGuardTool: McpToolDefinition<
   typeof BaseAgentSwapGuardInputSchema
 > = {
   name: 'prepare_base_agent_swap_guard',
   description:
-    'Prepare and gate one reviewed direct-router swap for an AI agent on Base or BNB Smart Chain: Aerodrome Slipstream WETH→USDC CL100 and USDC→USDT CL1 (both directions) on Base, PancakeSwap V3 USDC→USDT 0.01% on Base, or PancakeSwap V3 USDT→USDC 0.01% on BNB (both directions). It obtains a fresh pinned quote, re-verifies reviewed contract identities, canonical-decodes the exact approval/swap calldata, validates both agent decision prices against independent oracle consensus, and converts the route quote using the independent destination consensus before applying price-impact/TWAP/slippage/freshness policy. ALLOW returns exact unsigned approval and swap calldata plus a decisionHash, and adds a short-lived signed decision when Insight has a published attester; CAUTION or BLOCK returns no calls to sign. After settlement, pair the signed decision with the swap transaction hash via settle_base_agent_swap_guard to obtain a signed settlement closure. It does not route, sign, relay, broadcast, authorize, assess smart-account UserOperations, or accept arbitrary aggregator calldata.',
+    'Prepare and gate one reviewed direct-router swap for an AI agent on Base, BNB Smart Chain, or Monad: Aerodrome Slipstream WETH→USDC CL100 and USDC→USDT CL1 (both directions) on Base, PancakeSwap V3 USDC→USDT 0.01% on Base, PancakeSwap V3 USDT→USDC 0.01% on BNB (both directions), or PancakeSwap V3 WMON→USDC 0.05% on Monad (both directions). It obtains a fresh pinned quote, re-verifies reviewed contract identities, canonical-decodes the exact approval/swap calldata, validates both agent decision prices against independent oracle consensus, and converts the route quote using the independent destination consensus before applying price-impact/TWAP/slippage/freshness policy. ALLOW returns exact unsigned approval and swap calldata plus a decisionHash, and adds a short-lived signed decision when Insight has a published attester; CAUTION or BLOCK returns no calls to sign. After settlement, pair the signed decision with the swap transaction hash via settle_base_agent_swap_guard to obtain a signed settlement closure. It does not route, sign, relay, broadcast, authorize, assess smart-account UserOperations, or accept arbitrary aggregator calldata.',
   parameters: BaseAgentSwapGuardInputSchema,
   handler: async (args) => {
     const guard = await prepareBaseAgentSwapGuard(args);

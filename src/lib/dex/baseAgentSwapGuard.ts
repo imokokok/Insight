@@ -49,6 +49,10 @@ import {
   PANCAKE_SWAP_V3_BASE_USDC,
   PANCAKE_SWAP_V3_BASE_USDC_USDT,
   PANCAKE_SWAP_V3_BASE_USDT,
+  PANCAKE_SWAP_V3_MONAD_CHAIN_ID,
+  PANCAKE_SWAP_V3_MONAD_WMON,
+  PANCAKE_SWAP_V3_MONAD_WMON_USDC,
+  PANCAKE_SWAP_V3_MONAD_USDC,
   pancakeSwapV3DeploymentForChain,
   type ReviewedPancakeSwapV3ProfileId,
 } from './pancakeSwapV3';
@@ -65,6 +69,7 @@ export const BASE_AGENT_SWAP_GUARD_PROFILE_IDS = [
   'base-pancakeswap-v3-usdc-usdt-100',
   'bnb-pancakeswap-v3-usdt-usdc-100',
   'bnb-pancakeswap-v3-usdt-wbnb-100',
+  'monad-pancakeswap-v3-wmon-usdc-500',
 ] as const;
 
 export type BaseAgentSwapGuardProfileId = (typeof BASE_AGENT_SWAP_GUARD_PROFILE_IDS)[number];
@@ -73,7 +78,8 @@ export type BaseAgentSwapGuardDirection = 'token0-to-token1' | 'token1-to-token0
 /** Every chain with at least one reviewed guard profile. */
 export type BaseAgentSwapGuardChainId =
   | typeof PANCAKE_SWAP_V3_BASE_CHAIN_ID
-  | typeof PANCAKE_SWAP_V3_BNB_CHAIN_ID;
+  | typeof PANCAKE_SWAP_V3_BNB_CHAIN_ID
+  | typeof PANCAKE_SWAP_V3_MONAD_CHAIN_ID;
 
 const ADDRESS = /^0x[0-9a-fA-F]{40}$/;
 const POSITIVE_DECIMAL = /^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$/;
@@ -242,8 +248,8 @@ function profileAssets(
   profileId: BaseAgentSwapGuardProfileId,
   direction: BaseAgentSwapGuardDirection
 ): {
-  source: { symbol: 'WETH' | 'USDC' | 'USDT' | 'WBNB'; address: string };
-  destination: { symbol: 'WETH' | 'USDC' | 'USDT' | 'WBNB'; address: string };
+  source: { symbol: 'WETH' | 'USDC' | 'USDT' | 'WBNB' | 'WMON'; address: string };
+  destination: { symbol: 'WETH' | 'USDC' | 'USDT' | 'WBNB' | 'WMON'; address: string };
 } {
   const spec = GUARD_PROFILE_SPECS[profileId];
   const source = direction === 'token0-to-token1' ? spec.token0 : spec.token1;
@@ -263,8 +269,8 @@ const GUARD_PROFILE_SPECS: Record<
     chainId: BaseAgentSwapGuardChainId;
     kind: 'aerodrome-slipstream-exact-input-v1' | 'pancakeswap-v3-exact-input-v1';
     market: string;
-    token0: { symbol: 'WETH' | 'USDC' | 'USDT' | 'WBNB'; address: string };
-    token1: { symbol: 'WETH' | 'USDC' | 'USDT' | 'WBNB'; address: string };
+    token0: { symbol: 'WETH' | 'USDC' | 'USDT' | 'WBNB' | 'WMON'; address: string };
+    token1: { symbol: 'WETH' | 'USDC' | 'USDT' | 'WBNB' | 'WMON'; address: string };
     pool: string;
     tickSpacing?: number;
     feeTier?: number;
@@ -316,6 +322,16 @@ const GUARD_PROFILE_SPECS: Record<
     token1: { symbol: 'WBNB', address: PANCAKE_SWAP_V3_BNB_WBNB },
     pool: PANCAKE_SWAP_V3_BNB_USDT_WBNB.pool,
     feeTier: PANCAKE_SWAP_V3_BNB_USDT_WBNB.feeTier,
+  },
+  'monad-pancakeswap-v3-wmon-usdc-500': {
+    chainId: PANCAKE_SWAP_V3_MONAD_CHAIN_ID,
+    kind: 'pancakeswap-v3-exact-input-v1',
+    market: 'WMON/USDC',
+    // On the reviewed Monad pool WMON sorts before USDC, so token0 is WMON.
+    token0: { symbol: 'WMON', address: PANCAKE_SWAP_V3_MONAD_WMON },
+    token1: { symbol: 'USDC', address: PANCAKE_SWAP_V3_MONAD_USDC },
+    pool: PANCAKE_SWAP_V3_MONAD_WMON_USDC.pool,
+    feeTier: PANCAKE_SWAP_V3_MONAD_WMON_USDC.feeTier,
   },
 } as const;
 

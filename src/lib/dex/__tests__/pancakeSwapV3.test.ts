@@ -2,6 +2,7 @@ import {
   PANCAKE_SWAP_V3_BASE_CODE_IDENTITY,
   PANCAKE_SWAP_V3_BASE_USDC_USDT,
   listReviewedPancakeSwapV3Profiles,
+  pancakeSwapV3DeploymentForChain,
   reviewedPancakeSwapV3Profile,
 } from '../pancakeSwapV3';
 import { preparePancakeSwapV3ExactInput } from '../pancakeSwapV3Swap';
@@ -22,7 +23,47 @@ describe('PancakeSwap V3 Base reviewed profile', () => {
       quoterV2: PANCAKE_SWAP_V3_BASE_CODE_IDENTITY.quoterV2,
       pool: PANCAKE_SWAP_V3_BASE_USDC_USDT.poolCodeHash,
     });
-    expect(listReviewedPancakeSwapV3Profiles()).toHaveLength(3);
+    expect(listReviewedPancakeSwapV3Profiles()).toHaveLength(4);
+  });
+
+  it('pins the Monad WMON/USDC 0.05% profile and every dependency identity', () => {
+    expect(reviewedPancakeSwapV3Profile('monad-pancakeswap-v3-wmon-usdc-500')).toEqual({
+      id: 'monad-pancakeswap-v3-wmon-usdc-500',
+      chainId: 143,
+      venue: 'pancakeswap-v3',
+      market: 'WMON/USDC',
+      factory: '0x0BFbCF9fa4f9C56B0F40a671Ad40E0805A091865',
+      quoterV2: '0xB048Bbc1Ee6b733FFfCFb9e9CeF7375518e25997',
+      pool: '0x63e48b725540a3db24acf6682a29f877808c53f2',
+      codeIdentity: {
+        factory: '0xf6105f5817b3f67dd0f060fa27c1e23a14d9fca13c6ebd695545ca4d5c0fbe06',
+        quoterV2: '0x66711e04817b6da9499b9320b3c61c2d492ca4d78c58a798a7b453ba65feb5a6',
+        pool: '0x35fd982b4dd2ca117a46c8ee159413c5fae65feb122ab257c5db26b78604e1be',
+      },
+      token0: {
+        address: '0x3bd359C1119dA7Da1D913D1C4D2B7c461115433A',
+        symbol: 'WMON',
+        decimals: 18,
+      },
+      token1: {
+        address: '0x754704Bc059F8C67012fEd69BC8A327a5aafb603',
+        symbol: 'USDC',
+        decimals: 6,
+      },
+      feeTier: 500,
+      twapWindowSeconds: 1_800,
+      quoteAmountsToken0: [100, 1_000, 10_000],
+      maxSourceAgeSeconds: 120,
+      cacheTtlMs: 10_000,
+      rpcEndpoints: expect.arrayContaining([expect.stringContaining('rpc.monad.xyz')]),
+    });
+    expect(pancakeSwapV3DeploymentForChain(143)).toEqual({
+      chainId: 143,
+      factory: '0x0BFbCF9fa4f9C56B0F40a671Ad40E0805A091865',
+      quoterV2: '0xB048Bbc1Ee6b733FFfCFb9e9CeF7375518e25997',
+      swapRouter: '0x1b81D678ffb9C0263b24A97847620C99d213eB14',
+      routerCodeHash: '0x373f7fcb2fbc8d2e53d0f735b10f9502b34b9b1bce6824de0821f7164eb77d52',
+    });
   });
 
   it('pins the BNB USDT/USDC 0.01% profile and every dependency identity', () => {

@@ -69,7 +69,7 @@ export const BASE_AGENT_SWAP_GUARD_SETTLEMENT_DOMAIN = {
   version: '1',
   // Chain-separated from the settlement it attests, mirroring the decision
   // domain; the signed message commits to the reviewed execution chain
-  // (8453 or 56) explicitly inside the struct.
+  // (8453, 56, or 143) explicitly inside the struct.
   chainId: 1,
 } as const;
 export const BASE_AGENT_SWAP_GUARD_SETTLEMENT_TYPES = {
@@ -99,7 +99,7 @@ const ZERO_HASH = `0x${'0'.repeat(64)}` as Hex;
 const EMPTY = '';
 /** The chains a settlement closure may be issued on, mirroring the reviewed
  *  guard profiles. Any other chain id is rejected before any RPC work. */
-const SETTLEMENT_CHAIN_IDS = new Set<number>([8453, 56]);
+const SETTLEMENT_CHAIN_IDS = new Set<number>([8453, 56, 143]);
 
 export interface BaseAgentSwapGuardSettlementData {
   decisionHash: Hex;
