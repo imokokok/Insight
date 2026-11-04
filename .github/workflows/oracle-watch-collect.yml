@@ -12,10 +12,13 @@ name: Oracle Watch Collect
 
 on:
   schedule:
-    # Hourly native fallback at :00, offset from the primary Supabase dispatch
+    # Hourly native fallback at :10, offset from the primary Supabase dispatch
     # slot (job 47, hourly at :08) the same way as the previous 30-minute pair.
     # The stale-ledger guard skips healthy slots.
-    - cron: '0 * * * *'
+    # :10 (was :00) keeps this away from the Supabase-dispatched Snapshot Collect
+    # slot at :00/:15/:30/:45 — three writers stacking at :00 on the free-tier
+    # nano instance contributed to the 2026-11-04T20:00Z database hang.
+    - cron: '10 * * * *'
   workflow_dispatch:
     inputs:
       dispatch_id:

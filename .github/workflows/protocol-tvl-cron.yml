@@ -10,8 +10,10 @@ name: Protocol TVL Sync
 
 on:
   schedule:
-    # Every 4 hours at minute 0
-    - cron: '0 */4 * * *'
+    # Every 4 hours at minute 3 (was :00 — kept off the Supabase-dispatched
+    # Snapshot Collect slot at :00 to avoid stacking three DB writers on the
+    # free-tier nano instance; see 2026-11-04T20:00Z hang).
+    - cron: '3 */4 * * *'
   workflow_dispatch:
 
 permissions:

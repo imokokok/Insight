@@ -12,8 +12,9 @@ name: Protocol Risk Params Sync
 
 on:
   schedule:
-    # Every 6 hours at minute 30 (offset from TVL sync)
-    - cron: '30 */6 * * *'
+    # Every 6 hours at minute 33 (was :30 — kept off the snapshot collector's
+    # :30 dispatch slot; see 2026-11-04T20:00Z hang postmortem).
+    - cron: '33 */6 * * *'
   workflow_dispatch:
 
 permissions:
