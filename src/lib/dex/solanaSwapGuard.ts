@@ -27,10 +27,17 @@ import {
 } from '@/lib/lending/solanaLendingAction';
 
 import {
+  directionAToB,
+  directionDestinationToken,
+  directionSourceToken,
+  profileSupportsDirection,
   reviewedSolanaSwapProfile,
+  SOLANA_SWAP_GUARD_DIRECTIONS,
   SOLANA_SWAP_GUARD_PROFILE_IDS,
+  type ReviewedSolanaSwapToken,
   type SolanaSwapGuardDirection,
   type SolanaSwapGuardProfileId,
+  type SolanaSwapTokenSymbol,
 } from './solanaOrcaWhirlpool';
 import { decodeSolanaSwapExactCall, type SolanaSwapDecodedAction } from './solanaSwapAction';
 
@@ -41,7 +48,7 @@ const SOLANA_MAINNET_GENESIS_HASH = '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9
 export const SolanaSwapGuardInputSchema = z
   .object({
     profileId: z.enum(SOLANA_SWAP_GUARD_PROFILE_IDS),
-    direction: z.enum(['usdc-to-usdt', 'usdt-to-usdc']),
+    direction: z.enum(SOLANA_SWAP_GUARD_DIRECTIONS),
     /** The USD price the agent used for the asset it is selling. */
     sourceDecisionPriceUsd: z.number().finite().positive().max(1_000_000_000),
     /** The USD price the agent used for the asset it expects to receive. */
@@ -53,7 +60,16 @@ export const SolanaSwapGuardInputSchema = z
       })
       .strict(),
   })
-  .strict();
+  .strict()
+  .superRefine((value, context) => {
+    if (!profileSupportsDirection(reviewedSolanaSwapProfile(value.profileId), value.direction)) {
+      context.addIssue({
+        code: 'custom',
+        path: ['direction'],
+        message: `Reviewed profile ${value.profileId} does not trade this direction`,
+      });
+    }
+  });
 export type SolanaSwapGuardInput = z.infer<typeof SolanaSwapGuardInputSchema>;
 
 export const SolanaSwapGuardExactInputSchema = z
@@ -121,9 +137,9 @@ export interface SolanaSwapGuardResult {
   policy: SolanaSwapGuardInput['policy'];
   market: {
     venue: 'orca-whirlpool';
-    market: 'USDC/USDT';
-    sourceAsset: 'USDC' | 'USDT';
-    destinationAsset: 'USDC' | 'USDT';
+    market: 'USDC/USDT' | 'SOL/USDC';
+    sourceAsset: SolanaSwapTokenSymbol;
+    destinationAsset: SolanaSwapTokenSymbol;
     pool: string;
     parameterSource: 'whirlpool-account-live';
     exactSwap: {
@@ -179,8 +195,8 @@ export async function assessSolanaSwapGuard(
 ): Promise<SolanaSwapGuardResult> {
   const input = SolanaSwapGuardInputSchema.parse(rawInput);
   const profile = reviewedSolanaSwapProfile(input.profileId);
-  const source = input.direction === 'usdc-to-usdt' ? profile.tokenA : profile.tokenB;
-  const destination = input.direction === 'usdc-to-usdt' ? profile.tokenB : profile.tokenA;
+  const source = directionSourceToken(profile, input.direction);
+  const destination = directionDestinationToken(profile, input.direction);
   const reasons: string[] = [];
   let verdict: SolanaSwapGuardVerdict = 'ALLOW';
 
@@ -199,7 +215,7 @@ export async function assessSolanaSwapGuard(
 
   let tradeAmountUsd: number | null = null;
   if (exactAction) {
-    const economics = checkSwapEconomics(exactAction, input);
+    const economics = checkSwapEconomics(exactAction, input, source, destination);
     reasons.push(...economics.reasons);
     if (economics.reasons.length > 0) verdict = 'BLOCK';
     else tradeAmountUsd = economics.tradeAmountUsd;
@@ -226,7 +242,7 @@ export async function assessSolanaSwapGuard(
   let accountChecks: SolanaSwapAccountCheck[] = [];
   let poolState: SolanaPoolStateCheck | null = null;
   if (exactAction && verdict !== 'BLOCK') {
-    const live = await verifyLiveAccounts(dependencies, exactAction, profile);
+    const live = await verifyLiveAccounts(dependencies, exactAction, profile, input.direction);
     accountChecks = live.accounts;
     poolState = live.poolState;
     reasons.push(...live.reasons);
@@ -244,7 +260,9 @@ export async function assessSolanaSwapGuard(
       const minOutReason = checkMinOutAgainstPoolPrice(
         exactAction,
         poolState.poolPrice,
-        input.policy.maxSlippageBps
+        input.policy.maxSlippageBps,
+        source,
+        destination
       );
       if (minOutReason) {
         verdict = 'BLOCK';
@@ -307,9 +325,9 @@ export async function assessSolanaSwapGuard(
         ? {
             amountInRaw: exactAction.amount,
             minOutRaw: exactAction.minOut,
-            impliedMinDestinationPerSource: Number(exactAction.minOut) / Number(exactAction.amount),
+            impliedMinDestinationPerSource: humanMinOutPerSource(exactAction, source, destination),
             impliedMinRoutePriceUsd:
-              (Number(exactAction.minOut) / Number(exactAction.amount)) *
+              humanMinOutPerSource(exactAction, source, destination) *
               input.destinationDecisionPriceUsd,
           }
         : {
@@ -339,20 +357,22 @@ export async function assessSolanaSwapGuard(
 /** The caller's min-out must be consistent with its own declared prices. */
 function checkSwapEconomics(
   action: SolanaSwapDecodedAction,
-  input: SolanaSwapGuardInput
+  input: SolanaSwapGuardInput,
+  source: ReviewedSolanaSwapToken,
+  destination: ReviewedSolanaSwapToken
 ): { reasons: string[]; tradeAmountUsd: number | null } {
   const amount = Number(action.amount);
   const minOut = Number(action.minOut);
   if (!Number.isSafeInteger(amount) || amount <= 0 || !Number.isSafeInteger(minOut)) {
     return { reasons: ['SWAP_AMOUNT_NOT_A_SAFE_INTEGER'], tradeAmountUsd: null };
   }
-  const minOutPerSource = minOut / amount;
+  const minOutPerSource = humanMinOutPerSource(action, source, destination);
   const impliedMinRoutePriceUsd = minOutPerSource * input.destinationDecisionPriceUsd;
   const sourcePrice = input.sourceDecisionPriceUsd;
   if (!Number.isFinite(impliedMinRoutePriceUsd) || impliedMinRoutePriceUsd <= 0) {
     return { reasons: ['MIN_OUT_PRICE_INVALID'], tradeAmountUsd: null };
   }
-  const tradeAmountUsd = (amount / 1e6) * sourcePrice;
+  const tradeAmountUsd = (amount / 10 ** source.decimals) * sourcePrice;
   const deviationBps = (Math.abs(impliedMinRoutePriceUsd - sourcePrice) / sourcePrice) * 10_000;
   if (deviationBps > input.policy.maxSlippageBps) {
     return {
@@ -463,11 +483,23 @@ async function runOracleChecks(
   }
 }
 
+/** Human destination-per-source ratio implied by minOut/amount, decimals adjusted. */
+function humanMinOutPerSource(
+  action: SolanaSwapDecodedAction,
+  source: ReviewedSolanaSwapToken,
+  destination: ReviewedSolanaSwapToken
+): number {
+  return (
+    (Number(action.minOut) / Number(action.amount)) * 10 ** (source.decimals - destination.decimals)
+  );
+}
+
 /** Re-derive every reviewed identity from live mainnet state; fail closed. */
 async function verifyLiveAccounts(
   dependencies: SolanaSwapGuardDependencies,
   action: SolanaSwapDecodedAction,
-  profile: ReturnType<typeof reviewedSolanaSwapProfile>
+  profile: ReturnType<typeof reviewedSolanaSwapProfile>,
+  direction: SolanaSwapGuardDirection
 ): Promise<{
   accounts: SolanaSwapAccountCheck[];
   poolState: SolanaPoolStateCheck | null;
@@ -507,10 +539,8 @@ async function verifyLiveAccounts(
 
     const vaultInput = await readToken(action.inputVault);
     const vaultOutput = await readToken(action.outputVault);
-    const expectedInputMint =
-      action.direction === 'usdc-to-usdt' ? profile.tokenA.mint : profile.tokenB.mint;
-    const expectedOutputMint =
-      action.direction === 'usdc-to-usdt' ? profile.tokenB.mint : profile.tokenA.mint;
+    const expectedInputMint = directionSourceToken(profile, direction).mint;
+    const expectedOutputMint = directionDestinationToken(profile, direction).mint;
     if (vaultInput.owner !== action.pool || vaultInput.mint !== expectedInputMint) {
       throw new Error('Input vault is not the reviewed pool-owned vault for the source mint');
     }
@@ -557,7 +587,7 @@ async function verifyLiveAccounts(
         feeRate: decoded.feeRate,
         protocolFeeRate: decoded.protocolFeeRate,
         sqrtPriceX64: decoded.sqrtPriceX64.toString(),
-        poolPrice: whirlpoolPrice(decoded.sqrtPriceX64),
+        poolPrice: whirlpoolPoolPriceForDirection(decoded.sqrtPriceX64, profile, direction),
       },
       reasons: [],
     };
@@ -585,9 +615,11 @@ function checkPoolPriceDeviation(
 function checkMinOutAgainstPoolPrice(
   action: SolanaSwapDecodedAction,
   poolPrice: number,
-  maxSlippageBps: number
+  maxSlippageBps: number,
+  source: ReviewedSolanaSwapToken,
+  destination: ReviewedSolanaSwapToken
 ): string | null {
-  const minOutPerSource = Number(action.minOut) / Number(action.amount);
+  const minOutPerSource = humanMinOutPerSource(action, source, destination);
   const tolerance = 1 - maxSlippageBps / 10_000;
   if (!Number.isFinite(minOutPerSource) || minOutPerSource < poolPrice * tolerance) {
     return 'MIN_OUT_BELOW_POOL_PRICE_TOLERANCE';
@@ -655,6 +687,23 @@ export function whirlpoolPrice(sqrtPriceX64: bigint): number | null {
   if (sqrtPriceX64 <= 0n) return null;
   const value = Number(sqrtPriceX64) / 2 ** 64;
   const price = value * value;
+  return Number.isFinite(price) && price > 0 ? price : null;
+}
+
+/**
+ * Live pool price in human destination-per-source for the declared direction:
+ * (sqrtPrice/2^64)^2 gives raw tokenB per raw tokenA; decimal-adjust it, then
+ * invert when the declared direction sells tokenB.
+ */
+export function whirlpoolPoolPriceForDirection(
+  sqrtPriceX64: bigint,
+  profile: ReturnType<typeof reviewedSolanaSwapProfile>,
+  direction: SolanaSwapGuardDirection
+): number | null {
+  const raw = whirlpoolPrice(sqrtPriceX64);
+  if (raw === null) return null;
+  const bPerA = raw * 10 ** (profile.tokenA.decimals - profile.tokenB.decimals);
+  const price = directionAToB(profile, direction) ? bPerA : 1 / bPerA;
   return Number.isFinite(price) && price > 0 ? price : null;
 }
 

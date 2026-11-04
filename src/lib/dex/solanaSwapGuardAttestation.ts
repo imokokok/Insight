@@ -13,9 +13,16 @@ import {
   type SolanaLendingTransaction,
 } from '@/lib/lending/solanaLendingAction';
 
+import {
+  profileSupportsDirection,
+  reviewedSolanaSwapProfile,
+  SOLANA_SWAP_GUARD_DIRECTIONS,
+  SOLANA_SWAP_GUARD_PROFILE_IDS,
+  type SolanaSwapGuardDirection,
+  type SolanaSwapGuardProfileId,
+} from './solanaOrcaWhirlpool';
 import { decodeSolanaSwapExactCall, type SolanaSwapDecodedAction } from './solanaSwapAction';
 
-import type { SolanaSwapGuardDirection, SolanaSwapGuardProfileId } from './solanaOrcaWhirlpool';
 import type { SolanaSwapGuardResult } from './solanaSwapGuard';
 
 export const SOLANA_SWAP_GUARD_ATTESTATION_SCHEMA =
@@ -154,7 +161,12 @@ export function verifySolanaSwapGuardDecision(
     if (
       typeof guard.profileId !== 'string' ||
       typeof guard.direction !== 'string' ||
-      (guard.direction !== 'usdc-to-usdt' && guard.direction !== 'usdt-to-usdc')
+      !SOLANA_SWAP_GUARD_PROFILE_IDS.includes(guard.profileId as SolanaSwapGuardProfileId) ||
+      !SOLANA_SWAP_GUARD_DIRECTIONS.includes(guard.direction as SolanaSwapGuardDirection) ||
+      !profileSupportsDirection(
+        reviewedSolanaSwapProfile(guard.profileId as SolanaSwapGuardProfileId),
+        guard.direction as SolanaSwapGuardDirection
+      )
     )
       return failed('MALFORMED');
     const transaction = SolanaLendingTransactionSchema.parse(value.transaction);

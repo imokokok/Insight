@@ -196,8 +196,12 @@ function isValidSolanaSwapGuardPayload(payload: Record<string, unknown>): boolea
     typeof payload.messageHash === 'string' &&
     /^0x[0-9a-f]{64}$/i.test(payload.messageHash) &&
     isSolanaPublicKey(payload.account) &&
-    payload.profileId === 'solana-orca-whirlpool-usdc-usdt-1' &&
-    (payload.direction === 'usdc-to-usdt' || payload.direction === 'usdt-to-usdc') &&
+    (payload.profileId === 'solana-orca-whirlpool-usdc-usdt-1' ||
+      payload.profileId === 'solana-orca-whirlpool-sol-usdc-1') &&
+    (payload.direction === 'usdc-to-usdt' ||
+      payload.direction === 'usdt-to-usdc' ||
+      payload.direction === 'usdc-to-sol' ||
+      payload.direction === 'sol-to-usdc') &&
     (payload.verdict === 0 || payload.verdict === 1 || payload.verdict === 2) &&
     isUnixSeconds(issuedAt) &&
     isUnixSeconds(validUntil) &&
@@ -212,8 +216,12 @@ function isValidSolanaSwapGuardSettlementPayload(payload: Record<string, unknown
     /^0x[0-9a-f]{64}$/i.test(payload.decisionHash) &&
     isBase58Bytes(payload.signature, 64) &&
     isSolanaPublicKey(payload.taker) &&
-    payload.profileId === 'solana-orca-whirlpool-usdc-usdt-1' &&
-    (payload.direction === 'usdc-to-usdt' || payload.direction === 'usdt-to-usdc') &&
+    (payload.profileId === 'solana-orca-whirlpool-usdc-usdt-1' ||
+      payload.profileId === 'solana-orca-whirlpool-sol-usdc-1') &&
+    (payload.direction === 'usdc-to-usdt' ||
+      payload.direction === 'usdt-to-usdc' ||
+      payload.direction === 'usdc-to-sol' ||
+      payload.direction === 'sol-to-usdc') &&
     typeof payload.amountInRaw === 'string' &&
     /^(0|[1-9][0-9]*)$/.test(payload.amountInRaw) &&
     typeof payload.minOutRaw === 'string' &&

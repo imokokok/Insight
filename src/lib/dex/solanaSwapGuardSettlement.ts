@@ -29,11 +29,16 @@ import {
 } from '@/lib/lending/solanaLendingAction';
 
 import {
+  directionDestinationToken,
+  directionSourceToken,
+  reviewedSolanaSwapProfile,
+  type SolanaSwapGuardDirection,
+  type SolanaSwapGuardProfileId,
+} from './solanaOrcaWhirlpool';
+import {
   verifySolanaSwapGuardDecision,
   type SolanaSwapGuardDecisionVerification,
 } from './solanaSwapGuardAttestation';
-
-import type { SolanaSwapGuardDirection, SolanaSwapGuardProfileId } from './solanaOrcaWhirlpool';
 
 export const SOLANA_SWAP_GUARD_SETTLEMENT_SCHEMA =
   'insight.solana-swap-guard-settlement.v1' as const;
@@ -91,8 +96,6 @@ export interface SolanaSwapGuardSettlementDependencies {
 }
 
 const CAIP2 = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
-const USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
-const USDT_MINT = 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB';
 
 /** Close a signed ALLOW decision against on-chain execution facts. */
 export async function settleSolanaSwapGuard(
@@ -147,8 +150,9 @@ export async function settleSolanaSwapGuard(
       message: 'The signed swap guard decision does not carry a taker account',
     };
   }
-  const sourceMint = decision.guard.direction === 'usdc-to-usdt' ? USDC_MINT : USDT_MINT;
-  const destinationMint = decision.guard.direction === 'usdc-to-usdt' ? USDT_MINT : USDC_MINT;
+  const reviewedProfile = reviewedSolanaSwapProfile(decision.guard.profileId);
+  const sourceMint = directionSourceToken(reviewedProfile, decision.guard.direction).mint;
+  const destinationMint = directionDestinationToken(reviewedProfile, decision.guard.direction).mint;
 
   const endpoints = getRpcEndpoints(0);
   if (!endpoints) {
