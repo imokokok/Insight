@@ -19,6 +19,7 @@ import {
   X402_BASE_PERP_GUARD_ROUTE,
   X402_HYPERLIQUID_PERP_GUARD_ROUTE,
   X402_MONAD_LENDING_GUARD_ROUTE,
+  X402_MONAD_PERP_GUARD_ROUTE,
   X402_MULTICHAIN_EVM_LENDING_GUARD_ROUTE,
   X402_ORACLE_WATCH_WINDOW_ROUTE,
   X402_POSITION_LIFECYCLE_ROUTE,
@@ -911,6 +912,10 @@ export async function buildX402HttpServer(
     [X402_SOLANA_SWAP_GUARD_ROUTE]: routeConfigWithoutDiscovery(
       cfg,
       'Solana Swap Guard: a read-only, pre-signing gate for one exact unsigned Orca Whirlpool swap message on Solana mainnet (reviewed USDC/USDT and SOL/USDC lanes). It re-derives pool, vault, tick-array, and oracle identities from live mainnet state, prices the pool from its own sqrtPrice, runs both oracle checks, and simulates the exact unsigned message before any ALLOW. It never signs, submits, or authorizes a transaction.'
+    ),
+    [X402_MONAD_PERP_GUARD_ROUTE]: routeConfigWithoutDiscovery(
+      cfg,
+      'Monad Perp Guard: a read-only, pre-trade decision gate for opening a Perpl AUSD-margined perpetual position on Monad mainnet (reviewed BTC, MON, ETH, and SOL markets). It evaluates the underlying cross-oracle consensus integrity on canonical mainnet feeds, binds the declared leverage to a reviewed static profile capped by the live Perpl initial-margin ratio, and attaches disclosed venue evidence (Perpl mark/oracle divergence, funding rate, open interest, market status, consensus-vs-oracle deviation; the AUSD margin peg is disclosed as not independently verified). It never signs, submits, or authorizes an order.'
     ),
     [X402_BNB_PERP_GUARD_ROUTE]: routeConfigWithoutDiscovery(
       cfg,

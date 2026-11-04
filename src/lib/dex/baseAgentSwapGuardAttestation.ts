@@ -39,7 +39,7 @@ export const BASE_AGENT_SWAP_GUARD_ATTESTATION_DOMAIN = {
   version: '1',
   // An EIP-712 domain is intentionally chain-separated from the calls it
   // attests. The signed message separately commits to the reviewed execution
-  // chain (8453 or 56) inside the decisionHash and the chainId field.
+  // chain (8453, 56, or 143) inside the decisionHash and the chainId field.
   chainId: 1,
 } as const;
 export const BASE_AGENT_SWAP_GUARD_ATTESTATION_TYPES = {
@@ -65,8 +65,9 @@ const SUPPORTED_PROFILE_IDS = new Set([
   'base-pancakeswap-v3-usdc-usdt-100',
   'bnb-pancakeswap-v3-usdt-usdc-100',
   'bnb-pancakeswap-v3-usdt-wbnb-100',
+  'monad-pancakeswap-v3-wmon-usdc-500',
 ]);
-const SUPPORTED_CHAIN_IDS = new Set<number>([8453, 56]);
+const SUPPORTED_CHAIN_IDS = new Set<number>([8453, 56, 143]);
 
 export interface BaseAgentSwapGuardAttestationData {
   decisionHash: Hex;

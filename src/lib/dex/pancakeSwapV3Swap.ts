@@ -11,6 +11,7 @@ import {
 import {
   type PANCAKE_SWAP_V3_BNB_CHAIN_ID,
   type PANCAKE_SWAP_V3_BASE_CHAIN_ID,
+  type PANCAKE_SWAP_V3_MONAD_CHAIN_ID,
   PANCAKE_SWAP_V3_ROUTER_WETH9_BY_CHAIN,
   pancakeSwapV3DeploymentForChain,
   reviewedPancakeSwapV3Profile,
@@ -52,7 +53,10 @@ export interface PreparePancakeSwapV3ExactInputRequest {
 
 export interface PreparedPancakeSwapV3ExactInput {
   kind: 'pancakeswap-v3-exact-input-v1';
-  chainId: typeof PANCAKE_SWAP_V3_BASE_CHAIN_ID | typeof PANCAKE_SWAP_V3_BNB_CHAIN_ID;
+  chainId:
+    | typeof PANCAKE_SWAP_V3_BASE_CHAIN_ID
+    | typeof PANCAKE_SWAP_V3_BNB_CHAIN_ID
+    | typeof PANCAKE_SWAP_V3_MONAD_CHAIN_ID;
   transaction: { to: `0x${string}`; data: `0x${string}`; value: '0x0' };
   approval: {
     token: string;

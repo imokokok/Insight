@@ -11,6 +11,7 @@ import {
   X402_BASE_PERP_GUARD_ROUTE,
   X402_LOOPSCALE_VAULT_DEPOSIT_ROUTE,
   X402_MONAD_LENDING_GUARD_ROUTE,
+  X402_MONAD_PERP_GUARD_ROUTE,
   X402_BNB_PERP_GUARD_ROUTE,
   X402_PREDICTION_GUARD_ROUTE,
   X402_SOLANA_LENDING_GUARD_ROUTE,
@@ -49,6 +50,7 @@ export const X402_REST_PAYMENT_SCOPE_BY_PATH: Readonly<Record<string, X402Paymen
   [X402_BASE_LENDING_GUARD_ROUTE]: X402_PAYMENT_SCOPE.base,
   [X402_BASE_PERP_GUARD_ROUTE]: X402_PAYMENT_SCOPE.base,
   [X402_MONAD_LENDING_GUARD_ROUTE]: X402_PAYMENT_SCOPE.monad,
+  [X402_MONAD_PERP_GUARD_ROUTE]: X402_PAYMENT_SCOPE.monad,
   [X402_SOLANA_LENDING_GUARD_ROUTE]: X402_PAYMENT_SCOPE.solana,
   [X402_SOLANA_PERP_GUARD_ROUTE]: X402_PAYMENT_SCOPE.solana,
   [X402_SOLANA_SWAP_GUARD_ROUTE]: X402_PAYMENT_SCOPE.solana,
@@ -187,14 +189,15 @@ function pancakeSwapV3McpPaymentScope(argumentsValue: unknown): X402PaymentScope
   if (profileId === null) return X402_PAYMENT_SCOPE.base;
   if (profileId.startsWith('bnb-')) return X402_PAYMENT_SCOPE.bnb;
   if (profileId.startsWith('base-')) return X402_PAYMENT_SCOPE.base;
+  if (profileId.startsWith('monad-')) return X402_PAYMENT_SCOPE.monad;
   return null;
 }
 
 /**
  * The three base-agent-swap-guard MCP tools now serve reviewed profiles on
- * more than one chain (Base 8453, BNB 56). Their payment realm is derived
- * from the guarded execution chain carried in the arguments, never a global
- * default: an unparseable request resolves to null and fails closed.
+ * more than one chain (Base 8453, BNB 56, Monad 143). Their payment realm is
+ * derived from the guarded execution chain carried in the arguments, never a
+ * global default: an unparseable request resolves to null and fails closed.
  */
 function baseAgentSwapGuardMcpPaymentScope(
   toolName: string,
@@ -204,13 +207,14 @@ function baseAgentSwapGuardMcpPaymentScope(
 
   if (toolName === 'prepare_base_agent_swap_guard') {
     // profileId is optional and defaults to the reviewed Base lane. Only a
-    // recognized BNB prefix selects the BNB realm; an unrecognized prefix
+    // recognized BNB/Monad prefix selects that realm; an unrecognized prefix
     // fails closed rather than silently authorizing on Base.
     const profileId =
       typeof argumentsValue.profileId === 'string' ? argumentsValue.profileId : null;
     if (profileId === null) return X402_PAYMENT_SCOPE.base;
     if (profileId.startsWith('bnb-')) return X402_PAYMENT_SCOPE.bnb;
     if (profileId.startsWith('base-')) return X402_PAYMENT_SCOPE.base;
+    if (profileId.startsWith('monad-')) return X402_PAYMENT_SCOPE.monad;
     return null;
   }
 
@@ -231,6 +235,7 @@ function baseAgentSwapGuardMcpPaymentScope(
 
   if (chainId === 56) return X402_PAYMENT_SCOPE.bnb;
   if (chainId === 8453) return X402_PAYMENT_SCOPE.base;
+  if (chainId === 143) return X402_PAYMENT_SCOPE.monad;
   return null;
 }
 

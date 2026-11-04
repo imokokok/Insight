@@ -48,9 +48,15 @@
       ]
     },
     {
+      "url": "https://www.oracleinsight.xyz/api/v1/safety/monad-perp-guard",
+      "method": "GET",
+      "description": "Monad Perp Guard: a read-only, pre-trade decision gate for opening a Perpl AUSD-margined perpetual position on Monad mainnet (reviewed BTC, MON, ETH, and SOL markets). It evaluates the underlying cross-oracle consensus integrity on canonical mainnet feeds, binds the declared leverage to a reviewed static profile capped by the live Perpl initial-margin ratio, and attaches disclosed venue evidence (Perpl mark/oracle divergence, funding rate, open interest, market status, consensus-vs-oracle deviation; the AUSD margin peg is disclosed as not independently verified). It never signs, submits, or authorizes an order.",
+      "accepts": []
+    },
+    {
       "url": "https://www.oracleinsight.xyz/api/mcp",
       "method": "POST",
-      "description": "MCP tools/call over JSON-RPC (streamable HTTP): pay-per-call access to the Insight oracle tool catalog for x402 agents without an API key. Includes prepare_base_agent_swap_guard: a Base-mainnet pre-signing guard for reviewed direct Aerodrome Slipstream WETH→USDC CL100 and PancakeSwap V3 USDC→USDT 0.01% swaps; it returns ALLOW, CAUTION, or BLOCK and only exposes unsigned calldata on ALLOW. Amount shown is the C3 anchor ($0.02); the live 402 quote prices each call from its tool metering class (C1=2000, C2=4000, C3=20000, C4=40000 atomic).",
+      "description": "MCP tools/call over JSON-RPC (streamable HTTP): pay-per-call access to the Insight oracle tool catalog for x402 agents without an API key. Includes prepare_base_agent_swap_guard: a pre-signing guard for reviewed direct swaps on Base, BNB Smart Chain, and Monad (Aerodrome Slipstream WETH→USDC CL100, PancakeSwap V3 USDC→USDT 0.01% on Base, PancakeSwap V3 USDT→USDC 0.01% on BNB, and PancakeSwap V3 WMON→USDC 0.05% on Monad); it returns ALLOW, CAUTION, or BLOCK and only exposes unsigned calldata on ALLOW. Amount shown is the C3 anchor ($0.02); the live 402 quote prices each call from its tool metering class (C1=2000, C2=4000, C3=20000, C4=40000 atomic).",
       "accepts": [
         {
           "scheme": "exact",

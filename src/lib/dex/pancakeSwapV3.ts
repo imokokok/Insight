@@ -72,10 +72,43 @@ export const PANCAKE_SWAP_V3_BNB_USDT_WBNB = {
   twapWindowSeconds: 1_800,
 } as const;
 
+/**
+ * Monad mainnet deployment of the same PancakeSwap V3 contracts. Addresses
+ * match the canonical Base/BNB deployment; runtime pins were recorded from
+ * Monad mainnet via rpc.monad.xyz on 2026-11-05. The reviewed pool below was
+ * derived from the canonical factory's own getPool(WMON, USDC, fee) and won
+ * the in-range-liquidity comparison against the 0.01%/0.25% siblings
+ * (0.05%: ~1.68e18 vs 0.01%: ~4.9e11, 0.25%: ~2.5e15), and the router's
+ * factory() binding was verified on-chain to point at the same factory.
+ */
+export const PANCAKE_SWAP_V3_MONAD_CHAIN_ID = 143;
+export const PANCAKE_SWAP_V3_MONAD_FACTORY = PANCAKE_SWAP_V3_BASE_FACTORY;
+export const PANCAKE_SWAP_V3_MONAD_QUOTER_V2 = PANCAKE_SWAP_V3_BASE_QUOTER_V2;
+export const PANCAKE_SWAP_V3_MONAD_SWAP_ROUTER = PANCAKE_SWAP_V3_BASE_SWAP_ROUTER;
+/** Canonical WMON (wrapped MON); also the reviewed router's WETH9() binding. */
+export const PANCAKE_SWAP_V3_MONAD_WMON = '0x3bd359C1119dA7Da1D913D1C4D2B7c461115433A' as const;
+/** Circle native USDC on Monad mainnet (6 decimals). */
+export const PANCAKE_SWAP_V3_MONAD_USDC = '0x754704Bc059F8C67012fEd69BC8A327a5aafb603' as const;
+
+/** Runtime pins recorded from the reviewed Monad deployment. */
+export const PANCAKE_SWAP_V3_MONAD_CODE_IDENTITY = {
+  factory: '0xf6105f5817b3f67dd0f060fa27c1e23a14d9fca13c6ebd695545ca4d5c0fbe06',
+  quoterV2: '0x66711e04817b6da9499b9320b3c61c2d492ca4d78c58a798a7b453ba65feb5a6',
+  router: '0x373f7fcb2fbc8d2e53d0f735b10f9502b34b9b1bce6824de0821f7164eb77d52',
+} as const;
+
+export const PANCAKE_SWAP_V3_MONAD_WMON_USDC = {
+  pool: '0x63e48b725540a3db24acf6682a29f877808c53f2' as const,
+  poolCodeHash: '0x35fd982b4dd2ca117a46c8ee159413c5fae65feb122ab257c5db26b78604e1be',
+  feeTier: 500,
+  twapWindowSeconds: 1_800,
+} as const;
+
 /** The router's WETH9 on each reviewed chain. */
 export const PANCAKE_SWAP_V3_ROUTER_WETH9_BY_CHAIN = {
   [PANCAKE_SWAP_V3_BASE_CHAIN_ID]: '0x4200000000000000000000000000000000000006',
   [PANCAKE_SWAP_V3_BNB_CHAIN_ID]: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c',
+  [PANCAKE_SWAP_V3_MONAD_CHAIN_ID]: PANCAKE_SWAP_V3_MONAD_WMON,
 } as const;
 
 /** The immutable deployment bundle one reviewed chain is admitted through. */
@@ -102,6 +135,13 @@ const PANCAKE_SWAP_V3_DEPLOYMENTS_BY_CHAIN: Record<number, PancakeSwapV3ChainDep
     swapRouter: PANCAKE_SWAP_V3_BNB_SWAP_ROUTER,
     routerCodeHash: PANCAKE_SWAP_V3_BNB_CODE_IDENTITY.router,
   },
+  [PANCAKE_SWAP_V3_MONAD_CHAIN_ID]: {
+    chainId: PANCAKE_SWAP_V3_MONAD_CHAIN_ID,
+    factory: PANCAKE_SWAP_V3_MONAD_FACTORY,
+    quoterV2: PANCAKE_SWAP_V3_MONAD_QUOTER_V2,
+    swapRouter: PANCAKE_SWAP_V3_MONAD_SWAP_ROUTER,
+    routerCodeHash: PANCAKE_SWAP_V3_MONAD_CODE_IDENTITY.router,
+  },
 };
 
 /**
@@ -124,6 +164,7 @@ export const REVIEWED_PANCAKE_SWAP_V3_PROFILE_IDS = [
   'base-pancakeswap-v3-usdc-usdt-100',
   'bnb-pancakeswap-v3-usdt-usdc-100',
   'bnb-pancakeswap-v3-usdt-wbnb-100',
+  'monad-pancakeswap-v3-wmon-usdc-500',
 ] as const;
 
 export type ReviewedPancakeSwapV3ProfileId = (typeof REVIEWED_PANCAKE_SWAP_V3_PROFILE_IDS)[number];
@@ -237,10 +278,53 @@ function bnbPancakeSwapV3UsdtWbnbProfile(): UniswapV3MarketProfile {
   };
 }
 
+function monadRpcEndpoints(): string[] {
+  const configured = CHAINLINK_RPC_CONFIG[PANCAKE_SWAP_V3_MONAD_CHAIN_ID]?.endpoints ?? [];
+  return [
+    ...new Set(
+      configured.filter((endpoint) => {
+        try {
+          return new URL(endpoint).protocol === 'https:';
+        } catch {
+          return false;
+        }
+      })
+    ),
+  ];
+}
+
+function monadPancakeSwapV3WmonUsdcProfile(): UniswapV3MarketProfile {
+  return {
+    id: 'monad-pancakeswap-v3-wmon-usdc-500',
+    chainId: PANCAKE_SWAP_V3_MONAD_CHAIN_ID,
+    venue: 'pancakeswap-v3',
+    market: 'WMON/USDC',
+    factory: PANCAKE_SWAP_V3_MONAD_FACTORY,
+    quoterV2: PANCAKE_SWAP_V3_MONAD_QUOTER_V2,
+    pool: PANCAKE_SWAP_V3_MONAD_WMON_USDC.pool,
+    codeIdentity: {
+      factory: PANCAKE_SWAP_V3_MONAD_CODE_IDENTITY.factory,
+      quoterV2: PANCAKE_SWAP_V3_MONAD_CODE_IDENTITY.quoterV2,
+      pool: PANCAKE_SWAP_V3_MONAD_WMON_USDC.poolCodeHash,
+    },
+    // WMON sorts before USDC on this pool, so token0 is WMON (18 decimals);
+    // Monad USDC is Circle's native 6-decimal deployment.
+    token0: { address: PANCAKE_SWAP_V3_MONAD_WMON, symbol: 'WMON', decimals: 18 },
+    token1: { address: PANCAKE_SWAP_V3_MONAD_USDC, symbol: 'USDC', decimals: 6 },
+    feeTier: PANCAKE_SWAP_V3_MONAD_WMON_USDC.feeTier,
+    twapWindowSeconds: PANCAKE_SWAP_V3_MONAD_WMON_USDC.twapWindowSeconds,
+    quoteAmountsToken0: [100, 1_000, 10_000],
+    rpcEndpoints: monadRpcEndpoints(),
+    maxSourceAgeSeconds: 120,
+    cacheTtlMs: 10_000,
+  };
+}
+
 const REVIEWED_PROFILES: Record<ReviewedPancakeSwapV3ProfileId, () => UniswapV3MarketProfile> = {
   'base-pancakeswap-v3-usdc-usdt-100': basePancakeSwapV3UsdcUsdtProfile,
   'bnb-pancakeswap-v3-usdt-usdc-100': bnbPancakeSwapV3UsdtUsdcProfile,
   'bnb-pancakeswap-v3-usdt-wbnb-100': bnbPancakeSwapV3UsdtWbnbProfile,
+  'monad-pancakeswap-v3-wmon-usdc-500': monadPancakeSwapV3WmonUsdcProfile,
 };
 
 export function isReviewedPancakeSwapV3ProfileId(
