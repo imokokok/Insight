@@ -258,7 +258,32 @@ if (printIds) {
 const baseFlag = process.argv.indexOf('--base');
 const base = baseFlag >= 0 ? process.argv[baseFlag + 1] : process.env.PROTOCOL_GOVERNANCE_BASE;
 if (base && !/^0+$/.test(base)) {
-  const diff = execFileSync('git', ['diff', '--name-status', `${base}...HEAD`], {
+  try {
+    execFileSync('git', ['cat-file', '-e', `${base}^{commit}`], {
+      cwd: workspace,
+      stdio: 'ignore',
+    });
+  } catch {
+    throw new Error(`Protocol governance base ${base} is not available as a commit`);
+  }
+
+  // Three-dot comparison is the right PR view when the histories share a
+  // merge base. A rewritten main branch can legitimately have no common
+  // ancestor with the push's `before` SHA, so compare those two tree snapshots
+  // directly in that case instead of failing before the governance checks run.
+  let mergeBase = null;
+  try {
+    mergeBase = execFileSync('git', ['merge-base', base, 'HEAD'], {
+      cwd: workspace,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+  } catch {
+    // The base commit exists but the histories do not intersect.
+  }
+
+  const comparison = mergeBase ? [`${base}...HEAD`] : [base, 'HEAD'];
+  const diff = execFileSync('git', ['diff', '--name-status', ...comparison], {
     cwd: workspace,
     encoding: 'utf8',
   })
@@ -331,15 +356,16 @@ if (base && !/^0+$/.test(base)) {
     const current = json(currentPromotionPath);
     // A single change may contain sequential, still-unpublished improvements. Require
     // one complete append-only chain from the merge-base pointer, with no orphan adds.
-    const mergeBase = execFileSync('git', ['merge-base', base, 'HEAD'], {
-      cwd: workspace,
-      encoding: 'utf8',
-    }).trim();
+    const promotionBaseline = mergeBase ?? base;
     const previous = JSON.parse(
-      execFileSync('git', ['show', `${mergeBase}:protocol/mainline/current-promotion.json`], {
-        cwd: workspace,
-        encoding: 'utf8',
-      })
+      execFileSync(
+        'git',
+        ['show', `${promotionBaseline}:protocol/mainline/current-promotion.json`],
+        {
+          cwd: workspace,
+          encoding: 'utf8',
+        }
+      )
     );
     const promotion = verifyPromotionLineage(
       previous.promotionId,

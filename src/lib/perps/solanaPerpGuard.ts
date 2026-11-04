@@ -5,8 +5,9 @@
  * caller-declared post-action USD values against live venue evidence and
  * cross-oracle consensus, never constructing, signing, or submitting a
  * transaction. A caller must separately bind a successful response to one
- * exact, user-authorized unsigned transaction before execution (planned
- * Drift transaction-binding surface).
+ * exact, user-authorized unsigned transaction before execution — the Drift
+ * transaction-binding surface lives in `solanaPerpAction.ts` and is exposed
+ * through `assessSolanaPerpGuardExact` below.
  *
  * Scope: cross-oracle consensus integrity for the underlying and USDC margin,
  * the declared leverage band against a reviewed static profile (capped by the
@@ -25,18 +26,33 @@
  * Solana mainnet RPC configuration.
  */
 
+import { getProgramDerivedAddress, type Address } from '@solana/kit';
 import { z } from 'zod';
 
 import {
   preTradeSafetyCheck,
   type PreTradeSafetyResult,
 } from '@/lib/api/services/preTradeSafetyService';
+import { getRpcEndpoints } from '@/lib/execution/rpcEndpoints';
+import { simulateSolanaTransaction } from '@/lib/execution/solanaSimulation';
+import {
+  decodeSolanaBase58,
+  serializeUnsignedSolanaLendingTransaction,
+  SolanaLendingTransactionSchema,
+  type SolanaLendingTransaction,
+} from '@/lib/lending/solanaLendingAction';
 import {
   fetchDriftPerpMarketEvidence,
   findReviewedDriftPerpMarket,
+  DRIFT_V2_MAINNET_PROGRAM_ID,
   SOLANA_MAINNET_CAIP2,
   type DriftPerpMarketEvidence,
 } from '@/lib/perps/driftPerpMarket';
+import {
+  decodeSolanaPerpExactCall,
+  DRIFT_BASE_PRECISION,
+  type DriftPerpDecodedAction,
+} from '@/lib/perps/solanaPerpAction';
 
 export const SOLANA_PERP_GUARD_DRIFT_V2_PROTOCOL_ID = 'drift-v2-mainnet';
 export const SOLANA_PERP_GUARD_SCHEMA_VERSION = 'insight.solana-perp-guard.v1';
@@ -578,4 +594,356 @@ function fetchSolanaPerpGuardVenueStateSyncUnavailable(
       unavailableReason: `Drift venue evidence could not be fetched (evaluated at ${observedAt}).`,
     },
   };
+}
+
+/**
+ * Maximum relative distance between the caller-declared post-action notional
+ * assessed by the guard and the notional implied by the bound transaction
+ * (base amount × venue oracle price). Market orders carry no explicit limit
+ * price, so this is wider than the Hyperliquid IOC binding tolerance (0.1);
+ * beyond it the binding fails closed and the caller must re-assess.
+ */
+export const SOLANA_PERP_BINDING_NOTIONAL_TOLERANCE = 0.15;
+
+export const SolanaPerpGuardExactInputSchema = z
+  .object({
+    guard: SolanaPerpGuardInputSchema,
+    transaction: SolanaLendingTransactionSchema,
+  })
+  .strict();
+export type SolanaPerpGuardExactInput = z.infer<typeof SolanaPerpGuardExactInputSchema>;
+
+export type SolanaPerpGuardAccountCheck = {
+  address: string;
+  role: 'program' | 'state' | 'user' | 'perp-market';
+  owner: string | null;
+  executable: boolean | null;
+};
+
+export type SolanaPerpGuardSimulation = {
+  network: string;
+  messageHash: string;
+  simulationSlot: number | null;
+  simulatedAt: string | null;
+  status: string;
+  unitsConsumed: number | null;
+  feeLamports: string | null;
+};
+
+export interface SolanaPerpGuardExactResult extends SolanaPerpGuardResult {
+  chainRef: typeof SOLANA_MAINNET_CAIP2;
+  exactAction: DriftPerpDecodedAction | null;
+  protocolChecks: {
+    status: 'VERIFIED' | 'UNAVAILABLE' | 'INVALID';
+    accounts: SolanaPerpGuardAccountCheck[];
+  };
+  simulation: SolanaPerpGuardSimulation | null;
+}
+
+export interface SolanaPerpGuardExactDependencies extends SolanaPerpGuardDependencies {
+  verifyProtocolAccounts?: (
+    transaction: SolanaLendingTransaction,
+    decoded: DriftPerpDecodedAction
+  ) => Promise<SolanaPerpGuardAccountCheck[]>;
+  simulate?: (transaction: SolanaLendingTransaction) => Promise<SolanaPerpGuardSimulation>;
+}
+
+/**
+ * Assess a caller-declared Drift perp position and bind the decision to one
+ * exact unsigned `place_perp_order` transaction: canonical market-order shape,
+ * reviewed market index, matching direction, notional within the reviewed
+ * tolerance of the declared size, program-owned accounts, and a live protocol
+ * simulation of the exact message. Fails closed on any mismatch.
+ */
+export async function assessSolanaPerpGuardExact(
+  rawGuard: SolanaPerpGuardInput,
+  rawTransaction: SolanaLendingTransaction,
+  dependencies: SolanaPerpGuardExactDependencies = {}
+): Promise<SolanaPerpGuardExactResult> {
+  const input = {
+    guard: SolanaPerpGuardInputSchema.parse(rawGuard),
+    transaction: SolanaLendingTransactionSchema.parse(rawTransaction),
+  };
+  const guard = await assessSolanaPerpGuard(input.guard, dependencies);
+  const reasons = [...guard.reasons];
+  let verdict: SolanaPerpGuardVerdict = guard.verdict;
+
+  let decoded: DriftPerpDecodedAction | null = null;
+  let accountChecks: SolanaPerpGuardAccountCheck[] = [];
+  let protocolStatus: SolanaPerpGuardExactResult['protocolChecks']['status'] = 'INVALID';
+  let simulation: SolanaPerpGuardSimulation | null = null;
+
+  try {
+    decoded = decodeSolanaPerpExactCall(input.transaction);
+  } catch (error) {
+    verdict = 'BLOCK';
+    reasons.push(
+      `The transaction is outside the reviewed Drift market-order profile: ${errorMessage(error)}`
+    );
+  }
+
+  if (decoded) {
+    try {
+      const reviewed = findReviewedDriftPerpMarket(input.guard.assetSymbol);
+      if (!reviewed || reviewed.marketIndex !== decoded.marketIndex) {
+        throw new Error(
+          `Transaction market index ${decoded.marketIndex} does not match the assessed market ${input.guard.assetSymbol}`
+        );
+      }
+      if (decoded.action !== input.guard.action) {
+        throw new Error(
+          `Transaction direction ${decoded.action} does not match the assessed ${input.guard.action} action`
+        );
+      }
+      if (decoded.account !== input.transaction.feePayer) {
+        throw new Error('Drift order authority must be the fee payer');
+      }
+      const referencePrice = guard.venue.oraclePrice;
+      if (referencePrice === null || referencePrice <= 0) {
+        throw new Error(
+          'No venue oracle price is available to cross-check the order notional (fail closed)'
+        );
+      }
+      const baseAmount = Number(BigInt(decoded.baseAssetAmount)) / Number(DRIFT_BASE_PRECISION);
+      const impliedSizeUsd = baseAmount * referencePrice;
+      if (
+        !Number.isFinite(impliedSizeUsd) ||
+        impliedSizeUsd <= 0 ||
+        Math.abs(impliedSizeUsd - input.guard.sizeUsd) / input.guard.sizeUsd >
+          SOLANA_PERP_BINDING_NOTIONAL_TOLERANCE
+      ) {
+        throw new Error(
+          'Transaction implied notional departs from the assessed declared size beyond the reviewed tolerance; re-assess at the actual size'
+        );
+      }
+    } catch (error) {
+      verdict = 'BLOCK';
+      reasons.push(
+        `The exact Drift transaction does not match the assessed decision: ${errorMessage(error)}`
+      );
+    }
+
+    try {
+      accountChecks = await (dependencies.verifyProtocolAccounts ?? verifyLiveDriftAccounts)(
+        input.transaction,
+        decoded
+      );
+      protocolStatus = 'VERIFIED';
+    } catch (error) {
+      protocolStatus = 'UNAVAILABLE';
+      verdict = 'BLOCK';
+      reasons.push(`Reviewed Drift accounts could not be verified live: ${errorMessage(error)}`);
+    }
+
+    try {
+      simulation = await (dependencies.simulate ?? simulateLiveDriftTransaction)(input.transaction);
+      if (simulation.status !== 'SIMULATED')
+        throw new Error('Solana RPC reported a failed protocol simulation');
+      if (simulation.messageHash !== decoded.messageHash)
+        throw new Error('Solana RPC simulation is not for the exact reviewed message');
+    } catch (error) {
+      verdict = 'BLOCK';
+      reasons.push(
+        `The exact unsigned transaction did not pass live protocol simulation: ${errorMessage(error)}`
+      );
+    }
+  }
+
+  if (!decoded || protocolStatus !== 'VERIFIED' || !simulation) verdict = 'BLOCK';
+  reasons.push(
+    'The binding is not a user authorization; PriorSeal (or another authorization system) must bind an ALLOW decision to this exact Solana message before execution.'
+  );
+
+  return {
+    ...guard,
+    verdict,
+    reasons,
+    chainRef: SOLANA_MAINNET_CAIP2,
+    exactAction: decoded,
+    protocolChecks: { status: protocolStatus, accounts: accountChecks },
+    simulation,
+  };
+}
+
+async function simulateLiveDriftTransaction(
+  transaction: SolanaLendingTransaction
+): Promise<SolanaPerpGuardSimulation> {
+  const endpoints = getRpcEndpoints(0);
+  if (!endpoints) throw new Error('No Solana mainnet RPC endpoint is configured');
+  const result = await simulateSolanaTransaction({
+    transactionBase64: serializeUnsignedSolanaLendingTransaction(transaction),
+    endpoints,
+  });
+  if (!result.ok) throw new Error(result.message);
+  const { payload } = result;
+  return {
+    network: payload.network,
+    messageHash: payload.messageHash,
+    simulationSlot: payload.simulationSlot,
+    simulatedAt: new Date(payload.simulatedAt * 1_000).toISOString(),
+    status: payload.status,
+    unitsConsumed: payload.unitsConsumed,
+    feeLamports: payload.feeLamports,
+  };
+}
+
+/**
+ * Live verification that the reviewed Drift program is still executable and
+ * that the instruction binds the derived state, user, and perp-market PDAs.
+ * PDA derivations are local and deterministic; the program check reads mainnet.
+ */
+async function verifyLiveDriftAccounts(
+  transaction: SolanaLendingTransaction,
+  decoded: DriftPerpDecodedAction
+): Promise<SolanaPerpGuardAccountCheck[]> {
+  const transaction_ = SolanaLendingTransactionSchema.parse(transaction);
+  const keys = [
+    ...transaction_.accountKeys,
+    ...transaction_.loadedAddresses.writable,
+    ...transaction_.loadedAddresses.readonly,
+  ];
+  const instruction = transaction_.instructions[0];
+  if (!instruction) throw new Error('Transaction carries no instruction');
+  const instructionKeys = instruction.accountIndexes.map((index) => keys[index]);
+
+  const [statePda] = await deriveDriftPda(['drift_state']);
+  const [marketPda] = await deriveDriftPda([
+    'perp_market',
+    new Uint8Array([decoded.marketIndex & 0xff, (decoded.marketIndex >> 8) & 0xff]),
+  ]);
+
+  const checks: Array<{
+    address: string;
+    role: SolanaPerpGuardAccountCheck['role'];
+    present: boolean;
+    expectedOwner: string | null;
+    executable?: boolean | null;
+  }> = [
+    {
+      address: DRIFT_V2_MAINNET_PROGRAM_ID,
+      role: 'program',
+      present: instructionKeys.includes(DRIFT_V2_MAINNET_PROGRAM_ID),
+      expectedOwner: null,
+      executable: await mainnetProgramExecutable(),
+    },
+    {
+      address: statePda,
+      role: 'state',
+      present: instructionKeys.includes(statePda),
+      expectedOwner: DRIFT_V2_MAINNET_PROGRAM_ID,
+    },
+    {
+      address: marketPda,
+      role: 'perp-market',
+      present: instructionKeys.includes(marketPda),
+      expectedOwner: DRIFT_V2_MAINNET_PROGRAM_ID,
+    },
+  ];
+  // The user PDA for user index 0: derived from ['user', authority, u16 LE 0].
+  const userPda0 = await deriveUserPda(decoded.account, 0);
+  checks.push({
+    address: userPda0,
+    role: 'user',
+    present: instructionKeys.includes(userPda0),
+    expectedOwner: DRIFT_V2_MAINNET_PROGRAM_ID,
+  });
+
+  for (const check of checks) {
+    if (!check.present) {
+      throw new Error(
+        `Reviewed Drift ${check.role} account ${check.address} is not bound by the exact instruction`
+      );
+    }
+    if (check.role === 'program') {
+      if (check.executable !== true) {
+        throw new Error('Reviewed Drift program account is no longer executable');
+      }
+      continue;
+    }
+    const owner = await mainnetAccountOwner(check.address);
+    if (owner !== check.expectedOwner) {
+      throw new Error(`Reviewed Drift ${check.role} is not owned by the Drift program`);
+    }
+  }
+  return checks.map((check) => ({
+    address: check.address,
+    role: check.role,
+    owner: check.role === 'program' ? DRIFT_V2_MAINNET_PROGRAM_ID : (check.expectedOwner as string),
+    executable: check.executable ?? null,
+  }));
+}
+
+async function deriveDriftPda(
+  seeds: Array<Uint8Array | string>
+): Promise<readonly [Address<string>, number]> {
+  return getProgramDerivedAddress({
+    programAddress: DRIFT_V2_MAINNET_PROGRAM_ID as Address,
+    seeds: seeds.map((seed) => (typeof seed === 'string' ? new TextEncoder().encode(seed) : seed)),
+  });
+}
+
+async function deriveUserPda(authority: string, userIndex: number): Promise<Address> {
+  const authorityBytes = decodeSolanaBase58(authority);
+  const indexBytes = new Uint8Array([userIndex & 0xff, (userIndex >> 8) & 0xff]);
+  const [address] = await deriveDriftPda(['user', authorityBytes, indexBytes]);
+  return address;
+}
+
+async function mainnetProgramExecutable(): Promise<boolean | null> {
+  const endpoints = getRpcEndpoints(0);
+  if (!endpoints) throw new Error('No Solana mainnet RPC endpoint is configured');
+  const account = await mainnetAccountInfo(DRIFT_V2_MAINNET_PROGRAM_ID, endpoints);
+  return typeof account.executable === 'boolean' ? account.executable : null;
+}
+
+async function mainnetAccountOwner(address: string): Promise<string | null> {
+  const endpoints = getRpcEndpoints(0);
+  if (!endpoints) throw new Error('No Solana mainnet RPC endpoint is configured');
+  const account = await mainnetAccountInfo(address, endpoints);
+  return typeof account.owner === 'string' ? account.owner : null;
+}
+
+async function mainnetAccountInfo(
+  address: string,
+  endpoints: string[]
+): Promise<Record<string, unknown>> {
+  let last: unknown;
+  for (const endpoint of endpoints) {
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: `insight-solana-perp-guard-account-${address.slice(0, 8)}`,
+          method: 'getAccountInfo',
+          params: [
+            address,
+            { encoding: 'base64', commitment: 'confirmed', dataSlice: { offset: 0, length: 0 } },
+          ],
+        }),
+        signal: AbortSignal.timeout(12_000),
+      });
+      if (!response.ok) throw new Error(`RPC getAccountInfo returned HTTP ${response.status}`);
+      const body: unknown = await response.json();
+      if (
+        typeof body !== 'object' ||
+        body === null ||
+        !('result' in body) ||
+        typeof (body as Record<string, unknown>).result !== 'object'
+      ) {
+        throw new Error('RPC returned no account information');
+      }
+      const result = (body as { result: Record<string, unknown> }).result;
+      if (!('value' in result)) throw new Error('RPC returned no account information');
+      return (result.value ?? {}) as Record<string, unknown>;
+    } catch (error) {
+      last = error;
+    }
+  }
+  throw new Error(last instanceof Error ? last.message : 'All Solana RPC account reads failed');
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }

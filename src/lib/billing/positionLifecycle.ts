@@ -31,6 +31,7 @@ export const POSITION_LIFECYCLE_GUARD_FAMILIES = [
   'monad_lending',
   'multichain_evm_lending',
   'solana_lending',
+  'solana_perp',
 ] as const;
 
 export type PositionLifecycleGuardFamily = (typeof POSITION_LIFECYCLE_GUARD_FAMILIES)[number];

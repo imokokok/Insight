@@ -3500,11 +3500,11 @@
           "properties": {
             "profileId": {
               "type": "string",
-              "enum": ["solana-orca-whirlpool-usdc-usdt-1"]
+              "enum": ["solana-orca-whirlpool-usdc-usdt-1", "solana-orca-whirlpool-sol-usdc-1"]
             },
             "direction": {
               "type": "string",
-              "enum": ["usdc-to-usdt", "usdt-to-usdc"]
+              "enum": ["usdc-to-usdt", "usdt-to-usdc", "usdc-to-sol", "sol-to-usdc"]
             },
             "sourceDecisionPriceUsd": {
               "type": "number",

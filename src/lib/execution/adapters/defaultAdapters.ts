@@ -35,6 +35,11 @@ import {
   type SolanaLendingGuardExactInput,
   type SolanaLendingGuardResult,
 } from '@/lib/lending/solanaLendingGuard';
+import {
+  assessSolanaPerpGuardExact,
+  type SolanaPerpGuardExactInput,
+  type SolanaPerpGuardExactResult,
+} from '@/lib/perps/solanaPerpGuard';
 import { canonicalJsonString } from '@/lib/utils/canonicalJson';
 
 import { estimateVenueNativeFee, noVenueFeeCommercialTerms } from '../commerce';
@@ -212,6 +217,50 @@ export const solanaSwapAdapter: ExecutionAdapter<SolanaSwapGuardExactInput, Sola
     },
   };
 
+export const solanaPerpAdapter: ExecutionAdapter<
+  SolanaPerpGuardExactInput,
+  SolanaPerpGuardExactResult
+> = {
+  id: 'insight.solana.direct-perp-guard.v1',
+  family: 'solana',
+  supportsObservation: false,
+  async preflight(request) {
+    const native = await assessSolanaPerpGuardExact(request.guard, request.transaction);
+    const state =
+      native.verdict === 'ALLOW' ? 'READY' : native.verdict === 'CAUTION' ? 'CAUTION' : 'BLOCK';
+    const messageHash =
+      native.exactAction?.messageHash ?? solanaLendingMessageHash(request.transaction);
+    return createPreparedExecution({
+      schema: 'insight.prepared-execution.v1',
+      adapterId: this.id,
+      state,
+      authorization: 'user-controlled',
+      intent: { algorithm: 'sha256', digest: messageHash },
+      observedAt: native.evaluatedAt,
+      expiresAt: null,
+      evidence: [
+        {
+          kind: 'protocol-simulation',
+          observedAt: native.simulation?.simulatedAt ?? native.evaluatedAt,
+          source: native.simulation?.network ?? 'solana-mainnet-rpc',
+        },
+      ],
+      caveats: native.reasons,
+      commerce: noVenueFeeCommercialTerms(),
+      payload:
+        state === 'BLOCK'
+          ? null
+          : {
+              kind: 'solana-message',
+              network: native.chainRef,
+              transactionBase64: serializeUnsignedSolanaLendingTransaction(request.transaction),
+              messageHash,
+            },
+      native,
+    });
+  },
+};
+
 function hyperliquidLifecycle(native: HyperliquidPerpExecutionEvidence) {
   if (!native.order.known) return 'NOT_FOUND' as const;
   if (native.order.status === 'filled') return 'CONFIRMED' as const;
@@ -318,6 +367,7 @@ export function createDefaultExecutionAdapterRegistry(): ExecutionAdapterRegistr
     .register(pancakeSwapV3Adapter)
     .register(solanaLendingAdapter)
     .register(solanaSwapAdapter)
+    .register(solanaPerpAdapter)
     .register(hyperliquidPerpAdapter);
 }
 

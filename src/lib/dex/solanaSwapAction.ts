@@ -17,6 +17,7 @@ import {
 } from '@/lib/lending/solanaLendingAction';
 
 import {
+  directionAToB,
   reviewedSolanaSwapProfile,
   SPL_TOKEN_PROGRAM_ID,
   type SolanaSwapGuardDirection,
@@ -128,7 +129,7 @@ export function decodeSolanaSwapExactCall(
     }
   }
 
-  const expectedAToB = expected.direction === 'usdc-to-usdt';
+  const expectedAToB = directionAToB(profile, expected.direction);
   if (aToB !== expectedAToB) {
     throw new Error('Whirlpool swap direction does not match the declared review direction');
   }
