@@ -25,7 +25,9 @@ import type { KeyEntry } from '../src/lib/attestations/keyRegistryConfig';
 const DEFAULT_ISSUER_ORIGIN = 'https://www.oracleinsight.xyz';
 
 function usage(): never {
-  console.error('usage: node --import tsx scripts/build-headless-h4-issuer-profile.mts --out <case-dir>/issuer/profile.json');
+  console.error(
+    'usage: node --import tsx scripts/build-headless-h4-issuer-profile.mts --out <case-dir>/issuer/profile.json'
+  );
   process.exit(2);
 }
 
@@ -58,11 +60,13 @@ function readPublicKeys(value: unknown): KeyEntry[] {
     if (validUntil !== null && typeof validUntil !== 'string') {
       throw new Error(`public_keys[${index}].validUntil must be a string or null`);
     }
-    if (typeof revoked !== 'boolean') throw new Error(`public_keys[${index}].revoked must be a boolean`);
+    if (typeof revoked !== 'boolean')
+      throw new Error(`public_keys[${index}].revoked must be a boolean`);
     if (role !== undefined && role !== 'attester' && role !== 'sample') {
       throw new Error(`public_keys[${index}].role is unsupported`);
     }
-    if (note !== undefined && typeof note !== 'string') throw new Error(`public_keys[${index}].note must be a string`);
+    if (note !== undefined && typeof note !== 'string')
+      throw new Error(`public_keys[${index}].note must be a string`);
     return {
       key_id,
       public_key,
@@ -80,7 +84,8 @@ async function main(): Promise<void> {
   const { output, issuerOrigin } = readArguments();
   const keyUrl = `${new URL(issuerOrigin).origin}/.well-known/oracle-keys.json`;
   const response = await fetch(keyUrl, { headers: { accept: 'application/json' } });
-  if (!response.ok) throw new Error(`published key document GET ${keyUrl} returned ${response.status}`);
+  if (!response.ok)
+    throw new Error(`published key document GET ${keyUrl} returned ${response.status}`);
   const profile = buildHeadlessH4IssuerProfile({
     issuerOrigin,
     publicKeys: readPublicKeys(await response.json()),
