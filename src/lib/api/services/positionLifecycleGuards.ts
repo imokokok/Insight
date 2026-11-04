@@ -31,6 +31,7 @@ import {
   SolanaLendingGuardInputSchema,
 } from '@/lib/lending/solanaLendingGuard';
 import { assessBasePerpGuard, BasePerpGuardInputSchema } from '@/lib/perps/basePerpGuard';
+import { assessBnbPerpGuard, BnbPerpGuardInputSchema } from '@/lib/perps/bnbPerpGuard';
 import {
   assessHyperliquidPerpGuard,
   HyperliquidPerpGuardInputSchema,
@@ -84,6 +85,7 @@ export const POSITION_LIFECYCLE_GUARD_REGISTRY: Record<
     requiresTransaction: true,
     assess: assessSolanaPerpGuardExact,
   },
+  bnb_perp: { paramsSchema: BnbPerpGuardInputSchema, assess: assessBnbPerpGuard },
 };
 
 export function isLifecycleGuardFamily(value: string): value is PositionLifecycleGuardFamily {

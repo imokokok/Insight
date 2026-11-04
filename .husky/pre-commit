@@ -1,5 +1,9 @@
-npm run validate:generated
-npm run workflow:check
-npm run protocol:check
-npm run typecheck
+#!/bin/sh
+set -eu
+
+# Fast local gate: static checks run in parallel (see scripts/run-checks-parallel.mjs).
+# The full CI suite (build, coverage, verifier, e2e) is enforced by required
+# GitHub Actions checks on protected branches. Run `npm run ci:local` manually
+# if you want the complete suite before pushing.
+node scripts/run-checks-parallel.mjs typecheck workflow:check protocol:check validate:generated
 npx lint-staged
