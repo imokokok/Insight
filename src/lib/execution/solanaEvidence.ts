@@ -56,7 +56,8 @@ export function verifySolanaEvidence(
     value.schema !== 'insight.solana-simulation-receipt.v1' &&
     value.schema !== 'insight.solana-lending-guard-decision.v1' &&
     value.schema !== 'insight.solana-swap-guard-decision.v1' &&
-    value.schema !== 'insight.solana-swap-guard-settlement.v1'
+    value.schema !== 'insight.solana-swap-guard-settlement.v1' &&
+    value.schema !== 'insight.solana-perp-guard-decision.v1'
   )
     return false;
   if (
@@ -120,6 +121,9 @@ function isValidPayload(schema: SolanaEvidenceSchema, payload: Record<string, un
   if (schema === 'insight.solana-swap-guard-settlement.v1') {
     return isValidSolanaSwapGuardSettlementPayload(payload);
   }
+  if (schema === 'insight.solana-perp-guard-decision.v1') {
+    return isValidSolanaPerpGuardPayload(payload);
+  }
   const simulation = payload.simulation;
   if (!isRecord(simulation)) return false;
   return (
@@ -156,6 +160,25 @@ function isValidSolanaLendingGuardPayload(payload: Record<string, unknown>): boo
       payload.protocolId === 'save-lend' ||
       payload.protocolId === 'loopscale-vault') &&
     (payload.action === 'supply' || payload.action === 'borrow') &&
+    (payload.verdict === 0 || payload.verdict === 1 || payload.verdict === 2) &&
+    isUnixSeconds(issuedAt) &&
+    isUnixSeconds(validUntil) &&
+    Number(validUntil) >= Number(issuedAt) &&
+    payload.schemaVersion === 1
+  );
+}
+
+function isValidSolanaPerpGuardPayload(payload: Record<string, unknown>): boolean {
+  const issuedAt = payload.issuedAt;
+  const validUntil = payload.validUntil;
+  return (
+    typeof payload.decisionHash === 'string' &&
+    /^0x[0-9a-f]{64}$/i.test(payload.decisionHash) &&
+    typeof payload.messageHash === 'string' &&
+    /^0x[0-9a-f]{64}$/i.test(payload.messageHash) &&
+    isSolanaPublicKey(payload.account) &&
+    payload.protocolId === 'drift-v2-mainnet' &&
+    (payload.action === 'open_long' || payload.action === 'open_short') &&
     (payload.verdict === 0 || payload.verdict === 1 || payload.verdict === 2) &&
     isUnixSeconds(issuedAt) &&
     isUnixSeconds(validUntil) &&

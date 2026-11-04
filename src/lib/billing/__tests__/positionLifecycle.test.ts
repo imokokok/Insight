@@ -38,7 +38,7 @@ describe('position lifecycle plan', () => {
     expect(POSITION_LIFECYCLE_PLAN.priceUsd).toBeLessThan(aLaCarteUsd);
   });
 
-  it('covers the six position-guard families with a bounded budget', () => {
+  it('covers the seven position-guard families with a bounded budget', () => {
     expect(POSITION_LIFECYCLE_GUARD_FAMILIES).toEqual([
       'base_perp',
       'hyperliquid_perp',
@@ -46,6 +46,7 @@ describe('position lifecycle plan', () => {
       'monad_lending',
       'multichain_evm_lending',
       'solana_lending',
+      'solana_perp',
     ]);
     expect(POSITION_LIFECYCLE_PLAN.guardBudget).toBe(4);
     expect(POSITION_LIFECYCLE_PLAN.receiptBudget).toBe(1);

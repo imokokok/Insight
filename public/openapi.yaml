@@ -3410,6 +3410,31 @@ paths:
         '400': { $ref: '#/components/responses/ValidationError' }
         '402': { $ref: '#/components/responses/CreditExhausted' }
 
+  /safety/solana-perp-guard/verify:
+    get:
+      operationId: getSolanaPerpGuardVerificationSchema
+      tags: [Safety]
+      summary: Get Solana perp guard Ed25519 attester information
+      security: []
+      responses:
+        '200': { description: Attester public key and schema status. }
+    post:
+      operationId: verifySolanaPerpGuardDecision
+      tags: [Safety]
+      summary: Verify a Solana perp guard decision
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: { type: object, additionalProperties: true }
+      responses:
+        '200': { description: Cryptographic verification result and expiry state. }
+
   /safety/monad-lending-guard:
     get:
       operationId: assessMonadLendingGuard
