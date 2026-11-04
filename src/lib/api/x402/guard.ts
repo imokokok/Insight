@@ -89,14 +89,39 @@ export type X402AcquisitionSource = (typeof X402_ACQUISITION_SOURCES)[number];
  * advisory analytics metadata: it never controls access, prices, verification,
  * or settlement, and it intentionally cannot carry a wallet, campaign ID, IP,
  * user agent, or free-form client value.
+ *
+ * The self-declared `x-insight-entry-source` header is honored first. Because
+ * most x402 clients never send it (every real external payer to date landed as
+ * `unknown`), passive signals are derived next and mapped strictly onto the
+ * same fixed vocabulary — a referer/origin on our docs paths maps to `docs`,
+ * a referer/origin from a known discovery/listing host maps to `bazaar`, an
+ * x402 SDK user-agent maps to `sdk`, and an interactive browser user-agent
+ * maps to `direct`. Raw referer/UA strings are never persisted; everything
+ * unmapped stays `unknown`.
  */
 export function x402AcquisitionSource(
   request: Pick<NextRequest, 'headers'>
 ): X402AcquisitionSource {
   const value = request.headers.get('x-insight-entry-source')?.trim().toLowerCase();
-  return X402_ACQUISITION_SOURCES.some((source) => source === value)
-    ? (value as X402AcquisitionSource)
-    : 'unknown';
+  if (X402_ACQUISITION_SOURCES.some((source) => source === value)) {
+    return value as X402AcquisitionSource;
+  }
+  return passiveAcquisitionSource(request);
+}
+
+/** Discovery/listing surfaces known to send human or agent traffic to paid routes. */
+const DISCOVERY_HOST_PATTERN = /(x402scan\.com|bazaar\.|agent402\.tools|x402-list\.com)/i;
+const INSIGHT_DOCS_PATTERN = /oracleinsight\.xyz\/(docs|ai)\b/i;
+const BROWSER_UA_PATTERN = /mozilla\/|chrome\/|safari\/|firefox\/|edg\//i;
+
+function passiveAcquisitionSource(request: Pick<NextRequest, 'headers'>): X402AcquisitionSource {
+  const discovery = `${request.headers.get('referer') ?? ''} ${request.headers.get('origin') ?? ''}`;
+  if (INSIGHT_DOCS_PATTERN.test(discovery)) return 'docs';
+  if (DISCOVERY_HOST_PATTERN.test(discovery)) return 'bazaar';
+  const userAgent = request.headers.get('user-agent') ?? '';
+  if (/x402/i.test(userAgent)) return 'sdk';
+  if (BROWSER_UA_PATTERN.test(userAgent)) return 'direct';
+  return 'unknown';
 }
 
 /**
@@ -239,6 +264,29 @@ export function toNextResponse(instructions: HTTPResponseInstructions): NextResp
     response.headers.set(key, value);
   }
   return response;
+}
+
+/**
+ * Count this payer's prior settled x402 payments (excluding the in-flight one,
+ * whose audit row is written after-response). Best-effort monetization signal:
+ * a count >= 1 means a repeat payer, surfaced to the client as the
+ * `x-insight-paid-calls` response header. Returns null when the audit store is
+ * unavailable — the header is simply omitted.
+ */
+async function countSettledCallsForPayer(payer: string): Promise<number | null> {
+  try {
+    const client = createServiceRoleClient();
+    const { count, error } = await client
+      .from('x402_settlements')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'settled')
+      .ilike('payer', payer)
+      .abortSignal(AbortSignal.timeout(X402_AUDIT_TIMEOUT_MS));
+    if (error) return null;
+    return count;
+  } catch {
+    return null;
+  }
 }
 
 export interface X402SettlementAudit {
@@ -928,6 +976,15 @@ export async function handlePaidPreTradeRequest(
       logUnsignedQuoteSample(requestId, request.nextUrl.pathname);
     }
     let response = toNextResponse(result.response);
+    if (!hasPaymentSignature) {
+      // Tell machine clients they may self-declare an entry source. The
+      // vocabulary is the same fixed, non-identifying set the settlement
+      // audit accepts; nothing here affects payment behavior.
+      response.headers.set(
+        'x-insight-entry-source-hint',
+        `optional self-attribution header x-insight-entry-source: ${X402_ACQUISITION_SOURCES.join('|')}`
+      );
+    }
     if (!hasPaymentSignature && cfg.hypercore) {
       try {
         response = await appendHypercoreQuote(
@@ -1069,6 +1126,15 @@ export async function handlePaidPreTradeRequest(
       verdict,
       acquisitionSource,
     });
+    if (settle.payer) {
+      // Repeat-payer signal on the response path: the header only appears
+      // once a payer has at least one prior settled payment. Best-effort —
+      // a count failure must never delay or break the paid response.
+      const priorCalls = await countSettledCallsForPayer(settle.payer);
+      if (priorCalls !== null && priorCalls >= 1) {
+        businessResponse.headers.set('x-insight-paid-calls', String(priorCalls));
+      }
+    }
     if (options?.onSettled) {
       const hookContext: SettledHookContext = {
         requestId,

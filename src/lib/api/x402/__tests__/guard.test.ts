@@ -187,6 +187,35 @@ describe('x402 guard', () => {
       ).toBe('unknown');
     });
 
+    it('derives the entry source passively when the declared header is absent', () => {
+      expect(
+        x402AcquisitionSource(makeRequest({ referer: 'https://oracleinsight.xyz/docs/pre-trade' }))
+      ).toBe('docs');
+      expect(
+        x402AcquisitionSource(makeRequest({ referer: 'https://x402scan.com/insight-oracle' }))
+      ).toBe('bazaar');
+      expect(
+        x402AcquisitionSource(makeRequest({ origin: 'https://agent402.tools', referer: '' }))
+      ).toBe('bazaar');
+      expect(x402AcquisitionSource(makeRequest({ 'user-agent': 'x402-fetch/2.0' }))).toBe('sdk');
+      expect(
+        x402AcquisitionSource(
+          makeRequest({ 'user-agent': 'Mozilla/5.0 (Macintosh) Chrome/130.0 Safari/605.1' })
+        )
+      ).toBe('direct');
+    });
+
+    it('stays unknown for non-browser automation without discovery signals', () => {
+      expect(x402AcquisitionSource(makeRequest({ 'user-agent': 'undici/6.0' }))).toBe('unknown');
+      expect(x402AcquisitionSource(makeRequest())).toBe('unknown');
+      // A declared header always wins over passive derivation.
+      expect(
+        x402AcquisitionSource(
+          makeRequest({ referer: 'https://x402scan.com/x', 'x-insight-entry-source': 'docs' })
+        )
+      ).toBe('docs');
+    });
+
     it('detects API-key credentials for the legacy path', () => {
       expect(hasAuthCredentials(makeRequest({ 'x-api-key': 'isk_...' }))).toBe(true);
       expect(hasAuthCredentials(makeRequest({ authorization: 'Bearer isk_...' }))).toBe(true);
