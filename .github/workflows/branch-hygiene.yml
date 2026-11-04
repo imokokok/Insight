@@ -1,0 +1,33 @@
+name: Branch hygiene
+
+# Squash merges break git ancestry, so merged work stays "unmerged" forever and
+# abandoned branches accumulate. This scheduled sweep deletes branches whose
+# work is provably landed (merged PR, patch-contained commits, identical tree)
+# and reports everything it could not prove, leaving the judgement to a human.
+on:
+  schedule:
+    - cron: '0 2 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: read
+
+concurrency:
+  group: branch-hygiene
+  cancel-in-progress: false
+
+jobs:
+  sweep:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+
+      - name: Sweep landed branches
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/branch-sweep.sh --remote --apply
