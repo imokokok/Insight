@@ -90,7 +90,7 @@ const requiredDeploymentGateFragments = [
   "github.event_name == 'push' || github.event_name == 'workflow_dispatch'",
   'needs: [validate, smoke, runtime-impact]',
   'VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}',
-  'node --import tsx scripts/deploy-vercel-production.mts',
+  'node scripts/deploy-vercel-production.mts',
 ];
 for (const fragment of requiredDeploymentGateFragments) {
   if (!ciWorkflow.includes(fragment)) {
