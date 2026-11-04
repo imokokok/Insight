@@ -36,3 +36,6 @@ workers/turso-ingest-scheduler/worker-configuration.d.ts
 # RAT Score source fixture and golden output are byte-exact cross-repository pins.
 scripts/rat-score-conformance/v1_score_NVDA.fixture.json
 scripts/rat-score-conformance/nvda_consumer_conformance.simulation.json
+
+# Branch sweeper is a portable bash tool; prettier has no shell parser.
+scripts/branch-sweep.sh

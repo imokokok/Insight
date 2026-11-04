@@ -13,26 +13,8 @@ if [ "$actual_node" != "$expected_node" ]; then
   exit 1
 fi
 
-if ! git show-ref --verify --quiet refs/remotes/origin/main; then
-  echo 'CI preflight needs origin/main. Run git fetch origin main first.' >&2
-  exit 1
-fi
-
-export PROTOCOL_GOVERNANCE_BASE
-PROTOCOL_GOVERNANCE_BASE="$(git merge-base HEAD refs/remotes/origin/main)"
-export CI=true
-export NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co
-export NEXT_PUBLIC_SUPABASE_ANON_KEY=ci-anon-key
-export SUPABASE_SERVICE_ROLE_KEY=ci-service-role-key
-export INTERNAL_API_SECRET=ci-internal-secret-that-is-not-used-in-production
-export CSRF_SECRET=ci-csrf-secret-that-is-not-used-in-production
-export JWT_SECRET=ci-jwt-secret-that-is-not-used-in-production
-
-npm run build --prefix verifier
-node verifier/examples/quickstart.mjs --offline
-npm run verifier:release:check
-npm run validate:ci
-PLAYWRIGHT_PORT="$(node -e 'const server = require("node:net").createServer(); server.listen(0, "127.0.0.1", () => { console.log(server.address().port); server.close(); });')"
-export PLAYWRIGHT_PORT
-npx playwright install chromium
-npm run test:e2e -- --project=chromium
+# Lightweight preflight only. The heavy suite (verifier build, validate:ci,
+# Playwright e2e) runs as required GitHub Actions checks on protected branches;
+# run `npm run ci:local` for the complete suite locally.
+npm run typecheck
+npm run lint
