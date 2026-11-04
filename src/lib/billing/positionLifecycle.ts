@@ -27,6 +27,7 @@ import { usdToCredits } from './plans';
 export const POSITION_LIFECYCLE_GUARD_FAMILIES = [
   'base_perp',
   'hyperliquid_perp',
+  'bnb_perp',
   'base_lending',
   'monad_lending',
   'multichain_evm_lending',

@@ -671,6 +671,21 @@ export const X402_SOLANA_SWAP_GUARD_ROUTE = '/api/v1/safety/solana-swap-guard';
  */
 export const X402_SOLANA_PERP_GUARD_ROUTE = '/api/v1/safety/solana-perp-guard';
 
+/**
+ * BNB Chain (Aster Perps) decision gate. GET returns the assessment for one
+ * declared Aster order intent; like every other guard route it must appear
+ * in the payment-scope route map (capabilityPayment.ts) so a keyless x402
+ * caller gets a real 402 quote bound to BNB Smart Chain.
+ */
+export const X402_BNB_PERP_GUARD_ROUTE = '/api/v1/safety/bnb-perp-guard';
+
+/**
+ * Polymarket prediction-market screening gate. Chain-neutral: the assessment
+ * carries no on-chain execution authority, so x402 quotes bind to the
+ * merchant-configured payment rail rather than a specific chain.
+ */
+export const X402_PREDICTION_GUARD_ROUTE = '/api/v1/safety/prediction-guard';
+
 /** Official-API-built Loopscale Solana lending-vault deposit gate. */
 export const X402_LOOPSCALE_VAULT_DEPOSIT_ROUTE = '/api/v1/safety/loopscale-vault-deposit';
 
