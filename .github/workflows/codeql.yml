@@ -9,6 +9,13 @@ on:
   schedule:
     - cron: '17 2 * * 1'
 
+# Rapid successive pushes to main each spawn a 3-4 minute analysis run; keep
+# only the latest so overlapping pushes do not queue redundant runners. The
+# final head SHA is always analyzed to completion.
+concurrency:
+  group: codeql-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
   security-events: write
