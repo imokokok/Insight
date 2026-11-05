@@ -24,6 +24,7 @@ ml/.venv/
 
 # tooling caches
 /.eslintcache
+/.eslintcache.cycles
 /.jest-cache
 
 # next.js
