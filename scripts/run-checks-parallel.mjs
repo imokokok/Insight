@@ -42,6 +42,7 @@ function commandFor(name) {
 
 function run(name) {
   const [command, args] = commandFor(name);
+  const startedAt = Date.now();
   return new Promise((resolve) => {
     const child = spawn(command, args, {
       stdio: ['ignore', 'pipe', 'pipe'],
@@ -71,6 +72,8 @@ function run(name) {
     pipe(child.stderr, process.stderr);
 
     child.on('close', (code) => {
+      const seconds = ((Date.now() - startedAt) / 1000).toFixed(1);
+      console.log(`${tag}finished in ${seconds}s (exit ${code ?? 1})`);
       results.set(name, code ?? 1);
       resolve();
     });
