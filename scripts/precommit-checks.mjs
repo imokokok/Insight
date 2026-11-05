@@ -17,15 +17,49 @@ const scripts = JSON.parse(
 
 const staged = stagedPaths();
 
-const checks = [
-  // Type checking. CI keeps the authoritative `tsc --noEmit` run; tsgo is the
-  // same compiler implemented natively, so it reports the same diagnostics
-  // about an order of magnitude faster.
-  'typecheck:fast',
-  'workflow:check',
-  'protocol:check',
-  ...Object.keys(scripts).filter((name) => name.startsWith('db:check:')),
-];
+const checks = [];
+
+// Type checking. CI keeps the authoritative `tsc --noEmit` run; tsgo is the
+// same compiler implemented natively, so it reports the same diagnostics
+// about an order of magnitude faster. A commit that stages no code and no
+// tsconfig cannot introduce a type error, so it is skipped there.
+if (
+  staged.length === 0 ||
+  touches(
+    staged,
+    /\.(?:ts|tsx|mts|cts|js|jsx|mjs|cjs)$/,
+    /^tsconfig[^/]*\.json$/,
+    /\/(?:tsconfig|jsconfig)[^/]*\.json$/,
+    /^package\.json$/
+  )
+) {
+  checks.push('typecheck:fast');
+}
+
+// Workflow security only reads .github/workflows; the mainline governance
+// check reads protocol/, the workflow directory, the published coverage-trust
+// document, vercel.json and its own helper under scripts/lib.
+if (
+  staged.length === 0 ||
+  touches(
+    staged,
+    /^\.github\/workflows\//,
+    /^protocol\//,
+    /^public\/\.well-known\//,
+    /^vercel\.json$/,
+    /^scripts\/lib\//
+  )
+) {
+  checks.push('workflow:check', 'protocol:check');
+}
+
+// Every db:check:* generator embeds its SQL as a literal and only compares it
+// with the committed file under supabase/migrations (verified: the generators
+// import node builtins only), so nothing outside those two directories can
+// change the outcome.
+if (staged.length === 0 || touches(staged, /^scripts\/migrations\//, /^supabase\/migrations\//)) {
+  checks.push(...Object.keys(scripts).filter((name) => name.startsWith('db:check:')));
+}
 
 // Cron bundles are built from scripts/*.ts, which import from src/**.
 if (
