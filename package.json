@@ -175,7 +175,7 @@
     "@aave-dao/aave-address-book": "^4.75.6",
     "@electric-sql/pglite": "0.5.14",
     "@next/bundle-analyzer": "^16.3.8",
-    "@playwright/test": "^1.63.0",
+    "@playwright/test": "^1.64.1",
     "@tailwindcss/postcss": "^4",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^6.9.1",
