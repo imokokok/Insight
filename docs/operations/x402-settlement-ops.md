@@ -52,6 +52,8 @@
 ### 对账运行手册
 
 1. 每周从 `/ops/x402`（或 service-role 直查）导出 `status='settled'` 行。
+   可直接运行 `npm run audit:x402 -- --days=7`（只读、可重复；全时段用 `--all`）得到外部付费调用数、独立外部 payer 与自有/运营钱包排除结果；用 `--self=<address>` 确认自有钱包，用 `--json` 接入自动化。
+   注意：**自有/运营钱包识别始终基于全时段 `settled` 行**，即使指定 `--days=7`。否则高频运营钱包在短窗口内只有 1 次调用、1 个活跃日，会被误判成「新外部付费客户」（2026-11-03 的 `0x1bf19c0e…091dec` 即触发过该误判，已修复）。漏斗与 headline 仍按所选窗口计算。
 2. 将 `tx_hash` + `amount_usdc` 与链上 `X402_PAY_TO` 地址的 USDC 余额变动对账（0077 迁移注释中的既定流程；Gate-2 演练行 `0x7363e7c2…`、2026-10-27 亦可用作锚点样本）。
 3. 关注 `settlement_failed` / `business_failed` 比例异常与 `payment_rejected` 突增（facilitator 拒签往往是密钥/域名配置漂移的第一信号）。
 

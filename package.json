@@ -53,6 +53,7 @@
     "sdk:test": "npm --prefix sdk test",
     "knip": "knip",
     "audit:api": "node scripts/api-usage-audit.mjs",
+    "audit:x402": "node scripts/x402-revenue-audit.mjs",
     "perf:budget": "node scripts/check-home-bundle-budget.mjs",
     "protocol:check": "node scripts/check-mainline-governance.mjs",
     "audit:raul": "node scripts/api-usage-audit.mjs --name ThoughtProof",
