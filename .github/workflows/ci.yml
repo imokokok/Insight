@@ -311,11 +311,17 @@ jobs:
 
   deploy-production:
     name: Deploy production (gated and verified)
+    # Branch protection requires `validate`, `smoke`, and `analyze` before any
+    # pull request can reach main, so by the time this push exists the tree was
+    # already validated. The post-merge suite still runs on main as a canary,
+    # but the deploy no longer waits ~230s behind that duplicate run: it starts
+    # as soon as the runtime-impact classification finishes. The post-deploy
+    # live smoke below remains the gate for the artifact that reaches users.
     if: >-
       github.ref == 'refs/heads/main' &&
       (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
       needs.runtime-impact.outputs.runtime == 'true'
-    needs: [validate, smoke, runtime-impact]
+    needs: [runtime-impact]
     runs-on: ubuntu-24.04
     # Environment-scoped deployment: only the `main` branch may deploy to
     # production, and the VERCEL_* secrets are (or will be) scoped to this
