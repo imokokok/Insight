@@ -29,8 +29,10 @@ import { buildWatchRow, fetchPriceContractMarkets, type GammaMarket } from './po
 import {
   ensureSettlementEvidenceSchema,
   getCandleMeta,
+  getEvidencePack,
   getOracleConsensusObservations,
   getSettlementCandles,
+  getWatchMarket,
   listRecentlySettledWatchMarkets,
   upsertEvidencePack,
   upsertSettlementCandles,
@@ -38,7 +40,13 @@ import {
 } from './repository';
 import { signSettlementEvidence } from './signing';
 
-import type { SettlementCandleMeta, SettlementMarketWatchRow } from './types';
+import type {
+  SettlementCandleMeta,
+  SettlementEvidenceGrade,
+  SettlementEvidencePack,
+  SettlementEvidencePayload,
+  SettlementMarketWatchRow,
+} from './types';
 
 const logger = createLogger('SettlementEvidenceCollector');
 
@@ -146,6 +154,47 @@ export async function collectWindowCandles(
 }
 
 /**
+ * Grade one settled watch row: build the payload, sign it, persist the pack,
+ * and return the artifacts the caller needs for alerting/counters. Throws on
+ * infrastructure failure — the scheduled loop catches per-market so one bad
+ * window never blocks the rest.
+ */
+async function gradeAndPersistWatchRow(
+  row: SettlementMarketWatchRow,
+  options: CollectSettlementEvidenceOptions,
+  nowMs: number
+): Promise<{ pack: SettlementEvidencePack; payload: SettlementEvidencePayload; signed: boolean }> {
+  const candles = await getSettlementCandles(row.marketSlug);
+  const meta = await getCandleMeta(row.marketSlug);
+  const oracleObservations = await getOracleConsensusObservations(
+    row.asset,
+    row.windowStartMs - 60 * 60 * 1000,
+    row.windowEndMs + 60 * 60 * 1000
+  );
+
+  const payload = buildEvidencePayload({
+    row,
+    candles,
+    candleSource: meta?.venue ?? null,
+    candleRightsScope: (meta?.rightsScope as SettlementCandleMeta['rightsScope']) ?? null,
+    candleDeliveryPolicy: meta?.deliveryPolicy ?? null,
+    oracleObservations,
+    nowMs,
+  });
+  const pack = assembleEvidencePack({ payload, attestation: null });
+  const attestation = await signSettlementEvidence(
+    payload,
+    pack.payloadHash,
+    options.attester ?? undefined
+  );
+  const signedPack = attestation ? { ...pack, attestation } : pack;
+
+  await upsertEvidencePack({ pack: signedPack, grade: payload.grade, nowMs });
+  logGradedEvidence(payload);
+  return { pack: signedPack, payload, signed: attestation !== null };
+}
+
+/**
  * Build + persist + sign evidence packs for settled, RESOLVED windows in the
  * lookback horizon. Idempotent: rebuilding a window overwrites the stored pack
  * with the same derived analytics (generatedAtMs changes only on new grades).
@@ -173,34 +222,13 @@ export async function buildAndPersistEvidencePacks(
     if (nowMs - row.windowStartMs > MAX_CANDLE_WINDOW_MS) continue;
 
     try {
-      const candles = await getSettlementCandles(row.marketSlug);
-      const meta = await getCandleMeta(row.marketSlug);
-      const oracleObservations = await getOracleConsensusObservations(
-        row.asset,
-        row.windowStartMs - 60 * 60 * 1000,
-        row.windowEndMs + 60 * 60 * 1000
-      );
-
-      const payload = buildEvidencePayload({
-        row,
-        candles,
-        candleSource: meta?.venue ?? null,
-        candleRightsScope: (meta?.rightsScope as SettlementCandleMeta['rightsScope']) ?? null,
-        candleDeliveryPolicy: meta?.deliveryPolicy ?? null,
-        oracleObservations,
-        nowMs,
-      });
-      const pack = assembleEvidencePack({ payload, attestation: null });
-      const attestation = await signSettlementEvidence(
+      const {
+        pack,
         payload,
-        pack.payloadHash,
-        options.attester ?? undefined
-      );
-      const signedPack = attestation ? { ...pack, attestation } : pack;
-
-      await upsertEvidencePack({ pack: signedPack, grade: payload.grade, nowMs });
+        signed: isSigned,
+      } = await gradeAndPersistWatchRow(row, options, nowMs);
       built += 1;
-      if (attestation) signed += 1;
+      if (isSigned) signed += 1;
       grades[payload.grade] = (grades[payload.grade] ?? 0) + 1;
       if (payload.grade === 'inconsistent') {
         inconsistentAlerts.push({
@@ -217,7 +245,6 @@ export async function buildAndPersistEvidencePacks(
           payloadHash: pack.payloadHash,
         });
       }
-      logGradedEvidence(payload);
     } catch (error) {
       logger.warn('Evidence build failed for market; remaining markets continue', {
         marketSlug: row.marketSlug,
@@ -229,6 +256,85 @@ export async function buildAndPersistEvidencePacks(
   // durable; a webhook outage only loses the ping, never the data.
   const alertsSent = await sendInconsistentAlerts(inconsistentAlerts);
   return { built, signed, grades, alertsSent };
+}
+
+/**
+ * Why an on-demand grade could not (or did not need to) build a fresh pack.
+ * These are caller-facing outcomes, not infrastructure errors.
+ */
+export type OnDemandEvidencePackOutcome =
+  | { status: 'not_found'; reason: 'WATCH_MARKET_NOT_FOUND' }
+  | { status: 'too_early'; reason: 'WINDOW_NOT_RESOLVED' }
+  | { status: 'unresolved'; reason: 'MARKET_UNRESOLVED' }
+  | { status: 'too_old'; reason: 'WINDOW_TOO_OLD' };
+
+export interface OnDemandEvidencePackBuilt {
+  status: 'built';
+  pack: SettlementEvidencePack;
+  grade: SettlementEvidenceGrade;
+  signed: boolean;
+}
+
+export interface OnDemandEvidencePackCached {
+  status: 'cached';
+  pack: SettlementEvidencePack;
+}
+
+export type OnDemandEvidencePackResult =
+  | OnDemandEvidencePackBuilt
+  | OnDemandEvidencePackCached
+  | OnDemandEvidencePackOutcome;
+
+/**
+ * On-demand grade for ONE market slug — the paid entry point behind
+ * `POST /api/v1/markets/settlement-evidence/grade`. Mirrors the scheduled
+ * `buildAndPersistEvidencePacks` gates exactly (grace, resolution, candle
+ * window age) so a paid call and the cron run never disagree. Idempotent:
+ * an existing persisted pack is returned as `cached` and is never downgraded
+ * (a stale candle source must not turn an existing pack into
+ * insufficient_data — same rule the cron path enforces by skipping).
+ */
+export async function buildOrFetchEvidencePackForSlug(
+  slug: string,
+  options: CollectSettlementEvidenceOptions = {}
+): Promise<OnDemandEvidencePackResult> {
+  const nowMs = options.nowMs ?? Date.now();
+
+  const existing = await getEvidencePack(slug);
+  if (existing) return { status: 'cached', pack: existing };
+
+  const row = await getWatchMarket(slug);
+  if (!row) return { status: 'not_found', reason: 'WATCH_MARKET_NOT_FOUND' };
+  if (nowMs < row.windowEndMs + RESOLUTION_GRACE_MS) {
+    return { status: 'too_early', reason: 'WINDOW_NOT_RESOLVED' };
+  }
+  if (!row.closed || row.declaredOutcome === null) {
+    return { status: 'unresolved', reason: 'MARKET_UNRESOLVED' };
+  }
+  if (nowMs - row.windowStartMs > MAX_CANDLE_WINDOW_MS) {
+    return { status: 'too_old', reason: 'WINDOW_TOO_OLD' };
+  }
+
+  const { pack, payload, signed } = await gradeAndPersistWatchRow(row, options, nowMs);
+  if (payload.grade === 'inconsistent') {
+    // Same discipline as the scheduled path: alert after persistence, best-effort.
+    await sendInconsistentAlerts([
+      {
+        marketSlug: payload.marketSlug,
+        asset: payload.asset,
+        settlementVenue: payload.settlementVenue,
+        declaredOutcome: payload.declaredOutcome,
+        independentOutcome: payload.independentOutcome,
+        priceChangeBps: payload.priceChangeBps,
+        oracleDeviationBps: payload.oracleDeviationBps,
+        candleCoverageE4: payload.candleCoverageE4,
+        windowStartMs: payload.windowStartMs,
+        windowEndMs: payload.windowEndMs,
+        payloadHash: pack.payloadHash,
+      },
+    ]);
+  }
+  return { status: 'built', pack, grade: payload.grade, signed };
 }
 
 export async function collectSettlementEvidence(

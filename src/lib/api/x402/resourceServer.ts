@@ -28,6 +28,7 @@ import {
   X402_SOLANA_SWAP_GUARD_ROUTE,
   X402_BNB_PERP_GUARD_ROUTE,
   X402_PREDICTION_GUARD_ROUTE,
+  X402_SETTLEMENT_EVIDENCE_GRADE_ROUTE,
   X402_LOOPSCALE_VAULT_DEPOSIT_ROUTE,
   X402_EXECUTION_PREFLIGHT_ROUTE,
   X402_MCP_ROUTE,
@@ -928,6 +929,10 @@ export async function buildX402HttpServer(
     [X402_LOOPSCALE_VAULT_DEPOSIT_ROUTE]: routeConfigWithoutDiscovery(
       cfg,
       'Loopscale Vault Deposit Guard: a read-only, pre-signing preparation for one official Loopscale Solana lending-vault deposit. POST validates live vault metadata and principal mint, accepts only a single returned message with no preliminary transactions, resolves address lookup tables, simulates the exact unsigned message, and may return an Insight Ed25519 decision attestation. It never authorizes or broadcasts a transaction.'
+    ),
+    [X402_SETTLEMENT_EVIDENCE_GRADE_ROUTE]: routeConfigWithoutDiscovery(
+      cfg,
+      'Settlement Evidence Grade: an on-demand, idempotent grade of one settled Polymarket price contract against Insight’s independent sources (Kraken settlement-window candles plus the platform’s own oracle-consensus snapshots). POST takes a market slug only; the declared outcome is always read from Insight’s own watch list, never from the caller. Returns a signed EIP-712 evidence pack carrying derived analytics only — verdict, bps deltas, and coverage statistics — that a third party can independently recompute and verify against Insight’s published attester. Existing packs are returned cached and are never downgraded.'
     ),
     [X402_SWAP_INTENT_ROUTE]: routeConfigFor(
       cfg,
