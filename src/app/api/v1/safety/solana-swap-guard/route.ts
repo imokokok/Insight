@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
 import {
   ApiResponseBuilder,
@@ -7,9 +7,8 @@ import {
   V1_STANDARD_MIDDLEWARES,
 } from '@/lib/api/handler';
 import { CACHE_PRESETS } from '@/lib/api/utils';
-import { x402ConfigForPaymentScope, X402_PAYMENT_SCOPE } from '@/lib/api/x402/capabilityPayment';
-import { getX402Config } from '@/lib/api/x402/config';
-import { handlePaidPreTradeRequest, hasAuthCredentials, isPaidRequest } from '@/lib/api/x402/guard';
+import { X402_PAYMENT_SCOPE } from '@/lib/api/x402/capabilityPayment';
+import { createPaidRouteMethod } from '@/lib/api/x402/paidRoute';
 import {
   SolanaSwapGuardExactInputSchema,
   type SolanaSwapGuardExactInput,
@@ -56,42 +55,12 @@ const legacyPost = createApiHandler(
  * transaction.  The response never signs, broadcasts, or grants execution
  * authority; an ALLOW must still be user-authorized through PriorSeal.
  */
-export const POST = async (
-  request: NextRequest,
-  routeContext: { params: Promise<Record<string, string>> }
-): Promise<NextResponse> => {
-  const config = x402ConfigForPaymentScope(getX402Config(), X402_PAYMENT_SCOPE.solana);
-  if (config && (isPaidRequest(request) || !hasAuthCredentials(request))) {
-    return handlePaidPreTradeRequest(request, config, async (requestId) => {
-      let body: unknown;
-      try {
-        body = await request.json();
-      } catch {
-        return NextResponse.json(
-          ApiResponseBuilder.error(
-            'VALIDATION_ERROR',
-            'Expected a JSON exact Solana swap decision body',
-            { requestId }
-          ),
-          { status: 400, headers: { 'Cache-Control': CACHE_PRESETS.noStore } }
-        );
-      }
-      const parsed = SolanaSwapGuardExactInputSchema.safeParse(body);
-      if (!parsed.success) {
-        return NextResponse.json(
-          ApiResponseBuilder.error(
-            'VALIDATION_ERROR',
-            'Invalid Solana Swap Guard exact-transaction body',
-            {
-              requestId,
-              details: { issues: parsed.error.issues.map((issue) => issue.path.join('.')) },
-            }
-          ),
-          { status: 400, headers: { 'Cache-Control': CACHE_PRESETS.noStore } }
-        );
-      }
-      return executeDecision(parsed.data, requestId);
-    });
-  }
-  return legacyPost(request, routeContext);
-};
+export const POST = createPaidRouteMethod({
+  scope: X402_PAYMENT_SCOPE.solana,
+  source: 'body',
+  schema: SolanaSwapGuardExactInputSchema,
+  inputLabel: 'Solana Swap Guard exact-transaction body',
+  bodyParseError: 'Expected a JSON exact Solana swap decision body',
+  execute: executeDecision,
+  fallback: legacyPost,
+});

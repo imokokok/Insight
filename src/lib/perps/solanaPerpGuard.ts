@@ -29,10 +29,7 @@
 import { getProgramDerivedAddress, type Address } from '@solana/kit';
 import { z } from 'zod';
 
-import {
-  preTradeSafetyCheck,
-  type PreTradeSafetyResult,
-} from '@/lib/api/services/preTradeSafetyService';
+import { preTradeSafetyCheck } from '@/lib/api/services/preTradeSafetyService';
 import { getRpcEndpoints } from '@/lib/execution/rpcEndpoints';
 import { simulateSolanaTransaction } from '@/lib/execution/solanaSimulation';
 import {
@@ -48,6 +45,18 @@ import {
   SOLANA_MAINNET_CAIP2,
   type DriftPerpMarketEvidence,
 } from '@/lib/perps/driftPerpMarket';
+import {
+  bps,
+  escalatePerpGuardVerdict,
+  evaluatePerpGuardLeverageBand,
+  evaluatePerpGuardLeverageVerdicts,
+  evaluatePerpGuardVenueIntegrity,
+  isBlockingOracleVerdict,
+  roundTo,
+  summarizeOracleCheck,
+  type PerpGuardOracleCheckSummary,
+  type PerpGuardVerdict,
+} from '@/lib/perps/perpGuardKernel';
 import {
   decodeSolanaPerpExactCall,
   DRIFT_BASE_PRECISION,
@@ -70,18 +79,6 @@ const REVIEWED_MARKETS = {
 } as const satisfies Record<string, { maxLeverage: number }>;
 
 /**
- * Reviewed venue-integrity thresholds for the venue's own mark/oracle
- * divergence. These are static guard values, not caller-set preflight limits.
- */
-const MARK_ORACLE_DEVIATION_CAUTION_BPS = 100;
-const MARK_ORACLE_DEVIATION_BLOCK_BPS = 1_000;
-/**
- * Reviewed cross-venue deviation between Insight's cross-oracle consensus
- * price and the Drift oracle price.
- */
-const CONSENSUS_VENUE_DEVIATION_CAUTION_PCT = 1;
-const CONSENSUS_VENUE_DEVIATION_BLOCK_PCT = 5;
-/**
  * Reviewed open-interest utilisation bands against the on-chain
  * maxOpenInterest backstop. Near the cap, new size cannot open reliably and
  * liquidation cascades propagate through the AMM.
@@ -89,7 +86,11 @@ const CONSENSUS_VENUE_DEVIATION_BLOCK_PCT = 5;
 const OPEN_INTEREST_UTILIZATION_CAUTION_PCT = 85;
 const OPEN_INTEREST_UTILIZATION_BLOCK_PCT = 98;
 
-export type SolanaPerpGuardVerdict = 'ALLOW' | 'CAUTION' | 'BLOCK';
+/**
+ * Shared kernel verdict ladder. The guard's public verdict type is preserved
+ * verbatim; escalation itself lives in the kernel.
+ */
+export type SolanaPerpGuardVerdict = PerpGuardVerdict;
 
 export const SolanaPerpGuardInputSchema = z.object({
   protocolId: z.literal(SOLANA_PERP_GUARD_DRIFT_V2_PROTOCOL_ID),
@@ -104,16 +105,8 @@ export const SolanaPerpGuardInputSchema = z.object({
 });
 export type SolanaPerpGuardInput = z.infer<typeof SolanaPerpGuardInputSchema>;
 
-export interface SolanaPerpGuardOracleCheckSummary {
-  verdict: PreTradeSafetyResult['verdict'];
-  consensusPrice: number;
-  maxDeviationPct: number;
-  staleDataRisk: boolean;
-  participantCount: number;
-  /** A reference to the separately verifiable Oracle Safety attestation, if configured. */
-  attestationUid: string | null;
-  attester: string | null;
-}
+/** Shared kernel oracle-check summary shape (identical across perp venues). */
+export type SolanaPerpGuardOracleCheckSummary = PerpGuardOracleCheckSummary;
 
 export interface SolanaPerpGuardVenueEvidence {
   status: 'observed' | 'unavailable';
@@ -214,32 +207,6 @@ function normalizeSymbol(symbol: string): string {
     .trim()
     .toUpperCase()
     .replace(/-PERP$/, '');
-}
-
-function summarize(result: PreTradeSafetyResult): SolanaPerpGuardOracleCheckSummary {
-  return {
-    verdict: result.verdict,
-    consensusPrice: result.consensusPrice,
-    maxDeviationPct: result.maxDeviationPct,
-    staleDataRisk: result.staleDataRisk,
-    participantCount: result.participantCount,
-    attestationUid: result.attestation?.uid ?? null,
-    attester: result.attestation?.attester ?? null,
-  };
-}
-
-function isBlockingOracleVerdict(verdict: PreTradeSafetyResult['verdict']): boolean {
-  return verdict === 'DANGER' || verdict === 'BLOCK';
-}
-
-function bps(numerator: number, denominator: number): number {
-  if (!(denominator > 0)) return Number.POSITIVE_INFINITY;
-  return ((numerator - denominator) / denominator) * 10_000;
-}
-
-function roundTo(value: number, digits: number): number {
-  const factor = 10 ** digits;
-  return Math.round(value * factor) / factor;
 }
 
 /**
@@ -389,17 +356,22 @@ export async function assessSolanaPerpGuard(
   const venue: SolanaPerpGuardVenueEvidence =
     venueState ?? fetchSolanaPerpGuardVenueStateSyncUnavailable(evaluatedAt);
 
-  const effectiveLeverage = input.sizeUsd / input.marginValueUsd;
   // The on-chain margin ratio can be changed by Drift governance at any time;
   // the guard binds to the lower of the reviewed profile and the freshly
   // observed venue value, and discloses when the live value is missing.
-  const liveMaxLeverage = venue.liveMaxLeverage;
-  const cappedByLive = liveMaxLeverage !== null && liveMaxLeverage < profile.maxLeverage;
-  const maxLeverage = cappedByLive ? (liveMaxLeverage as number) : profile.maxLeverage;
-  const liquidationBufferPct = Math.max(0, (1 - effectiveLeverage / maxLeverage) * 100);
-  // 90% of the effective cap leaves a mechanical buffer. This is advisory; it
-  // is not a claim that the position is safe under every move.
-  const conservativeMaxSizeUsd = roundTo(input.marginValueUsd * maxLeverage * 0.9, 2);
+  const band = evaluatePerpGuardLeverageBand(
+    input.sizeUsd,
+    input.marginValueUsd,
+    profile.maxLeverage,
+    venue.liveMaxLeverage
+  );
+  const {
+    effectiveLeverage,
+    maxLeverage,
+    cappedByLive,
+    liquidationBufferPct,
+    conservativeMaxSizeUsd,
+  } = band;
 
   const reasons: string[] = [];
   let verdict: SolanaPerpGuardVerdict = 'ALLOW';
@@ -411,19 +383,12 @@ export async function assessSolanaPerpGuard(
     verdict = 'BLOCK';
     reasons.push('At least one underlying or margin oracle assessment is DANGER or BLOCK.');
   }
-  if (effectiveLeverage >= maxLeverage) {
-    verdict = 'BLOCK';
-    reasons.push(
-      'Declared post-action leverage is at or above the effective leverage cap, leaving no reviewed buffer.'
-    );
-  } else if (effectiveLeverage >= maxLeverage * 0.9) {
-    if (verdict !== 'BLOCK') verdict = 'CAUTION';
-    reasons.push(
-      'Declared post-action leverage consumes at least 90% of the effective leverage cap.'
-    );
-  }
+  // Mechanical leverage-band verdicts (kernel-owned wording, monotonic merge).
+  const leverageVerdicts = evaluatePerpGuardLeverageVerdicts(effectiveLeverage, maxLeverage);
+  verdict = escalatePerpGuardVerdict(verdict, leverageVerdicts.verdict);
+  reasons.push(...leverageVerdicts.reasons);
   if (underlyingResult.verdict === 'CAUTION' || marginResult.verdict === 'CAUTION') {
-    if (verdict !== 'BLOCK') verdict = 'CAUTION';
+    verdict = escalatePerpGuardVerdict(verdict, 'CAUTION');
     reasons.push('At least one oracle assessment requires review before execution.');
   }
 
@@ -434,39 +399,26 @@ export async function assessSolanaPerpGuard(
       'Drift venue evidence was unavailable; the verdict rests on oracle consensus and the declared leverage band only.'
     );
   } else {
-    // Fail closed: a missing mark/oracle deviation counts as maximum divergence.
-    const deviation = venue.markOracleDeviationBps ?? Number.POSITIVE_INFINITY;
-    if (deviation >= MARK_ORACLE_DEVIATION_BLOCK_BPS) {
-      verdict = 'BLOCK';
-      reasons.push(
-        `Drift mark/oracle divergence ${deviation === Number.POSITIVE_INFINITY ? 'is unobservable' : `${venue.markOracleDeviationBps?.toFixed(2)} bps`} and is at or above the reviewed ${MARK_ORACLE_DEVIATION_BLOCK_BPS} bps backstop.`
-      );
-    } else if (deviation >= MARK_ORACLE_DEVIATION_CAUTION_BPS) {
-      if (verdict !== 'BLOCK') verdict = 'CAUTION';
-      reasons.push(
-        `Drift mark/oracle divergence ${venue.markOracleDeviationBps?.toFixed(2)} bps exceeds the reviewed ${MARK_ORACLE_DEVIATION_CAUTION_BPS} bps advisory band.`
-      );
-    }
-    const crossVenue = venue.consensusVenueDeviationPct;
-    if (crossVenue !== null) {
-      if (crossVenue >= CONSENSUS_VENUE_DEVIATION_BLOCK_PCT) {
-        verdict = 'BLOCK';
-        reasons.push(
-          `Insight cross-oracle consensus diverges ${crossVenue.toFixed(2)}% from the Drift oracle price, at or above the reviewed ${CONSENSUS_VENUE_DEVIATION_BLOCK_PCT}% backstop.`
-        );
-      } else if (crossVenue >= CONSENSUS_VENUE_DEVIATION_CAUTION_PCT) {
-        if (verdict !== 'BLOCK') verdict = 'CAUTION';
-        reasons.push(
-          `Insight cross-oracle consensus diverges ${crossVenue.toFixed(2)}% from the Drift oracle price, above the reviewed ${CONSENSUS_VENUE_DEVIATION_CAUTION_PCT}% advisory band.`
-        );
-      }
-    }
-    if (venue.drift.marketStatus !== null && venue.drift.marketStatus !== 'active') {
-      verdict = 'BLOCK';
-      reasons.push(
-        `Drift market status is ${venue.drift.marketStatus}, not active; trading is not in the reviewed operating state.`
-      );
-    }
+    // Cross-venue deviation is computed here so it can both disclose and escalate.
+    const consensusPrice = underlyingResult.consensusPrice;
+    const consensusVenueDeviationPct =
+      venue.oraclePrice !== null && consensusPrice > 0
+        ? roundTo(Math.abs(((venue.oraclePrice - consensusPrice) / consensusPrice) * 100), 4)
+        : null;
+    venue.consensusVenueDeviationPct = consensusVenueDeviationPct;
+
+    const venueIntegrity = evaluatePerpGuardVenueIntegrity({
+      venueLabel: 'Drift',
+      indexPriceLabel: 'oracle price',
+      divergenceLabel: 'mark/oracle',
+      expectedStatus: 'active',
+      markIndexDeviationBps: venue.markOracleDeviationBps,
+      consensusVenueDeviationPct,
+      marketStatus: venue.drift.marketStatus,
+    });
+    verdict = escalatePerpGuardVerdict(verdict, venueIntegrity.verdict);
+    reasons.push(...venueIntegrity.reasons);
+
     if (venue.drift.openInterestUtilizationPct !== null) {
       if (venue.drift.openInterestUtilizationPct >= OPEN_INTEREST_UTILIZATION_BLOCK_PCT) {
         verdict = 'BLOCK';
@@ -496,26 +448,6 @@ export async function assessSolanaPerpGuard(
     );
   }
 
-  // Cross-venue deviation is computed here so it can both disclose and escalate.
-  const consensusPrice = underlyingResult.consensusPrice;
-  if (venue.status === 'observed' && venue.oraclePrice !== null && consensusPrice > 0) {
-    venue.consensusVenueDeviationPct = roundTo(
-      Math.abs(((venue.oraclePrice - consensusPrice) / consensusPrice) * 100),
-      4
-    );
-    if (venue.consensusVenueDeviationPct >= CONSENSUS_VENUE_DEVIATION_BLOCK_PCT) {
-      verdict = 'BLOCK';
-      reasons.push(
-        `Insight cross-oracle consensus diverges ${venue.consensusVenueDeviationPct.toFixed(2)}% from the Drift oracle price, at or above the reviewed ${CONSENSUS_VENUE_DEVIATION_BLOCK_PCT}% backstop.`
-      );
-    } else if (venue.consensusVenueDeviationPct >= CONSENSUS_VENUE_DEVIATION_CAUTION_PCT) {
-      if (verdict !== 'BLOCK') verdict = 'CAUTION';
-      reasons.push(
-        `Insight cross-oracle consensus diverges ${venue.consensusVenueDeviationPct.toFixed(2)}% from the Drift oracle price, above the reviewed ${CONSENSUS_VENUE_DEVIATION_CAUTION_PCT}% advisory band.`
-      );
-    }
-  }
-
   return {
     schema: SOLANA_PERP_GUARD_SCHEMA_VERSION,
     verdict,
@@ -532,11 +464,7 @@ export async function assessSolanaPerpGuard(
       assetSymbol: input.assetSymbol,
       marginAssetSymbol: input.marginAssetSymbol,
       maxLeverage,
-      maxLeverageSource: cappedByLive
-        ? 'reviewed-profile-capped-by-live-venue'
-        : liveMaxLeverage === null
-          ? 'reviewed-profile-live-unavailable'
-          : 'reviewed-profile',
+      maxLeverageSource: band.maxLeverageSource,
       parameterSource: 'reviewed-profile',
     },
     projected: {
@@ -546,7 +474,10 @@ export async function assessSolanaPerpGuard(
       liquidationBufferPct: roundTo(liquidationBufferPct, 4),
       conservativeMaxSizeUsd,
     },
-    oracleChecks: { underlying: summarize(underlyingResult), margin: summarize(marginResult) },
+    oracleChecks: {
+      underlying: summarizeOracleCheck(underlyingResult),
+      margin: summarizeOracleCheck(marginResult),
+    },
     venue,
     reasons,
     next: {
