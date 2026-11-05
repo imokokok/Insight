@@ -30,6 +30,7 @@ import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 
 const TYPES = ['feat', 'fix', 'chore', 'docs', 'test', 'perf', 'ops', 'refactor'];
+const VALUE_OPTIONS = ['type', 'base', 'session', 'message', 'm', 'stale-days', 'wait-minutes'];
 const DEFAULT_BASE = 'origin/main';
 const PORT_RANGE_START = 3300;
 const PORT_RANGE_SIZE = 600;
@@ -727,8 +728,6 @@ function branchName(type, slug, session) {
 function sessionId() {
   return option('session') ?? process.env.INSIGHT_AGENT_SESSION ?? 'local';
 }
-
-const VALUE_OPTIONS = ['type', 'base', 'session', 'message', 'm', 'stale-days', 'wait-minutes'];
 
 function positional(index) {
   const values = [];
