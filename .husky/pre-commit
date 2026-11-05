@@ -1,9 +1,10 @@
 #!/bin/sh
 set -eu
 
-# Fast local gate: static checks run in parallel (see scripts/run-checks-parallel.mjs).
-# The full CI suite (build, coverage, verifier, e2e) is enforced by required
-# GitHub Actions checks on protected branches. Run `npm run ci:local` manually
-# if you want the complete suite before pushing.
-node scripts/run-checks-parallel.mjs typecheck workflow:check protocol:check validate:generated
+# Fast local gate. scripts/precommit-checks.mjs plans and runs the static checks
+# in parallel, skipping generated-artifact checks whose inputs were not staged.
+# The full CI suite (full lint/typecheck/build/coverage/e2e) stays enforced by
+# required GitHub Actions checks on protected branches; `npm run ci:local`
+# reproduces it locally.
+node scripts/precommit-checks.mjs
 npx lint-staged
