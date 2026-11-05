@@ -90,6 +90,13 @@ const eslintConfig = defineConfig([
       'import/no-duplicates': 'error',
       'import/first': 'error',
       'import/newline-after-import': 'error',
+      // Import-cycle radar. The installed eslint-plugin-import has no
+      // allowTypes option, and the remaining cycles are all type-only
+      // back-edges (erased at compile time), so this ships as a warning:
+      // it keeps every cycle visible in lint output without blocking CI.
+      // Fix new runtime cycles on sight; flip to 'error' once the plugin
+      // supports allowTypes or the type-only back-edges are untangled.
+      'import/no-cycle': 'warn',
 
       // 通用代码质量规则
       'no-console': ['warn', { allow: ['warn', 'error'] }],
