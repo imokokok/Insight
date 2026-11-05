@@ -3,8 +3,10 @@ name: DB Health Watch
 # Lightweight watchdog for the Supabase free-tier nano instance. The
 # 2026-11-04T20:00Z incident (db+rest UNHEALTHY, queries hanging 90s+) was only
 # noticed because a Snapshot Collect run failed; this watch detects the same
-# condition directly and files/updates a GitHub issue so it is visible within
-# 15 minutes.
+# condition directly and files/updates a GitHub issue. GitHub throttles
+# scheduled workflows on public repos (measured: 15-min crons firing every
+# 4-8h), so the probe is paired with a collector-heartbeat check whose signal
+# is durable across skipped slots — see the step comment below.
 #
 # Schedule is deliberately offset from every other writer:
 #   :00/:15/:30/:45  Snapshot Collect (Supabase-dispatched)
@@ -80,18 +82,52 @@ jobs:
             echo "healthy=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: File or update incident issue (unhealthy)
-        if: steps.probe.outputs.healthy == 'false'
+      # GitHub heavily throttles scheduled workflows on public repos: the
+      # :08/:23/:38/:53 slots above can be skipped for hours (measured: the
+      # 15-min Coverage SLO workflow fired only ~every 4-8h). A momentary
+      # probe can therefore miss an outage entirely. The Supabase-owned
+      # pg_cron clock dispatches Snapshot Collect every 15 min reliably; when
+      # the DB hangs those dispatches stop, so a stale last-run is a durable
+      # signal of the same incident (detectable even hours later).
+      - name: Check collector heartbeat
+        id: freshness
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
         run: |
           set -eu
+          last="$(gh run list --repo "$REPO" --workflow snapshot-collect.yml --limit 1 --json createdAt --jq '.[0].createdAt' || true)"
+          if [ -z "$last" ]; then
+            echo "no collector run found"
+            echo "stale=true" >> "$GITHUB_OUTPUT"
+            echo "last_run=none" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          age=$(( ( $(date -u +%s) - $(date -u -d "$last" +%s) ) / 60 ))
+          echo "last collector run: $last (${age}m ago)"
+          echo "last_run=$last" >> "$GITHUB_OUTPUT"
+          if [ "$age" -gt 45 ]; then
+            echo "stale=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "stale=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: File or update incident issue (unhealthy)
+        if: steps.probe.outputs.healthy == 'false' || steps.freshness.outputs.stale == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PROBE_HEALTHY: ${{ steps.probe.outputs.healthy }}
+          STALE: ${{ steps.freshness.outputs.stale }}
+          LAST_RUN: ${{ steps.freshness.outputs.last_run }}
+        run: |
+          set -eu
           stamp="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          marker="Supabase DB unhealthy"
+          marker="Insight DB incident"
           existing="$(gh issue list --repo "$REPO" --state open --search "in:title \"$marker\"" --json number --jq '.[0].number' || true)"
-          body="🚨 Authenticated Supabase REST probes failed 3x (20s timeout each) at ${stamp}.
-          Known signature: db+rest UNHEALTHY, queries hang while unauthenticated 401s stay fast.
+          body="🚨 Data-plane incident detected at ${stamp}.
+          - Authenticated REST probe: ${PROBE_HEALTHY:-unknown} (false = failed 3x at 20s); known signature is db+rest UNHEALTHY with queries hanging while unauthenticated 401s stay fast.
+          - Collector heartbeat: stale=${STALE:-unknown}, last Snapshot Collect run ${LAST_RUN:-unknown} (threshold 45m; the DB-owned clock dispatches every 15m).
           Ops runbook: restart via \`POST /v1/projects/{ref}/restart {\"restart_type\":\"postgresql\"}\` (management token is local-only, never in CI)."
           if [ -n "${existing:-}" ]; then
             gh issue comment "$existing" --repo "$REPO" --body "$body"
@@ -103,17 +139,17 @@ jobs:
           exit 1
 
       - name: Auto-recover incident issue (healthy again)
-        if: steps.probe.outputs.healthy == 'true'
+        if: steps.probe.outputs.healthy == 'true' && steps.freshness.outputs.stale == 'false'
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
         run: |
           set -eu
-          marker="Supabase DB unhealthy"
+          marker="Insight DB incident"
           existing="$(gh issue list --repo "$REPO" --state open --search "in:title \"$marker\"" --json number --jq '.[0].number' || true)"
           if [ -n "${existing:-}" ]; then
             stamp="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-            gh issue close "$existing" --repo "$REPO" --comment "✅ Probe healthy again at ${stamp} (3 attempts budget passed). Auto-closing."
+            gh issue close "$existing" --repo "$REPO" --comment "✅ Probe healthy and collector heartbeat fresh at ${stamp}. Auto-closing."
             echo "closed issue #$existing"
           else
             echo "no open incident issue"
