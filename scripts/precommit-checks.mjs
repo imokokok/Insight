@@ -28,7 +28,10 @@ const checks = [
 ];
 
 // Cron bundles are built from scripts/*.ts, which import from src/**.
-if (staged.length === 0 || touches(staged, /^(src|scripts)\//, /^\.github\/cron-dist\//, /^(package|tsconfig)\.json$/)) {
+if (
+  staged.length === 0 ||
+  touches(staged, /^(src|scripts)\//, /^\.github\/cron-dist\//, /^(package|tsconfig)\.json$/)
+) {
   checks.push('build:cron:check');
 }
 
@@ -36,7 +39,13 @@ if (staged.length === 0 || touches(staged, /^(src|scripts)\//, /^\.github\/cron-
 // imports), then formatted with the repository Prettier config.
 if (
   staged.length === 0 ||
-  touches(staged, /^src\/mcp\//, /^public\/\.well-known\/mcp\//, /^scripts\/generate-mcp-catalog\./, /^\.prettierrc/)
+  touches(
+    staged,
+    /^src\/mcp\//,
+    /^public\/\.well-known\/mcp\//,
+    /^scripts\/generate-mcp-catalog\./,
+    /^\.prettierrc/
+  )
 ) {
   checks.push('generate:mcp-catalog:check');
 }
@@ -47,9 +56,13 @@ if (result.status !== 0) process.exit(result.status ?? 1);
 
 function stagedPaths() {
   try {
-    const output = execFileSync('git', ['diff', '--cached', '--name-only', '-z', '--diff-filter=ACMR'], {
-      encoding: 'utf8',
-    });
+    const output = execFileSync(
+      'git',
+      ['diff', '--cached', '--name-only', '-z', '--diff-filter=ACMR'],
+      {
+        encoding: 'utf8',
+      }
+    );
     return output.split('\0').filter(Boolean);
   } catch {
     return [];

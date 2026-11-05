@@ -45,7 +45,10 @@ function run(name) {
   return new Promise((resolve) => {
     const child = spawn(command, args, {
       stdio: ['ignore', 'pipe', 'pipe'],
-      env: { ...process.env, PATH: `${join(process.cwd(), 'node_modules', '.bin')}:${process.env.PATH}` },
+      env: {
+        ...process.env,
+        PATH: `${join(process.cwd(), 'node_modules', '.bin')}:${process.env.PATH}`,
+      },
     });
 
     const tag = `[${name}] `;
