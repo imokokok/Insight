@@ -26,6 +26,8 @@
 
 import { type NextRequest, NextResponse } from 'next/server';
 
+import { BASE_USDC_ADDRESS, caip19Erc20, CHAIN_ID } from '@/lib/constants/tokenAddresses';
+
 import { createApiHandler, createOptionsHandler, ApiResponseBuilder } from '@/lib/api/handler';
 import {
   projectExecutionDataForSchemaVersion,
@@ -87,7 +89,7 @@ export const GET = createApiHandler<
         schemaVersion: requestedVersion,
         preTradeUid: SAMPLE_PRE_TRADE_UID as `0x${string}`,
         requestHash: SAMPLE_REQUEST_HASH as `0x${string}`,
-        sourceAssetId: 'eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+        sourceAssetId: caip19Erc20(CHAIN_ID.BASE, BASE_USDC_ADDRESS),
         destinationAssetId: 'eip155:8453/erc20:0x4200000000000000000000000000000000000006',
         subjectChainId: 8453,
         settlementChainId: 8453,

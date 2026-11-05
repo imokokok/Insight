@@ -7,6 +7,8 @@ import {
   parseAbi,
 } from 'viem';
 
+import { BASE_USDC_ADDRESS } from '@/lib/constants/tokenAddresses';
+
 import { CHAINLINK_RPC_CONFIG } from '@/lib/oracles/services/chainlinkDataSources/rpcConfig';
 
 import {
@@ -37,7 +39,7 @@ export const AERODROME_SLIPSTREAM_SWAP_ROUTER =
 export const AERODROME_SLIPSTREAM_SWAP_ROUTER_CODE_HASH =
   '0x8ca2876cc2c509da1648ef2ad21a8849c261cf7316b675119b98ba298c8657e7' as const;
 export const BASE_WETH = '0x4200000000000000000000000000000000000006' as const;
-export const BASE_USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' as const;
+export const BASE_USDC = BASE_USDC_ADDRESS;
 export const BASE_USDT = '0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2' as const;
 
 /**

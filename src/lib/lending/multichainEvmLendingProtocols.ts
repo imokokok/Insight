@@ -7,10 +7,12 @@
 
 import { AaveV3Arbitrum, AaveV3BNB, AaveV3Polygon } from '@aave-dao/aave-address-book';
 
-export const POLYGON_CHAIN_ID = 137 as const;
-export const ARBITRUM_CHAIN_ID = 42161 as const;
-export const BNB_CHAIN_ID = 56 as const;
-export const BASE_CHAIN_ID = 8453 as const;
+import { CHAIN_ID } from '@/lib/constants/tokenAddresses';
+
+export const POLYGON_CHAIN_ID = CHAIN_ID.POLYGON;
+export const ARBITRUM_CHAIN_ID = CHAIN_ID.ARBITRUM;
+export const BNB_CHAIN_ID = CHAIN_ID.BSC;
+export const BASE_CHAIN_ID = CHAIN_ID.BASE;
 
 export type MultichainEvmLendingChainId =
   | typeof POLYGON_CHAIN_ID

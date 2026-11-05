@@ -7,8 +7,8 @@ import { ExactEvmScheme } from '@x402/evm/exact/server';
 import { bazaarResourceServerExtension, declareDiscoveryExtension } from '@x402/extensions/bazaar';
 import { ExactSvmScheme } from '@x402/svm/exact/server';
 
-import { ORACLE_WATCH_WINDOW_PLAN } from '@/lib/billing/oracleWatchWindow';
-import { POSITION_LIFECYCLE_PLAN } from '@/lib/billing/positionLifecycle';
+import { isCdpFacilitatorUrl, isPayAiSolanaFacilitatorUrl } from './facilitators';
+import { paidRestRouteAmountOverride } from './paidRouteAmounts';
 import { BaseAgentSwapGuardInputSchema } from '@/lib/dex/baseAgentSwapGuard';
 
 import {
@@ -36,8 +36,8 @@ import {
   X402_PRE_TRADE_ROUTE,
   X402_SWAP_INTENT_ROUTE,
   getX402PaymentOptions,
-  usdToAtomicUnits,
 } from './config';
+import { assertX402RestScopeCoverage } from './capabilityPayment';
 import { createResilientFacilitator } from './facilitatorResilience';
 import { isSolanaPublicKey } from './solanaEncoding';
 
@@ -79,8 +79,6 @@ interface FacilitatorPaymentHint extends FacilitatorBlockhashHint {
   feePayer: string;
 }
 
-const PAYAI_SOLANA_FACILITATOR_HOST = 'facilitator.payai.network';
-
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
@@ -104,11 +102,7 @@ function parseFacilitatorPaymentHint(extra: unknown): FacilitatorPaymentHint | n
 }
 
 function isPayAiSolanaFacilitator(url: string): boolean {
-  try {
-    return new URL(url).host === PAYAI_SOLANA_FACILITATOR_HOST;
-  } catch {
-    return false;
-  }
+  return isPayAiSolanaFacilitatorUrl(url);
 }
 
 /**
@@ -759,8 +753,6 @@ export interface X402ServerDeps {
  * pre-trade route. Exported for tests; production callers use
  * {@link getX402HttpServer}.
  */
-/** CDP host that requires authenticated verify/settle (see cdpAuth.ts). */
-const CDP_FACILITATOR_HOST = 'api.cdp.coinbase.com';
 
 /**
  * Build one facilitator client per distinct facilitator URL needed by the
@@ -794,13 +786,7 @@ function buildFacilitatorClients(
   }
 
   return [...urls].map((url) => {
-    let host = '';
-    try {
-      host = new URL(url).host;
-    } catch {
-      // Malformed URLs throw later via the facilitator client itself.
-    }
-    const isCdp = host === CDP_FACILITATOR_HOST;
+    const isCdp = isCdpFacilitatorUrl(url);
     // Networks routed to this facilitator, used to synthesize the offline
     // fallback /supported response (only served when the facilitator is
     // unreachable and no cached response exists).
@@ -943,12 +929,12 @@ export async function buildX402HttpServer(
     [X402_ORACLE_WATCH_WINDOW_ROUTE]: routeConfigWithoutDiscovery(
       cfg,
       'Oracle Watch Monitored Window (24h): one settlement pre-pays continuous Oracle Watch halt/proceed signal coverage for one (symbol, chain) position for 24 hours. The purchase returns a one-time window token; in-window signal polls are token-authenticated and never charged per call. Assessment and evidence only — no custody, no execution authority.',
-      usdToAtomicUnits(ORACLE_WATCH_WINDOW_PLAN.priceUsd)
+      paidRestRouteAmountOverride(X402_ORACLE_WATCH_WINDOW_ROUTE)!
     ),
     [X402_POSITION_LIFECYCLE_ROUTE]: routeConfigWithoutDiscovery(
       cfg,
       'Position Lifecycle Bundle (24h): one settlement pre-pays a full monitored lifecycle for one (symbol, chain) position — an embedded Oracle Watch window (300 free signal polls), 4 bundled guard assessments across any position-guard family, and 1 attested execution receipt. The purchase returns a one-time lifecycle token; bundled calls are token-authenticated and never charged per call. Assessment and evidence only — no custody, no execution authority.',
-      usdToAtomicUnits(POSITION_LIFECYCLE_PLAN.priceUsd)
+      paidRestRouteAmountOverride(X402_POSITION_LIFECYCLE_ROUTE)!
     ),
   };
 
@@ -957,6 +943,7 @@ export async function buildX402HttpServer(
   // entry would leave a keyless caller with the defensive no-quote 402 and
   // no way to pay; refusing to boot surfaces the drift at deploy time.
   assertPaidRestRouteCoverage(Object.keys(paidRestRouteConfigs));
+  assertX402RestScopeCoverage(Object.keys(paidRestRouteConfigs));
 
   const httpServer = new x402HTTPResourceServer(server, {
     ...paidRestRouteConfigs,

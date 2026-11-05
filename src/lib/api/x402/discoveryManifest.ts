@@ -1,5 +1,5 @@
-import { ORACLE_WATCH_WINDOW_PLAN } from '@/lib/billing/oracleWatchWindow';
-import { POSITION_LIFECYCLE_PLAN } from '@/lib/billing/positionLifecycle';
+import { X402_MULTICHAIN_EVM_LENDING_GUARD_ROUTE } from './config';
+import { paidRestRouteAmountOverride } from './paidRouteAmounts';
 
 import {
   X402_PAYMENT_SCOPE,
@@ -14,10 +14,6 @@ import {
   type X402PaymentOption,
   type X402NetworkId,
   X402_MCP_ROUTE,
-  X402_MULTICHAIN_EVM_LENDING_GUARD_ROUTE,
-  X402_ORACLE_WATCH_WINDOW_ROUTE,
-  X402_POSITION_LIFECYCLE_ROUTE,
-  usdToAtomicUnits,
 } from './config';
 import template from './discoveryManifest.template.json';
 
@@ -120,11 +116,7 @@ function isRequestBoundResource(path: string): boolean {
 }
 
 function amountForPath(cfg: X402Config, path: string): string {
-  if (path === X402_ORACLE_WATCH_WINDOW_ROUTE)
-    return usdToAtomicUnits(ORACLE_WATCH_WINDOW_PLAN.priceUsd);
-  if (path === X402_POSITION_LIFECYCLE_ROUTE)
-    return usdToAtomicUnits(POSITION_LIFECYCLE_PLAN.priceUsd);
-  return cfg.amountAtomic;
+  return paidRestRouteAmountOverride(path) ?? cfg.amountAtomic;
 }
 
 function mayIssueHypercoreQuote(path: string, scope: X402PaymentScope): boolean {

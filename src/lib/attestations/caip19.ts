@@ -44,6 +44,8 @@
 
 import { getAddress } from 'viem';
 
+import { SOLANA_USDC_MINT } from '@/lib/constants/tokenAddresses';
+
 import { TWAP_TOKEN_ADDRESSES } from '@/lib/oracles/constants/twapConstants';
 
 // ---------------------------------------------------------------------------
@@ -115,7 +117,7 @@ export const SOLANA_SPL_TOKEN_ADDRESSES: Record<string, Record<number, string>> 
   BONK: { [SOLANA_CHAIN_ID]: 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263' },
   POPCAT: { [SOLANA_CHAIN_ID]: '7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr' },
   // Solana-native stablecoins (canonical Circle-issued / Tether-issued mints)
-  USDC: { [SOLANA_CHAIN_ID]: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v' },
+  USDC: { [SOLANA_CHAIN_ID]: SOLANA_USDC_MINT },
   USDT: { [SOLANA_CHAIN_ID]: 'Es9vMFwzaM7B4vWvG9kHjKjGP3Vv1MvyJ5zXGjVpRob' },
   // Solana-native DeFi tokens
   JUP: { [SOLANA_CHAIN_ID]: 'JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN' },

@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 
+import { ErrorCode } from '@/types/api/error';
+
 interface ApiError {
   code: string;
   message: string;
@@ -50,7 +52,7 @@ export class ApiResponseBuilder {
   }
 
   static error(
-    code: string,
+    code: ErrorCode | (string & {}),
     message: string,
     options?: {
       retryable?: boolean;

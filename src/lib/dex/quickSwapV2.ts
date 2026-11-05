@@ -7,6 +7,8 @@ import {
   parseAbi,
 } from 'viem';
 
+import { BASE_USDC_ADDRESS } from '@/lib/constants/tokenAddresses';
+
 import { CHAINLINK_RPC_CONFIG } from '@/lib/oracles/services/chainlinkDataSources/rpcConfig';
 
 import { UniswapV3MarketRpcClient, type UniswapV3Hex } from './uniswapV3Market';
@@ -19,7 +21,7 @@ import { UniswapV3MarketRpcClient, type UniswapV3Hex } from './uniswapV3Market';
 export const QUICKSWAP_V2_BASE_CHAIN_ID = 8453;
 export const QUICKSWAP_V2_BASE_FACTORY = '0xEC6540261aaaE13F236A032d454dc9287E52e56A' as const;
 export const QUICKSWAP_V2_BASE_ROUTER = '0x4a012af2b05616Fb390ED32452641C3F04633bb5' as const;
-export const QUICKSWAP_V2_BASE_USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' as const;
+export const QUICKSWAP_V2_BASE_USDC = BASE_USDC_ADDRESS;
 export const QUICKSWAP_V2_BASE_USDT = '0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2' as const;
 
 export const QUICKSWAP_V2_BASE_CODE_IDENTITY = {

@@ -28,6 +28,17 @@ export enum ErrorCode {
   CONNECTION_ERROR = 'CONNECTION_ERROR',
   UNKNOWN_ERROR = 'UNKNOWN_ERROR',
   INVALID_JSON = 'INVALID_JSON',
+  /** Domain-specific codes below complete the single error-code vocabulary;
+   *  every new route code must be registered here before use. */
+  PAYMENT_ERROR = 'PAYMENT_ERROR',
+  PAYMENT_MISMATCH = 'PAYMENT_MISMATCH',
+  NO_INVOICE = 'NO_INVOICE',
+  CREDIT_EXHAUSTED = 'CREDIT_EXHAUSTED',
+  PROVIDER_ERROR = 'PROVIDER_ERROR',
+  PROTOCOL_NOT_FOUND = 'PROTOCOL_NOT_FOUND',
+  SCENARIO_INVALID = 'SCENARIO_INVALID',
+  JOURNEY_NOT_FOUND = 'JOURNEY_NOT_FOUND',
+  CALCULATION_ERROR = 'CALCULATION_ERROR',
 }
 
 export function createErrorResponse(

@@ -1,5 +1,7 @@
 import Link from 'next/link';
 
+import { BASE_USDC_ADDRESS } from '@/lib/constants/tokenAddresses';
+
 import { ArrowRight, BookOpen, KeyRound, Radio, ShieldCheck, Coins } from 'lucide-react';
 
 import { EditorialWorkspaceHeader, EvidenceProcessRail } from '@/components/editorial';
@@ -145,7 +147,7 @@ const mppx = Mppx.create({
     evm.charge({
       account: privateKeyToAccount(process.env.EVM_PRIVATE_KEY!),
       networks: [8453],
-      currencies: ['0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'],
+      currencies: ['${BASE_USDC_ADDRESS}'],
       maxAmount: '0.02',
     }),
   ],
@@ -222,7 +224,7 @@ const paidClient = McpClient.wrap(client, {
     evm.charge({
       account: privateKeyToAccount(process.env.EVM_PRIVATE_KEY!),
       networks: [8453],
-      currencies: ['0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'],
+      currencies: ['${BASE_USDC_ADDRESS}'],
       maxAmount: '0.02',
     }),
   ],

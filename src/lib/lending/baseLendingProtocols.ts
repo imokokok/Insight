@@ -8,8 +8,12 @@
  * exact-call attestation.
  */
 
+import { BASE_USDC_ADDRESS } from '@/lib/constants/tokenAddresses';
+
 export const COMPOUND_V3_BASE_COMET = '0xb125e6687d4313864e53df431d5425969c15eb2f' as const;
-export const COMPOUND_V3_BASE_USDC = '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913' as const;
+/** Compound V3 Base USDC. Comparison sites normalize with toLowerCase(), so
+ * this intentionally stays lowercase; derived from the canonical registry. */
+export const COMPOUND_V3_BASE_USDC = BASE_USDC_ADDRESS.toLowerCase() as `0x${string}`;
 
 export const MOONWELL_BASE_COMPTROLLER = '0xfbb21d0380bee3312b33c4353c8936a0f13ef26c' as const;
 

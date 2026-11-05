@@ -7,6 +7,8 @@
 
 import { createHash } from 'node:crypto';
 
+import { SOLANA_USDC_MINT } from '@/lib/constants/tokenAddresses';
+
 import { z } from 'zod';
 
 export const SOLANA_MAINNET_CAIP2 = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as const;
@@ -488,10 +490,10 @@ function assertAssetSymbol(assetMint: string, symbol: string | undefined): void 
   if (!symbol) return;
   const expected =
     symbol.trim().toUpperCase() === 'SOL'
-      ? 'So11111111111111111111111111111111111111112'
-      : symbol.trim().toUpperCase() === 'USDC'
-        ? 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'
-        : null;
+        ? 'So11111111111111111111111111111111111111112'
+        : symbol.trim().toUpperCase() === 'USDC'
+          ? SOLANA_USDC_MINT
+          : null;
   if (!expected)
     throw new Error('Solana direct profile currently reviews only SOL and USDC mint bindings');
   if (assetMint !== expected)

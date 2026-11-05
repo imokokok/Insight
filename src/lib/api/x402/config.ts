@@ -1,3 +1,13 @@
+import { BASE_USDC_ADDRESS, SOLANA_USDC_MINT } from '@/lib/constants/tokenAddresses';
+
+import {
+  isCdpFacilitatorUrl,
+  isDaydreamsFacilitatorUrl,
+  PAYAI_SOLANA_FACILITATOR_URL,
+} from './facilitators';
+
+export { isCdpFacilitatorUrl, isDaydreamsFacilitatorUrl } from './facilitators';
+
 import { z } from 'zod';
 
 import { parseHypercoreX402Config, type HypercoreX402Config } from './hypercore';
@@ -65,7 +75,7 @@ const SUPPORTED_NETWORKS: Record<
   },
   'eip155:8453': {
     /** Chain: Base mainnet. */
-    usdc: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+    usdc: BASE_USDC_ADDRESS,
     /** On-chain name() = "USD Coin" (validated via DOMAIN_SEPARATOR, 2026-10-07). */
     tokenName: 'USD Coin',
   },
@@ -159,7 +169,7 @@ export type X402PaymentNetworkId = X402NetworkId | X402SolanaNetworkId;
 const SOLANA_NETWORKS = {
   [SOLANA_MAINNET_CAIP2]: {
     /** Canonical mainnet USDC mint. */
-    usdc: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+    usdc: SOLANA_USDC_MINT,
   },
   [SOLANA_DEVNET_CAIP2]: {
     /** Circle USDC devnet mint. */
@@ -454,27 +464,8 @@ export function usdToAtomicUnits(usd: number): string {
   return String(microUsd);
 }
 
-const CDP_FACILITATOR_HOST = 'api.cdp.coinbase.com';
-const DAYDREAMS_FACILITATOR_HOST = 'facilitator.daydreams.systems';
-const PAYAI_SOLANA_FACILITATOR_URL = 'https://facilitator.payai.network';
-
-/** True only for the CDP facilitator host, never for a lookalike URL. */
-export function isCdpFacilitatorUrl(url: string): boolean {
-  try {
-    return new URL(url).host === CDP_FACILITATOR_HOST;
-  } catch {
-    return false;
-  }
-}
-
-/** True only for the production Daydreams facilitator host. */
-export function isDaydreamsFacilitatorUrl(url: string): boolean {
-  try {
-    return new URL(url).host === DAYDREAMS_FACILITATOR_HOST;
-  } catch {
-    return false;
-  }
-}
+// Facilitator hosts and URL classification live in ./facilitators (single
+// source of truth); the CDP/Daydreams predicates are re-exported above.
 
 function parseFacilitatorCdpAuth(
   env: NodeJS.ProcessEnv,
