@@ -151,6 +151,12 @@ const AAVE_ALIASES: Record<string, string> = {
   MATIC: 'WMATIC',
   POL: 'WPOL',
   BTC: 'WBTC',
+  // @aave-dao/aave-address-book 4.75 renamed the bridged USDC entry on Polygon
+  // and Arbitrum from `USDC` to `USDCe` (native USDC stayed `USDCn`). Keep the
+  // historical `USDC` -> bridged-address resolution so symbol lookups return
+  // the same underlying the guard reviewed before the upgrade; chains whose
+  // book still keys the entry as `USDC` (e.g. BNB) fall through to that key.
+  USDC: 'USDCe',
 };
 const VENUS_ALIASES: Record<string, keyof typeof VENUS_CORE_POOL_MARKETS> = {
   BNB: 'BNB',
