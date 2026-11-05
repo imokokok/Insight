@@ -12,11 +12,20 @@ Agent-facing contacts:
 
 - [Pre-Trade Safety Skill](https://www.oracleinsight.xyz/downloads/insight-pre-trade-safety-skill-v0.2.0.zip) — installable MCP configuration, no-money discovery check, and prompts for one proposed trade or DeFi action.
 - [Base Aave V3 Lending Guard Skill](https://www.oracleinsight.xyz/downloads/insight-lending-guard-skill-v0.1.0.zip) — a deliberately narrow, exact-call decision layer for direct Base Aave V3 EOA `supply` and variable-rate `borrow` calls.
-- [Base Agent Swap Guard Skill](https://www.oracleinsight.xyz/downloads/insight-base-agent-swap-guard-skill-v0.1.0.zip) — a narrow pre-signing workflow for reviewed Base Aerodrome Slipstream WETH→USDC or PancakeSwap V3 USDC→USDT direct swaps. It can be paid with x402 at C3 / $0.02 and returns no calldata for `CAUTION` or `BLOCK`.
-- [Solana Swap Guard Skill](https://www.oracleinsight.xyz/downloads/insight-solana-swap-guard-skill-v0.1.0.zip) — a narrow pre-signing workflow and signed settlement closure for one exact unsigned Orca Whirlpool USDC/USDT 0.01% swap on Solana mainnet. It can be paid with x402 at C3 / $0.02 per decision and C4 / $0.04 per settlement call and returns no signable payload for `CAUTION` or `BLOCK`.
+- [Base Agent Swap Guard Skill](https://www.oracleinsight.xyz/downloads/insight-base-agent-swap-guard-skill-v0.1.0.zip) — a narrow pre-signing workflow for reviewed direct single-hop swaps: three Base profiles (Aerodrome Slipstream WETH→USDC, Aerodrome Slipstream USDC→USDT, PancakeSwap V3 USDC→USDT), two BNB Chain PancakeSwap V3 profiles (USDT→USDC, USDT→WBNB), and one Monad PancakeSwap V3 profile (WMON→USDC). Settlement closure is pinned to Base, BNB Chain, and Monad. It can be paid with x402 at C3 / $0.02 and returns no calldata for `CAUTION` or `BLOCK`.
+- [Solana Swap Guard Skill](https://www.oracleinsight.xyz/downloads/insight-solana-swap-guard-skill-v0.1.0.zip) — a narrow pre-signing workflow and signed settlement closure for one exact unsigned Orca Whirlpool swap on Solana mainnet (reviewed USDC/USDT and SOL/USDC pools, legacy `swap` discriminator only). It can be paid with x402 at C3 / $0.02 per decision and C4 / $0.04 per settlement call and returns no signable payload for `CAUTION` or `BLOCK`.
 - [Base Perp Guard Skill](https://www.oracleinsight.xyz/downloads/insight-base-perp-guard-skill-v0.1.0.zip) — a decision-input skill for one Synthetix Perps V3 Base open-position intent, with disclosed spot/TWAP liquidity evidence and exact `commitOrder` call binding.
 - [Hyperliquid Perp Guard Skill](https://www.oracleinsight.xyz/downloads/insight-hyperliquid-perp-guard-skill-v0.1.0.zip) — a decision-input skill for one reviewed Hyperliquid HyperCore open-position intent (BTC, ETH), with disclosed venue evidence and exact IOC order envelope binding.
-- [Solana Perp Guard Skill](https://www.oracleinsight.xyz/downloads/insight-solana-perp-guard-skill-v0.1.0.zip) — a decision-input skill for one reviewed Drift Protocol v2 Solana open-position intent (SOL, BTC, ETH), with disclosed on-chain venue evidence (mark/oracle deviation, funding rate, open interest).
+- [Solana Perp Guard Skill](https://www.oracleinsight.xyz/downloads/insight-solana-perp-guard-skill-v0.1.0.zip) — a decision-input skill for one reviewed Drift Protocol v2 Solana open-position intent (SOL, BTC, ETH), with disclosed on-chain venue evidence (mark/oracle deviation, funding rate, open interest). Status disclosure: Drift's reviewed profile is currently **STALE**. First-hand on-chain verification (2026-11-05) confirmed the Drift AMM has been frozen since 2026-04-01 and the team migrated to Velocity, so position openings hard-BLOCK by default and no decision attestation is signed; the skill remains available for reading venue evidence.
+
+## Reviewed profiles and evidence grading
+
+Every guard verdict is enforced against a reviewed-profile registry (currently 38 profiles: 25 lending, 8 swap, 5 perp, 1 prediction). The enforcement is evidence-graded and fail-closed:
+
+- Profiles carry an evidence status (`ACTIVE` or `STALE`). A profile whose venue activity premise fails first-hand on-chain verification is marked `STALE` and its guard hard-BLOCKs by default; decision attestations are refused for `STALE` profiles.
+- Deployment constants are never guessed. A reviewed protocol without verified deployment addresses (e.g. Monad Euler v2) is admitted only as `UNVERIFIED` and refused by guards until real addresses are registered.
+- Base ERC-4626 vault calls are reduced to reviewed Morpho Blue markets; the vault registry starts empty, so every vault call is refused until a market is registered through review.
+- Guard families cover five perp venues (Synthetix Perps V3 on Base, Aster on BNB Chain, Perpl on Monad, Hyperliquid, Drift on Solana, the latter `STALE`), eight swap profiles across Base, BNB Chain, Monad and Solana, and one chain-neutral prediction screen.
 
 Install a package, then run its free discovery check before configuring a
 credential or an x402 wallet. A successful discovery check does not call a
@@ -82,6 +91,17 @@ For reviewed `BTC`, `ETH`, and `HYPE` perpetuals, use the MCP tools in this orde
 3. `verify_hyperliquid_perp_execution` — provides a bounded public observation of the exact order status and matching fills, compared with the original expected intent.
 
 Only IOC is admitted, so an action that cannot fully satisfy its caller-selected displayed-book constraints is returned as `BLOCK` and has no signable envelope. The final observation is not a signed Insight receipt or a guarantee of the exchange's future state.
+
+### 5. HTTP: Prediction Guard (Polymarket)
+
+```
+GET https://www.oracleinsight.xyz/api/v1/safety/prediction-guard
+    ?protocolId=polymarket-prediction-mainnet
+    &action=buy_up
+    &marketSlug=<market-slug>
+```
+
+A chain-agnostic pre-signing metadata screen for one Polymarket event position (`action` is `buy_up` or `buy_down`). It screens Gamma price-contract metadata, market lifecycle, resolution timing, quoted-probability integrity, and post-hoc settlement verifiability, and returns an entry-chain × settlement-chain evidence map (for example, a Jupiter-embedded Polymarket entry is on Solana while settlement remains primarily on Polygon). It applies no cross-oracle consensus, does not judge the truth of event outcomes, and is not execution risk control. Keyless calls are x402 metered; the live 402 challenge carries the price. API-key callers use the standard v1 path.
 
 ## Payment
 

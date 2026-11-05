@@ -1,13 +1,13 @@
 {
   "protocolVersion": "0.2.9",
   "name": "Insight",
-  "description": "Decision-input integrity for onchain AI agents: is the price or action trustworthy before it is signed? Oracle-manipulation-aware PASS/WARN/BLOCK verdicts, pre-signing guard families (lending, perps, swaps) on Base, Monad, multichain EVM, Solana, and Hyperliquid, 24h Oracle Watch windows and Position Lifecycle bundles, with verifiable EIP-712 attestations. Pay-per-call: $0.02 per C3 decision USDC via x402 v2 on Base, Polygon PoS, Arbitrum One, Monad, HyperEVM, BNB Chain, or Solana mainnet, or via MPP; settlement happens only after the check succeeds. Endpoint is MCP over Streamable HTTP.",
+  "description": "Decision-input integrity for onchain AI agents: is the price or action trustworthy before it is signed? Oracle-manipulation-aware PASS/WARN/BLOCK verdicts, pre-signing guard families (lending, swaps, perps, prediction) across Base, BNB Chain, Monad, multichain EVM, Solana, and Hyperliquid, 24h Oracle Watch windows and Position Lifecycle bundles, with verifiable EIP-712 attestations. Every guard verdict is enforced against a reviewed-profile registry with evidence-graded fail-closed semantics: a venue whose activity premise fails first-hand on-chain verification (for example a frozen AMM) is marked STALE and hard-BLOCKs by default. Pay-per-call: $0.02 per C3 decision USDC via x402 v2 on Base, Polygon PoS, Arbitrum One, Monad, HyperEVM, BNB Chain, or Solana mainnet, or via MPP; settlement happens only after the check succeeds. Endpoint is MCP over Streamable HTTP.",
   "url": "https://www.oracleinsight.xyz/api/mcp",
   "provider": {
     "organization": "Insight",
     "url": "https://www.oracleinsight.xyz"
   },
-  "version": "1.2.0",
+  "version": "1.3.0",
   "capabilities": {
     "streaming": false,
     "pushNotifications": false,
@@ -56,7 +56,7 @@
     {
       "id": "lending_guards",
       "name": "Lending guards (Base, Monad, multichain EVM, Solana)",
-      "description": "Read-only, pre-signing ALLOW/CAUTION/BLOCK decisions for one direct lending call: Aave V3, Morpho Blue, Compound V3, Moonwell (Base); Aave V3, Morpho Blue (Monad); Aave V3, Venus Core, Lista Moolah, Compound V3, Dolomite, Euler v2, Fluid T1 (Polygon/Arbitrum/BNB/Base); Kamino, Marginfi v2, Jupiter Lend, Save, Loopscale (Solana). POST binds the exact unsigned call and may return a signed decision attestation; never authorizes or broadcasts a transaction. $0.02 USDC per complete decision.",
+      "description": "Read-only, pre-signing ALLOW/CAUTION/BLOCK decisions for one direct lending call: Aave V3, Morpho Blue, Compound V3, Moonwell (Base); Aave V3, Morpho Blue (Monad); Aave V3, Venus Core, Lista Moolah, Compound V3, Dolomite, Euler v2, Fluid T1 (Polygon/Arbitrum/BNB/Base); Kamino, Marginfi v2, Jupiter Lend, Save, Loopscale (Solana). Base additionally reduces standard ERC-4626 vault calls (deposit/mint/redeem/withdraw) to reviewed Morpho Blue markets; the vault registry starts empty and fail-closed, so vault calls are refused until a market is registered through review. Monad Euler v2 remains an UNVERIFIED admission candidate with no verified deployment addresses and is not admitted. POST binds the exact unsigned call and may return a signed decision attestation; never authorizes or broadcasts a transaction. $0.02 USDC per complete decision.",
       "tags": [
         "defi",
         "lending",
@@ -74,9 +74,19 @@
     },
     {
       "id": "perp_guards",
-      "name": "Perp guards (Base Synthetix V3, Hyperliquid)",
-      "description": "Pre-trade decision-input integrity gates for opening a perp position: Synthetix Perps V3 on Base (oracle integrity for underlying and USDC margin, leverage vs reviewed market caps) and Hyperliquid HyperCore orders (underlying oracle integrity, leverage vs margin requirements, exact unsigned exchange-envelope binding). POST may return an EIP-712 decision attestation; never signs or broadcasts an order. $0.02 USDC per complete decision.",
-      "tags": ["defi", "perps", "trading", "risk", "hyperliquid", "synthetix", "agent-safety"],
+      "name": "Perp guards (Base, BNB, Monad, Solana, Hyperliquid)",
+      "description": "Pre-trade decision-input integrity gates for opening a perp position on five reviewed venues: Synthetix Perps V3 on Base (oracle integrity for underlying and USDC margin, leverage vs reviewed market caps, exact commitOrder call binding with optional EIP-712 decision attestation), Aster on BNB Chain (oracle-integrity tier, no attestation or exact-order layer by design), Perpl on Monad (exact binding to the canonical-serialization payloadHash of a centralized order payload with an EIP-712 attestation; this cannot prove on-chain execution), Hyperliquid HyperCore (exact unsigned IOC exchange-envelope binding), and Drift v2 on Solana. Drift's reviewed profile is STALE: first-hand on-chain verification (2026-11-05) found the AMM frozen since 2026-04-01 and the venue migrated to Velocity, so Drift position openings hard-BLOCK by default and no decision attestation is signed. Never signs or broadcasts an order. $0.02 USDC per complete decision.",
+      "tags": [
+        "defi",
+        "perps",
+        "trading",
+        "risk",
+        "hyperliquid",
+        "synthetix",
+        "drift",
+        "aster",
+        "agent-safety"
+      ],
       "examples": [
         "My agent wants to open a 5x ETH long on Hyperliquid — is the price input trustworthy and is the leverage safe?",
         "Check the oracle evidence for a Synthetix Perps V3 ETH long before the commitOrder call is signed"
@@ -84,12 +94,34 @@
     },
     {
       "id": "base_agent_swap_guard",
-      "name": "Base Agent Swap Guard",
-      "description": "Pre-signing guard for one reviewed Base-mainnet direct Aerodrome Slipstream WETH→USDC CL100 or PancakeSwap V3 USDC→USDT 0.01% swap: validates decision prices, pinned venue quote, price impact, TWAP, slippage, route contracts, and byte-exact unsigned calldata. Returns ALLOW, CAUTION, or BLOCK; only ALLOW includes calls for human confirmation. Never signs, routes, relays, or broadcasts a trade. $0.02 USDC.",
-      "tags": ["defi", "swap", "base", "aerodrome", "pancakeswap", "pre-signing", "agent-safety"],
+      "name": "Agent Swap Guard (Base, BNB, Monad, Solana)",
+      "description": "Pre-signing guard for one exact reviewed single-hop swap: three Base profiles (Aerodrome Slipstream WETH→USDC CL100, Aerodrome Slipstream USDC→USDT CL1, PancakeSwap V3 USDC→USDT 0.01%), two BNB Chain profiles (PancakeSwap V3 USDT→USDC and USDT→WBNB 0.01%), one Monad profile (PancakeSwap V3 WMON→USDC 0.5%), and two Solana Orca Whirlpool profiles (USDC/USDT and SOL/USDC 0.01%, legacy swap discriminator only). Validates decision prices, pinned venue quote, price impact, TWAP, slippage, route contracts, and byte-exact unsigned calldata; settlement closure is pinned to chain ids 8453, 56, and 143. Returns ALLOW, CAUTION, or BLOCK; only ALLOW includes calls for human confirmation. Never signs, routes, relays, or broadcasts a trade. $0.02 USDC.",
+      "tags": [
+        "defi",
+        "swap",
+        "base",
+        "bnb",
+        "monad",
+        "solana",
+        "aerodrome",
+        "pancakeswap",
+        "orca",
+        "pre-signing",
+        "agent-safety"
+      ],
       "examples": [
         "Review this exact Aerodrome Slipstream swap calldata my Base agent is about to sign",
         "Verify the quoted price impact and TWAP for a 0.25 WETH→USDC swap before signing"
+      ]
+    },
+    {
+      "id": "prediction_guard",
+      "name": "Prediction market screen (Polymarket)",
+      "description": "Chain-agnostic pre-signing metadata screen for one Polymarket event position (buy_up or buy_down on a market slug): screens Gamma price-contract metadata, market lifecycle, resolution timing, quoted-probability integrity, and post-hoc settlement verifiability, and returns an entry-chain x settlement-chain evidence map (for example, a Jupiter-embedded Polymarket entry is on Solana while settlement remains primarily on Polygon). Applies no cross-oracle consensus, does not judge the truth of event outcomes, and is not execution risk control. x402 metered; the live 402 challenge carries the price.",
+      "tags": ["prediction", "polymarket", "risk", "pre-signing", "agent-safety"],
+      "examples": [
+        "Screen this Polymarket market before my agent buys YES: is the metadata, resolution timing and settlement path sane?",
+        "Before my Solana agent enters a Polymarket position through Jupiter, tell me where entry and settlement actually happen"
       ]
     },
     {
