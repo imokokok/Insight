@@ -17,6 +17,7 @@ import { nowInSeconds } from '@/lib/utils/time';
 import {
   MONAD_CHAIN_ID,
   MonadLendingExactTransactionSchema,
+  MonadLendingProtocolIdSchema,
   decodeMonadLendingExactCall,
   type MonadLendingDecodedAction,
   type MonadLendingExactTransaction,
@@ -54,7 +55,7 @@ const ADDRESS = /^0x[0-9a-fA-F]{40}$/;
 const SIGNATURE = /^0x[0-9a-fA-F]{130}$/;
 const ActionSchema = z
   .object({
-    protocolId: z.enum(['aave-v3-monad', 'morpho-blue-monad']),
+    protocolId: MonadLendingProtocolIdSchema,
     action: z.enum(['supply', 'borrow']),
     target: z.string().regex(ADDRESS),
     calldataHash: z.string().regex(HASH),
@@ -99,7 +100,7 @@ const DecisionSchema = z
       .object({
         schema: z.literal('insight.monad-lending-guard.v1'),
         verdict: z.enum(['ALLOW', 'CAUTION', 'BLOCK']),
-        protocolId: z.enum(['aave-v3-monad', 'morpho-blue-monad']),
+        protocolId: MonadLendingProtocolIdSchema,
         action: z.enum(['supply', 'borrow']),
         scope: z.object({ chainId: z.literal(MONAD_CHAIN_ID) }).passthrough(),
       })

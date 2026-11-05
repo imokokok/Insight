@@ -35,6 +35,12 @@ import { z } from 'zod';
 
 import { preTradeSafetyCheck } from '@/lib/api/services/preTradeSafetyService';
 import {
+  AUSD_UNVERIFIED_DESCRIPTOR,
+  evaluateAusdCoverage,
+  type AusdCoverageDescriptor,
+  type AusdCoverageResult,
+} from '@/lib/oracles/ausdCoverage';
+import {
   bps,
   computeConsensusVenueDeviationPct,
   escalatePerpGuardVerdict,
@@ -84,6 +90,12 @@ export const MonadPerpGuardInputSchema = z.object({
   sizeUsd: z.number().finite().positive().max(1_000_000_000_000),
   /** Caller-declared post-action margin value, in USD. */
   marginValueUsd: z.number().finite().positive().max(1_000_000_000_000),
+  /**
+   * Opt-in strict mode: BLOCK when AUSD carries no verified independent
+   * oracle coverage. Default (false) keeps the disclosed-advisory behavior
+   * so existing verdicts never change.
+   */
+  requireIndependentAusdCoverage: z.boolean().optional(),
 });
 export type MonadPerpGuardInput = z.infer<typeof MonadPerpGuardInputSchema>;
 
@@ -154,6 +166,12 @@ export interface MonadPerpGuardResult {
    * unavailability is disclosed without changing it.
    */
   venue: MonadPerpGuardVenueEvidence;
+  /**
+   * Independent AUSD oracle-coverage evaluation. Always present; advisory
+   * by default, verdict-enforcing only under the opt-in
+   * `requireIndependentAusdCoverage` strict mode.
+   */
+  ausdCoverage: AusdCoverageResult;
   reasons: string[];
   next: {
     execution: 'not_performed';
@@ -165,6 +183,13 @@ export interface MonadPerpGuardDependencies {
   checkOracle?: typeof preTradeSafetyCheck;
   fetchVenueState?: (assetSymbol: string) => Promise<PerplPerpMarketState>;
   now?: () => Date;
+  /**
+   * Injectable AUSD coverage source. May return an `AusdCoverageDescriptor`
+   * (re-evaluated by the guard) or a pre-computed `AusdCoverageResult`
+   * (used as-is). Defaults to the UNVERIFIED descriptor: no fabricated
+   * feed addresses, fail closed.
+   */
+  resolveAusdCoverage?: () => AusdCoverageDescriptor | AusdCoverageResult | undefined;
 }
 
 function unavailableVenueEvidence(reason: string): MonadPerpGuardVenueEvidence {
@@ -267,6 +292,19 @@ export async function assessMonadPerpGuard(
       ? unavailableVenueEvidence(venueOutcome.reason)
       : venueEvidenceFromState(venueOutcome.state);
 
+  // Independent AUSD oracle coverage (P1-1). Always evaluated and disclosed;
+  // verdict-enforcing only under the opt-in `requireIndependentAusdCoverage`
+  // strict mode. An injected pre-computed result is used as-is; an injected
+  // descriptor is re-evaluated here. Nothing fabricates feed addresses.
+  const injectedAusdCoverage = dependencies.resolveAusdCoverage?.();
+  const ausdCoverage: AusdCoverageResult =
+    injectedAusdCoverage &&
+    typeof injectedAusdCoverage === 'object' &&
+    'covered' in injectedAusdCoverage &&
+    'reasonCode' in injectedAusdCoverage
+      ? (injectedAusdCoverage as AusdCoverageResult)
+      : evaluateAusdCoverage(injectedAusdCoverage as AusdCoverageDescriptor | undefined, () => now);
+
   // Cross-venue deviation between the Insight consensus price and Perpl's
   // on-exchange oracle price. Computed only when both sides are observed;
   // when venue evidence is unavailable neither this check nor the mark/oracle
@@ -305,6 +343,21 @@ export async function assessMonadPerpGuard(
   );
   verdict = escalatePerpGuardVerdict(verdict, leverageVerdicts.verdict);
   reasons.push(...leverageVerdicts.reasons);
+
+  // Opt-in strict mode (P1-1): insufficient independent AUSD coverage blocks.
+  // Default mode keeps the disclosed-advisory behavior (zero regression).
+  if (input.requireIndependentAusdCoverage === true && !ausdCoverage.covered) {
+    verdict = 'BLOCK';
+    const injectedDescriptor =
+      injectedAusdCoverage &&
+      typeof injectedAusdCoverage === 'object' &&
+      'note' in injectedAusdCoverage
+        ? (injectedAusdCoverage as AusdCoverageDescriptor)
+        : AUSD_UNVERIFIED_DESCRIPTOR;
+    reasons.push(
+      `Strict AUSD coverage mode is enabled and AUSD has no verified independent oracle coverage (${ausdCoverage.reasonCode}); ${injectedDescriptor.note}`
+    );
+  }
 
   if (underlyingResult.verdict === 'CAUTION' || margin?.verdict === 'CAUTION') {
     if (verdict !== 'BLOCK') verdict = 'CAUTION';
@@ -385,6 +438,7 @@ export async function assessMonadPerpGuard(
       marginConsensusStatus,
     },
     venue,
+    ausdCoverage,
     reasons,
     next: {
       execution: 'not_performed',

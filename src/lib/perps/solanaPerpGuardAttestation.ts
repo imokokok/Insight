@@ -12,11 +12,16 @@ import {
   SolanaLendingTransactionSchema,
   type SolanaLendingTransaction,
 } from '@/lib/lending/solanaLendingAction';
+import { enforceReviewedProfile } from '@/lib/reviewed/enforcement';
 import { canonicalJsonString } from '@/lib/utils/canonicalJson';
 
 import { findReviewedDriftPerpMarket } from './driftPerpMarket';
 import { decodeSolanaPerpExactCall, type DriftPerpDecodedAction } from './solanaPerpAction';
-import { SolanaPerpGuardInputSchema, type SolanaPerpGuardExactResult } from './solanaPerpGuard';
+import {
+  SOLANA_PERP_GUARD_DRIFT_V2_PROTOCOL_ID,
+  SolanaPerpGuardInputSchema,
+  type SolanaPerpGuardExactResult,
+} from './solanaPerpGuard';
 
 export const SOLANA_PERP_GUARD_ATTESTATION_SCHEMA =
   'insight.solana-perp-guard-decision.v1' as const;
@@ -58,6 +63,14 @@ export type SolanaPerpGuardDecisionVerification = {
 export interface SolanaPerpGuardAttestationDependencies {
   now?: () => Date;
   trustedPublicKey?: string | null;
+  /**
+   * P0-2 reviewed-profile enforcement mode. Production DEFAULT 'enforced':
+   * NEVER sign a decision for a first-hand-disproved / frozen profile. The
+   * ONLY other value, 'bypass-for-offline-review', is STRICTLY for offline
+   * re-review / unit tests and must NEVER be used in production. The `strict`
+   * grading switch in src/lib/reviewed/enforcement.ts defaults to false (off).
+   */
+  reviewedProfileEnforcement?: { mode: 'enforced' | 'bypass-for-offline-review' };
 }
 
 function verdictCode(verdict: SolanaPerpGuardExactResult['verdict']): 0 | 1 | 2 {
@@ -82,6 +95,12 @@ export function createSolanaPerpGuardDecision(
   dependencies: SolanaPerpGuardAttestationDependencies = {}
 ): SolanaPerpGuardDecision {
   const transaction = SolanaLendingTransactionSchema.parse(rawTransaction);
+  // P0-2: evidence-graded enforcement BEFORE any signed decision is issued.
+  // Never attest a decision for a first-hand-disproved / frozen profile
+  // (production default 'enforced'); bypass only for offline review / tests.
+  const enforcement = enforceReviewedProfile(SOLANA_PERP_GUARD_DRIFT_V2_PROTOCOL_ID);
+  const applyEnforcement =
+    (dependencies.reviewedProfileEnforcement?.mode ?? 'enforced') === 'enforced';
   let action: DriftPerpDecodedAction | null = null;
   try {
     action = decodeSolanaPerpExactCall(transaction);
@@ -89,7 +108,12 @@ export function createSolanaPerpGuardDecision(
     action = null;
   }
   const decisionHash = solanaPerpGuardDecisionHash({ guard, transaction, action });
-  if (guard.verdict !== 'ALLOW' || !action || !guard.exactAction) {
+  if (
+    guard.verdict !== 'ALLOW' ||
+    !action ||
+    !guard.exactAction ||
+    (applyEnforcement && enforcement.enforced)
+  ) {
     return {
       schema: SOLANA_PERP_GUARD_ATTESTATION_SCHEMA,
       guard,

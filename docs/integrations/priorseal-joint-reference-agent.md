@@ -86,6 +86,52 @@ partner joint-run playbook: it requires a named maximum-spend route and an
 explicit per-bundle GO before anything is broadcast. That run — and the
 receipts it produces — will be appended here when executed.
 
+## Live mainnet run: preconditions, human gates and preflight
+
+_Preparation only (2026-11-05). No broadcast has been executed; this section
+adds no receipts, transaction hashes, or settlement data. The receipts
+paragraph above remains empty and will be filled in after a real,
+user-authorized run._
+
+Three human gates must be signed by the principal before anything is
+broadcast. The assistant does not choose amounts, addresses, or routes and
+does not authorize or broadcast on the principal's behalf:
+
+1. **Named maximum-spend route** — the principal names the chain, reviewed
+   profile, token pair and direction, a maximum spend amount, slippage and
+   price-impact ceilings, and a deadline.
+2. **Per-bundle GO** — one explicit GO per bundle (approval at nonce `N`,
+   swap at `N + 1`), each binding its amount, the `decisionHash`, a validity
+   window, and the principal's own signature/confirmation.
+3. **Funded-wallet check with gas** — the principal verifies the target
+   wallet's ETH and source-token balances, current nonce, its own RPC, and
+   that funds are self-custodied and in place.
+
+The blank signing templates (left empty for the principal), the full
+assess → decision → authorization → wallet execution → settlement → receipt →
+independent-recomputation sequence, the independent-recomputation checklist,
+and the abort conditions live in the runbook:
+
+`~/.workbuddy/insight-capability-gap/2026-11-05-主网端到端闭环-RUNBOOK.md`
+
+A read-only preflight script checks readiness before any broadcast. It
+performs GET-only health/capability checks, read-only account-status queries,
+read-only RPC balance reads, gate-template validation, and decisionHash /
+`/verify` consistency. It never signs, never broadcasts, never calls a
+metered or x402-protected endpoint, and reports `BLOCKED` on any missing
+input:
+
+```sh
+node ~/.workbuddy/scripts/insight-mainnet-closure-preflight.mjs
+# only after all three gates are signed by the principal:
+node ~/.workbuddy/scripts/insight-mainnet-closure-preflight.mjs --i-have-signed-go
+```
+
+Default output is `BLOCKED` until the principal fills the three templates and
+supplies the credential-status, wallet-RPC and `/verify` inputs. **Receipts
+remain pending; they will be appended here only after the real
+user-authorized mainnet run executes.**
+
 ## Billing boundary
 
 Insight meters the assessment (C3) and both evidence closures (C4) through the
