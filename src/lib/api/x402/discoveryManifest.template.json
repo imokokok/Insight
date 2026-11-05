@@ -276,6 +276,27 @@
       ]
     },
     {
+      "url": "https://www.oracleinsight.xyz/api/v1/markets/settlement-evidence/grade",
+      "method": "POST",
+      "description": "Settlement Evidence Grade: an on-demand, idempotent grade of one settled Polymarket price contract against Insight's independent sources (Kraken settlement-window candles plus the platform's own oracle-consensus snapshots). POST takes a market slug only; the declared outcome is always read from Insight's own watch list, never from the caller. Returns a signed EIP-712 evidence pack carrying derived analytics only — verdict, bps deltas, and coverage statistics — that a third party can independently recompute and verify against Insight's published attester. Existing packs are returned cached and are never downgraded.",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "eip155:999",
+          "amount": "20000",
+          "asset": "0xb88339CB7199b77E23DB6E890353E22632Ba630f",
+          "assetSymbol": "USDC",
+          "assetDecimals": 6,
+          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
+          "maxTimeoutSeconds": 60,
+          "extra": {
+            "name": "USDC",
+            "version": "2"
+          }
+        }
+      ]
+    },
+    {
       "url": "https://www.oracleinsight.xyz/api/v1/safety/swap-intent",
       "method": "GET",
       "description": "Verified Swap Intent: two signed schema-v3 Pre-Trade gates for one same-chain swap, plus one Execution Receipt credit after x402 settlement. A BLOCK is a complete, charged decision.",

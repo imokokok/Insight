@@ -692,6 +692,14 @@ export const X402_PREDICTION_GUARD_ROUTE = '/api/v1/safety/prediction-guard';
 /** Official-API-built Loopscale Solana lending-vault deposit gate. */
 export const X402_LOOPSCALE_VAULT_DEPOSIT_ROUTE = '/api/v1/safety/loopscale-vault-deposit';
 
+/**
+ * On-demand signed settlement-evidence grade (POST). Chain-neutral: the
+ * graded fact is a prediction-market outcome, so x402 quotes bind to the
+ * merchant-configured payment rail. The declared side of the comparison is
+ * always server-authoritative; the caller only names the market.
+ */
+export const X402_SETTLEMENT_EVIDENCE_GRADE_ROUTE = '/api/v1/markets/settlement-evidence/grade';
+
 /** A two-gate same-chain swap lifecycle with one post-settlement receipt credit. */
 export const X402_SWAP_INTENT_ROUTE = '/api/v1/safety/swap-intent';
 
@@ -750,6 +758,7 @@ export const X402_PAID_REST_ROUTE_PATHS = [
   X402_SWAP_INTENT_ROUTE,
   X402_ORACLE_WATCH_WINDOW_ROUTE,
   X402_POSITION_LIFECYCLE_ROUTE,
+  X402_SETTLEMENT_EVIDENCE_GRADE_ROUTE,
 ] as const;
 
 /**
