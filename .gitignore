@@ -60,6 +60,7 @@ supabase/backups/
 # IDE working dirs
 .trae/
 .worktrees/
+.worktree.local
 
 # AI agent working memory (local only — never commit)
 .workbuddy-ai/

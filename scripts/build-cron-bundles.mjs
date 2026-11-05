@@ -54,6 +54,11 @@ const result = await build({
   splitting: true,
   platform: 'node',
   format: 'esm',
+  // Keep module keys as `node_modules/...` even when dependencies are reached
+  // through a symlink (per-task worktrees symlink the primary checkout's
+  // node_modules). Without this, esbuild embeds absolute paths in the bundle and
+  // `--check` reports every chunk as changed on worktrees while CI stays green.
+  preserveSymlinks: true,
   // GitHub-hosted Ubuntu runners currently expose Node 20 to shell steps.
   target: 'node20',
   tsconfig: 'tsconfig.json',

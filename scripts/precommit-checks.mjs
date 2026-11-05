@@ -85,6 +85,11 @@ if (
 }
 
 const runner = join(dirname(fileURLToPath(import.meta.url)), 'run-checks-parallel.mjs');
+if (checks.length === 0) {
+  // Docs/markdown-only commits match no check above; nothing to verify locally.
+  console.log('precommit: no local checks match the staged paths; CI still runs the full suite');
+  process.exit(0);
+}
 const result = spawnSync(process.execPath, [runner, ...checks], { stdio: 'inherit' });
 if (result.status !== 0) process.exit(result.status ?? 1);
 

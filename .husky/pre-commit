@@ -7,4 +7,9 @@ set -eu
 # required GitHub Actions checks on protected branches; `npm run ci:local`
 # reproduces it locally.
 node scripts/precommit-checks.mjs
-./node_modules/.bin/lint-staged
+
+# --no-stash keeps commits out of the repository-wide stash stack. Worktrees
+# share one stash stack, so a concurrent `git stash` in another session could
+# otherwise pop this session's automatic lint-staged backup. lint-staged still
+# hides partially staged hunks through a per-worktree patch file.
+./node_modules/.bin/lint-staged --no-stash
