@@ -24,14 +24,30 @@
  * signals escalate, and insufficient-coverage outcomes are disclosed without
  * hard-blocking (Perpl margin accounting is venue-internal and the leverage
  * band still binds).
+ *
+ * Venue-neutral pieces (verdict vocabulary, oracle-check summary shape,
+ * reviewed venue-integrity thresholds, leverage-band evaluation, numeric
+ * helpers) live in `perpGuardKernel.ts` so they cannot silently fork between
+ * perp guards.
  */
 
 import { z } from 'zod';
 
+import { preTradeSafetyCheck } from '@/lib/api/services/preTradeSafetyService';
 import {
-  preTradeSafetyCheck,
-  type PreTradeSafetyResult,
-} from '@/lib/api/services/preTradeSafetyService';
+  bps,
+  computeConsensusVenueDeviationPct,
+  escalatePerpGuardVerdict,
+  evaluatePerpGuardLeverageBand,
+  evaluatePerpGuardLeverageVerdicts,
+  evaluatePerpGuardVenueIntegrity,
+  isBlockingOracleVerdict,
+  normalizeSymbol,
+  roundTo,
+  summarizeOracleCheck,
+  type PerpGuardOracleCheckSummary,
+  type PerpGuardVerdict,
+} from '@/lib/perps/perpGuardKernel';
 import {
   fetchPerplPerpMarketState,
   perplReviewedMarketForAsset,
@@ -55,20 +71,8 @@ const REVIEWED_MARKETS: Record<string, { maxLeverage: number }> = {
   SOL: { maxLeverage: 8 },
 };
 
-/**
- * Reviewed venue-integrity thresholds for the venue's own mark/oracle
- * divergence. These are static guard values, not caller-set preflight limits.
- */
-const MARK_ORACLE_DEVIATION_CAUTION_BPS = 100;
-const MARK_ORACLE_DEVIATION_BLOCK_BPS = 1_000;
-/**
- * Reviewed cross-venue deviation between Insight's cross-oracle consensus
- * price and the Perpl oracle price.
- */
-const CONSENSUS_VENUE_DEVIATION_CAUTION_PCT = 1;
-const CONSENSUS_VENUE_DEVIATION_BLOCK_PCT = 5;
-
-export type MonadPerpGuardVerdict = 'ALLOW' | 'CAUTION' | 'BLOCK';
+export type MonadPerpGuardVerdict = PerpGuardVerdict;
+export type MonadPerpGuardOracleCheckSummary = PerpGuardOracleCheckSummary;
 
 export const MonadPerpGuardInputSchema = z.object({
   protocolId: z.literal(MONAD_PERP_GUARD_PERPL_PROTOCOL_ID),
@@ -82,17 +86,6 @@ export const MonadPerpGuardInputSchema = z.object({
   marginValueUsd: z.number().finite().positive().max(1_000_000_000_000),
 });
 export type MonadPerpGuardInput = z.infer<typeof MonadPerpGuardInputSchema>;
-
-export interface MonadPerpGuardOracleCheckSummary {
-  verdict: PreTradeSafetyResult['verdict'];
-  consensusPrice: number;
-  maxDeviationPct: number;
-  staleDataRisk: boolean;
-  participantCount: number;
-  /** A reference to the separately verifiable Oracle Safety attestation, if configured. */
-  attestationUid: string | null;
-  attester: string | null;
-}
 
 export interface MonadPerpGuardVenueEvidence {
   status: 'observed' | 'unavailable';
@@ -174,40 +167,6 @@ export interface MonadPerpGuardDependencies {
   now?: () => Date;
 }
 
-function normalizeSymbol(symbol: string): string {
-  return symbol.trim().toUpperCase();
-}
-
-function summarize(result: PreTradeSafetyResult): MonadPerpGuardOracleCheckSummary {
-  return {
-    verdict: result.verdict,
-    consensusPrice: result.consensusPrice,
-    maxDeviationPct: result.maxDeviationPct,
-    staleDataRisk: result.staleDataRisk,
-    participantCount: result.participantCount,
-    attestationUid: result.attestation?.uid ?? null,
-    attester: result.attestation?.attester ?? null,
-  };
-}
-
-function isBlockingOracleVerdict(verdict: PreTradeSafetyResult['verdict']): boolean {
-  return verdict === 'DANGER' || verdict === 'BLOCK';
-}
-
-function bps(numerator: number, denominator: number): number {
-  if (!(denominator > 0)) return Number.POSITIVE_INFINITY;
-  return ((numerator - denominator) / denominator) * 10_000;
-}
-
-function roundTo(value: number, digits: number): number {
-  const factor = 10 ** digits;
-  return Math.round(value * factor) / factor;
-}
-
-async function defaultVenueState(assetSymbol: string): Promise<PerplPerpMarketState> {
-  return fetchPerplPerpMarketState(assetSymbol);
-}
-
 function unavailableVenueEvidence(reason: string): MonadPerpGuardVenueEvidence {
   return {
     status: 'unavailable',
@@ -232,30 +191,6 @@ function unavailableVenueEvidence(reason: string): MonadPerpGuardVenueEvidence {
   };
 }
 
-function venueEvidenceFromState(state: PerplPerpMarketState): MonadPerpGuardVenueEvidence {
-  return {
-    status: 'observed',
-    observedAt: state.observedAt,
-    sourceFreshnessSeconds: state.sourceFreshnessSeconds,
-    markPrice: state.markPrice,
-    indexPrice: state.indexPrice,
-    markIndexDeviationBps: roundTo(Math.abs(bps(state.markPrice, state.indexPrice)), 2),
-    displayedTopDepthNotionalUsd: null,
-    fundingRatePerInterval: state.fundingRatePerInterval,
-    nextFundingTimeMs: state.nextFundingTimeMs,
-    openInterestBase: state.openInterestBase,
-    dayNotionalVolume: state.dayNotionalVolume,
-    liveMaxLeverage: state.liveMaxLeverage,
-    consensusVenueDeviationPct: null,
-    perpl: {
-      symbol: state.symbol,
-      marketId: state.marketId,
-      marketStatus: state.marketStatus,
-      unavailableReason: null,
-    },
-  };
-}
-
 /**
  * Assess a caller-declared Perpl perpetual position against live venue
  * evidence and cross-oracle consensus. Fails closed: missing venue evidence
@@ -268,7 +203,7 @@ export async function assessMonadPerpGuard(
 ): Promise<MonadPerpGuardResult> {
   const input = MonadPerpGuardInputSchema.parse(rawInput);
   const checkOracle = dependencies.checkOracle ?? preTradeSafetyCheck;
-  const fetchVenueState = dependencies.fetchVenueState ?? defaultVenueState;
+  const fetchVenueState = dependencies.fetchVenueState ?? fetchPerplPerpMarketState;
   const now = dependencies.now?.() ?? new Date();
   const evaluatedAt = now.toISOString();
 
@@ -283,7 +218,7 @@ export async function assessMonadPerpGuard(
   // a BLOCK driven purely by insufficient independent providers (<3) is
   // disclosed rather than escalated because Perpl margin accounting is
   // venue-internal and the leverage band still binds.
-  const [underlyingResult, marginOutcome, venueState] = await Promise.all([
+  const [underlyingResult, marginOutcome, venueOutcome] = await Promise.all([
     checkOracle({
       asset: input.assetSymbol,
       chainId: 1,
@@ -303,17 +238,19 @@ export async function assessMonadPerpGuard(
           reason: error instanceof Error ? error.message : 'Unknown AUSD oracle failure',
         }) as const
     ),
-    fetchVenueState(input.assetSymbol).catch(
+    fetchVenueState(input.assetSymbol).then(
+      (state) => ({ kind: 'observed', state }) as const,
       (error: unknown) =>
-        unavailableVenueEvidence(
-          error instanceof Error ? error.message : 'Unknown Perpl evidence failure'
-        ) as unknown as PerplPerpMarketState
+        ({
+          kind: 'unavailable',
+          reason: error instanceof Error ? error.message : 'Unknown Perpl evidence failure',
+        }) as const
     ),
   ]);
 
   const marginConsensusStatus = (() => {
     if (marginOutcome.kind === 'unavailable') return 'unavailable' as const;
-    const summary = summarize(marginOutcome.result);
+    const summary = summarizeOracleCheck(marginOutcome.result);
     if (summary.verdict === 'BLOCK' && summary.participantCount < 3) {
       return 'insufficient_coverage' as const;
     }
@@ -322,13 +259,13 @@ export async function assessMonadPerpGuard(
 
   const margin: MonadPerpGuardOracleCheckSummary | null =
     marginOutcome.kind === 'result' && marginConsensusStatus === 'verified'
-      ? summarize(marginOutcome.result)
+      ? summarizeOracleCheck(marginOutcome.result)
       : null;
 
   const venue: MonadPerpGuardVenueEvidence =
-    'perpl' in (venueState as unknown as Record<string, unknown>)
-      ? (venueState as unknown as MonadPerpGuardVenueEvidence)
-      : venueEvidenceFromState(venueState);
+    venueOutcome.kind === 'unavailable'
+      ? unavailableVenueEvidence(venueOutcome.reason)
+      : venueEvidenceFromState(venueOutcome.state);
 
   // Cross-venue deviation between the Insight consensus price and Perpl's
   // on-exchange oracle price. Computed only when both sides are observed;
@@ -336,31 +273,19 @@ export async function assessMonadPerpGuard(
   // divergence check can run, so unavailability is disclosed in `reasons`
   // without escalating the verdict (by design: the verdict then rests on
   // cross-oracle consensus and the declared leverage band only).
-  if (
-    venue.status === 'observed' &&
-    venue.indexPrice !== null &&
-    Number.isFinite(underlyingResult.consensusPrice) &&
-    underlyingResult.consensusPrice > 0
-  ) {
-    venue.consensusVenueDeviationPct = roundTo(
-      (Math.abs(venue.indexPrice - underlyingResult.consensusPrice) /
-        underlyingResult.consensusPrice) *
-        100,
-      4
+  if (venue.status === 'observed') {
+    venue.consensusVenueDeviationPct = computeConsensusVenueDeviationPct(
+      venue.indexPrice,
+      underlyingResult.consensusPrice
     );
   }
 
-  const effectiveLeverage = input.sizeUsd / input.marginValueUsd;
-  // The venue margin requirement can be changed at any time; the guard binds
-  // to the lower of the reviewed profile and the freshly observed venue value,
-  // and discloses when the live value is missing.
-  const liveMaxLeverage = venue.liveMaxLeverage;
-  const cappedByLive = liveMaxLeverage !== null && liveMaxLeverage < profile.maxLeverage;
-  const maxLeverage = cappedByLive ? (liveMaxLeverage as number) : profile.maxLeverage;
-  const liquidationBufferPct = Math.max(0, (1 - effectiveLeverage / maxLeverage) * 100);
-  // 90% of the effective cap leaves a mechanical buffer. This is advisory; it
-  // is not a claim that the position is safe under every move.
-  const conservativeMaxSizeUsd = roundTo(input.marginValueUsd * maxLeverage * 0.9, 2);
+  const band = evaluatePerpGuardLeverageBand(
+    input.sizeUsd,
+    input.marginValueUsd,
+    profile.maxLeverage,
+    venue.liveMaxLeverage
+  );
 
   const reasons: string[] = [];
   let verdict: MonadPerpGuardVerdict = 'ALLOW';
@@ -373,17 +298,14 @@ export async function assessMonadPerpGuard(
     verdict = 'BLOCK';
     reasons.push('The margin oracle assessment is DANGER or BLOCK.');
   }
-  if (effectiveLeverage >= maxLeverage) {
-    verdict = 'BLOCK';
-    reasons.push(
-      'Declared post-action leverage is at or above the effective leverage cap, leaving no reviewed buffer.'
-    );
-  } else if (effectiveLeverage >= maxLeverage * 0.9) {
-    if (verdict !== 'BLOCK') verdict = 'CAUTION';
-    reasons.push(
-      'Declared post-action leverage consumes at least 90% of the effective leverage cap.'
-    );
-  }
+
+  const leverageVerdicts = evaluatePerpGuardLeverageVerdicts(
+    band.effectiveLeverage,
+    band.maxLeverage
+  );
+  verdict = escalatePerpGuardVerdict(verdict, leverageVerdicts.verdict);
+  reasons.push(...leverageVerdicts.reasons);
+
   if (underlyingResult.verdict === 'CAUTION' || margin?.verdict === 'CAUTION') {
     if (verdict !== 'BLOCK') verdict = 'CAUTION';
     reasons.push('At least one oracle assessment requires review before execution.');
@@ -405,40 +327,17 @@ export async function assessMonadPerpGuard(
       'Perpl venue evidence was unavailable; the verdict rests on oracle consensus and the declared leverage band only.'
     );
   } else {
-    // Fail closed: a missing mark/oracle deviation counts as maximum divergence.
-    const deviation = venue.markIndexDeviationBps ?? Number.POSITIVE_INFINITY;
-    if (deviation >= MARK_ORACLE_DEVIATION_BLOCK_BPS) {
-      verdict = 'BLOCK';
-      reasons.push(
-        `Perpl mark/oracle divergence ${deviation === Number.POSITIVE_INFINITY ? 'is unobservable' : `${venue.markIndexDeviationBps?.toFixed(2)} bps`} and is at or above the reviewed ${MARK_ORACLE_DEVIATION_BLOCK_BPS} bps backstop.`
-      );
-    } else if (deviation >= MARK_ORACLE_DEVIATION_CAUTION_BPS) {
-      if (verdict !== 'BLOCK') verdict = 'CAUTION';
-      reasons.push(
-        `Perpl mark/oracle divergence ${venue.markIndexDeviationBps?.toFixed(2)} bps exceeds the reviewed ${MARK_ORACLE_DEVIATION_CAUTION_BPS} bps advisory band.`
-      );
-    }
-    const crossVenue = venue.consensusVenueDeviationPct;
-    if (crossVenue !== null) {
-      if (crossVenue >= CONSENSUS_VENUE_DEVIATION_BLOCK_PCT) {
-        verdict = 'BLOCK';
-        reasons.push(
-          `Insight cross-oracle consensus diverges ${crossVenue.toFixed(2)}% from the Perpl oracle price, at or above the reviewed ${CONSENSUS_VENUE_DEVIATION_BLOCK_PCT}% backstop.`
-        );
-      } else if (crossVenue >= CONSENSUS_VENUE_DEVIATION_CAUTION_PCT) {
-        if (verdict !== 'BLOCK') verdict = 'CAUTION';
-        reasons.push(
-          `Insight cross-oracle consensus diverges ${crossVenue.toFixed(2)}% from the Perpl oracle price, above the reviewed ${CONSENSUS_VENUE_DEVIATION_CAUTION_PCT}% advisory band.`
-        );
-      }
-    }
-    if (venue.perpl.marketStatus !== null && venue.perpl.marketStatus !== 'TRADING') {
-      verdict = 'BLOCK';
-      reasons.push(
-        `Perpl market status is ${venue.perpl.marketStatus}, not TRADING; trading is not in the reviewed operating state.`
-      );
-    }
-    if (cappedByLive) {
+    const venueIntegrity = evaluatePerpGuardVenueIntegrity({
+      venueLabel: 'Perpl',
+      indexPriceLabel: 'oracle price',
+      divergenceLabel: 'mark/oracle',
+      markIndexDeviationBps: venue.markIndexDeviationBps,
+      consensusVenueDeviationPct: venue.consensusVenueDeviationPct,
+      marketStatus: venue.perpl.marketStatus,
+    });
+    verdict = escalatePerpGuardVerdict(verdict, venueIntegrity.verdict);
+    reasons.push(...venueIntegrity.reasons);
+    if (band.cappedByLive) {
       reasons.push(
         `Live venue max leverage ${venue.liveMaxLeverage}x is lower than the static reviewed profile cap ${profile.maxLeverage}x; the guard binds to the live value.`
       );
@@ -469,23 +368,19 @@ export async function assessMonadPerpGuard(
     market: {
       assetSymbol: input.assetSymbol,
       marginAssetSymbol: input.marginAssetSymbol,
-      maxLeverage,
-      maxLeverageSource: cappedByLive
-        ? 'reviewed-profile-capped-by-live-venue'
-        : liveMaxLeverage === null
-          ? 'reviewed-profile-live-unavailable'
-          : 'reviewed-profile',
+      maxLeverage: band.maxLeverage,
+      maxLeverageSource: band.maxLeverageSource,
       parameterSource: 'reviewed-profile',
     },
     projected: {
       sizeUsd: input.sizeUsd,
       marginValueUsd: input.marginValueUsd,
-      effectiveLeverage: roundTo(effectiveLeverage, 4),
-      liquidationBufferPct: roundTo(liquidationBufferPct, 4),
-      conservativeMaxSizeUsd,
+      effectiveLeverage: roundTo(band.effectiveLeverage, 4),
+      liquidationBufferPct: roundTo(band.liquidationBufferPct, 4),
+      conservativeMaxSizeUsd: band.conservativeMaxSizeUsd,
     },
     oracleChecks: {
-      underlying: summarize(underlyingResult),
+      underlying: summarizeOracleCheck(underlyingResult),
       margin,
       marginConsensusStatus,
     },
@@ -495,6 +390,30 @@ export async function assessMonadPerpGuard(
       execution: 'not_performed',
       priorSeal:
         'Bind this decision to one exact, user-authorized Perpl order before execution; the binding surface is not part of this assessment.',
+    },
+  };
+}
+
+function venueEvidenceFromState(state: PerplPerpMarketState): MonadPerpGuardVenueEvidence {
+  return {
+    status: 'observed',
+    observedAt: state.observedAt,
+    sourceFreshnessSeconds: state.sourceFreshnessSeconds,
+    markPrice: state.markPrice,
+    indexPrice: state.indexPrice,
+    markIndexDeviationBps: roundTo(Math.abs(bps(state.markPrice, state.indexPrice)), 2),
+    displayedTopDepthNotionalUsd: null,
+    fundingRatePerInterval: state.fundingRatePerInterval,
+    nextFundingTimeMs: state.nextFundingTimeMs,
+    openInterestBase: state.openInterestBase,
+    dayNotionalVolume: state.dayNotionalVolume,
+    liveMaxLeverage: state.liveMaxLeverage,
+    consensusVenueDeviationPct: null,
+    perpl: {
+      symbol: state.symbol,
+      marketId: state.marketId,
+      marketStatus: state.marketStatus,
+      unavailableReason: null,
     },
   };
 }

@@ -20,20 +20,36 @@
  * chain-agnostic for these majors. The venue's index price (external-oracle
  * reference) is compared against that consensus as a separate disclosed
  * cross-venue check.
+ *
+ * Venue-neutral pieces (verdict vocabulary, oracle-check summary shape,
+ * reviewed venue-integrity thresholds, leverage-band evaluation, numeric
+ * helpers) live in `perpGuardKernel.ts` so they cannot silently fork between
+ * perp guards.
  */
 
 import { z } from 'zod';
 
-import {
-  preTradeSafetyCheck,
-  type PreTradeSafetyResult,
-} from '@/lib/api/services/preTradeSafetyService';
+import { preTradeSafetyCheck } from '@/lib/api/services/preTradeSafetyService';
 import {
   asterReviewedMarketForAsset,
   fetchAsterPerpMarketState,
   ASTER_MAINNET_NETWORK,
   type AsterPerpMarketState,
 } from '@/lib/dex/asterPerpMarket';
+import {
+  bps,
+  computeConsensusVenueDeviationPct,
+  escalatePerpGuardVerdict,
+  evaluatePerpGuardLeverageBand,
+  evaluatePerpGuardLeverageVerdicts,
+  evaluatePerpGuardVenueIntegrity,
+  isBlockingOracleVerdict,
+  normalizeSymbol,
+  roundTo,
+  summarizeOracleCheck,
+  type PerpGuardOracleCheckSummary,
+  type PerpGuardVerdict,
+} from '@/lib/perps/perpGuardKernel';
 
 export const BNB_PERP_GUARD_ASTER_PROTOCOL_ID = 'aster-perps-bnb-mainnet';
 export const BNB_PERP_GUARD_SCHEMA_VERSION = 'insight.bnb-perp-guard.v1';
@@ -49,20 +65,8 @@ const REVIEWED_MARKETS = {
   ETH: { maxLeverage: 20 },
 } as const satisfies Record<string, { maxLeverage: number }>;
 
-/**
- * Reviewed venue-integrity thresholds for the venue's own mark/index
- * divergence. These are static guard values, not caller-set preflight limits.
- */
-const MARK_ORACLE_DEVIATION_CAUTION_BPS = 100;
-const MARK_ORACLE_DEVIATION_BLOCK_BPS = 1_000;
-/**
- * Reviewed cross-venue deviation between Insight's cross-oracle consensus
- * price and the Aster index price.
- */
-const CONSENSUS_VENUE_DEVIATION_CAUTION_PCT = 1;
-const CONSENSUS_VENUE_DEVIATION_BLOCK_PCT = 5;
-
-export type BnbPerpGuardVerdict = 'ALLOW' | 'CAUTION' | 'BLOCK';
+export type BnbPerpGuardVerdict = PerpGuardVerdict;
+export type BnbPerpGuardOracleCheckSummary = PerpGuardOracleCheckSummary;
 
 export const BnbPerpGuardInputSchema = z.object({
   protocolId: z.literal(BNB_PERP_GUARD_ASTER_PROTOCOL_ID),
@@ -76,17 +80,6 @@ export const BnbPerpGuardInputSchema = z.object({
   marginValueUsd: z.number().finite().positive().max(1_000_000_000_000),
 });
 export type BnbPerpGuardInput = z.infer<typeof BnbPerpGuardInputSchema>;
-
-export interface BnbPerpGuardOracleCheckSummary {
-  verdict: PreTradeSafetyResult['verdict'];
-  consensusPrice: number;
-  maxDeviationPct: number;
-  staleDataRisk: boolean;
-  participantCount: number;
-  /** A reference to the separately verifiable Oracle Safety attestation, if configured. */
-  attestationUid: string | null;
-  attester: string | null;
-}
 
 export interface BnbPerpGuardVenueEvidence {
   status: 'observed' | 'unavailable';
@@ -165,36 +158,6 @@ export interface BnbPerpGuardDependencies {
   now?: () => Date;
 }
 
-function normalizeSymbol(symbol: string): string {
-  return symbol.trim().toUpperCase();
-}
-
-function summarize(result: PreTradeSafetyResult): BnbPerpGuardOracleCheckSummary {
-  return {
-    verdict: result.verdict,
-    consensusPrice: result.consensusPrice,
-    maxDeviationPct: result.maxDeviationPct,
-    staleDataRisk: result.staleDataRisk,
-    participantCount: result.participantCount,
-    attestationUid: result.attestation?.uid ?? null,
-    attester: result.attestation?.attester ?? null,
-  };
-}
-
-function isBlockingOracleVerdict(verdict: PreTradeSafetyResult['verdict']): boolean {
-  return verdict === 'DANGER' || verdict === 'BLOCK';
-}
-
-function bps(numerator: number, denominator: number): number {
-  if (!(denominator > 0)) return Number.POSITIVE_INFINITY;
-  return ((numerator - denominator) / denominator) * 10_000;
-}
-
-function roundTo(value: number, digits: number): number {
-  const factor = 10 ** digits;
-  return Math.round(value * factor) / factor;
-}
-
 async function defaultVenueState(assetSymbol: string): Promise<AsterPerpMarketState> {
   const market = asterReviewedMarketForAsset(assetSymbol);
   if (!market) {
@@ -248,7 +211,7 @@ export async function assessBnbPerpGuard(
     throw new Error('Declared market is not in the reviewed BNB perp guard market set');
   }
 
-  const [underlyingResult, marginResult, venueState] = await Promise.all([
+  const [underlyingResult, marginResult, venueOutcome] = await Promise.all([
     checkOracle({
       asset: input.assetSymbol,
       chainId: 1,
@@ -261,18 +224,20 @@ export async function assessBnbPerpGuard(
       action: 'swap',
       tradeAmountUsd: input.marginValueUsd,
     }),
-    fetchVenueState(input.assetSymbol).catch(
+    fetchVenueState(input.assetSymbol).then(
+      (state) => ({ kind: 'observed', state }) as const,
       (error: unknown) =>
-        unavailableVenueEvidence(
-          error instanceof Error ? error.message : 'Unknown Aster evidence failure'
-        ) as unknown as AsterPerpMarketState
+        ({
+          kind: 'unavailable',
+          reason: error instanceof Error ? error.message : 'Unknown Aster evidence failure',
+        }) as const
     ),
   ]);
 
   const venue: BnbPerpGuardVenueEvidence =
-    'aster' in (venueState as unknown as Record<string, unknown>)
-      ? (venueState as unknown as BnbPerpGuardVenueEvidence)
-      : venueEvidenceFromState(venueState);
+    venueOutcome.kind === 'unavailable'
+      ? unavailableVenueEvidence(venueOutcome.reason)
+      : venueEvidenceFromState(venueOutcome.state);
 
   // Cross-venue deviation between the Insight consensus price and Aster's
   // external-oracle index price. Computed only when both sides are observed;
@@ -280,31 +245,19 @@ export async function assessBnbPerpGuard(
   // divergence check can run, so unavailability is disclosed in `reasons`
   // without escalating the verdict (by design: the verdict then rests on
   // cross-oracle consensus and the declared leverage band only).
-  if (
-    venue.status === 'observed' &&
-    venue.indexPrice !== null &&
-    Number.isFinite(underlyingResult.consensusPrice) &&
-    underlyingResult.consensusPrice > 0
-  ) {
-    venue.consensusVenueDeviationPct = roundTo(
-      (Math.abs(venue.indexPrice - underlyingResult.consensusPrice) /
-        underlyingResult.consensusPrice) *
-        100,
-      4
+  if (venue.status === 'observed') {
+    venue.consensusVenueDeviationPct = computeConsensusVenueDeviationPct(
+      venue.indexPrice,
+      underlyingResult.consensusPrice
     );
   }
 
-  const effectiveLeverage = input.sizeUsd / input.marginValueUsd;
-  // The venue margin requirement can be changed at any time; the guard binds
-  // to the lower of the reviewed profile and the freshly observed venue value,
-  // and discloses when the live value is missing.
-  const liveMaxLeverage = venue.liveMaxLeverage;
-  const cappedByLive = liveMaxLeverage !== null && liveMaxLeverage < profile.maxLeverage;
-  const maxLeverage = cappedByLive ? (liveMaxLeverage as number) : profile.maxLeverage;
-  const liquidationBufferPct = Math.max(0, (1 - effectiveLeverage / maxLeverage) * 100);
-  // 90% of the effective cap leaves a mechanical buffer. This is advisory; it
-  // is not a claim that the position is safe under every move.
-  const conservativeMaxSizeUsd = roundTo(input.marginValueUsd * maxLeverage * 0.9, 2);
+  const band = evaluatePerpGuardLeverageBand(
+    input.sizeUsd,
+    input.marginValueUsd,
+    profile.maxLeverage,
+    venue.liveMaxLeverage
+  );
 
   const reasons: string[] = [];
   let verdict: BnbPerpGuardVerdict = 'ALLOW';
@@ -316,17 +269,14 @@ export async function assessBnbPerpGuard(
     verdict = 'BLOCK';
     reasons.push('At least one underlying or margin oracle assessment is DANGER or BLOCK.');
   }
-  if (effectiveLeverage >= maxLeverage) {
-    verdict = 'BLOCK';
-    reasons.push(
-      'Declared post-action leverage is at or above the effective leverage cap, leaving no reviewed buffer.'
-    );
-  } else if (effectiveLeverage >= maxLeverage * 0.9) {
-    if (verdict !== 'BLOCK') verdict = 'CAUTION';
-    reasons.push(
-      'Declared post-action leverage consumes at least 90% of the effective leverage cap.'
-    );
-  }
+
+  const leverageVerdicts = evaluatePerpGuardLeverageVerdicts(
+    band.effectiveLeverage,
+    band.maxLeverage
+  );
+  verdict = escalatePerpGuardVerdict(verdict, leverageVerdicts.verdict);
+  reasons.push(...leverageVerdicts.reasons);
+
   if (underlyingResult.verdict === 'CAUTION' || marginResult.verdict === 'CAUTION') {
     if (verdict !== 'BLOCK') verdict = 'CAUTION';
     reasons.push('At least one oracle assessment requires review before execution.');
@@ -339,40 +289,17 @@ export async function assessBnbPerpGuard(
       'Aster venue evidence was unavailable; the verdict rests on oracle consensus and the declared leverage band only.'
     );
   } else {
-    // Fail closed: a missing mark/index deviation counts as maximum divergence.
-    const deviation = venue.markIndexDeviationBps ?? Number.POSITIVE_INFINITY;
-    if (deviation >= MARK_ORACLE_DEVIATION_BLOCK_BPS) {
-      verdict = 'BLOCK';
-      reasons.push(
-        `Aster mark/index divergence ${deviation === Number.POSITIVE_INFINITY ? 'is unobservable' : `${venue.markIndexDeviationBps?.toFixed(2)} bps`} and is at or above the reviewed ${MARK_ORACLE_DEVIATION_BLOCK_BPS} bps backstop.`
-      );
-    } else if (deviation >= MARK_ORACLE_DEVIATION_CAUTION_BPS) {
-      if (verdict !== 'BLOCK') verdict = 'CAUTION';
-      reasons.push(
-        `Aster mark/index divergence ${venue.markIndexDeviationBps?.toFixed(2)} bps exceeds the reviewed ${MARK_ORACLE_DEVIATION_CAUTION_BPS} bps advisory band.`
-      );
-    }
-    const crossVenue = venue.consensusVenueDeviationPct;
-    if (crossVenue !== null) {
-      if (crossVenue >= CONSENSUS_VENUE_DEVIATION_BLOCK_PCT) {
-        verdict = 'BLOCK';
-        reasons.push(
-          `Insight cross-oracle consensus diverges ${crossVenue.toFixed(2)}% from the Aster index price, at or above the reviewed ${CONSENSUS_VENUE_DEVIATION_BLOCK_PCT}% backstop.`
-        );
-      } else if (crossVenue >= CONSENSUS_VENUE_DEVIATION_CAUTION_PCT) {
-        if (verdict !== 'BLOCK') verdict = 'CAUTION';
-        reasons.push(
-          `Insight cross-oracle consensus diverges ${crossVenue.toFixed(2)}% from the Aster index price, above the reviewed ${CONSENSUS_VENUE_DEVIATION_CAUTION_PCT}% advisory band.`
-        );
-      }
-    }
-    if (venue.aster.marketStatus !== null && venue.aster.marketStatus !== 'TRADING') {
-      verdict = 'BLOCK';
-      reasons.push(
-        `Aster market status is ${venue.aster.marketStatus}, not TRADING; trading is not in the reviewed operating state.`
-      );
-    }
-    if (cappedByLive) {
+    const venueIntegrity = evaluatePerpGuardVenueIntegrity({
+      venueLabel: 'Aster',
+      indexPriceLabel: 'index price',
+      divergenceLabel: 'mark/index',
+      markIndexDeviationBps: venue.markIndexDeviationBps,
+      consensusVenueDeviationPct: venue.consensusVenueDeviationPct,
+      marketStatus: venue.aster.marketStatus,
+    });
+    verdict = escalatePerpGuardVerdict(verdict, venueIntegrity.verdict);
+    reasons.push(...venueIntegrity.reasons);
+    if (band.cappedByLive) {
       reasons.push(
         `Live venue max leverage ${venue.liveMaxLeverage}x is lower than the static reviewed profile cap ${profile.maxLeverage}x; the guard binds to the live value.`
       );
@@ -403,22 +330,21 @@ export async function assessBnbPerpGuard(
     market: {
       assetSymbol: input.assetSymbol,
       marginAssetSymbol: input.marginAssetSymbol,
-      maxLeverage,
-      maxLeverageSource: cappedByLive
-        ? 'reviewed-profile-capped-by-live-venue'
-        : liveMaxLeverage === null
-          ? 'reviewed-profile-live-unavailable'
-          : 'reviewed-profile',
+      maxLeverage: band.maxLeverage,
+      maxLeverageSource: band.maxLeverageSource,
       parameterSource: 'reviewed-profile',
     },
     projected: {
       sizeUsd: input.sizeUsd,
       marginValueUsd: input.marginValueUsd,
-      effectiveLeverage: roundTo(effectiveLeverage, 4),
-      liquidationBufferPct: roundTo(liquidationBufferPct, 4),
-      conservativeMaxSizeUsd,
+      effectiveLeverage: roundTo(band.effectiveLeverage, 4),
+      liquidationBufferPct: roundTo(band.liquidationBufferPct, 4),
+      conservativeMaxSizeUsd: band.conservativeMaxSizeUsd,
     },
-    oracleChecks: { underlying: summarize(underlyingResult), margin: summarize(marginResult) },
+    oracleChecks: {
+      underlying: summarizeOracleCheck(underlyingResult),
+      margin: summarizeOracleCheck(marginResult),
+    },
     venue,
     reasons,
     next: {

@@ -12,6 +12,7 @@ import { POSITION_LIFECYCLE_PLAN } from '@/lib/billing/positionLifecycle';
 import { BaseAgentSwapGuardInputSchema } from '@/lib/dex/baseAgentSwapGuard';
 
 import {
+  assertPaidRestRouteCoverage,
   facilitatorBearerTokenForNetwork,
   facilitatorUrlForNetwork,
   type X402Config,
@@ -870,7 +871,7 @@ export async function buildX402HttpServer(
   // query params from each request context before the 402 goes out.
   server.registerExtension(bazaarResourceServerExtension);
 
-  const httpServer = new x402HTTPResourceServer(server, {
+  const paidRestRouteConfigs = {
     [X402_PRE_TRADE_ROUTE]: routeConfigFor(cfg),
     [X402_EXECUTION_PREFLIGHT_ROUTE]: routeConfigFor(
       cfg,
@@ -944,6 +945,16 @@ export async function buildX402HttpServer(
       'Position Lifecycle Bundle (24h): one settlement pre-pays a full monitored lifecycle for one (symbol, chain) position — an embedded Oracle Watch window (300 free signal polls), 4 bundled guard assessments across any position-guard family, and 1 attested execution receipt. The purchase returns a one-time lifecycle token; bundled calls are token-authenticated and never charged per call. Assessment and evidence only — no custody, no execution authority.',
       usdToAtomicUnits(POSITION_LIFECYCLE_PLAN.priceUsd)
     ),
+  };
+
+  // Completeness backstop (#405 regression): every paid REST route constant
+  // must be registered here and nothing extra may be registered. A missing
+  // entry would leave a keyless caller with the defensive no-quote 402 and
+  // no way to pay; refusing to boot surfaces the drift at deploy time.
+  assertPaidRestRouteCoverage(Object.keys(paidRestRouteConfigs));
+
+  const httpServer = new x402HTTPResourceServer(server, {
+    ...paidRestRouteConfigs,
     [X402_MCP_ROUTE]: mcpRouteConfigFor(
       cfg,
       options?.mcpAmountAtomic ?? cfg.amountAtomic,
