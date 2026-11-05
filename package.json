@@ -15,6 +15,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
+    "typecheck:fast": "tsgo --noEmit",
     "ci:local": "npm run prevalidate && node verifier/examples/quickstart.mjs --offline && npm run verifier:release:check && npm run validate:ci && npx playwright install chromium && npm run test:e2e -- --project=chromium",
     "typecheck:scripts": "tsc --noEmit -p tsconfig.scripts.json",
     "prevalidate": "npm run build --prefix verifier",
@@ -179,6 +180,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@typescript/native-preview": "^7.0.0-dev.20260707.2",
     "esbuild": "^0.28.2",
     "eslint": "^9",
     "eslint-config-next": "16.3.8",
@@ -197,7 +199,7 @@
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,mjs}": [
-      "eslint --fix"
+      "eslint --cache --cache-location .eslintcache --fix"
     ],
     "*.{json,jsonc}": [
       "prettier --write"
