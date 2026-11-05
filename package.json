@@ -199,7 +199,7 @@
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,mjs}": [
-      "eslint --fix"
+      "eslint --cache --cache-location .eslintcache --fix"
     ],
     "*.{json,jsonc}": [
       "prettier --write"
