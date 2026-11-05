@@ -5,6 +5,7 @@ import {
   readIssuanceControl,
   readIssuanceHistory,
   readIssuanceHalt,
+  resetIssuanceControlCacheForTests,
 } from './issuanceControl';
 
 jest.mock('@/lib/supabase/server', () => ({ createServiceRoleClient: jest.fn() }));
@@ -33,7 +34,12 @@ function mockControlRead(result: { data: unknown; error: unknown }) {
   return { from, maybeSingle };
 }
 
-beforeEach(() => jest.clearAllMocks());
+beforeEach(() => {
+  jest.clearAllMocks();
+  // Each test swaps the mocked control row; the module-level hot-path TTL
+  // cache must not leak a prior test's state into the next one.
+  resetIssuanceControlCacheForTests();
+});
 
 describe('readIssuanceControl', () => {
   it('reports the halting state, its actor and its revision', async () => {

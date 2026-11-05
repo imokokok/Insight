@@ -7,14 +7,19 @@
   },
   "scripts": {
     "dev": "next dev",
+    "wt": "node scripts/worktree.mjs",
+    "wt:dev": "node scripts/worktree.mjs dev",
+    "wt:e2e": "node scripts/worktree.mjs e2e",
+    "wt:cleanup": "node scripts/worktree.mjs cleanup",
     "build": "npm run generate:mcp-catalog && next build --turbopack && npm run perf:budget",
     "build:webpack": "npm run generate:mcp-catalog && next build --webpack && npm run perf:budget",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "eslint --cache --cache-location .eslintcache",
     "lint:fix": "eslint --fix .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
+    "typecheck:fast": "tsgo --noEmit",
     "ci:local": "npm run prevalidate && node verifier/examples/quickstart.mjs --offline && npm run verifier:release:check && npm run validate:ci && npx playwright install chromium && npm run test:e2e -- --project=chromium",
     "typecheck:scripts": "tsc --noEmit -p tsconfig.scripts.json",
     "prevalidate": "npm run build --prefix verifier",
@@ -53,6 +58,7 @@
     "sdk:test": "npm --prefix sdk test",
     "knip": "knip",
     "audit:api": "node scripts/api-usage-audit.mjs",
+    "audit:x402": "node scripts/x402-revenue-audit.mjs",
     "perf:budget": "node scripts/check-home-bundle-budget.mjs",
     "protocol:check": "node scripts/check-mainline-governance.mjs",
     "audit:raul": "node scripts/api-usage-audit.mjs --name ThoughtProof",
@@ -142,7 +148,7 @@
     "@x402/evm": "^2.29.0",
     "@x402/extensions": "2.29.0",
     "@x402/fetch": "^2.29.0",
-    "@x402/svm": "^2.27.0",
+    "@x402/svm": "2.28.0",
     "canonicalize": "^4.0.0",
     "clsx": "^2.1.1",
     "dompurify": "^3.4.16",
@@ -178,6 +184,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@typescript/native-preview": "^7.0.0-dev.20260707.2",
     "esbuild": "^0.28.2",
     "eslint": "^9",
     "eslint-config-next": "16.3.8",
@@ -196,8 +203,7 @@
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,mjs}": [
-      "eslint --fix",
-      "prettier --write"
+      "eslint --cache --cache-location .eslintcache --fix"
     ],
     "*.{json,jsonc}": [
       "prettier --write"

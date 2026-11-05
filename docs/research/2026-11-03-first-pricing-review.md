@@ -26,6 +26,35 @@ Honest read: 77 calls is not an elasticity signal. Any conclusion drawn from
 volume alone would be noise. The review therefore rests on ladder design,
 marginal cost, and value anchors — with explicit revisit triggers below.
 
+> **2026-11-05 correction (read-only audit; the pricing decision above is unchanged).**
+> The statement above that the x402 rail "is not recorded in the DB" is **incorrect**.
+> `public.x402_settlements` has been a production lifecycle ledger since
+> migration 0077; REST/MCP `settled` rows carry `tx_hash`, `payer` and
+> `amount_usdc`. See `docs/operations/x402-settlement-ops.md` §2, which already
+> corrected the same misconception on 2026-10-27. The cause here was an
+> unqueried audit table, not missing data.
+>
+> Full-table read-only audit on 2026-11-05 (`npm run audit:x402 -- --all`):
+>
+> | Metric                                          | Value                                 |
+> | ----------------------------------------------- | ------------------------------------- |
+> | Ledger rows                                     | 23,948                                |
+> | `quote_issued`                                  | 23,701                                |
+> | `settled`                                       | 77                                    |
+> | Gross settled USDC                              | $1.468                                |
+> | Distinct payers                                 | 8                                     |
+> | Single high-frequency operations wallet         | 69 / 77 settled (89.6%)               |
+> | **External paid calls** (excluding that wallet) | **8 calls / 7 payers / $0.16**        |
+> | Last external payment                           | 2026-10-23 (13 days before the audit) |
+>
+> Impact on this review: the C1–C4 decisions stand (there was no elasticity
+> signal then and there is none now). But the funnel evidence is much harder
+> than "77 calls": 23,701 quotes produced 77 settlements (0.32%), and there
+> have been no external payments since 2026-10-23. That is a retention and
+> conversion problem, not a pricing problem, and it does not support adding
+> more supply. Chain-level `tx_hash` reconciliation still has not been run;
+> it follows the weekly procedure in `x402-settlement-ops.md` §2.4.
+
 ## Decision
 
 | Class                         | Was            | Now            | Change |

@@ -7,6 +7,6 @@
   ],
   "project": ["src/**/*.ts", "src/**/*.tsx"],
   "ignore": [".worktrees/**"],
-  "ignoreDependencies": ["postcss", "canonicalize"],
+  "ignoreDependencies": ["postcss", "canonicalize", "undici"],
   "exclude": ["exports", "types", "duplicates"]
 }

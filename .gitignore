@@ -22,6 +22,9 @@ ml/.venv/
 /playwright-report
 /test-results
 
+# tooling caches
+/.eslintcache
+
 # next.js
 /.next/
 /out/
@@ -57,6 +60,7 @@ supabase/backups/
 # IDE working dirs
 .trae/
 .worktrees/
+.worktree.local
 
 # AI agent working memory (local only — never commit)
 .workbuddy-ai/

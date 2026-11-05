@@ -729,6 +729,60 @@ export const X402_POSITION_LIFECYCLE_ROUTE = '/api/v1/safety/position-lifecycle'
 export const X402_MCP_ROUTE = '/api/mcp';
 
 /**
+ * Single source of truth for the paid REST x402 surface: every REST route
+ * that must produce a real 402 quote from the resource-server route map.
+ * The MCP route is excluded (it is quoted per tools/call, not per REST call).
+ *
+ * Adding a paid REST guard means adding its path constant above AND its
+ * entry here; `buildX402HttpServer` cross-checks this list against the
+ * resource-server route map in both directions and refuses to boot on
+ * drift. Regression context (#405): guards shipped without a route-map
+ * entry, so keyless callers received the defensive no-quote 402 and could
+ * not pay at all.
+ */
+export const X402_PAID_REST_ROUTE_PATHS = [
+  X402_PRE_TRADE_ROUTE,
+  X402_EXECUTION_PREFLIGHT_ROUTE,
+  X402_BASE_LENDING_GUARD_ROUTE,
+  X402_BASE_PERP_GUARD_ROUTE,
+  X402_HYPERLIQUID_PERP_GUARD_ROUTE,
+  X402_MONAD_LENDING_GUARD_ROUTE,
+  X402_MONAD_PERP_GUARD_ROUTE,
+  X402_MULTICHAIN_EVM_LENDING_GUARD_ROUTE,
+  X402_SOLANA_LENDING_GUARD_ROUTE,
+  X402_SOLANA_PERP_GUARD_ROUTE,
+  X402_SOLANA_SWAP_GUARD_ROUTE,
+  X402_BNB_PERP_GUARD_ROUTE,
+  X402_PREDICTION_GUARD_ROUTE,
+  X402_LOOPSCALE_VAULT_DEPOSIT_ROUTE,
+  X402_SWAP_INTENT_ROUTE,
+  X402_ORACLE_WATCH_WINDOW_ROUTE,
+  X402_POSITION_LIFECYCLE_ROUTE,
+] as const;
+
+/**
+ * Fail fast when the resource-server route map and the canonical paid REST
+ * route list drift apart, in either direction. Called by
+ * `buildX402HttpServer` before the server is handed out.
+ */
+export function assertPaidRestRouteCoverage(registeredPaths: readonly string[]): void {
+  const declared = new Set<string>(X402_PAID_REST_ROUTE_PATHS);
+  const registered = new Set(registeredPaths);
+  const missing = [...declared].filter((path) => !registered.has(path));
+  const unexpected = [...registered].filter((path) => !declared.has(path));
+  if (missing.length > 0 || unexpected.length > 0) {
+    throw new Error(
+      'x402 resource-server route map is out of sync with X402_PAID_REST_ROUTE_PATHS' +
+        (missing.length > 0 ? `; missing from the route map: ${missing.join(', ')}` : '') +
+        (unexpected.length > 0
+          ? `; registered but not declared in X402_PAID_REST_ROUTE_PATHS: ${unexpected.join(', ')}`
+          : '') +
+        '. Every paid REST route must exist in both config.ts (path constant + canonical list) and the resource-server route map; otherwise keyless callers get a no-quote 402 and cannot pay (regression #405).'
+    );
+  }
+}
+
+/**
  * USD value of one billing credit for the MCP x402 tier, derived from the
  * REST anchor: the pre-trade check (metering class C3 = 5 credits) sells for
  * $0.02 on the keyless tier, so 1 credit = $0.004. The MCP bridge converts a

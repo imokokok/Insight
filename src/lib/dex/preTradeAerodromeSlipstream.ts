@@ -1,5 +1,3 @@
-import { parseUnits } from 'viem';
-
 import {
   findReviewedAerodromeSlipstreamProfile,
   getAerodromeSlipstreamMarketSnapshotForProfile,
@@ -9,6 +7,12 @@ import {
   type AerodromeSlipstreamMarketSnapshot,
   type ReviewedAerodromeSlipstreamProfileId,
 } from './aerodromeSlipstream';
+import {
+  exactV3StyleAmountInRaw,
+  normalizedV3Symbol,
+  reviewedV3InputDecimals,
+  reviewedV3StyleQuote,
+} from './preTradeV3Shared';
 
 import type { UniswapV3QuoteDirection } from './uniswapV3Market';
 
@@ -49,12 +53,6 @@ export interface ReviewedAerodromeSlipstreamPreTradeEvidence {
   poolBalances: AerodromeSlipstreamMarketSnapshot['poolBalances'];
 }
 
-const DECIMAL_AMOUNT = /^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$/;
-
-function normalized(value: string | undefined): string {
-  return value?.trim().toUpperCase() ?? '';
-}
-
 function selectProfile(request: ReviewedAerodromeSlipstreamPreTradeRequest): {
   profile: ReviewedAerodromeSlipstreamPreTradeProfile;
   definition: AerodromeSlipstreamMarketProfile;
@@ -62,8 +60,8 @@ function selectProfile(request: ReviewedAerodromeSlipstreamPreTradeRequest): {
 } | null {
   const route = {
     chainId: request.chainId,
-    tokenInSymbol: normalized(request.asset),
-    tokenOutSymbol: normalized(request.destinationAsset),
+    tokenInSymbol: normalizedV3Symbol(request.asset),
+    tokenOutSymbol: normalizedV3Symbol(request.destinationAsset),
   };
   if (request.profileId) {
     const definition = reviewedAerodromeSlipstreamProfile(request.profileId);
@@ -101,23 +99,6 @@ function selectProfile(request: ReviewedAerodromeSlipstreamPreTradeRequest): {
   return null;
 }
 
-function exactAmountInRaw(amountIn: string, decimals: number): bigint {
-  if (!DECIMAL_AMOUNT.test(amountIn)) {
-    throw new Error(
-      'Reviewed Aerodrome Slipstream amountIn must be a positive decimal amount without exponent notation.'
-    );
-  }
-  try {
-    const raw = parseUnits(amountIn, decimals);
-    if (raw <= 0n) throw new Error('non-positive');
-    return raw;
-  } catch {
-    throw new Error(
-      'Reviewed Aerodrome Slipstream amountIn is outside the supported token precision.'
-    );
-  }
-}
-
 /**
  * Quote the exact user-declared amount against one reviewed Aerodrome
  * Slipstream Base pool in an admitted direction (the reviewed pools are
@@ -138,11 +119,12 @@ export async function getReviewedAerodromeSlipstreamPreTradeEvidence(
       'No reviewed Aerodrome Slipstream pre-trade profile matches this chain and route.'
     );
   }
-  const inputDecimals =
-    selected.direction === 'token0-to-token1'
-      ? selected.definition.token0.decimals
-      : selected.definition.token1.decimals;
-  const rawAmount = exactAmountInRaw(request.amountIn, inputDecimals);
+  const inputDecimals = reviewedV3InputDecimals(selected.direction, selected.definition);
+  const rawAmount = exactV3StyleAmountInRaw(
+    'Aerodrome Slipstream',
+    request.amountIn,
+    inputDecimals
+  );
   const snapshot = await getAerodromeSlipstreamMarketSnapshotForProfile(
     {
       ...selected.definition,
@@ -157,13 +139,7 @@ export async function getReviewedAerodromeSlipstreamPreTradeEvidence(
     },
     { ...options, cache: false }
   );
-  const quote = snapshot.quotes[0];
-  if (!quote) throw new Error('Reviewed Aerodrome Slipstream quote was absent.');
-  if (quote.direction !== selected.direction) {
-    throw new Error(
-      'Reviewed Aerodrome Slipstream quote direction did not match the selected profile direction.'
-    );
-  }
+  const quote = reviewedV3StyleQuote('Aerodrome Slipstream', snapshot, selected.direction);
 
   return {
     profile: selected.profile,

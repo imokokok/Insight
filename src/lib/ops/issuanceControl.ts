@@ -31,9 +31,22 @@
  */
 
 import { createServiceRoleClient } from '@/lib/supabase/server';
+import { TTLCache } from '@/lib/utils/cache';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('ops-issuance-control');
+
+/**
+ * The kill-switch read sits on the pre-trade hot path, but the state only
+ * changes through `applyIssuanceChange` (which refreshes the cache in the
+ * same call), so a short TTL removes one Supabase RPC per request without
+ * meaningfully delaying an operator halt. Only successfully-read states are
+ * cached — a failed read is never cached, so recovery from a database outage
+ * is observed on the very next request.
+ */
+const ISSUANCE_CONTROL_CACHE_TTL_MS = 60_000;
+const ISSUANCE_CONTROL_CACHE_KEY = 'singleton';
+const issuanceControlCache = new TTLCache({ maxSize: 1 });
 
 export const ISSUANCE_REASON_MIN_LENGTH = 3;
 export const ISSUANCE_REASON_MAX_LENGTH = 2000;
@@ -126,9 +139,12 @@ function describeError(error: unknown): Error {
 /**
  * Read the current control state. Returns `errored: true` when the state is
  * unknown (query failure or a missing singleton row) so callers can distinguish
- * "not halted" from "could not verify".
+ * "not halted" from "could not verify". Successful reads are served from and
+ * refreshed into a 60s TTL cache; see the cache note above the declaration.
  */
 export async function readIssuanceControl(): Promise<IssuanceControlSnapshot> {
+  const cached = issuanceControlCache.get<IssuanceControlSnapshot>(ISSUANCE_CONTROL_CACHE_KEY);
+  if (cached) return cached;
   try {
     const { data, error } = await createServiceRoleClient()
       .from('ops_issuance_control')
@@ -138,7 +154,9 @@ export async function readIssuanceControl(): Promise<IssuanceControlSnapshot> {
     if (error) throw new Error(error.message);
     const row = (data ?? null) as IssuanceControlRow | null;
     if (!row) return UNREADABLE;
-    return { state: toState(row), errored: false };
+    const snapshot: IssuanceControlSnapshot = { state: toState(row), errored: false };
+    issuanceControlCache.set(ISSUANCE_CONTROL_CACHE_KEY, snapshot, ISSUANCE_CONTROL_CACHE_TTL_MS);
+    return snapshot;
   } catch (error) {
     logger.error(
       'Failed to read ops_issuance_control; issuance is treated as NOT halted until it is readable again',
@@ -146,6 +164,14 @@ export async function readIssuanceControl(): Promise<IssuanceControlSnapshot> {
     );
     return UNREADABLE;
   }
+}
+
+/**
+ * Test seam: drop the module-level control-state cache so tests that swap the
+ * mocked database state per call observe fresh reads.
+ */
+export function resetIssuanceControlCacheForTests(): void {
+  issuanceControlCache.clear();
 }
 
 /**
@@ -183,7 +209,15 @@ export async function applyIssuanceChange(
   const rows = (Array.isArray(data) ? data : data ? [data] : []) as IssuanceControlRow[];
   const row = rows[0];
   if (!row) throw new Error('Issuance change returned no resulting state');
-  return toState(row);
+  const state = toState(row);
+  // Refresh (not just invalidate) so an operator halt takes effect on the
+  // next hot-path read without waiting for the TTL to lapse.
+  issuanceControlCache.set(
+    ISSUANCE_CONTROL_CACHE_KEY,
+    { state, errored: false },
+    ISSUANCE_CONTROL_CACHE_TTL_MS
+  );
+  return state;
 }
 
 /**

@@ -17,6 +17,7 @@ import {
   X402_MONAD_LENDING_GUARD_ROUTE,
   X402_MONAD_PERP_GUARD_ROUTE,
   X402_MULTICHAIN_EVM_LENDING_GUARD_ROUTE,
+  X402_PAID_REST_ROUTE_PATHS,
   X402_ORACLE_WATCH_WINDOW_ROUTE,
   X402_POSITION_LIFECYCLE_ROUTE,
   X402_PRE_TRADE_ROUTE,
@@ -296,6 +297,12 @@ describe('x402 SVM resource-server registration', () => {
     for (const scopePath of Object.keys(X402_REST_PAYMENT_SCOPE_BY_PATH)) {
       expect(listedPaths).toContain(scopePath);
     }
+
+    // The quote-verified surface must equal the canonical paid REST route
+    // list in config.ts in both directions. buildX402HttpServer already
+    // refuses to boot on drift; this keeps the hand-written quote table
+    // (methods + expected amounts) from silently lagging that list.
+    expect(listedPaths).toEqual(new Set<string>(X402_PAID_REST_ROUTE_PATHS));
 
     for (const route of routes) {
       const result = await server.processHTTPRequest({
