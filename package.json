@@ -173,7 +173,7 @@
   },
   "devDependencies": {
     "@aave-dao/aave-address-book": "^4.75.6",
-    "@electric-sql/pglite": "0.5.8",
+    "@electric-sql/pglite": "0.5.14",
     "@next/bundle-analyzer": "^16.3.8",
     "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
