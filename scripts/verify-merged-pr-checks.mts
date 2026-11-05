@@ -75,7 +75,9 @@ for (const name of REQUIRED_CHECKS) {
     (run) => run.app?.id === REQUIRED_APP_ID && run.conclusion === 'success'
   );
   if (!successful) {
-    const observed = runs.map((run) => `${run.app?.slug ?? 'unknown'}:${run.conclusion ?? run.status}`);
+    const observed = runs.map(
+      (run) => `${run.app?.slug ?? 'unknown'}:${run.conclusion ?? run.status}`
+    );
     failures.push(`${name} (observed: ${observed.length > 0 ? observed.join(', ') : 'none'})`);
   }
 }
