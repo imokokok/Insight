@@ -10,18 +10,16 @@ import {
   enforceReviewedProfile,
   type ProfileEnforcement,
 } from '../enforcement';
-import type { HeartbeatResult } from '../heartbeat';
 import { listReviewedProfileIds } from '../registry';
+
+import type { HeartbeatResult } from '../heartbeat';
 
 const DRIFT = 'drift-v2-mainnet';
 const NON_DRIFT_ACTIVE = 'hyperliquid-perps-mainnet';
 const UNKNOWN_ID = 'profile-not-in-registry';
 
 /** A completed, injected heartbeat result (never executed by enforcement). */
-function heartbeat(
-  profileId: string,
-  overrides: Partial<HeartbeatResult> = {}
-): HeartbeatResult {
+function heartbeat(profileId: string, overrides: Partial<HeartbeatResult> = {}): HeartbeatResult {
   return {
     profileId,
     status: 'STALE',

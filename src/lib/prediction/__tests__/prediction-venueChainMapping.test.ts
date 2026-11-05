@@ -146,9 +146,9 @@ describe('classifyVenueChain - four-way classification', () => {
   });
 
   it('classifies Kalshi / Coinbase distribution as off-chain regulated', () => {
-    expect(classifyVenueChain({ description: 'Kalshi market distributed by Coinbase' }).venueClass).toBe(
-      'offchain-regulated'
-    );
+    expect(
+      classifyVenueChain({ description: 'Kalshi market distributed by Coinbase' }).venueClass
+    ).toBe('offchain-regulated');
   });
 
   it('honours an explicit class-name venueHint', () => {
@@ -194,9 +194,9 @@ describe('assessVenueChainEvidence - entry chain is NOT settlement chain', () =>
     expect(a.evidenceKind).toBe('oracle_resolution');
     expect(a.reasonCode).toBe('ENTRY_SOLANA_SETTLEMENT_POLYGON');
     expect(a.conclusion).toContain('NOT the settlement chain');
-    expect(VENUE_CHAIN_DESCRIPTORS['jupiter-polymarket-embedded'].entryIsNotSettlementNote).toContain(
-      'ENTRY != SETTLEMENT'
-    );
+    expect(
+      VENUE_CHAIN_DESCRIPTORS['jupiter-polymarket-embedded'].entryIsNotSettlementNote
+    ).toContain('ENTRY != SETTLEMENT');
   });
 
   it('never collapses a Solana entry + Polygon settlement into solana-native', () => {
@@ -345,10 +345,7 @@ describe('prediction guard integration - structured assessment + zero regression
   });
 
   it('keeps the original guard verdict semantics for closed / unknown-venue / out-of-scope', async () => {
-    const closed = await assessPolymarketGuard(
-      BASE_INPUT,
-      deps(gammaMarket({ closed: true }))
-    );
+    const closed = await assessPolymarketGuard(BASE_INPUT, deps(gammaMarket({ closed: true })));
     expect(closed.verdict).toBe('BLOCK');
     expect(closed.reasons).toContain('market closed');
 

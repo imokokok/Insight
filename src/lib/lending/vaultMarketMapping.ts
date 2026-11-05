@@ -32,6 +32,7 @@ import { decodeFunctionResult, encodeFunctionData, type Abi } from 'viem';
 import { readContract } from '@/lib/protocols/importer/rpcClient';
 
 import { MORPHO_BLUE_BASE } from './baseLendingAction';
+
 import type { ReviewedMorphoBlueMarket } from './baseLendingProtocols';
 
 const ADDRESS_RE = /^0x[a-fA-F0-9]{40}$/;

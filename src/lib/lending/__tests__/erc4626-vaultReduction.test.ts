@@ -27,13 +27,14 @@ import {
   assessBaseLendingGuard,
   assessBaseLendingVaultGuard,
 } from '../baseLendingGuard';
-import type { ReviewedMorphoBlueMarket } from '../baseLendingProtocols';
 import { decodeErc4626VaultCall } from '../erc4626VaultDecoder';
 import {
   createRpcBackedVaultReader,
   resolveVaultMarket,
   type VaultRpcReader,
 } from '../vaultMarketMapping';
+
+import type { ReviewedMorphoBlueMarket } from '../baseLendingProtocols';
 
 const ACCOUNT = '0x1111111111111111111111111111111111111111' as const;
 const RECEIVER = '0x2222222222222222222222222222222222222222' as const;

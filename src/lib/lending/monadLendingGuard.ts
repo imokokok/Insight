@@ -331,7 +331,9 @@ export async function assessMonadLendingGuard(
       // and live vault authentication is delegated to a resolver. With no
       // verifiable Monad addresses the descriptor is UNVERIFIED, so this
       // branch fails closed rather than reading a chain target we cannot name.
-      const descriptor = (dependencies.resolveMonadEulerDescriptor ?? defaultMonadEulerDescriptor)();
+      const descriptor = (
+        dependencies.resolveMonadEulerDescriptor ?? defaultMonadEulerDescriptor
+      )();
       if (
         descriptor.status !== 'VERIFIED' ||
         descriptor.chainId !== MONAD_CHAIN_ID ||
@@ -344,10 +346,7 @@ export async function assessMonadLendingGuard(
           `Monad Euler deployment is UNVERIFIED (未找到，需人工 review 后登记): ${descriptor.note}`
         );
       }
-      risk = await (dependencies.resolveMonadEulerRisk ?? defaultMonadEulerRisk)(
-        input,
-        descriptor
-      );
+      risk = await (dependencies.resolveMonadEulerRisk ?? defaultMonadEulerRisk)(input, descriptor);
     } else {
       const market = await (dependencies.resolveMorphoMarket ?? resolveMorphoMarket)(
         input.marketId!

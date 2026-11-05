@@ -37,15 +37,11 @@ import {
   type MonadPerpDecodedAction,
   type MonadPerpExactOrderPayload,
 } from './monadPerpAction';
-import {
-  MONAD_PERP_GUARD_PERPL_PROTOCOL_ID,
-  type MonadPerpGuardResult,
-} from './monadPerpGuard';
+import { MONAD_PERP_GUARD_PERPL_PROTOCOL_ID, type MonadPerpGuardResult } from './monadPerpGuard';
 
 const logger = createLogger('MonadPerpGuardAttestation');
 
-export const MONAD_PERP_GUARD_DECISION_SCHEMA =
-  'insight.monad-perp-guard-decision.v1' as const;
+export const MONAD_PERP_GUARD_DECISION_SCHEMA = 'insight.monad-perp-guard-decision.v1' as const;
 export const MONAD_PERP_GUARD_ATTESTATION_SCHEMA_VERSION = 1 as const;
 export const MONAD_PERP_GUARD_ATTESTATION_VALID_FOR_SECONDS = 300;
 export const MONAD_PERP_GUARD_ATTESTATION_PRIMARY_TYPE = 'MonadPerpGuardDecision' as const;
@@ -255,9 +251,7 @@ function typedDataArgs(data: MonadPerpGuardAttestationData) {
     },
   } as const;
 }
-function unsignedDecision(
-  value: Pick<MonadPerpGuardDecision, 'guard' | 'order' | 'action'>
-) {
+function unsignedDecision(value: Pick<MonadPerpGuardDecision, 'guard' | 'order' | 'action'>) {
   return {
     schema: MONAD_PERP_GUARD_DECISION_SCHEMA,
     guard: value.guard,

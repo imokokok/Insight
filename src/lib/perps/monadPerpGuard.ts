@@ -35,6 +35,12 @@ import { z } from 'zod';
 
 import { preTradeSafetyCheck } from '@/lib/api/services/preTradeSafetyService';
 import {
+  AUSD_UNVERIFIED_DESCRIPTOR,
+  evaluateAusdCoverage,
+  type AusdCoverageDescriptor,
+  type AusdCoverageResult,
+} from '@/lib/oracles/ausdCoverage';
+import {
   bps,
   computeConsensusVenueDeviationPct,
   escalatePerpGuardVerdict,
@@ -54,12 +60,6 @@ import {
   PERPL_MAINNET_NETWORK,
   type PerplPerpMarketState,
 } from '@/lib/perps/perplPerpMarket';
-import {
-  AUSD_UNVERIFIED_DESCRIPTOR,
-  evaluateAusdCoverage,
-  type AusdCoverageDescriptor,
-  type AusdCoverageResult,
-} from '@/lib/oracles/ausdCoverage';
 
 export const MONAD_PERP_GUARD_PERPL_PROTOCOL_ID = 'perpl-perps-monad-mainnet';
 export const MONAD_PERP_GUARD_SCHEMA_VERSION = 'insight.monad-perp-guard.v1';

@@ -25,8 +25,9 @@
  * heartbeat may be passed in as data via `opts.heartbeat`.
  */
 
-import type { HeartbeatResult } from './heartbeat';
 import { getReviewedProfile } from './registry';
+
+import type { HeartbeatResult } from './heartbeat';
 import type {
   ProfileActivityStatus,
   ProfileReasonCode,
@@ -82,8 +83,7 @@ const STATUS_CODE: Record<ReviewedProfileStatus, ProfileReasonCode> = {
 function isFirstHandDisproved(descriptor: ReviewedProfileDescriptor): boolean {
   const inactive = descriptor.status === 'STALE' || descriptor.status === 'DEPRECATED';
   const frozen =
-    descriptor.activityStatus === 'FROZEN' ||
-    descriptor.activityStatus === 'DEPRECATED_DECLARED';
+    descriptor.activityStatus === 'FROZEN' || descriptor.activityStatus === 'DEPRECATED_DECLARED';
   const signal = descriptor.chainAnchor.activitySignal;
   const declaredInactive = Boolean(signal?.declaredInactiveAt);
   const hasProvenance = descriptor.evidenceRefs.some(
@@ -117,9 +117,7 @@ function describeAdvisory(
       ? '一手证伪证据（链上/官方证据链 + 停用声明）'
       : '未见一手证伪证据';
   if (enforced) {
-    const scope = strict
-      ? 'strict 已开启：所有非 ACTIVE 一律 BLOCK'
-      : '默认：仅一手证伪条目';
+    const scope = strict ? 'strict 已开启：所有非 ACTIVE 一律 BLOCK' : '默认：仅一手证伪条目';
     return `${profileId}: status=${status}，${grade}，${reasonCode}；按证据分级（${scope}）强制 BLOCK。`;
   }
   return `${profileId}: status=${status}，${grade}，${reasonCode}；仅附 advisory，不改动 verdict。strict 默认 false，待心跳基础设施齐备后开启 strict 才会对非 ACTIVE 一律 BLOCK。`;

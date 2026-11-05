@@ -88,10 +88,10 @@ receipts it produces — will be appended here when executed.
 
 ## Live mainnet run: preconditions, human gates and preflight
 
-*Preparation only (2026-11-05). No broadcast has been executed; this section
+_Preparation only (2026-11-05). No broadcast has been executed; this section
 adds no receipts, transaction hashes, or settlement data. The receipts
 paragraph above remains empty and will be filled in after a real,
-user-authorized run.*
+user-authorized run._
 
 Three human gates must be signed by the principal before anything is
 broadcast. The assistant does not choose amounts, addresses, or routes and

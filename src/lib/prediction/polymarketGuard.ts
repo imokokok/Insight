@@ -39,7 +39,6 @@ import {
   parseUpdownSlug,
   type GammaMarket,
 } from '@/lib/settlementEvidence/polymarket';
-
 import {
   assessVenueChainEvidence,
   type SettlementChainAssessment,

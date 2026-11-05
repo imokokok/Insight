@@ -3,11 +3,7 @@
  * Pure unit tests: every reader is an injected mock, no network access.
  */
 
-import {
-  assertProfileFresh,
-  evaluateProfileStatus,
-  type ProfileFreshnessDecision,
-} from '../guard';
+import { assertProfileFresh, evaluateProfileStatus, type ProfileFreshnessDecision } from '../guard';
 import {
   runHeartbeat,
   type AnchorObservation,
@@ -20,6 +16,7 @@ import {
   registerReviewedProfile,
   REVIEWED_PROFILES,
 } from '../registry';
+
 import type { ReviewedProfileDescriptor } from '../types';
 
 const NOW = '2026-11-05T09:00:00.000Z';
@@ -294,7 +291,11 @@ describe('④ ACTIVE: anchor consistent + proven LIVE -> ALLOW', () => {
       reason: 'ok',
       lastHeartbeatAt: NOW,
       anchorConsistent: true as const,
-      checks: { anchor: 'consistent' as const, activity: 'live' as const, reviewAge: 'fresh' as const },
+      checks: {
+        anchor: 'consistent' as const,
+        activity: 'live' as const,
+        reviewAge: 'fresh' as const,
+      },
       evaluatedAt: NOW,
     };
     const a = assertProfileFresh(ACTIVE_DESCRIPTOR.profileId, { now: NOW, heartbeat: hb });

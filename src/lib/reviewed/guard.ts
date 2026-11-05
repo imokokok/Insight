@@ -16,11 +16,8 @@ import {
   type RpcReader,
 } from './heartbeat';
 import { getReviewedProfile, listReviewedProfiles } from './registry';
-import type {
-  ProfileActivityStatus,
-  ProfileReasonCode,
-  ReviewedProfileStatus,
-} from './types';
+
+import type { ProfileActivityStatus, ProfileReasonCode, ReviewedProfileStatus } from './types';
 
 /** A decision that maps directly onto a guard verdict (BLOCK when not fresh). */
 export interface ProfileFreshnessDecision {

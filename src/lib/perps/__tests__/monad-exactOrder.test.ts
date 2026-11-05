@@ -162,9 +162,9 @@ describe('P1-2 Monad exact-order binding (centralized payload)', () => {
     expect(() =>
       bindMonadPerpExactOrder({ ...ORDER, orderType: 'market', limitPrice: 78_000 }, scope)
     ).toThrow(/must not carry a limit price/);
-    expect(() =>
-      bindMonadPerpExactOrder({ ...ORDER, symbol: 'HYPE' }, scope)
-    ).toThrow(/does not match the reviewed market/);
+    expect(() => bindMonadPerpExactOrder({ ...ORDER, symbol: 'HYPE' }, scope)).toThrow(
+      /does not match the reviewed market/
+    );
   });
 
   it('rejects unbound extra fields (.strict)', () => {
@@ -183,9 +183,7 @@ describe('P1-2 Monad perp attestation and independent recompute', () => {
 
     // Independent recompute of the payload hash (no helper reuse).
     const independentPayloadHash = keccak256(
-      new TextEncoder().encode(
-        canonicalJsonString(MonadPerpExactOrderPayloadSchema.parse(ORDER))
-      )
+      new TextEncoder().encode(canonicalJsonString(MonadPerpExactOrderPayloadSchema.parse(ORDER)))
     );
     expect(decision.action.payloadHash).toBe(independentPayloadHash);
 

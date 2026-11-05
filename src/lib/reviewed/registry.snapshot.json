@@ -4,43 +4,358 @@
   "note": "Machine-readable export for insight-profile-heartbeat.mjs. Keep in sync with registry.ts; anchors are verbatim source-controlled constants. check.kind=none means no publicly readable anchor is registered yet (UNKNOWN, never ACTIVE).",
   "reviewedAt": "2026-11-05",
   "profiles": [
-    {"profileId":"aave-v3-base","family":"lending","chain":"base","status":"ACTIVE","activityStatus":"UNKNOWN","check":{"kind":"evm-code","addresses":["0xA238Dd80C259a72e81d7e4664a9801593F98d1c5"]}},
-    {"profileId":"morpho-blue-base","family":"lending","chain":"base","status":"ACTIVE","activityStatus":"UNKNOWN","check":{"kind":"evm-code","addresses":["0xbbbbbbbbbb9cc5e90e3b3af64bdaf62c37eeffcb"]}},
-    {"profileId":"compound-v3-base","family":"lending","chain":"base","status":"ACTIVE","activityStatus":"UNKNOWN","check":{"kind":"evm-code","addresses":["0xb125e6687d4313864e53df431d5425969c15eb2f"]}},
-    {"profileId":"moonwell-base","family":"lending","chain":"base","status":"ACTIVE","activityStatus":"UNKNOWN","check":{"kind":"evm-code","addresses":["0xfbb21d0380bee3312b33c4353c8936a0f13ef26c"]}},
-    {"profileId":"aave-v3-polygon","family":"lending","chain":"polygon","status":"ACTIVE","activityStatus":"UNKNOWN","check":{"kind":"evm-code","addresses":["0x794a61358D6845594F94dc1DB02A252b5b4814aD"]}},
-    {"profileId":"aave-v3-arbitrum","family":"lending","chain":"arbitrum","status":"ACTIVE","activityStatus":"UNKNOWN","check":{"kind":"evm-code","addresses":["0x794a61358D6845594F94dc1DB02A252b5b4814aD"]}},
-    {"profileId":"aave-v3-bnb","family":"lending","chain":"bnb","status":"ACTIVE","activityStatus":"UNKNOWN","check":{"kind":"evm-code","addresses":["0x6807dc923806fE8Fd134338EABCA509979a7e0cB"]}},
-    {"profileId":"venus-core-bnb","family":"lending","chain":"bnb","status":"ACTIVE","activityStatus":"UNKNOWN","check":{"kind":"evm-code","addresses":["0xfd36e2c2a6789db23113685031d7f16329158384"]}},
-    {"profileId":"compound-v3-arbitrum","family":"lending","chain":"arbitrum","status":"ACTIVE","activityStatus":"UNKNOWN","check":{"kind":"evm-code","addresses":["0x9c4ec768c28520b50860ea7a15bd7213a9ff58bf"]}},
-    {"profileId":"morpho-blue-arbitrum","family":"lending","chain":"arbitrum","status":"ACTIVE","activityStatus":"UNKNOWN","check":{"kind":"evm-code","addresses":["0xbbbbbbbbbb9cc5e90e3b3af64bdaf62c37eeffcb"]}},
-    {"profileId":"morpho-blue-polygon","family":"lending","chain":"polygon","status":"ACTIVE","activityStatus":"UNKNOWN","check":{"kind":"evm-code","addresses":["0xbbbbbbbbbb9cc5e90e3b3af64bdaf62c37eeffcb"]}},
-    {"profileId":"lista-moolah-bnb","family":"lending","chain":"bnb","status":"ACTIVE","activityStatus":"UNKNOWN","check":{"kind":"evm-code","addresses":["0x8f73b65b4caaf64fba2af91cc5d4a2a1318e5d8c"]}},
-    {"profileId":"euler-v2-base","family":"lending","chain":"base","status":"ACTIVE","activityStatus":"UNKNOWN","check":{"kind":"evm-code","addresses":["0x7f321498a801a191a93c840750ed637149ddf8d0"]}},
-    {"profileId":"euler-v2-arbitrum","family":"lending","chain":"arbitrum","status":"ACTIVE","activityStatus":"UNKNOWN","check":{"kind":"evm-code","addresses":["0x78df1cf5bf06a7f27f2acc580b934238c1b80d50"]}},
-    {"profileId":"dolomite-arbitrum","family":"lending","chain":"arbitrum","status":"ACTIVE","activityStatus":"UNKNOWN","check":{"kind":"evm-code","addresses":["0x6bd780e7fdf01d77e4d475c821f1e7ae05409072"]}},
-    {"profileId":"fluid-vault-t1-base","family":"lending","chain":"base","status":"ACTIVE","activityStatus":"UNKNOWN","check":{"kind":"evm-code","addresses":["0x324c5dc1fc42c7a4d43d92df1eba58a54d13bf2d"]}},
-    {"profileId":"fluid-vault-t1-arbitrum","family":"lending","chain":"arbitrum","status":"ACTIVE","activityStatus":"UNKNOWN","check":{"kind":"evm-code","addresses":["0x324c5dc1fc42c7a4d43d92df1eba58a54d13bf2d"]}},
-    {"profileId":"aave-v3-monad","family":"lending","chain":"monad","status":"ACTIVE","activityStatus":"UNKNOWN","check":{"kind":"evm-code","addresses":["0x69a5f9ad4f96ebf0a0c792dd42a01cc5c0102fef"]}},
-    {"profileId":"morpho-blue-monad","family":"lending","chain":"monad","status":"ACTIVE","activityStatus":"UNKNOWN","check":{"kind":"evm-code","addresses":["0xbbbbbbbbbb9cc5e90e3b3af64bdaf62c37eeffcb"]}},
-    {"profileId":"kamino-lend","family":"lending","chain":"solana","status":"ACTIVE","activityStatus":"UNKNOWN","check":{"kind":"solana-account","addresses":["KLend2g3cP87fffoy8q1mQqGKjrxjC8boSyAYavgmjD"]}},
-    {"profileId":"marginfi-v2","family":"lending","chain":"solana","status":"ACTIVE","activityStatus":"UNKNOWN","check":{"kind":"solana-account","addresses":["MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA"]}},
-    {"profileId":"jupiter-lend-earn","family":"lending","chain":"solana","status":"ACTIVE","activityStatus":"UNKNOWN","check":{"kind":"solana-account","addresses":["jup3YeL8QhtSx1e253b2FDvsMNC87fDrgQZivbrndc9"]}},
-    {"profileId":"save-lend","family":"lending","chain":"solana","status":"ACTIVE","activityStatus":"UNKNOWN","check":{"kind":"solana-account","addresses":["So1endDq2YkqhipRh3WViPa8hdiSpxWy6z3Z6tMCpAo"]}},
-    {"profileId":"loopscale-vault","family":"lending","chain":"solana","status":"ACTIVE","activityStatus":"UNKNOWN","check":{"kind":"none","needs":"未登记可比对的链上 program-address 常量；需补 decoder 锚点"}},
-    {"profileId":"base-aerodrome-slipstream-weth-usdc-cl100","family":"swap","chain":"base","status":"ACTIVE","activityStatus":"UNKNOWN","check":{"kind":"evm-code","addresses":["0xb2cc224c1c9feE385f8ad6a55b4d94E92359DC59"]}},
-    {"profileId":"base-aerodrome-slipstream-usdc-usdt-cl1","family":"swap","chain":"base","status":"ACTIVE","activityStatus":"UNKNOWN","check":{"kind":"evm-code","addresses":["0xa41Bc0AFfbA7Fd420d186b84899d7ab2aC57fcD1"]}},
-    {"profileId":"base-pancakeswap-v3-usdc-usdt-100","family":"swap","chain":"base","status":"ACTIVE","activityStatus":"UNKNOWN","check":{"kind":"evm-code","addresses":["0x5f07bb9fee6062e9d09a52e6d587c64bad6ba706"]}},
-    {"profileId":"bnb-pancakeswap-v3-usdt-usdc-100","family":"swap","chain":"bnb","status":"ACTIVE","activityStatus":"UNKNOWN","check":{"kind":"evm-code","addresses":["0x92b7807bf19b7dddf89b706143896d05228f3121"]}},
-    {"profileId":"bnb-pancakeswap-v3-usdt-wbnb-100","family":"swap","chain":"bnb","status":"ACTIVE","activityStatus":"UNKNOWN","check":{"kind":"evm-code","addresses":["0x172fcD41E0913e95784454622d1c3724f546f849"]}},
-    {"profileId":"monad-pancakeswap-v3-wmon-usdc-500","family":"swap","chain":"monad","status":"ACTIVE","activityStatus":"UNKNOWN","check":{"kind":"evm-code","addresses":["0x63e48b725540a3db24acf6682a29f877808c53f2"]}},
-    {"profileId":"solana-orca-whirlpool-usdc-usdt-1","family":"swap","chain":"solana","status":"ACTIVE","activityStatus":"UNKNOWN","check":{"kind":"solana-account","addresses":["whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc","4fuUiYxTQ6QCrdSq9ouBYcTM7bqSwYTSyLueGZLTy4T4"]}},
-    {"profileId":"solana-orca-whirlpool-sol-usdc-1","family":"swap","chain":"solana","status":"ACTIVE","activityStatus":"UNKNOWN","check":{"kind":"solana-account","addresses":["whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc","Czfq3xZZDmsdGdUyrNLtRhGc47cXcZtLG4crryfu44zE"]}},
-    {"profileId":"synthetix-perps-v3-base","family":"perp","chain":"base","status":"ACTIVE","activityStatus":"UNKNOWN","check":{"kind":"evm-code","addresses":["0x0A2AF931eFFd34b81ebcc57E3d3c9B1E1dE1C9Ce"]}},
-    {"profileId":"aster-perps-bnb-mainnet","family":"perp","chain":"bnb","status":"ACTIVE","activityStatus":"UNKNOWN","check":{"kind":"none","needs":"API-based venue，无可公开比对链上地址；活性需 venue API 证据"}},
-    {"profileId":"perpl-perps-monad-mainnet","family":"perp","chain":"monad","status":"ACTIVE","activityStatus":"UNKNOWN","check":{"kind":"none","needs":"API-based venue，无可公开比对链上地址；活性需 venue API 证据"}},
-    {"profileId":"drift-v2-mainnet","family":"perp","chain":"solana","status":"STALE","activityStatus":"FROZEN","check":{"kind":"solana-account","addresses":["dRiftyHA39MWEi3m9aunc5MzRF1JYuBsbn6VPcn33UH","8UJgxaiQx5nTrdDgph5FiahMmzduuLTLf5WmsPegYA6W","2UZMvVTBQR9yWxrEdzEQzXWE61bUjqQ5VpJAGqVb3B19","25Eax9W8SA3wpCQFhJEGyHhQ2NDHEshZEDzyMNtthR8D"],"driftActivity":{"twapTsOffset":888,"maxSilenceHours":24,"declaredInactiveAt":"2026-04-01T17:36:27Z"}}},
-    {"profileId":"hyperliquid-perps-mainnet","family":"perp","chain":"hyperliquid","status":"ACTIVE","activityStatus":"UNKNOWN","check":{"kind":"none","needs":"Hyperliquid L1 / API-based，无 EVM/Solana 公开 RPC 锚点"}},
-    {"profileId":"polymarket-prediction-mainnet","family":"prediction","chain":"chain-agnostic","status":"ACTIVE","activityStatus":"UNKNOWN","check":{"kind":"none","needs":"链无关 Gamma API profile；活性需 venue metadata 证据"}}
+    {
+      "profileId": "aave-v3-base",
+      "family": "lending",
+      "chain": "base",
+      "status": "ACTIVE",
+      "activityStatus": "UNKNOWN",
+      "check": { "kind": "evm-code", "addresses": ["0xA238Dd80C259a72e81d7e4664a9801593F98d1c5"] }
+    },
+    {
+      "profileId": "morpho-blue-base",
+      "family": "lending",
+      "chain": "base",
+      "status": "ACTIVE",
+      "activityStatus": "UNKNOWN",
+      "check": { "kind": "evm-code", "addresses": ["0xbbbbbbbbbb9cc5e90e3b3af64bdaf62c37eeffcb"] }
+    },
+    {
+      "profileId": "compound-v3-base",
+      "family": "lending",
+      "chain": "base",
+      "status": "ACTIVE",
+      "activityStatus": "UNKNOWN",
+      "check": { "kind": "evm-code", "addresses": ["0xb125e6687d4313864e53df431d5425969c15eb2f"] }
+    },
+    {
+      "profileId": "moonwell-base",
+      "family": "lending",
+      "chain": "base",
+      "status": "ACTIVE",
+      "activityStatus": "UNKNOWN",
+      "check": { "kind": "evm-code", "addresses": ["0xfbb21d0380bee3312b33c4353c8936a0f13ef26c"] }
+    },
+    {
+      "profileId": "aave-v3-polygon",
+      "family": "lending",
+      "chain": "polygon",
+      "status": "ACTIVE",
+      "activityStatus": "UNKNOWN",
+      "check": { "kind": "evm-code", "addresses": ["0x794a61358D6845594F94dc1DB02A252b5b4814aD"] }
+    },
+    {
+      "profileId": "aave-v3-arbitrum",
+      "family": "lending",
+      "chain": "arbitrum",
+      "status": "ACTIVE",
+      "activityStatus": "UNKNOWN",
+      "check": { "kind": "evm-code", "addresses": ["0x794a61358D6845594F94dc1DB02A252b5b4814aD"] }
+    },
+    {
+      "profileId": "aave-v3-bnb",
+      "family": "lending",
+      "chain": "bnb",
+      "status": "ACTIVE",
+      "activityStatus": "UNKNOWN",
+      "check": { "kind": "evm-code", "addresses": ["0x6807dc923806fE8Fd134338EABCA509979a7e0cB"] }
+    },
+    {
+      "profileId": "venus-core-bnb",
+      "family": "lending",
+      "chain": "bnb",
+      "status": "ACTIVE",
+      "activityStatus": "UNKNOWN",
+      "check": { "kind": "evm-code", "addresses": ["0xfd36e2c2a6789db23113685031d7f16329158384"] }
+    },
+    {
+      "profileId": "compound-v3-arbitrum",
+      "family": "lending",
+      "chain": "arbitrum",
+      "status": "ACTIVE",
+      "activityStatus": "UNKNOWN",
+      "check": { "kind": "evm-code", "addresses": ["0x9c4ec768c28520b50860ea7a15bd7213a9ff58bf"] }
+    },
+    {
+      "profileId": "morpho-blue-arbitrum",
+      "family": "lending",
+      "chain": "arbitrum",
+      "status": "ACTIVE",
+      "activityStatus": "UNKNOWN",
+      "check": { "kind": "evm-code", "addresses": ["0xbbbbbbbbbb9cc5e90e3b3af64bdaf62c37eeffcb"] }
+    },
+    {
+      "profileId": "morpho-blue-polygon",
+      "family": "lending",
+      "chain": "polygon",
+      "status": "ACTIVE",
+      "activityStatus": "UNKNOWN",
+      "check": { "kind": "evm-code", "addresses": ["0xbbbbbbbbbb9cc5e90e3b3af64bdaf62c37eeffcb"] }
+    },
+    {
+      "profileId": "lista-moolah-bnb",
+      "family": "lending",
+      "chain": "bnb",
+      "status": "ACTIVE",
+      "activityStatus": "UNKNOWN",
+      "check": { "kind": "evm-code", "addresses": ["0x8f73b65b4caaf64fba2af91cc5d4a2a1318e5d8c"] }
+    },
+    {
+      "profileId": "euler-v2-base",
+      "family": "lending",
+      "chain": "base",
+      "status": "ACTIVE",
+      "activityStatus": "UNKNOWN",
+      "check": { "kind": "evm-code", "addresses": ["0x7f321498a801a191a93c840750ed637149ddf8d0"] }
+    },
+    {
+      "profileId": "euler-v2-arbitrum",
+      "family": "lending",
+      "chain": "arbitrum",
+      "status": "ACTIVE",
+      "activityStatus": "UNKNOWN",
+      "check": { "kind": "evm-code", "addresses": ["0x78df1cf5bf06a7f27f2acc580b934238c1b80d50"] }
+    },
+    {
+      "profileId": "dolomite-arbitrum",
+      "family": "lending",
+      "chain": "arbitrum",
+      "status": "ACTIVE",
+      "activityStatus": "UNKNOWN",
+      "check": { "kind": "evm-code", "addresses": ["0x6bd780e7fdf01d77e4d475c821f1e7ae05409072"] }
+    },
+    {
+      "profileId": "fluid-vault-t1-base",
+      "family": "lending",
+      "chain": "base",
+      "status": "ACTIVE",
+      "activityStatus": "UNKNOWN",
+      "check": { "kind": "evm-code", "addresses": ["0x324c5dc1fc42c7a4d43d92df1eba58a54d13bf2d"] }
+    },
+    {
+      "profileId": "fluid-vault-t1-arbitrum",
+      "family": "lending",
+      "chain": "arbitrum",
+      "status": "ACTIVE",
+      "activityStatus": "UNKNOWN",
+      "check": { "kind": "evm-code", "addresses": ["0x324c5dc1fc42c7a4d43d92df1eba58a54d13bf2d"] }
+    },
+    {
+      "profileId": "aave-v3-monad",
+      "family": "lending",
+      "chain": "monad",
+      "status": "ACTIVE",
+      "activityStatus": "UNKNOWN",
+      "check": { "kind": "evm-code", "addresses": ["0x69a5f9ad4f96ebf0a0c792dd42a01cc5c0102fef"] }
+    },
+    {
+      "profileId": "morpho-blue-monad",
+      "family": "lending",
+      "chain": "monad",
+      "status": "ACTIVE",
+      "activityStatus": "UNKNOWN",
+      "check": { "kind": "evm-code", "addresses": ["0xbbbbbbbbbb9cc5e90e3b3af64bdaf62c37eeffcb"] }
+    },
+    {
+      "profileId": "kamino-lend",
+      "family": "lending",
+      "chain": "solana",
+      "status": "ACTIVE",
+      "activityStatus": "UNKNOWN",
+      "check": {
+        "kind": "solana-account",
+        "addresses": ["KLend2g3cP87fffoy8q1mQqGKjrxjC8boSyAYavgmjD"]
+      }
+    },
+    {
+      "profileId": "marginfi-v2",
+      "family": "lending",
+      "chain": "solana",
+      "status": "ACTIVE",
+      "activityStatus": "UNKNOWN",
+      "check": {
+        "kind": "solana-account",
+        "addresses": ["MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA"]
+      }
+    },
+    {
+      "profileId": "jupiter-lend-earn",
+      "family": "lending",
+      "chain": "solana",
+      "status": "ACTIVE",
+      "activityStatus": "UNKNOWN",
+      "check": {
+        "kind": "solana-account",
+        "addresses": ["jup3YeL8QhtSx1e253b2FDvsMNC87fDrgQZivbrndc9"]
+      }
+    },
+    {
+      "profileId": "save-lend",
+      "family": "lending",
+      "chain": "solana",
+      "status": "ACTIVE",
+      "activityStatus": "UNKNOWN",
+      "check": {
+        "kind": "solana-account",
+        "addresses": ["So1endDq2YkqhipRh3WViPa8hdiSpxWy6z3Z6tMCpAo"]
+      }
+    },
+    {
+      "profileId": "loopscale-vault",
+      "family": "lending",
+      "chain": "solana",
+      "status": "ACTIVE",
+      "activityStatus": "UNKNOWN",
+      "check": {
+        "kind": "none",
+        "needs": "未登记可比对的链上 program-address 常量；需补 decoder 锚点"
+      }
+    },
+    {
+      "profileId": "base-aerodrome-slipstream-weth-usdc-cl100",
+      "family": "swap",
+      "chain": "base",
+      "status": "ACTIVE",
+      "activityStatus": "UNKNOWN",
+      "check": { "kind": "evm-code", "addresses": ["0xb2cc224c1c9feE385f8ad6a55b4d94E92359DC59"] }
+    },
+    {
+      "profileId": "base-aerodrome-slipstream-usdc-usdt-cl1",
+      "family": "swap",
+      "chain": "base",
+      "status": "ACTIVE",
+      "activityStatus": "UNKNOWN",
+      "check": { "kind": "evm-code", "addresses": ["0xa41Bc0AFfbA7Fd420d186b84899d7ab2aC57fcD1"] }
+    },
+    {
+      "profileId": "base-pancakeswap-v3-usdc-usdt-100",
+      "family": "swap",
+      "chain": "base",
+      "status": "ACTIVE",
+      "activityStatus": "UNKNOWN",
+      "check": { "kind": "evm-code", "addresses": ["0x5f07bb9fee6062e9d09a52e6d587c64bad6ba706"] }
+    },
+    {
+      "profileId": "bnb-pancakeswap-v3-usdt-usdc-100",
+      "family": "swap",
+      "chain": "bnb",
+      "status": "ACTIVE",
+      "activityStatus": "UNKNOWN",
+      "check": { "kind": "evm-code", "addresses": ["0x92b7807bf19b7dddf89b706143896d05228f3121"] }
+    },
+    {
+      "profileId": "bnb-pancakeswap-v3-usdt-wbnb-100",
+      "family": "swap",
+      "chain": "bnb",
+      "status": "ACTIVE",
+      "activityStatus": "UNKNOWN",
+      "check": { "kind": "evm-code", "addresses": ["0x172fcD41E0913e95784454622d1c3724f546f849"] }
+    },
+    {
+      "profileId": "monad-pancakeswap-v3-wmon-usdc-500",
+      "family": "swap",
+      "chain": "monad",
+      "status": "ACTIVE",
+      "activityStatus": "UNKNOWN",
+      "check": { "kind": "evm-code", "addresses": ["0x63e48b725540a3db24acf6682a29f877808c53f2"] }
+    },
+    {
+      "profileId": "solana-orca-whirlpool-usdc-usdt-1",
+      "family": "swap",
+      "chain": "solana",
+      "status": "ACTIVE",
+      "activityStatus": "UNKNOWN",
+      "check": {
+        "kind": "solana-account",
+        "addresses": [
+          "whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc",
+          "4fuUiYxTQ6QCrdSq9ouBYcTM7bqSwYTSyLueGZLTy4T4"
+        ]
+      }
+    },
+    {
+      "profileId": "solana-orca-whirlpool-sol-usdc-1",
+      "family": "swap",
+      "chain": "solana",
+      "status": "ACTIVE",
+      "activityStatus": "UNKNOWN",
+      "check": {
+        "kind": "solana-account",
+        "addresses": [
+          "whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc",
+          "Czfq3xZZDmsdGdUyrNLtRhGc47cXcZtLG4crryfu44zE"
+        ]
+      }
+    },
+    {
+      "profileId": "synthetix-perps-v3-base",
+      "family": "perp",
+      "chain": "base",
+      "status": "ACTIVE",
+      "activityStatus": "UNKNOWN",
+      "check": { "kind": "evm-code", "addresses": ["0x0A2AF931eFFd34b81ebcc57E3d3c9B1E1dE1C9Ce"] }
+    },
+    {
+      "profileId": "aster-perps-bnb-mainnet",
+      "family": "perp",
+      "chain": "bnb",
+      "status": "ACTIVE",
+      "activityStatus": "UNKNOWN",
+      "check": {
+        "kind": "none",
+        "needs": "API-based venue，无可公开比对链上地址；活性需 venue API 证据"
+      }
+    },
+    {
+      "profileId": "perpl-perps-monad-mainnet",
+      "family": "perp",
+      "chain": "monad",
+      "status": "ACTIVE",
+      "activityStatus": "UNKNOWN",
+      "check": {
+        "kind": "none",
+        "needs": "API-based venue，无可公开比对链上地址；活性需 venue API 证据"
+      }
+    },
+    {
+      "profileId": "drift-v2-mainnet",
+      "family": "perp",
+      "chain": "solana",
+      "status": "STALE",
+      "activityStatus": "FROZEN",
+      "check": {
+        "kind": "solana-account",
+        "addresses": [
+          "dRiftyHA39MWEi3m9aunc5MzRF1JYuBsbn6VPcn33UH",
+          "8UJgxaiQx5nTrdDgph5FiahMmzduuLTLf5WmsPegYA6W",
+          "2UZMvVTBQR9yWxrEdzEQzXWE61bUjqQ5VpJAGqVb3B19",
+          "25Eax9W8SA3wpCQFhJEGyHhQ2NDHEshZEDzyMNtthR8D"
+        ],
+        "driftActivity": {
+          "twapTsOffset": 888,
+          "maxSilenceHours": 24,
+          "declaredInactiveAt": "2026-04-01T17:36:27Z"
+        }
+      }
+    },
+    {
+      "profileId": "hyperliquid-perps-mainnet",
+      "family": "perp",
+      "chain": "hyperliquid",
+      "status": "ACTIVE",
+      "activityStatus": "UNKNOWN",
+      "check": {
+        "kind": "none",
+        "needs": "Hyperliquid L1 / API-based，无 EVM/Solana 公开 RPC 锚点"
+      }
+    },
+    {
+      "profileId": "polymarket-prediction-mainnet",
+      "family": "prediction",
+      "chain": "chain-agnostic",
+      "status": "ACTIVE",
+      "activityStatus": "UNKNOWN",
+      "check": { "kind": "none", "needs": "链无关 Gamma API profile；活性需 venue metadata 证据" }
+    }
   ]
 }

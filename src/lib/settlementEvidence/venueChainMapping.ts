@@ -324,7 +324,9 @@ export function classifyVenueChain(input: VenueChainInput): VenueChainClassifica
   if (/\bkalshi\b|\bcoinbase\b/.test(text)) {
     return classification('offchain-regulated', 'offchain regulated keyword');
   }
-  if (/inframarkets|arcium|\bepoch\b|\bwave\b|\btbd\b|solana[- ]native|solana prediction/.test(text)) {
+  if (
+    /inframarkets|arcium|\bepoch\b|\bwave\b|\btbd\b|solana[- ]native|solana prediction/.test(text)
+  ) {
     return classification('solana-native', 'solana-native project keyword');
   }
   if (/polymarket|\buma\b|\bclob\b|polygon/.test(text)) {

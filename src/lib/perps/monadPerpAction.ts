@@ -27,10 +27,7 @@ import { z } from 'zod';
 
 import { canonicalJsonString } from '@/lib/utils/canonicalJson';
 
-import {
-  MONAD_PERP_GUARD_PERPL_PROTOCOL_ID,
-  MonadPerpGuardInputSchema,
-} from './monadPerpGuard';
+import { MONAD_PERP_GUARD_PERPL_PROTOCOL_ID, MonadPerpGuardInputSchema } from './monadPerpGuard';
 import { perplReviewedMarketForAsset } from './perplPerpMarket';
 
 /**
@@ -137,7 +134,9 @@ export function bindMonadPerpExactOrder(
   const symbol = normalizeSymbol(payload.symbol);
   const reviewed = perplReviewedMarketForAsset(symbol);
   if (!reviewed || reviewed.marketId !== payload.marketId) {
-    throw new Error('Perpl order marketId does not match the reviewed market for the declared asset');
+    throw new Error(
+      'Perpl order marketId does not match the reviewed market for the declared asset'
+    );
   }
   if (symbol !== normalizeSymbol(expected.assetSymbol)) {
     throw new Error('Perpl order symbol does not match the assessed market');

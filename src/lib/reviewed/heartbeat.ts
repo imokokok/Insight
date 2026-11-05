@@ -16,6 +16,7 @@
  */
 
 import { getReviewedProfile } from './registry';
+
 import type {
   ChainAnchor,
   ProfileActivityStatus,
@@ -65,10 +66,7 @@ export interface HeartbeatContext {
 
 /** Injected, read-only RPC surface. Implementations MUST NOT write to chain. */
 export interface RpcReader {
-  readAnchor(
-    anchor: ChainAnchor,
-    context: HeartbeatContext
-  ): Promise<AnchorObservation | null>;
+  readAnchor(anchor: ChainAnchor, context: HeartbeatContext): Promise<AnchorObservation | null>;
 }
 
 export interface HeartbeatOptions {
@@ -126,7 +124,10 @@ function isComparable(value: unknown): value is ComparableAnchorValue {
   );
 }
 
-function anchorValuesEqual(expected: ComparableAnchorValue, actual: ComparableAnchorValue): boolean {
+function anchorValuesEqual(
+  expected: ComparableAnchorValue,
+  actual: ComparableAnchorValue
+): boolean {
   if (Array.isArray(expected) && Array.isArray(actual)) {
     return expected.length === actual.length && expected.every((v, i) => v === actual[i]);
   }

@@ -73,7 +73,8 @@ const BASE_LENDING: ReviewedProfileDescriptor[] = [
     lastHeartbeatAt: null,
     status: 'ACTIVE',
     activityStatus: 'UNKNOWN',
-    notes: 'AaveV3Base.POOL from @aave-dao/aave-address-book via baseLendingAction.ts:8. 活性未独立观测。',
+    notes:
+      'AaveV3Base.POOL from @aave-dao/aave-address-book via baseLendingAction.ts:8. 活性未独立观测。',
   },
   {
     profileId: 'morpho-blue-base',
@@ -127,7 +128,8 @@ const BASE_LENDING: ReviewedProfileDescriptor[] = [
     lastHeartbeatAt: null,
     status: 'ACTIVE',
     activityStatus: 'UNKNOWN',
-    notes: 'Comptroller pinned; the 7 admitted markets are listed at baseLendingProtocols.ts:21-29.',
+    notes:
+      'Comptroller pinned; the 7 admitted markets are listed at baseLendingProtocols.ts:21-29.',
   },
 ];
 
@@ -144,7 +146,11 @@ const MULTICHAIN_EVM_LENDING: ReviewedProfileDescriptor[] = [
     reviewedAt: REVIEW_DATE,
     evidenceRefs: [
       ev('src/lib/lending/multichainEvmLendingAction.ts:47-61', 'official'),
-      ev('src/lib/lending/multichainEvmLendingProtocols.ts:30-37', 'official', 'AAVE_V3_EVM_MARKETS.polygon POOL'),
+      ev(
+        'src/lib/lending/multichainEvmLendingProtocols.ts:30-37',
+        'official',
+        'AAVE_V3_EVM_MARKETS.polygon POOL'
+      ),
     ],
     chainAnchor: {
       pool: '0x794a61358D6845594F94dc1DB02A252b5b4814aD',
@@ -161,7 +167,11 @@ const MULTICHAIN_EVM_LENDING: ReviewedProfileDescriptor[] = [
     chainId: 42161,
     reviewedAt: REVIEW_DATE,
     evidenceRefs: [
-      ev('src/lib/lending/multichainEvmLendingProtocols.ts:38-47', 'official', 'AAVE_V3_EVM_MARKETS.arbitrum'),
+      ev(
+        'src/lib/lending/multichainEvmLendingProtocols.ts:38-47',
+        'official',
+        'AAVE_V3_EVM_MARKETS.arbitrum'
+      ),
     ],
     chainAnchor: {
       pool: '0x794a61358D6845594F94dc1DB02A252b5b4814aD',
@@ -178,7 +188,11 @@ const MULTICHAIN_EVM_LENDING: ReviewedProfileDescriptor[] = [
     chainId: 56,
     reviewedAt: REVIEW_DATE,
     evidenceRefs: [
-      ev('src/lib/lending/multichainEvmLendingProtocols.ts:48-55', 'official', 'AAVE_V3_EVM_MARKETS.bnb'),
+      ev(
+        'src/lib/lending/multichainEvmLendingProtocols.ts:48-55',
+        'official',
+        'AAVE_V3_EVM_MARKETS.bnb'
+      ),
     ],
     chainAnchor: {
       pool: '0x6807dc923806fE8Fd134338EABCA509979a7e0cB',
@@ -195,7 +209,11 @@ const MULTICHAIN_EVM_LENDING: ReviewedProfileDescriptor[] = [
     chainId: 56,
     reviewedAt: REVIEW_DATE,
     evidenceRefs: [
-      ev('src/lib/lending/multichainEvmLendingProtocols.ts:63-70', 'official', 'VENUS_CORE_POOL_COMPTROLLER + markets'),
+      ev(
+        'src/lib/lending/multichainEvmLendingProtocols.ts:63-70',
+        'official',
+        'VENUS_CORE_POOL_COMPTROLLER + markets'
+      ),
     ],
     chainAnchor: {
       proxy: '0xfd36e2c2a6789db23113685031d7f16329158384',
@@ -212,7 +230,11 @@ const MULTICHAIN_EVM_LENDING: ReviewedProfileDescriptor[] = [
     chainId: 42161,
     reviewedAt: REVIEW_DATE,
     evidenceRefs: [
-      ev('src/lib/lending/multichainEvmLendingProtocols.ts:93-100', 'official', 'COMPOUND_V3_ARBITRUM_COMET'),
+      ev(
+        'src/lib/lending/multichainEvmLendingProtocols.ts:93-100',
+        'official',
+        'COMPOUND_V3_ARBITRUM_COMET'
+      ),
     ],
     chainAnchor: {
       proxy: '0x9c4ec768c28520b50860ea7a15bd7213a9ff58bf',
@@ -229,7 +251,11 @@ const MULTICHAIN_EVM_LENDING: ReviewedProfileDescriptor[] = [
     chainId: 42161,
     reviewedAt: REVIEW_DATE,
     evidenceRefs: [
-      ev('src/lib/lending/multichainEvmLendingProtocols.ts:77-86', 'official', 'MORPHO_BLUE_EVM_MARKETS'),
+      ev(
+        'src/lib/lending/multichainEvmLendingProtocols.ts:77-86',
+        'official',
+        'MORPHO_BLUE_EVM_MARKETS'
+      ),
     ],
     chainAnchor: {
       pool: '0xbbbbbbbbbb9cc5e90e3b3af64bdaf62c37eeffcb',
@@ -246,7 +272,11 @@ const MULTICHAIN_EVM_LENDING: ReviewedProfileDescriptor[] = [
     chainId: 137,
     reviewedAt: REVIEW_DATE,
     evidenceRefs: [
-      ev('src/lib/lending/multichainEvmLendingProtocols.ts:77-86', 'official', 'MORPHO_BLUE_EVM_MARKETS'),
+      ev(
+        'src/lib/lending/multichainEvmLendingProtocols.ts:77-86',
+        'official',
+        'MORPHO_BLUE_EVM_MARKETS'
+      ),
     ],
     chainAnchor: {
       pool: '0xbbbbbbbbbb9cc5e90e3b3af64bdaf62c37eeffcb',
@@ -280,7 +310,11 @@ const MULTICHAIN_EVM_LENDING: ReviewedProfileDescriptor[] = [
     chainId: 8453,
     reviewedAt: REVIEW_DATE,
     evidenceRefs: [
-      ev('src/lib/lending/multichainEvmLendingProtocols.ts:114-125', 'official', 'EULER_V2_EVM_MARKETS.base'),
+      ev(
+        'src/lib/lending/multichainEvmLendingProtocols.ts:114-125',
+        'official',
+        'EULER_V2_EVM_MARKETS.base'
+      ),
     ],
     chainAnchor: {
       proxy: '0x7f321498a801a191a93c840750ed637149ddf8d0',
@@ -297,7 +331,11 @@ const MULTICHAIN_EVM_LENDING: ReviewedProfileDescriptor[] = [
     chainId: 42161,
     reviewedAt: REVIEW_DATE,
     evidenceRefs: [
-      ev('src/lib/lending/multichainEvmLendingProtocols.ts:114-125', 'official', 'EULER_V2_EVM_MARKETS.arbitrum'),
+      ev(
+        'src/lib/lending/multichainEvmLendingProtocols.ts:114-125',
+        'official',
+        'EULER_V2_EVM_MARKETS.arbitrum'
+      ),
     ],
     chainAnchor: {
       proxy: '0x78df1cf5bf06a7f27f2acc580b934238c1b80d50',
@@ -314,7 +352,11 @@ const MULTICHAIN_EVM_LENDING: ReviewedProfileDescriptor[] = [
     chainId: 42161,
     reviewedAt: REVIEW_DATE,
     evidenceRefs: [
-      ev('src/lib/lending/multichainEvmLendingProtocols.ts:128', 'official', 'DOLOMITE_ARBITRUM_MARGIN'),
+      ev(
+        'src/lib/lending/multichainEvmLendingProtocols.ts:128',
+        'official',
+        'DOLOMITE_ARBITRUM_MARGIN'
+      ),
     ],
     chainAnchor: {
       proxy: '0x6bd780e7fdf01d77e4d475c821f1e7ae05409072',
@@ -331,7 +373,11 @@ const MULTICHAIN_EVM_LENDING: ReviewedProfileDescriptor[] = [
     chainId: 8453,
     reviewedAt: REVIEW_DATE,
     evidenceRefs: [
-      ev('src/lib/lending/multichainEvmLendingProtocols.ts:135-144', 'official', 'FLUID_VAULT_T1_EVM_MARKETS.base'),
+      ev(
+        'src/lib/lending/multichainEvmLendingProtocols.ts:135-144',
+        'official',
+        'FLUID_VAULT_T1_EVM_MARKETS.base'
+      ),
     ],
     chainAnchor: {
       proxy: '0x324c5dc1fc42c7a4d43d92df1eba58a54d13bf2d',
@@ -348,7 +394,11 @@ const MULTICHAIN_EVM_LENDING: ReviewedProfileDescriptor[] = [
     chainId: 42161,
     reviewedAt: REVIEW_DATE,
     evidenceRefs: [
-      ev('src/lib/lending/multichainEvmLendingProtocols.ts:135-144', 'official', 'FLUID_VAULT_T1_EVM_MARKETS.arbitrum'),
+      ev(
+        'src/lib/lending/multichainEvmLendingProtocols.ts:135-144',
+        'official',
+        'FLUID_VAULT_T1_EVM_MARKETS.arbitrum'
+      ),
     ],
     chainAnchor: {
       proxy: '0x324c5dc1fc42c7a4d43d92df1eba58a54d13bf2d',
@@ -459,7 +509,8 @@ const SOLANA_LENDING: ReviewedProfileDescriptor[] = [
     lastHeartbeatAt: null,
     status: 'ACTIVE',
     activityStatus: 'UNKNOWN',
-    notes: 'Jupiter Lend main program; secondary liquidity program at solanaLendingAction.ts:17-18.',
+    notes:
+      'Jupiter Lend main program; secondary liquidity program at solanaLendingAction.ts:17-18.',
   },
   {
     profileId: 'save-lend',
@@ -494,7 +545,8 @@ const SOLANA_LENDING: ReviewedProfileDescriptor[] = [
     lastHeartbeatAt: null,
     status: 'ACTIVE',
     activityStatus: 'UNKNOWN',
-    notes: '未找到该 profile 可比对的链上 program-address 常量；以 protocolId 作为身份锚点，后续用 decoder 补锚点。',
+    notes:
+      '未找到该 profile 可比对的链上 program-address 常量；以 protocolId 作为身份锚点，后续用 decoder 补锚点。',
   },
 ];
 
@@ -510,7 +562,11 @@ const EVM_SWAP: ReviewedProfileDescriptor[] = [
     reviewedAt: REVIEW_DATE,
     evidenceRefs: [
       ev('src/lib/dex/baseAgentSwapGuard.ts:66-73', 'official', 'reviewed swap profile ids'),
-      ev('src/lib/dex/aerodromeSlipstream.ts:21-38', 'official', 'factory/quoter/router + code hashes'),
+      ev(
+        'src/lib/dex/aerodromeSlipstream.ts:21-38',
+        'official',
+        'factory/quoter/router + code hashes'
+      ),
       ev('src/lib/dex/aerodromeSlipstream.ts:49-58', 'official', 'WETH/USDC pool + poolCodeHash'),
     ],
     chainAnchor: {
@@ -530,7 +586,11 @@ const EVM_SWAP: ReviewedProfileDescriptor[] = [
     reviewedAt: REVIEW_DATE,
     evidenceRefs: [
       ev('src/lib/dex/baseAgentSwapGuard.ts:66-73', 'official'),
-      ev('src/lib/dex/aerodromeSlipstream.ts:67-76', 'official', 'USDC/USDT CL1 pool + poolCodeHash'),
+      ev(
+        'src/lib/dex/aerodromeSlipstream.ts:67-76',
+        'official',
+        'USDC/USDT CL1 pool + poolCodeHash'
+      ),
     ],
     chainAnchor: {
       pool: '0xa41Bc0AFfbA7Fd420d186b84899d7ab2aC57fcD1',
@@ -618,7 +678,8 @@ const EVM_SWAP: ReviewedProfileDescriptor[] = [
     lastHeartbeatAt: null,
     status: 'ACTIVE',
     activityStatus: 'UNKNOWN',
-    notes: 'P0-1 结论：与官方口径不矛盾，常量不改；feeTier=500；逐池量级仍不确定（见证据报告 C3）。',
+    notes:
+      'P0-1 结论：与官方口径不矛盾，常量不改；feeTier=500；逐池量级仍不确定（见证据报告 C3）。',
   },
 ];
 
@@ -711,7 +772,8 @@ const PERP: ReviewedProfileDescriptor[] = [
     lastHeartbeatAt: null,
     status: 'ACTIVE',
     activityStatus: 'UNKNOWN',
-    notes: 'API-based venue；未找到可比对链上合约地址常量，以 protocolId 身份锚点占位，后续用 decoder 补。',
+    notes:
+      'API-based venue；未找到可比对链上合约地址常量，以 protocolId 身份锚点占位，后续用 decoder 补。',
   },
   {
     profileId: 'perpl-perps-monad-mainnet',
@@ -739,9 +801,17 @@ const PERP: ReviewedProfileDescriptor[] = [
     evidenceRefs: [
       ev('src/lib/perps/solanaPerpGuard.ts:57', 'official', 'DRIFT_V2_PROTOCOL_ID'),
       ev('src/lib/perps/driftPerpMarket.ts:41', 'official', 'DRIFT_V2_MAINNET_PROGRAM_ID'),
-      ev('src/lib/perps/solanaPerpGuard.ts:60-70', 'official', 'marginRatioInitial=500 / 3 reviewed markets'),
-      P0_1_CHAIN('A2：程序 ID / 三市场 / marginRatioInitial=500 与链上逐字段一致（常量正确，不改）'),
-      P0_1_CHAIN('A4：三市场 lastMarkPriceTwapTs 自 2026-04-01T18:31Z 冻结约 218 天；官方 commit e32903bec003 "comment out all ixs"'),
+      ev(
+        'src/lib/perps/solanaPerpGuard.ts:60-70',
+        'official',
+        'marginRatioInitial=500 / 3 reviewed markets'
+      ),
+      P0_1_CHAIN(
+        'A2：程序 ID / 三市场 / marginRatioInitial=500 与链上逐字段一致（常量正确，不改）'
+      ),
+      P0_1_CHAIN(
+        'A4：三市场 lastMarkPriceTwapTs 自 2026-04-01T18:31Z 冻结约 218 天；官方 commit e32903bec003 "comment out all ixs"'
+      ),
       P0_1_CHAIN('A3：官方仓库归档并迁往 velocity-exchange，docs 重定向'),
     ],
     chainAnchor: {
@@ -774,7 +844,11 @@ const PERP: ReviewedProfileDescriptor[] = [
     reviewedAt: REVIEW_DATE,
     evidenceRefs: [
       ev('src/lib/perps/hyperliquidPerpGuard.ts:33', 'official', 'HYPERLIQUID_PERPS_PROTOCOL_ID'),
-      ev('src/lib/dex/hyperliquidPerpMarket.ts:12', 'official', "HYPERLIQUID_MAINNET_NETWORK='hyperliquid:mainnet'"),
+      ev(
+        'src/lib/dex/hyperliquidPerpMarket.ts:12',
+        'official',
+        "HYPERLIQUID_MAINNET_NETWORK='hyperliquid:mainnet'"
+      ),
     ],
     chainAnchor: {
       paramSlot: 'hyperliquid-perps-mainnet',
@@ -798,8 +872,16 @@ const PREDICTION: ReviewedProfileDescriptor[] = [
     reviewedAt: REVIEW_DATE,
     evidenceRefs: [
       ev('src/lib/prediction/polymarketGuard.ts:43', 'official', 'POLYMARKET_GUARD_PROTOCOL_ID'),
-      ev('src/lib/settlementEvidence/polymarket.ts:23', 'official', "DEFAULT_GAMMA_BASE_URL='https://gamma-api.polymarket.com'"),
-      ev('src/lib/prediction/polymarketGuard.ts:24-28', 'official', 'reviewed 2026-11-04 against live updown series'),
+      ev(
+        'src/lib/settlementEvidence/polymarket.ts:23',
+        'official',
+        "DEFAULT_GAMMA_BASE_URL='https://gamma-api.polymarket.com'"
+      ),
+      ev(
+        'src/lib/prediction/polymarketGuard.ts:24-28',
+        'official',
+        'reviewed 2026-11-04 against live updown series'
+      ),
     ],
     chainAnchor: {
       paramSlot: 'polymarket-prediction-mainnet',

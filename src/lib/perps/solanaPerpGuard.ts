@@ -46,11 +46,6 @@ import {
   type DriftPerpMarketEvidence,
 } from '@/lib/perps/driftPerpMarket';
 import {
-  decodeSolanaPerpExactCall,
-  DRIFT_BASE_PRECISION,
-  type DriftPerpDecodedAction,
-} from '@/lib/perps/solanaPerpAction';
-import {
   bps,
   escalatePerpGuardVerdict,
   evaluatePerpGuardLeverageBand,
@@ -63,9 +58,11 @@ import {
   type PerpGuardVerdict,
 } from '@/lib/perps/perpGuardKernel';
 import {
-  enforceReviewedProfile,
-  type ProfileEnforcement,
-} from '@/lib/reviewed/enforcement';
+  decodeSolanaPerpExactCall,
+  DRIFT_BASE_PRECISION,
+  type DriftPerpDecodedAction,
+} from '@/lib/perps/solanaPerpAction';
+import { enforceReviewedProfile, type ProfileEnforcement } from '@/lib/reviewed/enforcement';
 
 export const SOLANA_PERP_GUARD_DRIFT_V2_PROTOCOL_ID = 'drift-v2-mainnet';
 export const SOLANA_PERP_GUARD_SCHEMA_VERSION = 'insight.solana-perp-guard.v1';
@@ -396,8 +393,13 @@ export async function assessSolanaPerpGuard(
     profile.maxLeverage,
     venue.liveMaxLeverage
   );
-  const { effectiveLeverage, maxLeverage, cappedByLive, liquidationBufferPct, conservativeMaxSizeUsd } =
-    band;
+  const {
+    effectiveLeverage,
+    maxLeverage,
+    cappedByLive,
+    liquidationBufferPct,
+    conservativeMaxSizeUsd,
+  } = band;
 
   const reasons: string[] = [];
   // P0-2: a first-hand-disproved / frozen reviewed profile starts as BLOCK and
@@ -445,10 +447,14 @@ export async function assessSolanaPerpGuard(
       venueLabel: 'Drift',
       indexPriceLabel: 'oracle price',
       divergenceLabel: 'mark/oracle',
-      expectedStatus: 'active',
       markIndexDeviationBps: venue.markOracleDeviationBps,
       consensusVenueDeviationPct,
-      marketStatus: venue.drift.marketStatus,
+      // Drift's on-chain MarketStatus enum uses 'active' for the operating
+      // state; the kernel's venue-integrity layer expects the canonical
+      // 'TRADING' label. Map it so an active Drift market is not misread as
+      // a non-operating state (any other value still fails closed).
+      marketStatus:
+        venue.drift.marketStatus === 'active' ? 'TRADING' : venue.drift.marketStatus,
     });
     verdict = escalatePerpGuardVerdict(verdict, venueIntegrity.verdict);
     reasons.push(...venueIntegrity.reasons);
