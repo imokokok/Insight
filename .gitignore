@@ -22,6 +22,9 @@ ml/.venv/
 /playwright-report
 /test-results
 
+# tooling caches
+/.eslintcache
+
 # next.js
 /.next/
 /out/

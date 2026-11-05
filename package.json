@@ -10,7 +10,7 @@
     "build": "npm run generate:mcp-catalog && next build --turbopack && npm run perf:budget",
     "build:webpack": "npm run generate:mcp-catalog && next build --webpack && npm run perf:budget",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "eslint --cache --cache-location .eslintcache",
     "lint:fix": "eslint --fix .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -197,8 +197,7 @@
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,mjs}": [
-      "eslint --fix",
-      "prettier --write"
+      "eslint --fix"
     ],
     "*.{json,jsonc}": [
       "prettier --write"
