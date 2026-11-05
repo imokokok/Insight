@@ -156,11 +156,9 @@ export function BillingPanel() {
         throw new Error(apiErrorMessage(result, 'Failed to start renewal checkout'));
       }
 
-      window.location.href = requireApiData(
-        result,
-        CheckoutDataSchema,
-        'Renewal checkout response'
-      ).url;
+      window.location.assign(
+        requireApiData(result, CheckoutDataSchema, 'Renewal checkout response').url
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to start renewal');
       setActionLoading(false);
