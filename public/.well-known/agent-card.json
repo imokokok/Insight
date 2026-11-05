@@ -76,7 +76,17 @@
       "id": "perp_guards",
       "name": "Perp guards (Base, BNB, Monad, Solana, Hyperliquid)",
       "description": "Pre-trade decision-input integrity gates for opening a perp position on five reviewed venues: Synthetix Perps V3 on Base (oracle integrity for underlying and USDC margin, leverage vs reviewed market caps, exact commitOrder call binding with optional EIP-712 decision attestation), Aster on BNB Chain (oracle-integrity tier, no attestation or exact-order layer by design), Perpl on Monad (exact binding to the canonical-serialization payloadHash of a centralized order payload with an EIP-712 attestation; this cannot prove on-chain execution), Hyperliquid HyperCore (exact unsigned IOC exchange-envelope binding), and Drift v2 on Solana. Drift's reviewed profile is STALE: first-hand on-chain verification (2026-11-05) found the AMM frozen since 2026-04-01 and the venue migrated to Velocity, so Drift position openings hard-BLOCK by default and no decision attestation is signed. Never signs or broadcasts an order. $0.02 USDC per complete decision.",
-      "tags": ["defi", "perps", "trading", "risk", "hyperliquid", "synthetix", "drift", "aster", "agent-safety"],
+      "tags": [
+        "defi",
+        "perps",
+        "trading",
+        "risk",
+        "hyperliquid",
+        "synthetix",
+        "drift",
+        "aster",
+        "agent-safety"
+      ],
       "examples": [
         "My agent wants to open a 5x ETH long on Hyperliquid — is the price input trustworthy and is the leverage safe?",
         "Check the oracle evidence for a Synthetix Perps V3 ETH long before the commitOrder call is signed"
@@ -86,7 +96,19 @@
       "id": "base_agent_swap_guard",
       "name": "Agent Swap Guard (Base, BNB, Monad, Solana)",
       "description": "Pre-signing guard for one exact reviewed single-hop swap: three Base profiles (Aerodrome Slipstream WETH→USDC CL100, Aerodrome Slipstream USDC→USDT CL1, PancakeSwap V3 USDC→USDT 0.01%), two BNB Chain profiles (PancakeSwap V3 USDT→USDC and USDT→WBNB 0.01%), one Monad profile (PancakeSwap V3 WMON→USDC 0.5%), and two Solana Orca Whirlpool profiles (USDC/USDT and SOL/USDC 0.01%, legacy swap discriminator only). Validates decision prices, pinned venue quote, price impact, TWAP, slippage, route contracts, and byte-exact unsigned calldata; settlement closure is pinned to chain ids 8453, 56, and 143. Returns ALLOW, CAUTION, or BLOCK; only ALLOW includes calls for human confirmation. Never signs, routes, relays, or broadcasts a trade. $0.02 USDC.",
-      "tags": ["defi", "swap", "base", "bnb", "monad", "solana", "aerodrome", "pancakeswap", "orca", "pre-signing", "agent-safety"],
+      "tags": [
+        "defi",
+        "swap",
+        "base",
+        "bnb",
+        "monad",
+        "solana",
+        "aerodrome",
+        "pancakeswap",
+        "orca",
+        "pre-signing",
+        "agent-safety"
+      ],
       "examples": [
         "Review this exact Aerodrome Slipstream swap calldata my Base agent is about to sign",
         "Verify the quoted price impact and TWAP for a 0.25 WETH→USDC swap before signing"
