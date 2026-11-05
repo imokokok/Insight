@@ -80,6 +80,11 @@ export const GET = (
   request: NextRequest,
   routeContext: { params: Promise<Record<string, string>> }
 ): Promise<NextResponse> => {
+  // Deliberately NOT resolved through x402ConfigForPaymentScope: the guard's
+  // natural scope is hypercore, and scope resolution intentionally returns
+  // null for hypercore until the HyperCore payment rail exists (see
+  // capabilityPayment.ts). Until then this route settles on the merchant's
+  // configured default rail, like the other chain-neutral products.
   const config = getX402Config();
   if (config.enabled && (isPaidRequest(request) || !hasAuthCredentials(request))) {
     return handlePaidPreTradeRequest(request, config, async (requestId) => {
@@ -121,6 +126,7 @@ export const POST = async (
   request: NextRequest,
   routeContext: { params: Promise<Record<string, string>> }
 ): Promise<NextResponse> => {
+  // See the GET dispatcher above: raw config is deliberate for this route.
   const config = getX402Config();
   if (config.enabled && (isPaidRequest(request) || !hasAuthCredentials(request))) {
     return handlePaidPreTradeRequest(request, config, async (requestId) => {

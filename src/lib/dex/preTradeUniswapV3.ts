@@ -1,8 +1,12 @@
-import { parseUnits } from 'viem';
-
 import { baseUniswapV3WethUsdcProfile, baseUniswapV3WethUsdc500Profile } from './baseUniswapV3';
 import { monadUniswapV3WmonUsdcProfile } from './monadUniswapV3';
 import { reviewedPancakeSwapV3Profile } from './pancakeSwapV3';
+import {
+  exactV3StyleAmountInRaw,
+  normalizedV3Symbol,
+  reviewedV3InputDecimals,
+  reviewedV3StyleQuote,
+} from './preTradeV3Shared';
 import {
   getUniswapV3MarketSnapshot,
   type UniswapV3MarketProfile,
@@ -59,12 +63,6 @@ export interface ReviewedUniswapV3PreTradeEvidence {
   poolBalances: UniswapV3MarketSnapshot['poolBalances'];
 }
 
-const DECIMAL_AMOUNT = /^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$/;
-
-function normalized(value: string | undefined): string {
-  return value?.trim().toUpperCase() ?? '';
-}
-
 interface SelectedProfile {
   profile: ReviewedUniswapV3PreTradeProfile;
   definition: UniswapV3MarketProfile;
@@ -72,8 +70,8 @@ interface SelectedProfile {
 }
 
 function selectProfile(request: ReviewedUniswapV3PreTradeRequest): SelectedProfile | null {
-  const asset = normalized(request.asset);
-  const destination = normalized(request.destinationAsset);
+  const asset = normalizedV3Symbol(request.asset);
+  const destination = normalizedV3Symbol(request.destinationAsset);
   if (request.chainId === 143 && (asset === 'MON' || asset === 'WMON') && destination === 'USDC') {
     return {
       profile: 'monad-wmon-usdc',
@@ -151,21 +149,6 @@ function selectProfile(request: ReviewedUniswapV3PreTradeRequest): SelectedProfi
   return null;
 }
 
-function exactAmountInRaw(amountIn: string, decimals: number): bigint {
-  if (!DECIMAL_AMOUNT.test(amountIn)) {
-    throw new Error(
-      'Reviewed Uniswap V3 amountIn must be a positive decimal amount without exponent notation.'
-    );
-  }
-  try {
-    const raw = parseUnits(amountIn, decimals);
-    if (raw <= 0n) throw new Error('non-positive');
-    return raw;
-  } catch {
-    throw new Error('Reviewed Uniswap V3 amountIn is outside the supported token precision.');
-  }
-}
-
 /**
  * Obtain a block-pinned, exact-notional quote from one reviewed Uniswap V3
  * market. It deliberately accepts only the reviewed markets and directions
@@ -181,11 +164,8 @@ export async function getReviewedUniswapV3PreTradeEvidence(
   if (!selected) {
     throw new Error('No reviewed Uniswap V3 pre-trade profile matches this chain and route.');
   }
-  const inputDecimals =
-    selected.direction === 'token0-to-token1'
-      ? selected.definition.token0.decimals
-      : selected.definition.token1.decimals;
-  const rawAmount = exactAmountInRaw(request.amountIn, inputDecimals);
+  const inputDecimals = reviewedV3InputDecimals(selected.direction, selected.definition);
+  const rawAmount = exactV3StyleAmountInRaw('Uniswap V3', request.amountIn, inputDecimals);
   const snapshot = await getUniswapV3MarketSnapshot(
     {
       ...selected.definition,
@@ -200,13 +180,7 @@ export async function getReviewedUniswapV3PreTradeEvidence(
     },
     { ...options, cache: false }
   );
-  const quote = snapshot.quotes[0];
-  if (!quote) throw new Error('Reviewed Uniswap V3 quote was absent.');
-  if (quote.direction !== selected.direction) {
-    throw new Error(
-      'Reviewed Uniswap V3 quote direction did not match the selected profile direction.'
-    );
-  }
+  const quote = reviewedV3StyleQuote('Uniswap V3', snapshot, selected.direction);
   return {
     profile: selected.profile,
     venue: snapshot.venue,
