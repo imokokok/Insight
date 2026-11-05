@@ -185,9 +185,25 @@ function passingDependencies(overrides: Record<string, unknown> = {}) {
       feeLamports: '5000',
     })),
     now: () => new Date('2026-11-04T00:00:00.000Z'),
+    // P0-2: these cases cover the exact-binding / attestation logic itself, so
+    // inject the explicit offline-review / test-only bypass. Production default
+    // is 'enforced' (see productionDependencies + the cases below).
+    reviewedProfileEnforcement: { mode: 'bypass-for-offline-review' } as const,
     ...overrides,
   } as never;
 }
+
+/** Production-shaped deps: NO bypass injection -> guard/attestation default 'enforced'. */
+function productionDependencies() {
+  const deps = { ...(passingDependencies() as Record<string, unknown>) };
+  delete deps.reviewedProfileEnforcement;
+  return deps as never;
+}
+
+/** Offline-review / test-only bypass for the attestation signing layer. */
+const ATTESTATION_BYPASS = {
+  reviewedProfileEnforcement: { mode: 'bypass-for-offline-review' } as const,
+};
 
 /** Compute the exact message hash the decoder will produce for this transaction. */
 function reviewedMessageHash(tx: DriftPerpTransaction): string {
@@ -303,6 +319,18 @@ describe('assessSolanaPerpGuardExact', () => {
     expect(result.verdict).toBe('CAUTION');
     expect(result.exactAction).not.toBeNull();
   });
+
+  it('default production path BLOCKs the frozen Drift profile in the exact-binding guard', async () => {
+    // NO bypass injection anywhere -> production default 'enforced'.
+    const result = await assessSolanaPerpGuardExact(
+      BASE_GUARD,
+      transaction(),
+      productionDependencies()
+    );
+    expect(result.verdict).toBe('BLOCK');
+    expect(result.reasons.join(' ')).toMatch(/PROFILE_/);
+    expect(result.reviewedProfile?.enforced).toBe(true);
+  });
 });
 
 describe('Solana perp guard decision attestation', () => {
@@ -318,7 +346,7 @@ describe('Solana perp guard decision attestation', () => {
   it('round-trips an ALLOW decision through sign and verify', async () => {
     const tx = transaction();
     const guard = await assessSolanaPerpGuardExact(BASE_GUARD, tx, passingDependencies());
-    const decision = createSolanaPerpGuardDecision(guard, tx);
+    const decision = createSolanaPerpGuardDecision(guard, tx, ATTESTATION_BYPASS);
     expect(decision.schema).toBe(SOLANA_PERP_GUARD_ATTESTATION_SCHEMA);
     expect(decision.attestation).not.toBeNull();
     expect(decision.action?.messageHash).toBe(guard.exactAction?.messageHash);
@@ -331,7 +359,7 @@ describe('Solana perp guard decision attestation', () => {
   it('refuses to attest a BLOCK decision', async () => {
     const tx = transaction(orderParamsData({ orderType: 1 }));
     const guard = await assessSolanaPerpGuardExact(BASE_GUARD, tx, passingDependencies());
-    const decision = createSolanaPerpGuardDecision(guard, tx);
+    const decision = createSolanaPerpGuardDecision(guard, tx, ATTESTATION_BYPASS);
     expect(guard.verdict).toBe('BLOCK');
     expect(decision.attestation).toBeNull();
     const verification = verifySolanaPerpGuardDecision(decision);
@@ -341,7 +369,7 @@ describe('Solana perp guard decision attestation', () => {
   it('rejects a tampered transaction binding', async () => {
     const tx = transaction();
     const guard = await assessSolanaPerpGuardExact(BASE_GUARD, tx, passingDependencies());
-    const decision = createSolanaPerpGuardDecision(guard, tx);
+    const decision = createSolanaPerpGuardDecision(guard, tx, ATTESTATION_BYPASS);
     const tampered = {
       ...decision,
       transaction: transaction(orderParamsData({ baseAssetAmount: 1n })),
@@ -356,11 +384,23 @@ describe('Solana perp guard decision attestation', () => {
   it('rejects an untrusted attester', async () => {
     const tx = transaction();
     const guard = await assessSolanaPerpGuardExact(BASE_GUARD, tx, passingDependencies());
-    const decision = createSolanaPerpGuardDecision(guard, tx);
+    const decision = createSolanaPerpGuardDecision(guard, tx, ATTESTATION_BYPASS);
     const verification = verifySolanaPerpGuardDecision(decision, {
       trustedPublicKey: 'DifferentTrustedKey1111111111111111111111111',
     });
     expect(verification.valid).toBe(false);
     expect(verification.reason).toBe('UNTRUSTED_ATTESTER');
+  });
+
+  it('refuses to SIGN a decision for the frozen Drift profile by default', async () => {
+    const tx = transaction();
+    // Bypass only the guard assessment so an ALLOW verdict exists; do NOT bypass
+    // the attestation's own enforcement -> production default must refuse to sign.
+    const guard = await assessSolanaPerpGuardExact(BASE_GUARD, tx, passingDependencies());
+    expect(guard.verdict).toBe('ALLOW');
+    expect(guard.exactAction).not.toBeNull();
+    const decision = createSolanaPerpGuardDecision(guard, tx); // no deps -> default enforced
+    expect(decision.attestation).toBeNull();
+    expect(verifySolanaPerpGuardDecision(decision).valid).toBe(false);
   });
 });

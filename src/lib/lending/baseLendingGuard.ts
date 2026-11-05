@@ -18,8 +18,22 @@ import {
   COMPOUND_V3_BASE_USDC,
   MOONWELL_BASE_COMPTROLLER,
   compoundV3BaseAssetForSymbol,
+  getReviewedMorphoBlueMarkets,
   moonwellBaseMarketForSymbol,
+  type ReviewedMorphoBlueMarket,
 } from './baseLendingProtocols';
+import {
+  decodeErc4626VaultCall,
+  type VaultCall,
+  type VaultDecodeReasonCode,
+} from './erc4626VaultDecoder';
+import {
+  createRpcBackedVaultReader,
+  resolveVaultMarket,
+  type VaultMappingReasonCode,
+  type VaultResolution,
+  type VaultRpcReader,
+} from './vaultMarketMapping';
 
 /**
  * A read-only, Base-only lending decision gate. It deliberately evaluates
@@ -115,6 +129,16 @@ export interface BaseLendingGuardResult {
   next: {
     execution: 'not_performed';
     priorSeal: 'Bind this decision to an exact, user-authorized transaction before execution.';
+  };
+  /**
+   * P1-1a · Optional, populated ONLY by the ERC-4626 vault reduction path.
+   * The direct core-call path never sets it, so existing verdicts and their
+   * decision hashes are unchanged.
+   */
+  vault?: {
+    schema: 'insight.base-lending-vault-reduction.v1';
+    call: VaultCall;
+    resolution: VaultResolution;
   };
 }
 
@@ -548,6 +572,133 @@ export async function assessBaseLendingGuard(
     next: {
       execution: 'not_performed',
       priorSeal: 'Bind this decision to an exact, user-authorized transaction before execution.',
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// P1-1a · ERC-4626 vault reduction path (additive; direct core calls unchanged)
+// ---------------------------------------------------------------------------
+
+/** Caller-declared values for one exact ERC-4626 vault call. */
+export const BaseLendingVaultGuardInputSchema = z
+  .object({
+    transaction: BaseLendingExactTransactionSchema,
+    collateralSymbol: z.string().regex(/^[A-Za-z][A-Za-z0-9.-]{0,15}$/),
+    loanSymbol: z.string().regex(/^[A-Za-z][A-Za-z0-9.-]{0,15}$/),
+    collateralValueUsd: z.number().finite().positive().max(1_000_000_000_000),
+    debtValueUsd: z.number().finite().min(0).max(1_000_000_000_000),
+  })
+  .strict();
+
+export type BaseLendingVaultGuardInput = z.infer<typeof BaseLendingVaultGuardInputSchema>;
+
+export type VaultGuardReasonCode = 'INVALID_INPUT' | VaultDecodeReasonCode | VaultMappingReasonCode;
+
+/** Explicit, fail-closed rejection carrying a stable reasonCode. */
+export class VaultGuardRejectionError extends Error {
+  readonly reasonCode: VaultGuardReasonCode;
+  readonly resolution?: VaultResolution;
+
+  constructor(reasonCode: VaultGuardReasonCode, message: string, resolution?: VaultResolution) {
+    super(message);
+    this.name = 'VaultGuardRejectionError';
+    this.reasonCode = reasonCode;
+    this.resolution = resolution;
+  }
+}
+
+export interface BaseLendingVaultGuardDependencies extends BaseLendingGuardDependencies {
+  /** Injected chain reader; defaults to the repository eth_call adapter. */
+  reader?: VaultRpcReader;
+  /** Reviewed-market anchors; defaults to the source-controlled registry. */
+  reviewedMarkets?: readonly ReviewedMorphoBlueMarket[];
+  /** Per-read timeout for the on-chain mapping (default 3000ms). */
+  timeoutMs?: number;
+}
+
+function rejectionMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+/**
+ * Assess ONE ERC-4626 vault call by reducing it to a reviewed Morpho Blue
+ * market and then reusing the existing guard evaluation chain unchanged.
+ *
+ * Path: strict/canonical decode -> fail-closed on-chain vault->market mapping
+ * -> `assessBaseLendingGuard({ protocolId: 'morpho-blue-base', marketId:
+ * reviewedMarketId, action: 'supply', ... })`. The morpho branch of
+ * `assessBaseLendingGuard` re-reads `idToMarketParams(reviewedMarketId)` — the
+ * SAME immutable MarketParams identity that `decodeMorphoExactCall` derives
+ * from direct-call calldata in `baseLendingAction.ts`. We deliberately do not
+ * call that private decoder (it is bound to direct-core calldata and lives in
+ * a file outside this task's ownership); we reuse its evaluation chain.
+ *
+ * ERC-4626 deposit/mint/redeem/withdraw are all supply-side movements of the
+ * vault's underlying loan asset, so they map to the guard's `supply` action.
+ * Caller-declared symbols are still checked by the existing guard against the
+ * live market parameters.
+ *
+ * The original direct core-call path (`decodeBaseLendingExactCall` +
+ * `assessBaseLendingGuard`) is untouched. Unknown / unresolvable vaults are
+ * refused with a `VaultGuardRejectionError`, exactly as they were refused
+ * before (their target is not the Morpho singleton).
+ */
+export async function assessBaseLendingVaultGuard(
+  rawInput: BaseLendingVaultGuardInput,
+  dependencies: BaseLendingVaultGuardDependencies = {}
+): Promise<BaseLendingGuardResult> {
+  let input: BaseLendingVaultGuardInput;
+  try {
+    input = BaseLendingVaultGuardInputSchema.parse(rawInput);
+  } catch (error) {
+    throw new VaultGuardRejectionError(
+      'INVALID_INPUT',
+      `invalid vault guard input: ${rejectionMessage(error)}`
+    );
+  }
+
+  const decoded = decodeErc4626VaultCall(input.transaction);
+  if (!decoded.ok) {
+    throw new VaultGuardRejectionError(decoded.reasonCode, decoded.reason);
+  }
+
+  const reader = dependencies.reader ?? createRpcBackedVaultReader();
+  const reviewedMarkets = dependencies.reviewedMarkets ?? getReviewedMorphoBlueMarkets();
+  const mapping = await resolveVaultMarket(decoded.call.vault, {
+    reader,
+    reviewedMarkets,
+    timeoutMs: dependencies.timeoutMs,
+  });
+  if (!mapping.ok) {
+    throw new VaultGuardRejectionError(mapping.reasonCode, mapping.reason, mapping.resolution);
+  }
+  const reviewedMarketId = mapping.resolution.reviewedMarketId;
+  if (!reviewedMarketId) {
+    throw new VaultGuardRejectionError(
+      'NO_REVIEWED_MARKET',
+      'vault resolution did not yield a reviewed marketId',
+      mapping.resolution
+    );
+  }
+
+  const guardInput: BaseLendingGuardInput = {
+    protocolId: 'morpho-blue-base',
+    action: 'supply',
+    collateralSymbol: input.collateralSymbol,
+    loanSymbol: input.loanSymbol,
+    collateralValueUsd: input.collateralValueUsd,
+    debtValueUsd: input.debtValueUsd,
+    marketId: reviewedMarketId,
+  };
+
+  const result = await assessBaseLendingGuard(guardInput, dependencies);
+  return {
+    ...result,
+    vault: {
+      schema: 'insight.base-lending-vault-reduction.v1',
+      call: decoded.call,
+      resolution: mapping.resolution,
     },
   };
 }

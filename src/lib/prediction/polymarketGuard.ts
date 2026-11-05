@@ -40,6 +40,11 @@ import {
   type GammaMarket,
 } from '@/lib/settlementEvidence/polymarket';
 
+import {
+  assessVenueChainEvidence,
+  type SettlementChainAssessment,
+} from '@/lib/settlementEvidence/venueChainMapping';
+
 export const POLYMARKET_GUARD_PROTOCOL_ID = 'polymarket-prediction-mainnet';
 export const POLYMARKET_GUARD_SCHEMA_VERSION = 'insight.polymarket-guard.v1';
 
@@ -124,6 +129,9 @@ export interface PolymarketGuardResult {
   timing: PolymarketGuardTimingEvidence;
   checks: PolymarketGuardCheck[];
   reasons: string[];
+  /** Optional entry-chain x settlement-chain evidence assessment. Absent on
+   *  the early fail-closed paths so existing callers see zero regression. */
+  settlementChain?: SettlementChainAssessment;
   disclosure: {
     /** Cross-oracle consensus is intentionally not applied to event markets. */
     oracleConsensus: 'not_applicable_to_event_markets';
@@ -509,6 +517,22 @@ export async function assessPolymarketGuard(
     });
   }
 
+  // --- Entry-chain x settlement-chain evidence mapping --------------------
+  // Chain-agnostic metadata screening only: this extends the "can we ever
+  // produce post-hoc settlement evidence" judgement from a single venue to an
+  // (entry chain, settlement chain) pair. It never grants execution authority
+  // and never changes the reviewed verdict computation above.
+  const settlementChain = assessVenueChainEvidence({
+    description: market.description,
+    resolutionSource: market.resolutionSource,
+    marketSlug: market.slug,
+    // The guard has already verified this is a Polymarket market (reviewed
+    // protocol id + a successful Gamma slug lookup), so with no stronger
+    // signal the venue is the direct Polygon-settled one. A Jupiter / Kalshi
+    // / Solana-native signal in the metadata overrides this baseline.
+    fallbackVenueClass: 'polymarket-direct',
+  });
+
   const marketEvidence: PolymarketGuardMarketEvidence = {
     marketSlug: market.slug || input.marketSlug,
     gammaId: market.id ? String(market.id) : null,
@@ -531,6 +555,7 @@ export async function assessPolymarketGuard(
     checks,
     reasons,
     verdict,
+    settlementChain,
     windowSeconds: parsed.windowSeconds,
     windowStartMs: parsed.windowStartMs,
     windowEndMs,
@@ -578,6 +603,7 @@ function buildResult(
     checks: PolymarketGuardCheck[];
     reasons: string[];
     verdict: PolymarketGuardVerdict;
+    settlementChain?: SettlementChainAssessment;
     windowSeconds: number | null;
     windowStartMs: number | null;
     windowEndMs: number | null;
@@ -620,6 +646,7 @@ function buildResult(
     },
     checks: parts.checks,
     reasons: parts.reasons,
+    ...(parts.settlementChain ? { settlementChain: parts.settlementChain } : {}),
     disclosure: {
       oracleConsensus: 'not_applicable_to_event_markets',
       liquidityAssessment: 'venue_reported_aggregates_no_reviewed_floor',
