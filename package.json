@@ -14,7 +14,7 @@
     "build": "npm run generate:mcp-catalog && next build --turbopack && npm run perf:budget",
     "build:webpack": "npm run generate:mcp-catalog && next build --webpack && npm run perf:budget",
     "start": "next start",
-    "lint": "eslint --cache --cache-location .eslintcache",
+    "lint": "eslint --cache --cache-strategy content --cache-location .eslintcache",
     "lint:cycles": "eslint --cache --cache-location .eslintcache.cycles --rule '{\"import/no-cycle\":\"warn\"}' .",
     "lint:fix": "eslint --fix .",
     "format": "prettier --write .",
