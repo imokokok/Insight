@@ -311,12 +311,24 @@ jobs:
 
   deploy-production:
     name: Deploy production (gated and verified)
+    # Branch protection requires `validate`, `smoke`, and `analyze` before a
+    # pull request can merge, so waiting here for the post-merge re-run of the
+    # same suite only added ~190s of latency. The deploy now gates on evidence
+    # instead of on a duplicate run: `Verify the merged commit passed its
+    # pull-request checks` below proves that this exact commit is the squash
+    # merge of a PR whose required checks are all green, and fails closed if any
+    # of that evidence is missing. The post-merge suite still runs as a canary.
     if: >-
       github.ref == 'refs/heads/main' &&
       (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
       needs.runtime-impact.outputs.runtime == 'true'
-    needs: [validate, smoke, runtime-impact]
+    needs: [runtime-impact]
     runs-on: ubuntu-24.04
+    permissions:
+      # Read-only: the deploy needs the merge metadata of the released commit.
+      contents: read
+      checks: read
+      pull-requests: read
     # Environment-scoped deployment: only the `main` branch may deploy to
     # production, and the VERCEL_* secrets are (or will be) scoped to this
     # environment instead of the repository.
@@ -338,6 +350,10 @@ jobs:
             echo "::error::main advanced to $current_sha; this run validated $GITHUB_SHA"
             exit 1
           fi
+      - name: Verify the merged commit passed its pull-request checks
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/verify-merged-pr-checks.mts
       - name: Trigger the production deploy hook after both gates pass
         env:
           VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
