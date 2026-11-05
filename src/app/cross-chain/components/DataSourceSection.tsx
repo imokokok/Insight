@@ -63,17 +63,10 @@ export function DataSourceSection({
 
   const { uniqueProviders, avgConfidence, dataSources } = useMemo(() => {
     const providers = new Set<OracleProvider>();
-    let totalConfidence = 0;
-    let validConfidenceCount = 0;
 
     const sources: DataSourceGroup[] = dataPoints.map((point) => {
       const provider = point.provider || getProviderForChain(point.chain);
       providers.add(provider);
-
-      if (point.confidence !== undefined && point.confidence !== null) {
-        totalConfidence += point.confidence;
-        validConfidenceCount++;
-      }
 
       const reputationScore = reputationMap.get(provider);
       const hasOnChainVerification = point.verification?.type === 'on-chain';
@@ -97,7 +90,18 @@ export function DataSourceSection({
       };
     });
 
-    const avgConf = validConfidenceCount > 0 ? totalConfidence / validConfidenceCount : undefined;
+    // Confidence averaging is a pure projection over the source list: derive it
+    // without accumulator mutation so the React compiler can treat this memo
+    // callback as render-safe.
+    const confidences = dataPoints
+      .map((point) => point.confidence)
+      .filter(
+        (confidence): confidence is number => confidence !== undefined && confidence !== null
+      );
+    const avgConf =
+      confidences.length > 0
+        ? confidences.reduce((total, confidence) => total + confidence, 0) / confidences.length
+        : undefined;
 
     return {
       uniqueProviders: providers,

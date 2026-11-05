@@ -100,7 +100,7 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
       }
 
       // Redirect to NOWPayments invoice page.
-      window.location.href = requireApiData(result, CheckoutDataSchema, 'Checkout response').url;
+      window.location.assign(requireApiData(result, CheckoutDataSchema, 'Checkout response').url);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Checkout failed');
       setLoadingPlan(null);
@@ -133,11 +133,9 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
         throw new Error(apiErrorMessage(result, 'Failed to start top-up'));
       }
 
-      window.location.href = requireApiData(
-        result,
-        CheckoutDataSchema,
-        'Top-up checkout response'
-      ).url;
+      window.location.assign(
+        requireApiData(result, CheckoutDataSchema, 'Top-up checkout response').url
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Top-up failed');
       setLoadingPack(null);
