@@ -59,3 +59,65 @@ export function monadAaveUnderlyingForSymbol(symbol: string): `0x${string}` | nu
   const canonical = canonicalMonadAaveSymbol(symbol);
   return canonical ? (AAVE_V3_MONAD_ASSETS[canonical] as `0x${string}`) : null;
 }
+
+// ---------------------------------------------------------------------------
+// Euler V2 on Monad (chainId 143) — injectable, deliberately UNVERIFIED
+// ---------------------------------------------------------------------------
+
+/**
+ * Monad Euler V2 deployment descriptor.
+ *
+ * Verification result (2026-11-05), stated plainly so nobody mistakes a
+ * placeholder for a reviewed deployment:
+ *
+ * - In-repo: EULER_V2_EVM_MARKETS (src/lib/lending/multichainEvmLendingProtocols.ts:114-125)
+ *   registers only `euler-v2-base` / `euler-v2-arbitrum`. The reviewed registry
+ *   likewise has no chainId-143 Euler descriptor. There is no Monad Euler
+ *   eVaultFactory, EVC, or EVault market list anywhere in this repository.
+ * - Public first-hand sources: docs.euler.finance documents the EVC/EVK
+ *   architecture but publishes no Monad-mainnet core addresses; the deployment
+ *   addresses surfaced by a first-hand-source check belong to HyperEVM
+ *   (HypurrFi), Base, and Arbitrum. No verifiable Monad-mainnet Euler V2
+ *   eVaultFactory / EVC / EVault market list constant was found.
+ *
+ * => 未找到，需人工 review 后登记. Every address field is null on purpose;
+ * NEVER fabricate a contract address. The descriptor stays UNVERIFIED until a
+ * human registers a first-hand source reference and the concrete addresses.
+ * The evaluator (assessMonadLendingGuard) fails closed for any UNVERIFIED
+ * descriptor and never reads a chain address that does not exist here.
+ */
+export type MonadEulerVerificationStatus = 'UNVERIFIED' | 'VERIFIED';
+
+export interface MonadEulerVaultDescriptor {
+  address: `0x${string}`;
+  assetSymbol: string;
+}
+
+export interface MonadEulerDeploymentDescriptor {
+  status: MonadEulerVerificationStatus;
+  chainId: typeof MONAD_CHAIN_ID;
+  /** Euler's canonical EVault factory on Monad. null while UNVERIFIED. */
+  eVaultFactory: `0x${string}` | null;
+  /** Ethereum Vault Connector on Monad. null while UNVERIFIED. */
+  evc: `0x${string}` | null;
+  /** Reviewed EVault market list. Empty while UNVERIFIED. */
+  vaults: readonly MonadEulerVaultDescriptor[];
+  /** First-hand source (official deployment repo file@commit / official docs). */
+  sourceRef: string | null;
+  note: string;
+}
+
+export const MONAD_EULER_UNVERIFIED_DESCRIPTOR: MonadEulerDeploymentDescriptor = {
+  status: 'UNVERIFIED',
+  chainId: MONAD_CHAIN_ID,
+  eVaultFactory: null,
+  evc: null,
+  vaults: [],
+  sourceRef: null,
+  note: '未找到，需人工 review 后登记：仓库与公开一手来源均未核实到 Monad 主网 Euler V2 的 eVaultFactory / EVC / EVault 市场清单地址；不编造常量。',
+};
+
+/** Injection point: UNVERIFIED by default; a reviewed registration overrides this. */
+export function defaultMonadEulerDescriptor(): MonadEulerDeploymentDescriptor {
+  return MONAD_EULER_UNVERIFIED_DESCRIPTOR;
+}

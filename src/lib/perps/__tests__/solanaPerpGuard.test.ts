@@ -125,6 +125,10 @@ function dependencies(
     checkOracle: mockOracle,
     fetchVenueState: jest.fn(async () => venue),
     now: () => NOW,
+    // P0-2: these cases cover the guard's evaluation logic itself, so inject
+    // the explicit offline-review / test-only bypass. Production default is
+    // 'enforced' (asserted by the case below that omits this injection).
+    reviewedProfileEnforcement: { mode: 'bypass-for-offline-review' } as const,
   };
 }
 
@@ -307,5 +311,20 @@ describe('assessSolanaPerpGuard', () => {
 
     expect(caution.verdict).toBe('CAUTION');
     expect(block.verdict).toBe('BLOCK');
+  });
+
+  it('default production path hard-BLOCKs the frozen Drift profile with a PROFILE_* reason', async () => {
+    // No reviewedProfileEnforcement injection -> production default 'enforced'.
+    const result = await assessSolanaPerpGuard(BASE_INPUT, {
+      checkOracle: oracleMock('PASS', 68_000),
+      fetchVenueState: jest.fn(async () => venueState()),
+      now: () => NOW,
+    });
+
+    expect(result.verdict).toBe('BLOCK');
+    expect(result.reasons.join(' ')).toMatch(/PROFILE_/);
+    expect(result.reviewedProfile?.enforced).toBe(true);
+    expect(result.reviewedProfile?.evidenceLevel).toBe('first-hand');
+    expect(result.reviewedProfile?.verdict).toBe('BLOCK');
   });
 });

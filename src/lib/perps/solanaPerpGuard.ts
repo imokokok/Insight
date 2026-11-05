@@ -62,6 +62,7 @@ import {
   DRIFT_BASE_PRECISION,
   type DriftPerpDecodedAction,
 } from '@/lib/perps/solanaPerpAction';
+import { enforceReviewedProfile, type ProfileEnforcement } from '@/lib/reviewed/enforcement';
 
 export const SOLANA_PERP_GUARD_DRIFT_V2_PROTOCOL_ID = 'drift-v2-mainnet';
 export const SOLANA_PERP_GUARD_SCHEMA_VERSION = 'insight.solana-perp-guard.v1';
@@ -190,6 +191,12 @@ export interface SolanaPerpGuardResult {
     execution: 'not_performed';
     priorSeal: string;
   };
+  /**
+   * Optional advisory from the evidence-graded reviewed-profile enforcement
+   * layer. Present on every assessment; informational only, never changes the
+   * verdict by itself. See `src/lib/reviewed/enforcement.ts`.
+   */
+  reviewedProfile?: ProfileEnforcement;
 }
 
 export interface SolanaPerpGuardDependencies {
@@ -199,6 +206,16 @@ export interface SolanaPerpGuardDependencies {
     now: Date
   ) => Promise<SolanaPerpGuardVenueEvidence>;
   now?: () => Date;
+  /**
+   * P0-2 reviewed-profile enforcement mode. Production DEFAULT is 'enforced':
+   * a first-hand-disproved / frozen profile is hard-BLOCKed before any ALLOW
+   * or signed decision is produced. The ONLY other value,
+   * 'bypass-for-offline-review', is STRICTLY for offline re-review and unit
+   * tests that exercise the guard's own evaluation logic — it must NEVER be
+   * set in production. See `src/lib/reviewed/enforcement.ts` (its `strict`
+   * grading switch defaults to false and stays off in production).
+   */
+  reviewedProfileEnforcement?: { mode: 'enforced' | 'bypass-for-offline-review' };
 }
 
 function normalizeSymbol(symbol: string): string {
@@ -337,6 +354,17 @@ export async function assessSolanaPerpGuard(
     throw new Error('Declared market is not in the reviewed Solana perp guard market set');
   }
 
+  // P0-2 evidence-graded reviewed-profile enforcement. Called right after
+  // input validation and BEFORE any ALLOW / signed decision can be produced.
+  // Production defaults to 'enforced' (hard BLOCK for a first-hand-disproved
+  // profile such as drift-v2-mainnet); 'bypass-for-offline-review' exists only
+  // for offline re-review / unit tests and is never valid in production.
+  // `strict` grading stays off (default false) until heartbeat infrastructure
+  // is available — see src/lib/reviewed/enforcement.ts.
+  const enforcement = enforceReviewedProfile(SOLANA_PERP_GUARD_DRIFT_V2_PROTOCOL_ID);
+  const applyEnforcement =
+    (dependencies.reviewedProfileEnforcement?.mode ?? 'enforced') === 'enforced';
+
   const [underlyingResult, marginResult, venueState] = await Promise.all([
     checkOracle({
       asset: input.assetSymbol,
@@ -374,7 +402,15 @@ export async function assessSolanaPerpGuard(
   } = band;
 
   const reasons: string[] = [];
-  let verdict: SolanaPerpGuardVerdict = 'ALLOW';
+  // P0-2: a first-hand-disproved / frozen reviewed profile starts as BLOCK and
+  // can never be downgraded — every CAUTION branch below guards on
+  // `verdict !== 'BLOCK'`. All other profiles are advisory-only (the evaluation
+  // logic decides the verdict, with `reviewedProfile` attached below).
+  let verdict: SolanaPerpGuardVerdict =
+    applyEnforcement && enforcement.enforced ? 'BLOCK' : 'ALLOW';
+  if (verdict === 'BLOCK') {
+    reasons.push(`Reviewed-profile enforcement ${enforcement.reasonCode}: ${enforcement.advisory}`);
+  }
 
   if (
     isBlockingOracleVerdict(underlyingResult.verdict) ||
@@ -411,6 +447,8 @@ export async function assessSolanaPerpGuard(
       venueLabel: 'Drift',
       indexPriceLabel: 'oracle price',
       divergenceLabel: 'mark/oracle',
+      // Drift's on-chain operating-state literal is 'active' (not 'TRADING');
+      // the kernel mirrors the venue's reviewed literal verbatim.
       expectedStatus: 'active',
       markIndexDeviationBps: venue.markOracleDeviationBps,
       consensusVenueDeviationPct,
@@ -485,6 +523,7 @@ export async function assessSolanaPerpGuard(
       priorSeal:
         'Bind this decision to one exact, user-authorized unsigned Drift transaction before execution; the binding surface is not part of this assessment.',
     },
+    reviewedProfile: enforcement,
   };
 }
 
@@ -595,9 +634,27 @@ export async function assessSolanaPerpGuardExact(
     guard: SolanaPerpGuardInputSchema.parse(rawGuard),
     transaction: SolanaLendingTransactionSchema.parse(rawTransaction),
   };
+  // P0-2 independent fail-closed layer at the exact-binding entry, applied
+  // after input validation and before any exact decision could be signed.
+  // Production default 'enforced'; 'bypass-for-offline-review' is STRICTLY for
+  // offline re-review / unit tests. The `strict` grading switch in
+  // src/lib/reviewed/enforcement.ts defaults to false (off in production).
+  const enforcement = enforceReviewedProfile(SOLANA_PERP_GUARD_DRIFT_V2_PROTOCOL_ID);
+  const applyEnforcement =
+    (dependencies.reviewedProfileEnforcement?.mode ?? 'enforced') === 'enforced';
   const guard = await assessSolanaPerpGuard(input.guard, dependencies);
   const reasons = [...guard.reasons];
   let verdict: SolanaPerpGuardVerdict = guard.verdict;
+  // Defence in depth: never let the binding layer emit a non-BLOCK verdict for
+  // a first-hand-disproved profile even if the upstream guard result were
+  // replaced / mocked. The guard already carries the PROFILE_* reason, so only
+  // push an additional one when this layer actually has to escalate.
+  if (applyEnforcement && enforcement.enforced && verdict !== 'BLOCK') {
+    verdict = 'BLOCK';
+    reasons.push(
+      `Reviewed-profile enforcement (exact-binding layer) ${enforcement.reasonCode}: ${enforcement.advisory}`
+    );
+  }
 
   let decoded: DriftPerpDecodedAction | null = null;
   let accountChecks: SolanaPerpGuardAccountCheck[] = [];

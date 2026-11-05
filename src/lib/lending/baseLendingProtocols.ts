@@ -64,3 +64,48 @@ export function compoundV3BaseAssetForSymbol(symbol: string): `0x${string}` | nu
     ] as `0x${string}` | undefined) ?? null
   );
 }
+
+// ---------------------------------------------------------------------------
+// P1-1a · Reviewed exact Morpho Blue Base markets (vault-reduction anchors)
+// ---------------------------------------------------------------------------
+
+/**
+ * A reviewed, exact Morpho Blue Base market. This is a source-controlled ANCHOR
+ * produced by a review — it is deliberately NOT a "vault address -> market"
+ * whitelist. `vaultMarketMapping.ts` still reads `asset()`, the vault's market
+ * queues and `idToMarketParams(id)` on-chain before it will reduce a vault to
+ * one of these ids.
+ */
+export interface ReviewedMorphoBlueMarket {
+  /** keccak256 of the immutable MarketParams tuple (bytes32). */
+  marketId: `0x${string}`;
+  /** ERC-20 that a compliant vault feeding this market must return from asset(). */
+  loanAsset: `0x${string}`;
+}
+
+/**
+ * Intentionally EMPTY at this commit: no first-party-verified Morpho Blue Base
+ * `marketId` values were found anywhere in this repository, and inventing ids
+ * would fabricate review evidence. The ERC-4626 vault path is enabled by
+ * default but stays fail-closed (every vault is refused) until a review
+ * registers concrete markets here, or a caller injects `reviewedMarkets`
+ * through the guard dependencies. Registering is idempotent per marketId.
+ */
+const reviewedMorphoBlueBaseMarkets: ReviewedMorphoBlueMarket[] = [];
+
+export function registerReviewedMorphoBlueMarket(market: ReviewedMorphoBlueMarket): void {
+  const marketId = market.marketId.toLowerCase() as `0x${string}`;
+  const normalized: ReviewedMorphoBlueMarket = {
+    marketId,
+    loanAsset: market.loanAsset.toLowerCase() as `0x${string}`,
+  };
+  const index = reviewedMorphoBlueBaseMarkets.findIndex(
+    (entry) => entry.marketId.toLowerCase() === marketId
+  );
+  if (index >= 0) reviewedMorphoBlueBaseMarkets[index] = normalized;
+  else reviewedMorphoBlueBaseMarkets.push(normalized);
+}
+
+export function getReviewedMorphoBlueMarkets(): readonly ReviewedMorphoBlueMarket[] {
+  return reviewedMorphoBlueBaseMarkets;
+}

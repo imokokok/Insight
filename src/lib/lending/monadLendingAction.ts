@@ -114,10 +114,25 @@ const MORPHO_ABI = [
   },
 ] as const;
 
-export const MonadLendingProtocolIdSchema = z.enum(['aave-v3-monad', 'morpho-blue-monad']);
+/**
+ * Reviewed Monad lending protocol ids. `euler-v2-monad` is registered as an
+ * admission candidate only: its deployment descriptor is UNVERIFIED (no
+ * verifiable Monad Euler addresses exist in-repo or in first-hand sources),
+ * so the evaluator fails closed and no exact call is ever decoded for it.
+ * See monadLendingProtocols.ts MONAD_EULER_UNVERIFIED_DESCRIPTOR.
+ */
+export const MonadLendingProtocolIdSchema = z.enum([
+  'aave-v3-monad',
+  'morpho-blue-monad',
+  'euler-v2-monad',
+]);
 export type MonadLendingProtocolId = z.infer<typeof MonadLendingProtocolIdSchema>;
 export const MonadLendingGuardActionSchema = z.enum(['supply', 'borrow']);
 export type MonadLendingGuardAction = z.infer<typeof MonadLendingGuardActionSchema>;
+
+export function isMonadEulerProtocolId(value: string): value is 'euler-v2-monad' {
+  return value === 'euler-v2-monad';
+}
 
 type ExpectedGuardScope = {
   protocolId: MonadLendingProtocolId;
@@ -194,6 +209,14 @@ export function decodeMonadLendingExactCall(
   expected: ExpectedGuardScope
 ): MonadLendingDecodedAction {
   const transaction = MonadLendingExactTransactionSchema.parse(rawTransaction);
+  // Euler on Monad has no verified deployment descriptor. Refuse to decode any
+  // "exact" call for it instead of silently treating it as Morpho or inventing
+  // a target: 未找到，需人工 review 后登记。
+  if (isMonadEulerProtocolId(expected.protocolId)) {
+    throw new Error(
+      'Monad Euler exact-call binding is UNVERIFIED (未找到，需人工 review 后登记): no verified Monad Euler deployment addresses exist'
+    );
+  }
   if (BigInt(transaction.value) !== 0n) {
     throw new Error('Monad Lending Guard only accepts zero-value direct lending calls');
   }

@@ -17,6 +17,7 @@ import {
 import { readContract } from '@/lib/protocols/importer/rpcClient';
 
 import {
+  isMonadEulerProtocolId,
   MonadLendingExactTransactionSchema,
   MonadLendingProtocolIdSchema,
   type MonadLendingProtocolId,
@@ -24,9 +25,11 @@ import {
 import {
   AAVE_V3_MONAD_POOL_ADDRESSES_PROVIDER,
   AAVE_V3_MONAD_UI_POOL_DATA_PROVIDER,
+  defaultMonadEulerDescriptor,
   MONAD_CHAIN_ID,
   MORPHO_BLUE_MONAD,
   monadAaveUnderlyingForSymbol,
+  type MonadEulerDeploymentDescriptor,
 } from './monadLendingProtocols';
 
 export const MonadLendingGuardInputSchema = z
@@ -287,7 +290,26 @@ export interface MonadLendingGuardDependencies {
   checkOracle?: typeof preTradeSafetyCheck;
   resolveAaveRisk?: (input: MonadLendingGuardInput) => Promise<RiskParameters>;
   resolveMorphoMarket?: (marketId: string) => Promise<MorphoMarket>;
+  /** Injection point for a human-reviewed Monad Euler deployment descriptor. */
+  resolveMonadEulerDescriptor?: () => MonadEulerDeploymentDescriptor;
+  /** Live Euler risk read, mirroring the multichain EVM guard's EVault profile. */
+  resolveMonadEulerRisk?: (
+    input: MonadLendingGuardInput,
+    descriptor: MonadEulerDeploymentDescriptor
+  ) => Promise<RiskParameters>;
   now?: () => Date;
+}
+
+/**
+ * Default Euler path is fail-closed. Even a VERIFIED descriptor does not grant
+ * an ALLOW without a registered live risk resolver; this keeps a registration
+ * from ever acting as a silent trust bypass.
+ */
+async function defaultMonadEulerRisk(
+  _input: MonadLendingGuardInput,
+  _descriptor: MonadEulerDeploymentDescriptor
+): Promise<RiskParameters> {
+  throw new Error('Monad Euler live risk resolver is not registered (fail closed)');
 }
 
 /** Assess the Monad position proposal without any transaction authority. */
@@ -303,6 +325,28 @@ export async function assessMonadLendingGuard(
   try {
     if (input.protocolId === 'aave-v3-monad') {
       risk = await (dependencies.resolveAaveRisk ?? resolveAaveRisk)(input);
+    } else if (isMonadEulerProtocolId(input.protocolId)) {
+      // Same EVM pattern as multichainEvmLendingGuard.ts resolveEulerV2Risk:
+      // a deployment descriptor pins eVaultFactory / EVC / reviewed EVaults,
+      // and live vault authentication is delegated to a resolver. With no
+      // verifiable Monad addresses the descriptor is UNVERIFIED, so this
+      // branch fails closed rather than reading a chain target we cannot name.
+      const descriptor = (
+        dependencies.resolveMonadEulerDescriptor ?? defaultMonadEulerDescriptor
+      )();
+      if (
+        descriptor.status !== 'VERIFIED' ||
+        descriptor.chainId !== MONAD_CHAIN_ID ||
+        !descriptor.eVaultFactory ||
+        !descriptor.evc ||
+        descriptor.vaults.length === 0 ||
+        !descriptor.sourceRef
+      ) {
+        throw new Error(
+          `Monad Euler deployment is UNVERIFIED (未找到，需人工 review 后登记): ${descriptor.note}`
+        );
+      }
+      risk = await (dependencies.resolveMonadEulerRisk ?? defaultMonadEulerRisk)(input, descriptor);
     } else {
       const market = await (dependencies.resolveMorphoMarket ?? resolveMorphoMarket)(
         input.marketId!
