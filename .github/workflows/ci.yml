@@ -89,6 +89,15 @@ jobs:
           node-version: 22.23.2
           cache: npm
       - run: npm ci
+      # ESLint validates cache entries by file content (--cache-strategy
+      # content), so a restored cache from an earlier commit is always safe and
+      # only skips files whose source has not changed.
+      - name: Restore ESLint cache
+        id: eslint-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .eslintcache
+          key: eslint-${{ runner.os }}-${{ hashFiles('package-lock.json', 'eslint.config.mjs') }}
       # Generated bundles are deterministic repository outputs. Check them
       # before the expensive verifier and replay work, so contributors get a
       # fast, actionable failure instead of waiting through unrelated gates.
@@ -119,9 +128,16 @@ jobs:
         env:
           CHECKS_PARALLEL_LIMIT: 4
         run: npm run validate:ci:static
+      # The cache has to be saved after the lint run that populated it.
+      - name: Save ESLint cache
+        if: steps.eslint-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .eslintcache
+          key: eslint-${{ runner.os }}-${{ hashFiles('package-lock.json', 'eslint.config.mjs') }}
 
   validate-tests:
-    name: Unit and reliability tests
+    name: Unit coverage tests
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
@@ -141,14 +157,52 @@ jobs:
       # The test suite can import the packed verifier through the same boundary
       # as the static type checks. Build it in this independent job as well.
       - run: npm run build --prefix verifier
-      - name: Run coverage and reliability tests
-        run: npm run validate:ci:tests
+      # Jest's transform cache is content-addressed, so restoring it can only
+      # save re-transforms; changed files are recomputed automatically.
+      - name: Restore Jest transform cache
+        id: jest-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .jest-cache
+          key: jest-${{ runner.os }}-${{ hashFiles('package-lock.json', 'jest.config.js', 'jest.setup.ts') }}
+      - name: Run coverage tests
+        run: npm run test:coverage -- --maxWorkers=75%
+      - name: Save Jest transform cache
+        if: steps.jest-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .jest-cache
+          key: jest-${{ runner.os }}-${{ hashFiles('package-lock.json', 'jest.config.js', 'jest.setup.ts') }}
 
-  # Keep the historical required-check name. This status only passes after both
+  # Script-level reliability tests are independent of the Jest suite, so they
+  # get their own runner instead of extending the critical path behind coverage.
+  validate-reliability:
+    name: Reliability tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-anon-key
+      SUPABASE_SERVICE_ROLE_KEY: ci-service-role-key
+      INTERNAL_API_SECRET: ci-internal-secret-that-is-not-used-in-production
+      CSRF_SECRET: ci-csrf-secret-that-is-not-used-in-production
+      JWT_SECRET: ci-jwt-secret-that-is-not-used-in-production
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 22.23.2
+          cache: npm
+      - run: npm ci
+      - run: npm run build --prefix verifier
+      - name: Run reliability tests
+        run: npm run test:reliability
+
+  # Keep the historical required-check name. This status only passes after all
   # independent validation paths pass, so branch protection cannot be bypassed
-  # while the two paths run concurrently.
+  # while they run concurrently.
   validate:
-    needs: [validate-static, validate-tests]
+    needs: [validate-static, validate-tests, validate-reliability]
     if: ${{ always() }}
     runs-on: ubuntu-24.04
     timeout-minutes: 5
@@ -157,9 +211,10 @@ jobs:
         env:
           STATIC_RESULT: ${{ needs.validate-static.result }}
           TEST_RESULT: ${{ needs.validate-tests.result }}
+          RELIABILITY_RESULT: ${{ needs.validate-reliability.result }}
         run: |
-          if [ "$STATIC_RESULT" != 'success' ] || [ "$TEST_RESULT" != 'success' ]; then
-            echo "::error::Validation paths finished with static=$STATIC_RESULT tests=$TEST_RESULT"
+          if [ "$STATIC_RESULT" != 'success' ] || [ "$TEST_RESULT" != 'success' ] || [ "$RELIABILITY_RESULT" != 'success' ]; then
+            echo "::error::Validation paths finished with static=$STATIC_RESULT tests=$TEST_RESULT reliability=$RELIABILITY_RESULT"
             exit 1
           fi
 
@@ -208,6 +263,11 @@ jobs:
           # every commit with the same dependency graph, rather than only for
           # an explicit re-run of the same SHA.
           key: nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          # A dependency bump must not force a cold production build: Next
+          # validates every entry against the source it produced, so falling
+          # back to the previous cache only costs the modules that changed.
+          restore-keys: |
+            nextjs-${{ runner.os }}-
       - if: needs.runtime-impact.outputs.runtime == 'true'
         run: npm run build
       - name: Cache Next.js build state
@@ -228,7 +288,18 @@ jobs:
       # versioned cache, so avoid re-downloading it when the cache hits.
       - name: Install Chromium system dependencies
         if: needs.runtime-impact.outputs.runtime == 'true'
-        run: npx playwright install-deps chromium
+        # apt mirror latency occasionally pushes this well past ten minutes.
+        # Bound each attempt and retry once instead of stalling the whole run.
+        run: |
+          set -euo pipefail
+          for attempt in 1 2; do
+            if timeout --signal=KILL 240 npx playwright install-deps chromium; then
+              exit 0
+            fi
+            echo "::warning::Playwright system dependency install attempt ${attempt} failed or exceeded 240s; retrying."
+          done
+          echo "::error::Playwright system dependencies could not be installed."
+          exit 1
       - name: Install Chromium when the browser cache misses
         if: needs.runtime-impact.outputs.runtime == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
         run: npx playwright install chromium

@@ -1,9 +1,15 @@
 #!/bin/sh
 set -eu
 
-# Fast local gate: static checks run in parallel (see scripts/run-checks-parallel.mjs).
-# The full CI suite (build, coverage, verifier, e2e) is enforced by required
-# GitHub Actions checks on protected branches. Run `npm run ci:local` manually
-# if you want the complete suite before pushing.
-node scripts/run-checks-parallel.mjs typecheck workflow:check protocol:check validate:generated
-npx lint-staged
+# Fast local gate. scripts/precommit-checks.mjs plans and runs the static checks
+# in parallel, skipping generated-artifact checks whose inputs were not staged.
+# The full CI suite (full lint/typecheck/build/coverage/e2e) stays enforced by
+# required GitHub Actions checks on protected branches; `npm run ci:local`
+# reproduces it locally.
+node scripts/precommit-checks.mjs
+
+# --no-stash keeps commits out of the repository-wide stash stack. Worktrees
+# share one stash stack, so a concurrent `git stash` in another session could
+# otherwise pop this session's automatic lint-staged backup. lint-staged still
+# hides partially staged hunks through a per-worktree patch file.
+./node_modules/.bin/lint-staged --no-stash

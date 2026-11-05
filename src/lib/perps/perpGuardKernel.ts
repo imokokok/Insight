@@ -197,6 +197,12 @@ export interface PerpGuardVenueIntegrityInput {
   markIndexDeviationBps: number | null;
   consensusVenueDeviationPct: number | null;
   marketStatus: string | null;
+  /**
+   * The reviewed operating-state literal for this venue (default 'TRADING').
+   * Venues whose on-chain/API status literal differs (e.g. Drift's 'active')
+   * pass their own reviewed value; the wording mirrors it verbatim.
+   */
+  expectedStatus?: string;
 }
 
 /**
@@ -241,10 +247,11 @@ export function evaluatePerpGuardVenueIntegrity(input: PerpGuardVenueIntegrityIn
     }
   }
 
-  if (input.marketStatus !== null && input.marketStatus !== 'TRADING') {
+  const expectedStatus = input.expectedStatus ?? 'TRADING';
+  if (input.marketStatus !== null && input.marketStatus !== expectedStatus) {
     verdict = 'BLOCK';
     reasons.push(
-      `${input.venueLabel} market status is ${input.marketStatus}, not TRADING; trading is not in the reviewed operating state.`
+      `${input.venueLabel} market status is ${input.marketStatus}, not ${expectedStatus}; trading is not in the reviewed operating state.`
     );
   }
 

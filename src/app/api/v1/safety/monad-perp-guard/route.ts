@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
 import { z } from 'zod';
 
@@ -9,9 +9,8 @@ import {
   V1_STANDARD_MIDDLEWARES,
 } from '@/lib/api/handler';
 import { CACHE_PRESETS } from '@/lib/api/utils';
-import { x402ConfigForPaymentScope, X402_PAYMENT_SCOPE } from '@/lib/api/x402/capabilityPayment';
-import { getX402Config } from '@/lib/api/x402/config';
-import { handlePaidPreTradeRequest, hasAuthCredentials, isPaidRequest } from '@/lib/api/x402/guard';
+import { X402_PAYMENT_SCOPE } from '@/lib/api/x402/capabilityPayment';
+import { createPaidRouteMethod } from '@/lib/api/x402/paidRoute';
 import { assessMonadPerpGuard, MonadPerpGuardInputSchema } from '@/lib/perps/monadPerpGuard';
 
 /** The guard performs oracle assessments plus a live Perpl venue read. */
@@ -52,31 +51,11 @@ const legacyGet = createApiHandler(
  * use the registered x402 resource, verify before the assessment, and settle
  * only after this read-only guard produces a complete result.
  */
-export const GET = (
-  request: NextRequest,
-  routeContext: { params: Promise<Record<string, string>> }
-): Promise<NextResponse> => {
-  const config = x402ConfigForPaymentScope(getX402Config(), X402_PAYMENT_SCOPE.monad);
-  if (config && (isPaidRequest(request) || !hasAuthCredentials(request))) {
-    return handlePaidPreTradeRequest(request, config, async (requestId) => {
-      const parsed = QuerySchema.safeParse(
-        Object.fromEntries(request.nextUrl.searchParams.entries())
-      );
-      if (!parsed.success) {
-        return NextResponse.json(
-          ApiResponseBuilder.error(
-            'VALIDATION_ERROR',
-            'Invalid Monad Perp Guard query parameters',
-            {
-              requestId,
-              details: { issues: parsed.error.issues.map((issue) => issue.path.join('.')) },
-            }
-          ),
-          { status: 400, headers: { 'Cache-Control': CACHE_PRESETS.noStore } }
-        );
-      }
-      return executeGuard(parsed.data, requestId);
-    });
-  }
-  return legacyGet(request, routeContext);
-};
+export const GET = createPaidRouteMethod({
+  scope: X402_PAYMENT_SCOPE.monad,
+  source: 'query',
+  schema: QuerySchema,
+  inputLabel: 'Monad Perp Guard query parameters',
+  execute: executeGuard,
+  fallback: legacyGet,
+});

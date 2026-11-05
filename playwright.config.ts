@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const testPort = process.env.PLAYWRIGHT_PORT ?? '3000';
+const testPort = process.env.PLAYWRIGHT_PORT ?? process.env.INSIGHT_E2E_PORT ?? '3000';
 const testBaseUrl = process.env.BASE_URL ?? `http://127.0.0.1:${testPort}`;
 const testHealthUrl = new URL('/api/v1/health', testBaseUrl).toString();
 

@@ -1754,6 +1754,71 @@ paths:
         '503':
           description: Settlement evidence is temporarily unavailable (infrastructure state; retryable).
 
+  /markets/settlement-evidence/grade:
+    post:
+      operationId: gradeSettlementEvidence
+      tags: [Execution Evidence]
+      summary: On-demand signed settlement-evidence grade 🔒
+      description: >-
+        Paid, idempotent, on-demand grade of one settled prediction-market price
+        contract against Insight's independent sources (settlement-window
+        derived analytics plus Insight's own oracle-consensus snapshots).
+        The request carries a market slug ONLY — the declared outcome is always
+        read from Insight's own watch list, never from the caller. Returns a
+        signed EIP-712 evidence pack carrying derived analytics only
+        (settlement-window venue data is vendor-licensed
+        derived-analytics-only and never redistributed). An existing persisted
+        pack is returned cached and is never downgraded.
+
+        **x402-metered** (merchant-configured payment rail) or API key.
+      security:
+        - apiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [slug]
+              properties:
+                slug:
+                  type: string
+                  minLength: 1
+                  maxLength: 200
+                  description: Market slug of a watched prediction-market price contract.
+      responses:
+        '200':
+          description: Evidence pack (freshly graded or cached).
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  data:
+                    type: object
+                    required: [pack, grade, attested, cached, rightsNotice]
+                    properties:
+                      pack:
+                        $ref: '#/components/schemas/SettlementEvidencePack'
+                      grade:
+                        type: string
+                        enum: [consistent, inconsistent, insufficient_data]
+                      attested: { type: boolean }
+                      cached: { type: boolean }
+                      rightsNotice: { type: string }
+        '400':
+          description: 'VALIDATION_ERROR — body must be a JSON object with a non-empty string field "slug".'
+        '404':
+          description: 'WATCH_MARKET_NOT_FOUND — slug is not in the settlement watch list.'
+        '409':
+          description: 'Window not resolved yet (WINDOW_NOT_RESOLVED) or market has no declared outcome (MARKET_UNRESOLVED).'
+        '410':
+          description: 'WINDOW_TOO_OLD — the window predates the candle source retention.'
+
   # ── Prices ──────────────────────────────────────────────
   /prices:
     get:

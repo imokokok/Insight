@@ -1,5 +1,57 @@
 # Repository collaboration rules
 
+## Parallel agent work (mandatory)
+
+Multiple agent sessions share this repository. Feature work happens in a per-task
+Git worktree, never in the primary checkout:
+
+```sh
+npm run wt -- create <slug> --type <feat|fix|chore|docs|test|perf|ops|refactor> \
+                        --paths "src/**,supabase/migrations/*" --goal "..."
+npm run wt -- status                                  # task -> branch -> worktree -> PR -> CI
+npm run wt -- queue                                   # open PRs in merge order
+npm run wt -- ship <slug> --message "feat: subject"   # commit + PR + auto-merge + cleanup
+npm run wt -- handoff <slug> --next "..."             # context for any session
+npm run wt -- resume <slug>                           # take over a killed/paused task
+npm run wt -- cleanup                                 # merged agent branches only
+```
+
+- One task = one branch (`wt/<type>-<slug>[-<session>]`) = one worktree under
+  `~/Documents/insight-worktrees/`. Never reuse a branch between sessions.
+- Declare the paths you expect to touch at `create --paths`. A create/claim
+  refused for overlap means another active task owns those paths; coordinate
+  instead of passing `--override`. Claim metadata lives in
+  `<git common dir>/insight-tasks/` and is released when the task ends.
+- Do not run `git checkout`, `git stash`, `git reset --hard`, `git clean` or
+  `git add` in the primary checkout. Those are shared-state operations; another
+  session may own the index and HEAD at that moment.
+- Never run `git gc` or `git repack -a`; worktrees share the object database and
+  a concurrent repack slows every session.
+- Worktree dependencies are symlinked from the primary checkout. Do not run
+  `npm install` in the primary checkout for worktree work.
+- Use `npm run wt:dev` and `npm run wt:e2e` so each worktree binds its own
+  allocated port; never rely on the default `3000`.
+- Build caches (`.next`, `*.tsbuildinfo`, `.eslintcache`) are isolated because
+  each worktree is its own directory. The pre-commit hook runs
+  `lint-staged --no-stash` so commits never touch the shared stash stack.
+- This repository squash-merges, so `git branch --merged` and ancestor checks
+  are not reliable. `cleanup` also accepts an identical tree or a merged PR head,
+  and never deletes a branch whose content differs from `main`. Hand-named
+  branches (`perf/*`, `feat/*`, `dependabot/*`, …) are report-only.
+- Merge order: oldest green PR first. `strict=false`, so a BEHIND PR still
+  auto-merges. A PR with red required checks is fixed by its owner before later
+  PRs merge; if `strict` is enabled, rebase only your own branch.
+- Before a long pause or when handing off: `npm run wt -- handoff <slug>
+--next "..." --verify "..."`. Any session may take over with
+  `npm run wt -- resume <slug>`.
+- Finish a task only after the PR is merged: then remove the worktree and branch.
+  `ship` does this automatically; manually use
+  `npm run wt -- remove <slug> --delete-branch`.
+- On conflicts, rebase only your own worktree branch; never move another
+  session's branch or discard its uncommitted files.
+
+Full rules and troubleshooting: `docs/operations/parallel-agent-worktrees.md`.
+
 ## Local builds
 
 - `npm run build` uses Next.js Turbopack by default (what CI and Vercel run). Sandboxed local environments that cannot create Turbopack CSS worker processes must use `npm run build:webpack` (or run builds with `env -u NODE_OPTIONS` outside the sandbox).

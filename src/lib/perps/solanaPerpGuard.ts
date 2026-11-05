@@ -447,14 +447,12 @@ export async function assessSolanaPerpGuard(
       venueLabel: 'Drift',
       indexPriceLabel: 'oracle price',
       divergenceLabel: 'mark/oracle',
+      // Drift's on-chain operating-state literal is 'active' (not 'TRADING');
+      // the kernel mirrors the venue's reviewed literal verbatim.
+      expectedStatus: 'active',
       markIndexDeviationBps: venue.markOracleDeviationBps,
       consensusVenueDeviationPct,
-      // Drift's on-chain MarketStatus enum uses 'active' for the operating
-      // state; the kernel's venue-integrity layer expects the canonical
-      // 'TRADING' label. Map it so an active Drift market is not misread as
-      // a non-operating state (any other value still fails closed).
-      marketStatus:
-        venue.drift.marketStatus === 'active' ? 'TRADING' : venue.drift.marketStatus,
+      marketStatus: venue.drift.marketStatus,
     });
     verdict = escalatePerpGuardVerdict(verdict, venueIntegrity.verdict);
     reasons.push(...venueIntegrity.reasons);

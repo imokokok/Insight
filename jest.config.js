@@ -6,6 +6,11 @@ const createJestConfig = nextJest({
 
 const customJestConfig = {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+  // Content-addressed transform cache. Pointing it at a repository-local
+  // directory lets CI persist it between runs; Jest validates every entry by
+  // source content, so restoring a stale cache can only cost a re-transform,
+  // never a wrong result.
+  cacheDirectory: '<rootDir>/.jest-cache',
   resetMocks: true,
   testEnvironment: 'jest-environment-jsdom',
   maxWorkers: '50%',

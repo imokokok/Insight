@@ -114,11 +114,9 @@ export function CreditWalletCard({ accessToken, onError }: CreditWalletCardProps
         throw new Error(apiErrorMessage(result, 'Failed to start top-up checkout'));
       }
 
-      window.location.href = requireApiData(
-        result,
-        CheckoutDataSchema,
-        'Top-up checkout response'
-      ).url;
+      window.location.assign(
+        requireApiData(result, CheckoutDataSchema, 'Top-up checkout response').url
+      );
     } catch (err) {
       onError?.(err instanceof Error ? err.message : 'Failed to start top-up');
       setTopUpLoading(null);

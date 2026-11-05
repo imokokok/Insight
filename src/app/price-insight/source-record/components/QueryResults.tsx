@@ -11,12 +11,16 @@ import { formatPrice } from '@/lib/utils/format';
 import { type OnChainData, type QueryResult } from '../constants';
 import { useQueryDataStable, useQueryParams } from '../contexts';
 
+import { DataSourceSection } from './DataSourceSection';
+import { ErrorBanner } from './ErrorBanner';
+import { PriceFreshnessMonitor } from './PriceFreshnessMonitor';
 import { QueryResultsEmpty } from './QueryResultsEmpty';
 import { QueryResultsLoading } from './QueryResultsLoading';
 import { StatsCardsSelector } from './stats';
 import { TokenIcon } from './TokenIcon';
 
-import { PriceFreshnessMonitor, DataSourceSection, ErrorBanner } from './index';
+// Import siblings directly (not via './index'): the barrel also re-exports
+// this file, so a barrel import would create a runtime import cycle.
 
 interface QueryResultsProps {
   onChainData: OnChainData;
