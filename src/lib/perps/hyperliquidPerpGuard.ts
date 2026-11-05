@@ -1,15 +1,25 @@
 import { z } from 'zod';
 
-import {
-  preTradeSafetyCheck,
-  type PreTradeSafetyResult,
-} from '@/lib/api/services/preTradeSafetyService';
+import { preTradeSafetyCheck } from '@/lib/api/services/preTradeSafetyService';
 import {
   getHyperliquidPerpExecutionMarketState,
   hyperliquidPerpMarketProfile,
   HYPERLIQUID_MAINNET_NETWORK,
   type HyperliquidPerpExecutionMarketState,
 } from '@/lib/dex/hyperliquidPerpMarket';
+import {
+  bps,
+  computeConsensusVenueDeviationPct,
+  escalatePerpGuardVerdict,
+  evaluatePerpGuardLeverageBand,
+  evaluatePerpGuardLeverageVerdicts,
+  evaluatePerpGuardVenueIntegrity,
+  isBlockingOracleVerdict,
+  normalizeSymbol,
+  summarizeOracleCheck,
+  type PerpGuardOracleCheckSummary,
+  type PerpGuardVerdict,
+} from '@/lib/perps/perpGuardKernel';
 
 /**
  * A read-only, Hyperliquid-only perpetual-futures decision gate for the
@@ -29,6 +39,11 @@ import {
  * and USDC carry deep independent coverage there, and consensus prices are
  * chain-agnostic for these majors. The venue's own oracle price is compared
  * against that consensus as a separate disclosed cross-venue check.
+ *
+ * Venue-neutral pieces (verdict vocabulary, oracle-check summary shape,
+ * reviewed venue-integrity thresholds, leverage-band evaluation, numeric
+ * helpers) live in `perpGuardKernel.ts` so they cannot silently fork between
+ * perp guards.
  */
 export const HYPERLIQUID_PERPS_PROTOCOL_ID = 'hyperliquid-perps-mainnet' as const;
 
@@ -42,20 +57,7 @@ const REVIEWED_MARKETS = {
   ETH: { maxLeverage: 25 },
 } as const satisfies Record<string, { maxLeverage: number }>;
 
-/**
- * Reviewed venue-integrity thresholds for the exchange's own mark/oracle
- * divergence. These are static guard values, not caller-set preflight limits.
- */
-const MARK_ORACLE_DEVIATION_CAUTION_BPS = 100;
-const MARK_ORACLE_DEVIATION_BLOCK_BPS = 1_000;
-/**
- * Reviewed cross-venue deviation between Insight's cross-oracle consensus
- * price and the Hyperliquid exchange oracle price.
- */
-const CONSENSUS_VENUE_DEVIATION_CAUTION_PCT = 1;
-const CONSENSUS_VENUE_DEVIATION_BLOCK_PCT = 5;
-
-export type HyperliquidPerpGuardVerdict = 'ALLOW' | 'CAUTION' | 'BLOCK';
+export type HyperliquidPerpGuardVerdict = PerpGuardVerdict;
 
 export const HyperliquidPerpGuardInputSchema = z.object({
   protocolId: z.literal(HYPERLIQUID_PERPS_PROTOCOL_ID),
@@ -79,16 +81,7 @@ export const HyperliquidPerpGuardExactInputSchema = z
   .strict();
 export type HyperliquidPerpGuardExactInput = z.infer<typeof HyperliquidPerpGuardExactInputSchema>;
 
-export interface HyperliquidPerpGuardOracleCheckSummary {
-  verdict: PreTradeSafetyResult['verdict'];
-  consensusPrice: number;
-  maxDeviationPct: number;
-  staleDataRisk: boolean;
-  participantCount: number;
-  /** A reference to the separately verifiable Oracle Safety attestation, if configured. */
-  attestationUid: string | null;
-  attester: string | null;
-}
+export type HyperliquidPerpGuardOracleCheckSummary = PerpGuardOracleCheckSummary;
 
 export interface HyperliquidPerpGuardVenueEvidence {
   status: 'observed' | 'unavailable';
@@ -124,7 +117,10 @@ export interface HyperliquidPerpGuardResult {
     assetSymbol: string;
     marginAssetSymbol: string;
     maxLeverage: number;
-    maxLeverageSource: 'reviewed-profile' | 'reviewed-profile-capped-by-live-venue';
+    maxLeverageSource:
+      | 'reviewed-profile'
+      | 'reviewed-profile-capped-by-live-venue'
+      | 'reviewed-profile-live-unavailable';
     parameterSource: 'reviewed-profile';
   };
   projected: {
@@ -155,31 +151,6 @@ export interface HyperliquidPerpGuardDependencies {
   checkOracle?: typeof preTradeSafetyCheck;
   fetchVenueState?: (assetSymbol: string) => Promise<HyperliquidPerpExecutionMarketState | null>;
   now?: () => Date;
-}
-
-function normalizeSymbol(symbol: string): string {
-  return symbol.trim().toUpperCase();
-}
-
-function summarize(result: PreTradeSafetyResult): HyperliquidPerpGuardOracleCheckSummary {
-  return {
-    verdict: result.verdict,
-    consensusPrice: result.consensusPrice,
-    maxDeviationPct: result.maxDeviationPct,
-    staleDataRisk: result.staleDataRisk,
-    participantCount: result.participantCount,
-    attestationUid: result.attestation?.uid ?? null,
-    attester: result.attestation?.attester ?? null,
-  };
-}
-
-function isBlockingOracleVerdict(verdict: PreTradeSafetyResult['verdict']): boolean {
-  return verdict === 'DANGER' || verdict === 'BLOCK';
-}
-
-function bps(numerator: number, denominator: number): number {
-  if (!(denominator > 0)) return Number.POSITIVE_INFINITY;
-  return ((numerator - denominator) / denominator) * 10_000;
 }
 
 async function defaultVenueState(
@@ -216,10 +187,10 @@ function venueEvidence(
     openInterestCoin: state.perpetual.openInterest,
     dayNotionalVolume: state.perpetual.dayNotionalVolume,
     liveMaxLeverage: state.perpetual.maxLeverage,
-    consensusVenueDeviationPct:
-      consensusPrice > 0 && state.perpetual.oraclePrice > 0
-        ? Math.abs(((state.perpetual.oraclePrice - consensusPrice) / consensusPrice) * 100)
-        : null,
+    consensusVenueDeviationPct: computeConsensusVenueDeviationPct(
+      state.perpetual.oraclePrice,
+      consensusPrice
+    ),
   };
 }
 
@@ -276,17 +247,15 @@ export async function assessHyperliquidPerpGuard(
     ? venueEvidence(venueState, underlyingResult.consensusPrice, input.action)
     : unavailableVenueEvidence();
 
-  const effectiveLeverage = input.sizeUsd / input.marginValueUsd;
   // The live venue leverage limit can be lowered by Hyperliquid governance at
   // any time; the guard binds to the lower of the reviewed profile and the
   // freshly observed venue value.
-  const cappedByLive =
-    venue.liveMaxLeverage !== null && venue.liveMaxLeverage < profile.maxLeverage;
-  const maxLeverage = cappedByLive ? (venue.liveMaxLeverage as number) : profile.maxLeverage;
-  const liquidationBufferPct = Math.max(0, (1 - effectiveLeverage / maxLeverage) * 100);
-  // 90% of the effective cap leaves a mechanical buffer. This is advisory; it
-  // is not a claim that the position is safe under every move.
-  const conservativeMaxSizeUsd = input.marginValueUsd * maxLeverage * 0.9;
+  const band = evaluatePerpGuardLeverageBand(
+    input.sizeUsd,
+    input.marginValueUsd,
+    profile.maxLeverage,
+    venue.liveMaxLeverage
+  );
   const reasons: string[] = [];
   let verdict: HyperliquidPerpGuardVerdict = 'ALLOW';
 
@@ -297,17 +266,12 @@ export async function assessHyperliquidPerpGuard(
     verdict = 'BLOCK';
     reasons.push('At least one underlying or margin oracle assessment is DANGER or BLOCK.');
   }
-  if (effectiveLeverage >= maxLeverage) {
-    verdict = 'BLOCK';
-    reasons.push(
-      'Declared post-action leverage is at or above the effective leverage cap, leaving no reviewed buffer.'
-    );
-  } else if (effectiveLeverage >= maxLeverage * 0.9) {
-    if (verdict !== 'BLOCK') verdict = 'CAUTION';
-    reasons.push(
-      'Declared post-action leverage consumes at least 90% of the effective leverage cap.'
-    );
-  }
+  const leverageVerdicts = evaluatePerpGuardLeverageVerdicts(
+    band.effectiveLeverage,
+    band.maxLeverage
+  );
+  verdict = escalatePerpGuardVerdict(verdict, leverageVerdicts.verdict);
+  reasons.push(...leverageVerdicts.reasons);
   if (underlyingResult.verdict === 'CAUTION' || marginResult.verdict === 'CAUTION') {
     if (verdict !== 'BLOCK') verdict = 'CAUTION';
     reasons.push('At least one oracle assessment requires review before execution.');
@@ -320,33 +284,17 @@ export async function assessHyperliquidPerpGuard(
       'Hyperliquid venue evidence was unavailable; the verdict rests on oracle consensus and the declared leverage band only.'
     );
   } else {
-    const deviation = venue.markOracleDeviationBps ?? Number.POSITIVE_INFINITY;
-    if (deviation >= MARK_ORACLE_DEVIATION_BLOCK_BPS) {
-      verdict = 'BLOCK';
-      reasons.push(
-        `Exchange mark/oracle divergence ${venue.markOracleDeviationBps?.toFixed(2)} bps is at or above the reviewed ${MARK_ORACLE_DEVIATION_BLOCK_BPS} bps backstop.`
-      );
-    } else if (deviation >= MARK_ORACLE_DEVIATION_CAUTION_BPS) {
-      if (verdict !== 'BLOCK') verdict = 'CAUTION';
-      reasons.push(
-        `Exchange mark/oracle divergence ${venue.markOracleDeviationBps?.toFixed(2)} bps exceeds the reviewed ${MARK_ORACLE_DEVIATION_CAUTION_BPS} bps advisory band.`
-      );
-    }
-    const crossVenue = venue.consensusVenueDeviationPct;
-    if (crossVenue !== null) {
-      if (crossVenue >= CONSENSUS_VENUE_DEVIATION_BLOCK_PCT) {
-        verdict = 'BLOCK';
-        reasons.push(
-          `Insight cross-oracle consensus diverges ${crossVenue.toFixed(2)}% from the Hyperliquid oracle price, at or above the reviewed ${CONSENSUS_VENUE_DEVIATION_BLOCK_PCT}% backstop.`
-        );
-      } else if (crossVenue >= CONSENSUS_VENUE_DEVIATION_CAUTION_PCT) {
-        if (verdict !== 'BLOCK') verdict = 'CAUTION';
-        reasons.push(
-          `Insight cross-oracle consensus diverges ${crossVenue.toFixed(2)}% from the Hyperliquid oracle price, above the reviewed ${CONSENSUS_VENUE_DEVIATION_CAUTION_PCT}% advisory band.`
-        );
-      }
-    }
-    if (cappedByLive) {
+    const venueIntegrity = evaluatePerpGuardVenueIntegrity({
+      venueLabel: 'Hyperliquid',
+      indexPriceLabel: 'oracle price',
+      divergenceLabel: 'mark/oracle',
+      markIndexDeviationBps: venue.markOracleDeviationBps,
+      consensusVenueDeviationPct: venue.consensusVenueDeviationPct,
+      marketStatus: null,
+    });
+    verdict = escalatePerpGuardVerdict(verdict, venueIntegrity.verdict);
+    reasons.push(...venueIntegrity.reasons);
+    if (band.cappedByLive) {
       reasons.push(
         `Live venue max leverage ${venue.liveMaxLeverage}x is lower than the static reviewed profile cap ${profile.maxLeverage}x; the guard binds to the live value.`
       );
@@ -377,20 +325,21 @@ export async function assessHyperliquidPerpGuard(
     market: {
       assetSymbol: input.assetSymbol,
       marginAssetSymbol: input.marginAssetSymbol,
-      maxLeverage,
-      maxLeverageSource: cappedByLive
-        ? 'reviewed-profile-capped-by-live-venue'
-        : 'reviewed-profile',
+      maxLeverage: band.maxLeverage,
+      maxLeverageSource: band.maxLeverageSource,
       parameterSource: 'reviewed-profile',
     },
     projected: {
       sizeUsd: input.sizeUsd,
       marginValueUsd: input.marginValueUsd,
-      effectiveLeverage,
-      liquidationBufferPct,
-      conservativeMaxSizeUsd,
+      effectiveLeverage: band.effectiveLeverage,
+      liquidationBufferPct: band.liquidationBufferPct,
+      conservativeMaxSizeUsd: band.conservativeMaxSizeUsd,
     },
-    oracleChecks: { underlying: summarize(underlyingResult), margin: summarize(marginResult) },
+    oracleChecks: {
+      underlying: summarizeOracleCheck(underlyingResult),
+      margin: summarizeOracleCheck(marginResult),
+    },
     venue,
     reasons,
     next: {

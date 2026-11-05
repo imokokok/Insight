@@ -9,6 +9,7 @@
 import { getConsensusPrice } from '@/lib/api/services/consensusPriceService';
 import { preTradeSafetyCheck } from '@/lib/api/services/preTradeSafetyService';
 import { UnsupportedSymbolError } from '@/lib/errors';
+import { readIssuanceControl, resetIssuanceControlCacheForTests } from '@/lib/ops/issuanceControl';
 import { calculateAllStablecoinSnapshots } from '@/lib/stablecoins/monitor';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 
@@ -48,6 +49,7 @@ const INPUT = { asset: 'ETH', chainId: 8453, action: 'swap' as const, tradeAmoun
 
 beforeEach(() => {
   jest.clearAllMocks();
+  resetIssuanceControlCacheForTests();
   auditInsert.mockResolvedValue({ error: null });
   mockedSnapshots.mockResolvedValue([]);
 });
@@ -97,4 +99,35 @@ it('runs the normal pipeline when the switch cannot be read (fail open)', async 
   expect(result.contributingFactors.some((factor) => factor.rule === 'issuance_halted')).toBe(
     false
   );
+});
+
+it('serves the hot-path halt read from the TTL cache until it is reset', async () => {
+  const controlRow = (halted: boolean) => ({
+    data: {
+      halted,
+      reason: halted ? 'halted for test' : null,
+      changed_by: null,
+      changed_by_email: null,
+      changed_at: null,
+      revision: 1,
+    },
+    error: null,
+  });
+
+  const first = mockClient(controlRow(true));
+  const initial = await readIssuanceControl();
+  expect(initial.state?.halted).toBe(true);
+  expect(first.maybeSingle).toHaveBeenCalledTimes(1);
+
+  // Re-point the mocked database at a released switch; the cached state must
+  // still win within the TTL window (one Supabase read per TTL, not per call).
+  mockClient(controlRow(false));
+  const cached = await readIssuanceControl();
+  expect(cached.state?.halted).toBe(true);
+  expect(first.maybeSingle).toHaveBeenCalledTimes(1);
+
+  // Dropping the cache exposes the fresh database state immediately.
+  resetIssuanceControlCacheForTests();
+  const refreshed = await readIssuanceControl();
+  expect(refreshed.state?.halted).toBe(false);
 });
