@@ -58,6 +58,12 @@ const MAX_CANDLE_WINDOW_MS = 11 * 60 * 60 * 1000;
 /** A resolved window is only graded once the market has had time to resolve. */
 const RESOLUTION_GRACE_MS = 10 * 60 * 1000;
 
+/**
+ * An unresolved market whose window ended more than one lookback horizon ago
+ * is treated as abandoned by the venue and excluded from the watch list.
+ */
+export const STALE_UNRESOLVED_WATCH_MS = DEFAULT_LOOKBACK_HOURS * 60 * 60 * 1000;
+
 export interface CollectSettlementEvidenceOptions {
   nowMs?: number;
   lookbackMs?: number;
@@ -94,7 +100,31 @@ export async function refreshWatchList(options: CollectSettlementEvidenceOptions
   const rows = markets
     .map((market) => buildWatchRow({ market, nowMs }))
     .filter((row): row is SettlementMarketWatchRow => row !== null);
-  return upsertWatchMarkets(rows);
+
+  // Gamma keeps abandoned price-contract series listed as open forever (a
+  // live probe in Nov 2026 found 55 unclosed `*-updown-*` markets whose
+  // windows ended months earlier, all zero-volume, none ever closing). Such
+  // rows would sit in the watch list permanently, never settle, and pollute
+  // the paid endpoint's addressable inventory. A legitimate market can stay
+  // open past its window only while the venue resolves it, so anything
+  // unclosed one lookback horizon past its window end is treated as stale.
+  let staleSkipped = 0;
+  const liveRows: SettlementMarketWatchRow[] = [];
+  for (const row of rows) {
+    if (!row.closed && row.windowEndMs + STALE_UNRESOLVED_WATCH_MS < nowMs) {
+      staleSkipped += 1;
+      continue;
+    }
+    liveRows.push(row);
+  }
+  if (staleSkipped > 0) {
+    logger.info('Skipped stale unresolved watch markets (window ended, never closed)', {
+      staleSkipped,
+      parsed: rows.length,
+      persisted: liveRows.length,
+    });
+  }
+  return upsertWatchMarkets(liveRows);
 }
 
 /**
