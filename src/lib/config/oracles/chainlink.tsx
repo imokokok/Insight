@@ -1,3 +1,4 @@
+import { CHAINLINK_SUPPORTED_CHAINS } from '@/lib/oracles/constants/chainlinkSupportedChains';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
 import { COMMON_TABS, createOracleConfig } from './helpers';
@@ -7,28 +8,11 @@ export const chainlinkConfig = createOracleConfig({
   name: 'Chainlink',
   symbol: 'LINK',
   defaultChain: Blockchain.ETHEREUM,
-  supportedChains: [
-    Blockchain.ETHEREUM,
-    Blockchain.ARBITRUM,
-    Blockchain.OPTIMISM,
-    Blockchain.POLYGON,
-    Blockchain.AVALANCHE,
-    Blockchain.BASE,
-    Blockchain.BNB_CHAIN,
-    Blockchain.FANTOM,
-    Blockchain.GNOSIS,
-    Blockchain.METIS,
-    Blockchain.SCROLL,
-    Blockchain.CELO,
-    Blockchain.MOONBEAM,
-    Blockchain.MOONRIVER,
-    Blockchain.STARKNET,
-    Blockchain.BLAST,
-    Blockchain.KAVA,
-    Blockchain.LINEA,
-    Blockchain.SOLANA,
-    Blockchain.MONAD,
-  ],
+  // Derived from the same catalog-based single source as the runtime client —
+  // the previous hand-written list had drifted to 20 entries of which 11 had
+  // no runtime data on this platform (Fantom, Gnosis, Metis, Scroll, Celo,
+  // Moonbeam, Moonriver, Starknet, Blast, Kava, Linea).
+  supportedChains: [...CHAINLINK_SUPPORTED_CHAINS],
   color: '#2563EB',
   features: {
     hasNodeAnalytics: true,
