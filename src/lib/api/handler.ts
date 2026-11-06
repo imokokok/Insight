@@ -197,8 +197,11 @@ export function getCorsHeaders(options: CorsOptions): Record<string, string> {
     'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Methods': methods.join(', '),
     'Access-Control-Allow-Headers': headers.join(', '),
+    // The x-insight-* advisory hints on a bare 402 are only useful to a
+    // browser-based agent if CORS exposes them. Keep in sync with the MCP
+    // transport's expose list and with x402OnboardingHeaders().
     'Access-Control-Expose-Headers':
-      'X-Request-Id, Server-Timing, X-Credit-Cost, X-Credit-Balance, X-Credit-Balance-After, X-Credit-Status, X-Credit-Receipt, Retry-After, PAYMENT-REQUIRED, PAYMENT-RESPONSE, WWW-Authenticate, Payment-Receipt, Payment-Settlement-Status',
+      'X-Request-Id, Server-Timing, X-Credit-Cost, X-Credit-Balance, X-Credit-Balance-After, X-Credit-Status, X-Credit-Receipt, Retry-After, PAYMENT-REQUIRED, PAYMENT-RESPONSE, WWW-Authenticate, Payment-Receipt, Payment-Settlement-Status, x-insight-entry-source-hint, x-insight-quickstart, x-insight-mcp-install, x-insight-no-wallet',
     'Access-Control-Max-Age': String(maxAge),
   };
 }
