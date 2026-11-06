@@ -591,4 +591,10 @@ describe('x402OnboardingHeaders 402 hints', () => {
       expect(headers['x-insight-entry-source-hint']).toContain(label);
     }
   });
+
+  it('advertises the branded launcher rather than the raw bridge', () => {
+    const hint = headers['x-insight-mcp-install'];
+    expect(hint).toBe('npx -y --package=oracle-insight-mcp insight-mcp');
+    expect(hint).not.toContain('mcp-remote');
+  });
 });

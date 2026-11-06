@@ -43,8 +43,10 @@ settlement, and may be omitted. Never put a wallet address, API key, or
 free-form campaign value in this header.
 
 An MCP host can connect with no API key using
-`npx -y mcp-remote https://www.oracleinsight.xyz/api/mcp --header x-insight-entry-source:mcp`.
-HTTP 402 responses also carry `x-insight-quickstart`,
+`npx -y --package=oracle-insight-mcp insight-mcp`. The launcher pins the hosted
+endpoint and the `mcp` attribution label; set `INSIGHT_MCP_URL`,
+`INSIGHT_API_KEY`, or `INSIGHT_ENTRY_SOURCE` in the host's `env` block to
+override them. HTTP 402 responses also carry `x-insight-quickstart`,
 `x-insight-mcp-install` and `x-insight-no-wallet` hints.
 
 ## No-wallet trial (no crypto needed)

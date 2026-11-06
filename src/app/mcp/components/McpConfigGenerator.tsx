@@ -37,29 +37,21 @@ export function McpConfigGenerator({ defaultApiKey, onApiKeyChange }: McpConfigG
     };
   }, [baseUrl, apiKey]);
 
-  // `mcp-remote` is published and needs no local checkout. Once the branded
-  // oracle-insight-mcp launcher is published, replacing these two args arrays
-  // with ['-y', '--package=oracle-insight-mcp', 'insight-mcp'] is the only
-  // change required here.
+  // The branded launcher pins the hosted endpoint and the bounded attribution
+  // label. `INSIGHT_MCP_URL` keeps generated configs pointed at the current
+  // origin (local dev and staging included), while `INSIGHT_API_KEY` lets the
+  // launcher add the credit-wallet header without putting the key in argv.
   const claudeDesktopConfig = useMemo(() => {
-    const args = [
-      '-y',
-      'mcp-remote',
-      `${baseUrl}/api/mcp`,
-      '--header',
-      'x-insight-entry-source:mcp',
-    ];
-    const env: Record<string, string> = {};
+    const env: Record<string, string> = { INSIGHT_MCP_URL: `${baseUrl}/api/mcp` };
     if (apiKey.trim()) {
-      args.push('--header', 'X-API-Key:${INSIGHT_API_KEY}');
       env.INSIGHT_API_KEY = apiKey.trim();
     }
     return {
       mcpServers: {
         'insight-oracle': {
           command: 'npx',
-          args,
-          ...(Object.keys(env).length > 0 ? { env } : {}),
+          args: ['-y', '--package=oracle-insight-mcp', 'insight-mcp'],
+          env,
         },
       },
     };
