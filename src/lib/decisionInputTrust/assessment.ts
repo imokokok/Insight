@@ -1,4 +1,3 @@
-import { keccak256 } from 'viem';
 import { z } from 'zod';
 
 import type { EvidenceUse } from '@/lib/dataRights/evidenceRights';
@@ -10,8 +9,15 @@ import type { ChainlinkMarketReference } from '@/lib/marketReference/chainlink';
 import { MAX_REF_AGE_HOURS, type MarketReference } from '@/lib/marketReference/client';
 import type { RedStoneMarketReference } from '@/lib/marketReference/redstone';
 import { ETHEREUM_TOKEN_ADDRESSES } from '@/lib/oracles/constants/ethereumTokenAddresses';
-import { canonicalJsonString } from '@/lib/utils/canonicalJson';
 
+import { assessReviewedPoolQuote } from './assessment/reviewedPoolQuoteChecks';
+import {
+  DECISION_INPUT_REASON_CODES,
+  deviationBps,
+  snapshotHash,
+  addReason,
+  type DecisionInputReason,
+} from './assessment/shared';
 import {
   DecisionInputQuoteProvenanceSchema,
   quoteProvenanceMatchesQuote,
@@ -19,8 +25,17 @@ import {
   type DecisionInputQuoteProvenance,
 } from './quoteProvenance';
 
-import type { DecisionInputAssessmentAttestation } from './attestation';
+import type { DecisionInputAssessmentAttestation } from './attestationContract';
 import type { OnchainRouteQuoteEvidence } from './onchainRouteQuote';
+
+export {
+  DECISION_INPUT_REASON_CODES,
+  deviationBps,
+  snapshotHash,
+  addReason,
+  type DecisionInputReasonCode,
+  type DecisionInputReason,
+} from './assessment/shared';
 
 export interface DecisionInputRouteQuote {
   /** Destination units per source unit. */
@@ -92,37 +107,6 @@ export interface DecisionInputCheckRequest {
   };
   /** Optional route quote captured by the gated execution workflow. */
   operationRouteQuote?: DecisionInputRouteQuote;
-}
-
-export interface DecisionInputReason {
-  code:
-    | 'CHAINLINK_UNAVAILABLE'
-    | 'CHAINLINK_STALE'
-    | 'MARKET_REFERENCE_UNAVAILABLE'
-    | 'MARKET_REFERENCE_LOW_COVERAGE'
-    | 'MARKET_REFERENCE_SPREAD_UNAVAILABLE'
-    | 'MARKET_REFERENCE_DIVERGENCE'
-    | 'MARKET_REFERENCE_SPREAD'
-    | 'CHAINLINK_DIVERGENCE'
-    | 'REDSTONE_DIVERGENCE'
-    | 'DEX_DEPTH_UNAVAILABLE'
-    | 'REVIEWED_UNISWAP_V3_UNAVAILABLE'
-    | 'REVIEWED_UNISWAP_V3_QUOTE_DIVERGENCE'
-    | 'REVIEWED_UNISWAP_V3_PRICE_IMPACT'
-    | 'REVIEWED_UNISWAP_V3_TWAP_DEVIATION'
-    | 'REVIEWED_AERODROME_SLIPSTREAM_UNAVAILABLE'
-    | 'REVIEWED_AERODROME_SLIPSTREAM_QUOTE_DIVERGENCE'
-    | 'REVIEWED_AERODROME_SLIPSTREAM_PRICE_IMPACT'
-    | 'REVIEWED_AERODROME_SLIPSTREAM_TWAP_DEVIATION'
-    | 'QUOTE_TIMESTAMP_INVALID'
-    | 'QUOTE_STALE'
-    | 'QUOTE_SLIPPAGE'
-    | 'QUOTE_PROVENANCE_REQUIRED'
-    | 'QUOTE_PROVENANCE_MALFORMED'
-    | 'QUOTE_PROVENANCE_MISMATCH'
-    | 'QUOTE_PROVENANCE_RIGHTS';
-  severity: 'block' | 'insufficient_evidence';
-  message: string;
 }
 
 export interface DecisionInputAssessment {
@@ -678,33 +662,7 @@ export const DecisionInputAssessmentSchema = z
       .array(
         z
           .object({
-            code: z.enum([
-              'CHAINLINK_UNAVAILABLE',
-              'CHAINLINK_STALE',
-              'MARKET_REFERENCE_UNAVAILABLE',
-              'MARKET_REFERENCE_LOW_COVERAGE',
-              'MARKET_REFERENCE_SPREAD_UNAVAILABLE',
-              'MARKET_REFERENCE_DIVERGENCE',
-              'MARKET_REFERENCE_SPREAD',
-              'CHAINLINK_DIVERGENCE',
-              'REDSTONE_DIVERGENCE',
-              'DEX_DEPTH_UNAVAILABLE',
-              'REVIEWED_UNISWAP_V3_UNAVAILABLE',
-              'REVIEWED_UNISWAP_V3_QUOTE_DIVERGENCE',
-              'REVIEWED_UNISWAP_V3_PRICE_IMPACT',
-              'REVIEWED_UNISWAP_V3_TWAP_DEVIATION',
-              'REVIEWED_AERODROME_SLIPSTREAM_UNAVAILABLE',
-              'REVIEWED_AERODROME_SLIPSTREAM_QUOTE_DIVERGENCE',
-              'REVIEWED_AERODROME_SLIPSTREAM_PRICE_IMPACT',
-              'REVIEWED_AERODROME_SLIPSTREAM_TWAP_DEVIATION',
-              'QUOTE_TIMESTAMP_INVALID',
-              'QUOTE_STALE',
-              'QUOTE_SLIPPAGE',
-              'QUOTE_PROVENANCE_REQUIRED',
-              'QUOTE_PROVENANCE_MALFORMED',
-              'QUOTE_PROVENANCE_MISMATCH',
-              'QUOTE_PROVENANCE_RIGHTS',
-            ]),
+            code: z.enum(DECISION_INPUT_REASON_CODES),
             severity: z.enum(['block', 'insufficient_evidence']),
             message: z.string().min(1).max(512),
           })
@@ -930,27 +888,6 @@ export interface AssessDecisionInputOptions {
   /** Synthetic evidence is accepted only in staging/test evaluation. */
   evidenceUse?: EvidenceUse;
   now?: Date;
-}
-
-function deviationBps(input: number, reference: number): number | null {
-  if (!Number.isFinite(input) || input <= 0 || !Number.isFinite(reference) || reference <= 0) {
-    return null;
-  }
-  const deviation = (Math.abs(input - reference) / reference) * 10_000;
-  return Number.isFinite(deviation) ? deviation : Number.MAX_VALUE;
-}
-
-function snapshotHash(value: unknown): `0x${string}` {
-  return keccak256(new TextEncoder().encode(canonicalJsonString(value)));
-}
-
-function addReason(
-  reasons: DecisionInputReason[],
-  code: DecisionInputReason['code'],
-  severity: DecisionInputReason['severity'],
-  message: string
-): void {
-  reasons.push({ code, severity, message });
 }
 
 /** Pure policy/evidence combiner. Missing, stale, or malformed evidence never becomes a pass. */
@@ -1339,95 +1276,56 @@ function assessReviewedUniswapV3(
   evidence: ReviewedUniswapV3PreTradeEvidence | null | undefined,
   reasons: DecisionInputReason[]
 ): ReviewedUniswapV3Checks {
-  if (!request.reviewedUniswapV3) return { evidence: null };
-  if (!evidence) {
-    addReason(
-      reasons,
-      'REVIEWED_UNISWAP_V3_UNAVAILABLE',
-      'insufficient_evidence',
-      'No fresh block-pinned quote is available from the reviewed concentrated-liquidity pool for this exact route and amount.'
-    );
-    return { evidence: null };
-  }
-
-  const forward = evidence.quote.direction !== 'token1-to-token0';
-  const effectivePerSource = forward
-    ? evidence.quote.effectiveToken1PerToken0
-    : evidence.quote.effectiveToken0PerToken1;
-  if (effectivePerSource === undefined || !Number.isFinite(effectivePerSource)) {
-    addReason(
-      reasons,
-      'REVIEWED_UNISWAP_V3_UNAVAILABLE',
-      'insufficient_evidence',
-      'The reviewed Uniswap V3 quote is missing a usable effective price for the bound direction.'
-    );
-    return { evidence: null };
-  }
-  // Prefer the same-unit anchor (destination tokens per source token) supplied
-  // by the caller's own prepared route quote; fall back to the USD-per-source
-  // `quotePriceUsd`, which is only numerically comparable when the destination
-  // token is a $1 stablecoin.
-  const anchorRate = request.reviewedUniswapV3.routeEffectiveDestinationPerSource;
-  const anchor =
-    anchorRate !== undefined && Number.isFinite(anchorRate) && anchorRate > 0
-      ? anchorRate
-      : request.quotePriceUsd;
-  const quoteDeviationBps = deviationBps(effectivePerSource, anchor);
-  if (
-    quoteDeviationBps !== null &&
-    quoteDeviationBps > request.reviewedUniswapV3.maxQuoteDeviationBps
-  ) {
-    addReason(
-      reasons,
-      'REVIEWED_UNISWAP_V3_QUOTE_DIVERGENCE',
-      'block',
-      `The reviewed Uniswap V3 quote differs from the submitted venue quote by ${quoteDeviationBps.toFixed(1)} bps; the limit is ${request.reviewedUniswapV3.maxQuoteDeviationBps} bps.`
-    );
-  }
-  if (evidence.quote.priceImpactBps > request.maxSlippageBps) {
-    addReason(
-      reasons,
-      'REVIEWED_UNISWAP_V3_PRICE_IMPACT',
-      'block',
-      `The reviewed Uniswap V3 exact-input quote has ${evidence.quote.priceImpactBps.toFixed(1)} bps price impact; the declared slippage limit is ${request.maxSlippageBps} bps.`
-    );
-  }
-  if (evidence.twapDeviationBpsFromSpot > request.reviewedUniswapV3.maxTwapDeviationBps) {
-    addReason(
-      reasons,
-      'REVIEWED_UNISWAP_V3_TWAP_DEVIATION',
-      'block',
-      `The reviewed Uniswap V3 spot/TWAP divergence is ${evidence.twapDeviationBpsFromSpot.toFixed(1)} bps; the limit is ${request.reviewedUniswapV3.maxTwapDeviationBps} bps.`
-    );
-  }
-
-  return {
-    evidence: {
-      profile: evidence.profile,
-      venue: evidence.venue,
-      market: evidence.market,
-      direction: evidence.quote.direction,
-      sourceFreshnessSeconds: evidence.sourceFreshnessSeconds,
-      observedAt: evidence.observedAt,
-      blockNumber: evidence.block.number,
-      blockHash: evidence.block.hash,
-      factory: evidence.contracts.factory,
-      pool: evidence.contracts.pool,
-      quoterV2: evidence.contracts.quoterV2,
-      feeTier: evidence.contracts.feeTier,
-      ...(evidence.contracts.codeIdentity ? { codeIdentity: evidence.contracts.codeIdentity } : {}),
-      amountIn: evidence.quote.amountIn,
-      amountInRaw: evidence.quote.amountInRaw,
-      amountOut: evidence.quote.amountOut,
-      amountOutRaw: evidence.quote.amountOutRaw,
-      ...(forward
-        ? { effectiveToken1PerToken0: evidence.quote.effectiveToken1PerToken0 }
-        : { effectiveToken0PerToken1: evidence.quote.effectiveToken0PerToken1 }),
-      priceImpactBps: evidence.quote.priceImpactBps,
-      quoteDeviationBps,
-      twapDeviationBpsFromSpot: evidence.twapDeviationBpsFromSpot,
+  const result = assessReviewedPoolQuote<ReviewedUniswapV3Evidence>({
+    displayName: 'Uniswap V3',
+    unavailablePoolDescriptor: 'concentrated-liquidity',
+    codes: {
+      unavailable: 'REVIEWED_UNISWAP_V3_UNAVAILABLE',
+      quoteDivergence: 'REVIEWED_UNISWAP_V3_QUOTE_DIVERGENCE',
+      priceImpact: 'REVIEWED_UNISWAP_V3_PRICE_IMPACT',
+      twapDeviation: 'REVIEWED_UNISWAP_V3_TWAP_DEVIATION',
     },
-  };
+    policy: request.reviewedUniswapV3,
+    input: evidence
+      ? {
+          quote: evidence.quote,
+          twapDeviationBpsFromSpot: evidence.twapDeviationBpsFromSpot,
+        }
+      : null,
+    maxSlippageBps: request.maxSlippageBps,
+    quotePriceUsd: request.quotePriceUsd,
+    reasons,
+    buildEvidence: ({ forward, quoteDeviationBps }) => {
+      // The skeleton only invokes this callback when `input` was present.
+      const src = evidence as ReviewedUniswapV3PreTradeEvidence;
+      return {
+        profile: src.profile,
+        venue: src.venue,
+        market: src.market,
+        direction: src.quote.direction,
+        sourceFreshnessSeconds: src.sourceFreshnessSeconds,
+        observedAt: src.observedAt,
+        blockNumber: src.block.number,
+        blockHash: src.block.hash,
+        factory: src.contracts.factory,
+        pool: src.contracts.pool,
+        quoterV2: src.contracts.quoterV2,
+        feeTier: src.contracts.feeTier,
+        ...(src.contracts.codeIdentity ? { codeIdentity: src.contracts.codeIdentity } : {}),
+        amountIn: src.quote.amountIn,
+        amountInRaw: src.quote.amountInRaw,
+        amountOut: src.quote.amountOut,
+        amountOutRaw: src.quote.amountOutRaw,
+        ...(forward
+          ? { effectiveToken1PerToken0: src.quote.effectiveToken1PerToken0 }
+          : { effectiveToken0PerToken1: src.quote.effectiveToken0PerToken1 }),
+        priceImpactBps: src.quote.priceImpactBps,
+        quoteDeviationBps,
+        twapDeviationBpsFromSpot: src.twapDeviationBpsFromSpot,
+      };
+    },
+  });
+  return { evidence: result.evidence };
 }
 
 type ReviewedAerodromeSlipstreamEvidence = NonNullable<
@@ -1443,95 +1341,56 @@ function assessReviewedAerodromeSlipstream(
   evidence: ReviewedAerodromeSlipstreamPreTradeEvidence | null | undefined,
   reasons: DecisionInputReason[]
 ): ReviewedAerodromeSlipstreamChecks {
-  if (!request.reviewedAerodromeSlipstream) return { evidence: null };
-  if (!evidence) {
-    addReason(
-      reasons,
-      'REVIEWED_AERODROME_SLIPSTREAM_UNAVAILABLE',
-      'insufficient_evidence',
-      'No fresh block-pinned quote is available from the reviewed Aerodrome Slipstream pool for this exact route and amount.'
-    );
-    return { evidence: null };
-  }
-
-  const forward = evidence.quote.direction !== 'token1-to-token0';
-  const effectivePerSource = forward
-    ? evidence.quote.effectiveToken1PerToken0
-    : evidence.quote.effectiveToken0PerToken1;
-  if (effectivePerSource === undefined || !Number.isFinite(effectivePerSource)) {
-    addReason(
-      reasons,
-      'REVIEWED_AERODROME_SLIPSTREAM_UNAVAILABLE',
-      'insufficient_evidence',
-      'The reviewed Aerodrome Slipstream quote is missing a usable effective price for the bound direction.'
-    );
-    return { evidence: null };
-  }
-  // Prefer the same-unit anchor (destination tokens per source token) supplied
-  // by the caller's own prepared route quote; fall back to the USD-per-source
-  // `quotePriceUsd`, which is only numerically comparable when the destination
-  // token is a $1 stablecoin.
-  const anchorRate = request.reviewedAerodromeSlipstream.routeEffectiveDestinationPerSource;
-  const anchor =
-    anchorRate !== undefined && Number.isFinite(anchorRate) && anchorRate > 0
-      ? anchorRate
-      : request.quotePriceUsd;
-  const quoteDeviationBps = deviationBps(effectivePerSource, anchor);
-  if (
-    quoteDeviationBps !== null &&
-    quoteDeviationBps > request.reviewedAerodromeSlipstream.maxQuoteDeviationBps
-  ) {
-    addReason(
-      reasons,
-      'REVIEWED_AERODROME_SLIPSTREAM_QUOTE_DIVERGENCE',
-      'block',
-      `The reviewed Aerodrome Slipstream quote differs from the submitted venue quote by ${quoteDeviationBps.toFixed(1)} bps; the limit is ${request.reviewedAerodromeSlipstream.maxQuoteDeviationBps} bps.`
-    );
-  }
-  if (evidence.quote.priceImpactBps > request.maxSlippageBps) {
-    addReason(
-      reasons,
-      'REVIEWED_AERODROME_SLIPSTREAM_PRICE_IMPACT',
-      'block',
-      `The reviewed Aerodrome Slipstream exact-input quote has ${evidence.quote.priceImpactBps.toFixed(1)} bps price impact; the declared slippage limit is ${request.maxSlippageBps} bps.`
-    );
-  }
-  if (evidence.twapDeviationBpsFromSpot > request.reviewedAerodromeSlipstream.maxTwapDeviationBps) {
-    addReason(
-      reasons,
-      'REVIEWED_AERODROME_SLIPSTREAM_TWAP_DEVIATION',
-      'block',
-      `The reviewed Aerodrome Slipstream spot/TWAP divergence is ${evidence.twapDeviationBpsFromSpot.toFixed(1)} bps; the limit is ${request.reviewedAerodromeSlipstream.maxTwapDeviationBps} bps.`
-    );
-  }
-
-  return {
-    evidence: {
-      profile: evidence.profile,
-      venue: evidence.venue,
-      market: evidence.market,
-      direction: evidence.quote.direction,
-      sourceFreshnessSeconds: evidence.sourceFreshnessSeconds,
-      observedAt: evidence.observedAt,
-      blockNumber: evidence.block.number,
-      blockHash: evidence.block.hash,
-      factory: evidence.contracts.factory,
-      pool: evidence.contracts.pool,
-      quoterV2: evidence.contracts.quoterV2,
-      tickSpacing: evidence.contracts.tickSpacing,
-      feePips: evidence.contracts.feePips,
-      amountIn: evidence.quote.amountIn,
-      amountInRaw: evidence.quote.amountInRaw,
-      amountOut: evidence.quote.amountOut,
-      amountOutRaw: evidence.quote.amountOutRaw,
-      ...(forward
-        ? { effectiveToken1PerToken0: evidence.quote.effectiveToken1PerToken0 }
-        : { effectiveToken0PerToken1: evidence.quote.effectiveToken0PerToken1 }),
-      priceImpactBps: evidence.quote.priceImpactBps,
-      quoteDeviationBps,
-      twapDeviationBpsFromSpot: evidence.twapDeviationBpsFromSpot,
+  const result = assessReviewedPoolQuote<ReviewedAerodromeSlipstreamEvidence>({
+    displayName: 'Aerodrome Slipstream',
+    unavailablePoolDescriptor: 'Aerodrome Slipstream',
+    codes: {
+      unavailable: 'REVIEWED_AERODROME_SLIPSTREAM_UNAVAILABLE',
+      quoteDivergence: 'REVIEWED_AERODROME_SLIPSTREAM_QUOTE_DIVERGENCE',
+      priceImpact: 'REVIEWED_AERODROME_SLIPSTREAM_PRICE_IMPACT',
+      twapDeviation: 'REVIEWED_AERODROME_SLIPSTREAM_TWAP_DEVIATION',
     },
-  };
+    policy: request.reviewedAerodromeSlipstream,
+    input: evidence
+      ? {
+          quote: evidence.quote,
+          twapDeviationBpsFromSpot: evidence.twapDeviationBpsFromSpot,
+        }
+      : null,
+    maxSlippageBps: request.maxSlippageBps,
+    quotePriceUsd: request.quotePriceUsd,
+    reasons,
+    buildEvidence: ({ forward, quoteDeviationBps }) => {
+      // The skeleton only invokes this callback when `input` was present.
+      const src = evidence as ReviewedAerodromeSlipstreamPreTradeEvidence;
+      return {
+        profile: src.profile,
+        venue: src.venue,
+        market: src.market,
+        direction: src.quote.direction,
+        sourceFreshnessSeconds: src.sourceFreshnessSeconds,
+        observedAt: src.observedAt,
+        blockNumber: src.block.number,
+        blockHash: src.block.hash,
+        factory: src.contracts.factory,
+        pool: src.contracts.pool,
+        quoterV2: src.contracts.quoterV2,
+        tickSpacing: src.contracts.tickSpacing,
+        feePips: src.contracts.feePips,
+        amountIn: src.quote.amountIn,
+        amountInRaw: src.quote.amountInRaw,
+        amountOut: src.quote.amountOut,
+        amountOutRaw: src.quote.amountOutRaw,
+        ...(forward
+          ? { effectiveToken1PerToken0: src.quote.effectiveToken1PerToken0 }
+          : { effectiveToken0PerToken1: src.quote.effectiveToken0PerToken1 }),
+        priceImpactBps: src.quote.priceImpactBps,
+        quoteDeviationBps,
+        twapDeviationBpsFromSpot: src.twapDeviationBpsFromSpot,
+      };
+    },
+  });
+  return { evidence: result.evidence };
 }
 
 export function assessDecisionInput(options: AssessDecisionInputOptions): DecisionInputAssessment {
