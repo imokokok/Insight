@@ -51,6 +51,15 @@ credential, and receipt metadata. The challenge is bound to the canonical tool
 arguments, and failed tool calls do not settle. The full catalog at `/api/mcp`
 continues to support x402 and API keys.
 
+## Attribution and 402 hints (optional)
+
+Each example sends `x-insight-entry-source: docs` (the MCP example uses `mcp`).
+This is a bounded, non-identifying label used only for aggregate conversion
+analysis. It never affects pricing, payment verification, or settlement and may
+be omitted. A bare HTTP 402 also returns `x-insight-quickstart` and
+`x-insight-mcp-install` response headers with the docs URL and a one-command
+MCP install, so an agent that has never seen x402 has a next step.
+
 ## Verify what you paid for
 
 - Online, keyless: `POST https://www.oracleinsight.xyz/api/v1/safety/attestation/verify`

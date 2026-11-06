@@ -33,6 +33,20 @@ paid tool, ask for a signature, or send a transaction. Insight risk evidence
 does not authorize execution; use a separate wallet-authorization and evidence
 workflow when the caller needs one.
 
+## Optional attribution and one-command install
+
+Clients may send `x-insight-entry-source` with one bounded, non-identifying
+label (`direct`, `docs`, `bazaar`, `mcp`, `sdk`, `skill`, `wallet_mcp`,
+`sendaifun`, `solana_directory`, `unknown`). It is aggregate conversion
+metadata only; it never affects pricing, authorization, verification, or
+settlement, and may be omitted. Never put a wallet address, API key, or
+free-form campaign value in this header.
+
+An MCP host can connect with no API key using
+`npx -y mcp-remote https://www.oracleinsight.xyz/api/mcp --header x-insight-entry-source:mcp`.
+HTTP 402 responses also carry `x-insight-quickstart` and
+`x-insight-mcp-install` hints.
+
 ## Endpoints
 
 ### 1. HTTP: pre-trade safety check

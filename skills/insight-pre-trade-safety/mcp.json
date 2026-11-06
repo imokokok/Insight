@@ -1,7 +1,10 @@
 {
   "mcpServers": {
     "insight": {
-      "url": "https://www.oracleinsight.xyz/api/mcp"
+      "url": "https://www.oracleinsight.xyz/api/mcp",
+      "headers": {
+        "x-insight-entry-source": "skill"
+      }
     }
   }
 }

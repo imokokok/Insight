@@ -7,6 +7,8 @@ oracle-manipulation-aware safety decision from Insight.
 ## Quick install
 
 1. Add the remote server in [`mcp.json`](mcp.json) to an MCP-compatible host.
+   The template sends `x-insight-entry-source: skill`, an optional bounded
+   label used only for aggregate conversion analysis.
 2. Run `node examples/connection-check.mts` using Node 22+ to confirm free
    `initialize` and `tools/list` discovery.
 3. Add an API key in the host's secret manager **or** configure an x402 client
