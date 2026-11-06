@@ -5,6 +5,7 @@ import { Credential, Errors, Expires } from 'mppx';
 import { Mppx, evm } from 'mppx/server';
 
 import { type X402Config } from '@/lib/api/x402/config';
+import { X402_ONBOARDING_HEADER_NAMES } from '@/lib/api/x402/corsExposeHeaders';
 import { recordX402Settlement } from '@/lib/api/x402/guard';
 
 import {
@@ -172,6 +173,21 @@ function makeSuccessfulBusinessResponse(): NextResponse {
   return NextResponse.json({ verdict: 'PASS' }, { status: 200 });
 }
 
+/**
+ * `mergeChallenges()` and `withCors()` both replace Access-Control-Expose-Headers
+ * on a response built elsewhere. A short hardcoded list there hides the 402
+ * onboarding hints from browser clients even when the hints themselves are set.
+ */
+function expectOnboardingHintsExposed(response: NextResponse): void {
+  const exposed = (response.headers.get('Access-Control-Expose-Headers') ?? '')
+    .toLowerCase()
+    .split(',')
+    .map((name) => name.trim());
+  for (const name of X402_ONBOARDING_HEADER_NAMES) {
+    expect(exposed).toContain(name.toLowerCase());
+  }
+}
+
 beforeEach(() => {
   mockCredentialExtract.mockImplementation((authorization: string) =>
     authorization.trimStart().startsWith('Payment ') ? 'Payment' : null
@@ -238,6 +254,7 @@ describe('MPP pre-trade payment guard', () => {
       expect(response.headers.get('WWW-Authenticate')).toContain('Payment id="challenge-1"');
       expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
       expect(response.headers.get('Cache-Control')).toBe('no-store');
+      expectOnboardingHintsExposed(response);
       expect(mockRouteCharge).toHaveBeenCalledWith(request);
       expect(mockExpiresSeconds).toHaveBeenCalledWith(60);
       expect(mockServer.evm.charge).toHaveBeenCalledWith({
@@ -311,6 +328,7 @@ describe('MPP pre-trade payment guard', () => {
       expect(response.headers.get('Payment-Receipt')).toBe('mpp-receipt');
       expect(response.headers.get('X-Request-Id')).toMatch(/^req_[a-f0-9]{32}$/);
       expect(response.headers.get('Access-Control-Expose-Headers')).toContain('Payment-Receipt');
+      expectOnboardingHintsExposed(response);
       expect(response.headers.get('Cache-Control')).toBe('no-store');
       expect(mockValidateCredential).toHaveBeenCalledWith(TEST_CREDENTIAL, {
         request: { amount: '0.02' },

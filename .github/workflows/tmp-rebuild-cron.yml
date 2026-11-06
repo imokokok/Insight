@@ -1,0 +1,50 @@
+name: Temp rebuild cron bundles (PR #439)
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tmp-rebuild-cron
+  cancel-in-progress: false
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 22.23.2
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Rebuild cron bundles
+        run: npm run build:cron
+
+      - name: Commit rebuilt bundles if changed
+        run: |
+          if git diff --quiet; then
+            echo 'Cron bundles already match a clean npm ci rebuild; nothing to commit.'
+            exit 0
+          fi
+          git config user.name 'imokokok'
+          git config user.email '145034722+imokokok@users.noreply.github.com'
+          unexpected="$(git diff --name-only -- . ':(exclude).github/cron-dist')"
+          if [ -n "$unexpected" ]; then
+            echo "::error::rebuild changed files outside cron-dist: $unexpected"
+            exit 1
+          fi
+          git add .github/cron-dist
+          git commit -m 'chore(cron): rebuild bundles from a clean npm ci environment'
+          git push

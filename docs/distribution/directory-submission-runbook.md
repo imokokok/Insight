@@ -101,8 +101,9 @@ public `0.0.0-stage` placeholder, which has no usable binary.
 `process.argv[1] === import.meta.url`, which is false under npm's `.bin`
 symlink, so the command exited `0` in silence. `0.1.1` fixes it by splitting
 the CLI entry from the importable module and adds a regression test that runs
-the real bin through a symlink. Do not pin `0.1.0` anywhere; deprecate it once
-`0.1.1` is live.
+the real bin through a symlink. `0.1.1` is live and is the `latest` tag. Do not
+pin `0.1.0` anywhere; `npm deprecate oracle-insight-mcp@0.1.0` still returns
+`EOTP` and remains a maintainer-only WebAuthn action.
 
 The switch to the branded launcher was gated on a **working** release. Re-run
 these after any registry incident:
@@ -110,8 +111,13 @@ these after any registry incident:
 ```bash
 npm view oracle-insight-mcp@0.1.1 version
 npm view oracle-insight-mcp dist-tags.latest
-npm view elizaos-plugin-oracle-insight@0.1.0 version
+npm view elizaos-plugin-oracle-insight version
 ```
+
+`elizaos-plugin-oracle-insight@0.1.1` is a README-only correction: the `0.1.0`
+tarball shipped an Install section saying the package was not published yet and
+described a plugin-directory submission that does not exist. Republish through
+staged publishing; no runtime code changes.
 
 The CLI behaviour itself is covered offline by
 `mcp-launcher/test/binSymlink.test.mjs`, which stubs `mcp-remote` and asserts
@@ -179,11 +185,45 @@ test lock both sides in.
 2. **Three open directory PRs.** Update the prepared entries with the shorter
    install command only if a maintainer asks for a change. Do not open duplicate
    PRs while #113, #275 and #56 remain open.
-3. **ElizaOS plugin directory.** Submit
-   `elizaos-plugin-oracle-insight@0.1.0` as a separate listing; it needs the
-   platform's authenticated submission flow.
+3. **ElizaOS plugin directory (no submission target exists as of 2026-11-06).**
+   See the dedicated section below. The package is published and installable
+   directly from npm; there is no community registry PR to open.
 4. **Form / account directories.** Use the shared facts above; none may be
    submitted by an agent on the account holder's behalf.
+
+## ElizaOS: community registry is gone, catalog is first-party
+
+Older `elizaOS/eliza` README text and the
+[plugin system overview](https://docs.elizaos.ai/plugin-registry/overview) still
+point at a "community plugin registry" at `elizaOS-plugins/registry`. Verified
+on 2026-11-06:
+
+- `elizaOS/eliza` exists (default branch `develop`). `elizaOS-plugins/registry`,
+  `elizaos-plugins/registry`, `elizaOS/registry` and `elizaos/registry` all
+  return 404 from the GitHub API. The `elizaos-plugins` organization reports
+  `public_repos: 0`, and a code/PR search scoped to that registry returns 422
+  "resources do not exist".
+- `docs.elizaos.ai/plugins/publishing` and `/plugins/registry` are 404. The
+  plugin system overview has a "Community Plugin Registry" heading but no
+  submission instructions and no working link.
+- The current catalog is explicitly **first-party curated**.
+  `packages/core/src/catalog/registry.ts` opens with "First-party curated
+  registry — runtime entry point"; `generated.json` is built from 33
+  plugin-owned `registry-entry.json` files plus a `curated/` set inside the
+  monorepo. Sample entries all use `@elizaos/plugin-*` npm names and
+  `elizaos-plugins/*` repositories.
+- `registerRegistryEntry()` is a runtime overlay in that newer core, not an
+  external listing mechanism, and it is **not exported by `@elizaos/core@1.7.2`**
+  (the version this plugin builds against). Do not add a hard call without a
+  compatibility change and a new release.
+
+**Actionable path:** do not draft a registry PR. Keep
+`elizaos-plugin-oracle-insight` on npm and point agents at direct install plus
+the config in `integrations/elizaos-plugin-insight/README.md`. Re-check only if
+ElizaOS publishes a new registry repository or submission form; at that point
+the entry shape is `registry-entry.json` (`id`, `name`, `description`,
+`npmName`, `version`, `source`, `tags`, `config`, `render`, `resources`,
+`dependsOn`, `kind`, `subtype`).
 
 ## Verification loop
 
@@ -191,7 +231,7 @@ test lock both sides in.
 npm run audit:x402 -- --days=7
 curl -sS -D- -o /dev/null \
   'https://www.oracleinsight.xyz/api/v1/safety/pre-trade?asset=ETH&chainId=1&action=swap&tradeAmountUsd=1000' \
-  | grep -i 'x-insight-'
+  | grep -iE 'x-insight-|access-control-expose-headers'
 curl -sS -D- -o /dev/null 'https://www.oracleinsight.xyz/api/mcp' \
   | grep -iE 'x-insight-|access-control-expose-headers'
 ```
@@ -200,8 +240,18 @@ Both 402 paths now emit the same advisory hints. The REST guard and the MCP
 bridge (`handleMcpIndexerQuote` for GET probes, `handleMcpPaidToolCall` for
 unsigned POST `tools/call` quotes) share `x402OnboardingHeaders()`; signed but
 rejected requests deliberately keep the bare x402 lifecycle shape. The MCP GET
-probe also gets CORS headers, and both expose lists include the four
-`x-insight-*` names so browser-based clients can read them.
+probe also gets CORS headers.
+
+CORS exposure is shared, not duplicated. `src/lib/api/x402/corsExposeHeaders.ts`
+owns `X402_ONBOARDING_HEADER_NAMES` and `corsExposeHeaders()`; the REST handler,
+the MCP HTTP transport, and both MPP helpers in
+`src/lib/api/mpp/preTrade.ts` derive their expose list from it. This matters
+because `/api/v1/safety/pre-trade` goes through the MPP path, whose
+`mergeChallenges()` **replaces** the header wholesale. Before PR #458 the hints
+were present on that 402 but unreadable in a browser. `x402OnboardingHeaders()`
+iterates the shared name list, so adding a hint without updating CORS is a
+compile error. `src/lib/api/__tests__/cors-onboarding-hints.test.ts` and the
+MPP pre-trade tests lock all four surfaces.
 
 The curl checks must show `x-insight-quickstart`, `x-insight-mcp-install`, and
 `x-insight-entry-source-hint`. The audit must start showing non-`unknown`
