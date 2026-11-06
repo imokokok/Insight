@@ -7,9 +7,11 @@ import {
 } from '@x402/fetch';
 import { privateKeyToAccount } from 'viem/accounts';
 
+import { BASE_USDC_ADDRESS } from '@/lib/constants/tokenAddresses';
+
 /** Headless's published Option A terms (/.well-known/x402.json, 2026-09-08). */
 export const HEADLESS_X402_NETWORK = 'eip155:8453' as const;
-export const HEADLESS_X402_USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
+export const HEADLESS_X402_USDC = BASE_USDC_ADDRESS;
 export const HEADLESS_X402_PAY_TO = '0x26D4Ffe98017D2f160E2dAaE9d119e3d8b860AD3';
 export const HEADLESS_X402_AMOUNT_ATOMIC = '1000'; // 0.001 USDC
 

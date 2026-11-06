@@ -1,3 +1,4 @@
+import { BASE_USDC_ADDRESS } from '@/lib/constants/tokenAddresses';
 import { CHAINLINK_RPC_CONFIG } from '@/lib/oracles/services/chainlinkDataSources/rpcConfig';
 
 import {
@@ -13,7 +14,7 @@ export const PANCAKE_SWAP_V3_BASE_FACTORY = '0x0BFbCF9fa4f9C56B0F40a671Ad40E0805
 export const PANCAKE_SWAP_V3_BASE_QUOTER_V2 = '0xB048Bbc1Ee6b733FFfCFb9e9CeF7375518e25997' as const;
 export const PANCAKE_SWAP_V3_BASE_SWAP_ROUTER =
   '0x1b81D678ffb9C0263b24A97847620C99d213eB14' as const;
-export const PANCAKE_SWAP_V3_BASE_USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' as const;
+export const PANCAKE_SWAP_V3_BASE_USDC = BASE_USDC_ADDRESS;
 export const PANCAKE_SWAP_V3_BASE_USDT = '0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2' as const;
 
 /** Runtime pins recorded from the reviewed Base deployment. */

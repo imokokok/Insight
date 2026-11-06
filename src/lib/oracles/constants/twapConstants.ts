@@ -1,4 +1,5 @@
 import { ALCHEMY_RPC } from '@/lib/config/serverEnv';
+import { BASE_USDC_ADDRESS } from '@/lib/constants/tokenAddresses';
 
 import { resolveFeed, resolveFeedAddress } from '../utils/dynamicFeedResolver';
 
@@ -41,7 +42,7 @@ export const TWAP_TOKEN_ADDRESSES: Record<string, Record<number, `0x${string}`>>
     42161: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
     10: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85',
     137: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
-    8453: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+    8453: BASE_USDC_ADDRESS,
     // Base Sepolia — Circle's official testnet USDC deployment.
     84532: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
     56: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',

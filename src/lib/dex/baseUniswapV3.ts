@@ -1,3 +1,4 @@
+import { BASE_USDC_ADDRESS } from '@/lib/constants/tokenAddresses';
 import { CHAINLINK_RPC_CONFIG } from '@/lib/oracles/services/chainlinkDataSources/rpcConfig';
 
 import {
@@ -12,7 +13,7 @@ export const BASE_CHAIN_ID = 8453;
 export const BASE_UNISWAP_V3_FACTORY = '0x33128a8fC17869897dcE68Ed026d694621f6FDfD' as const;
 export const BASE_UNISWAP_V3_QUOTER_V2 = '0x3d4e44Eb1374240CE5F1B871ab261CD16335B76a' as const;
 export const BASE_WETH = '0x4200000000000000000000000000000000000006' as const;
-export const BASE_USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' as const;
+export const BASE_USDC = BASE_USDC_ADDRESS;
 
 /**
  * Reviewed Uniswap V3 WETH/USDC 0.3% pool. The existing TWAP configuration

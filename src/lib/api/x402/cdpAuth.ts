@@ -11,7 +11,9 @@ import { generateJwt } from '@coinbase/cdp-sdk/auth';
  * fresh by `HTTPFacilitatorClient` before every verify/settle/supported call.
  */
 
-const CDP_API_HOST = 'api.cdp.coinbase.com';
+import { FACILITATOR_HOSTS } from './facilitators';
+
+const CDP_API_HOST = FACILITATOR_HOSTS.CDP;
 const CDP_X402_BASE_PATH = '/platform/v2/x402';
 
 /** Shape expected by `HTTPFacilitatorClient`'s `createAuthHeaders` option. */

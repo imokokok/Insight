@@ -1,3 +1,4 @@
+import { SOLANA_USDC_MINT } from '@/lib/constants/tokenAddresses';
 import { getRpcEndpoints } from '@/lib/execution/rpcEndpoints';
 import {
   SOLANA_MAINNET_CAIP2,
@@ -7,7 +8,7 @@ import {
 /** Canonical wrapped SOL mint used by Solana swap programs. */
 export const SOLANA_WRAPPED_SOL = 'So11111111111111111111111111111111111111112' as const;
 /** Canonical Circle-issued USDC mint on Solana mainnet-beta. */
-export const SOLANA_USDC = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v' as const;
+export const SOLANA_USDC = SOLANA_USDC_MINT;
 
 const JUPITER_QUOTE_URL = 'https://api.jup.ag/swap/v1/quote';
 const MAX_UINT64 = (1n << 64n) - 1n;

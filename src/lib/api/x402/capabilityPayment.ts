@@ -1,4 +1,5 @@
 import { isEntitlementCoveredMcpTool } from '@/lib/billing/productPricing';
+import { CHAIN_ID } from '@/lib/constants/tokenAddresses';
 
 import {
   facilitatorBearerTokenForNetwork,
@@ -18,6 +19,13 @@ import {
   X402_SOLANA_LENDING_GUARD_ROUTE,
   X402_SOLANA_PERP_GUARD_ROUTE,
   X402_SOLANA_SWAP_GUARD_ROUTE,
+  X402_EXECUTION_PREFLIGHT_ROUTE,
+  X402_HYPERLIQUID_PERP_GUARD_ROUTE,
+  X402_MULTICHAIN_EVM_LENDING_GUARD_ROUTE,
+  X402_ORACLE_WATCH_WINDOW_ROUTE,
+  X402_POSITION_LIFECYCLE_ROUTE,
+  X402_PRE_TRADE_ROUTE,
+  X402_SWAP_INTENT_ROUTE,
 } from './config';
 
 /**
@@ -34,11 +42,11 @@ export type X402PaymentScope =
 /** Canonical payment scopes used by every x402 capability binding. */
 export const X402_PAYMENT_SCOPE = {
   configured: { kind: 'configured', label: 'the merchant-configured x402 payment rail' },
-  base: { kind: 'evm', network: 'eip155:8453', label: 'Base mainnet' },
-  monad: { kind: 'evm', network: 'eip155:143', label: 'Monad mainnet' },
-  polygon: { kind: 'evm', network: 'eip155:137', label: 'Polygon PoS' },
-  arbitrum: { kind: 'evm', network: 'eip155:42161', label: 'Arbitrum One' },
-  bnb: { kind: 'evm', network: 'eip155:56', label: 'BNB Smart Chain' },
+  base: { kind: 'evm', network: `eip155:${CHAIN_ID.BASE}`, label: 'Base mainnet' },
+  monad: { kind: 'evm', network: `eip155:${CHAIN_ID.MONAD}`, label: 'Monad mainnet' },
+  polygon: { kind: 'evm', network: `eip155:${CHAIN_ID.POLYGON}`, label: 'Polygon PoS' },
+  arbitrum: { kind: 'evm', network: `eip155:${CHAIN_ID.ARBITRUM}`, label: 'Arbitrum One' },
+  bnb: { kind: 'evm', network: `eip155:${CHAIN_ID.BSC}`, label: 'BNB Smart Chain' },
   solana: { kind: 'solana', label: 'Solana' },
   hypercore: { kind: 'hypercore', label: 'Hyperliquid HyperCore' },
 } as const satisfies Record<string, X402PaymentScope>;
@@ -60,6 +68,58 @@ export const X402_REST_PAYMENT_SCOPE_BY_PATH: Readonly<Record<string, X402Paymen
   [X402_SETTLEMENT_EVIDENCE_GRADE_ROUTE]: X402_PAYMENT_SCOPE.configured,
   [X402_LOOPSCALE_VAULT_DEPOSIT_ROUTE]: X402_PAYMENT_SCOPE.solana,
 };
+
+/**
+ * Paid REST paths that intentionally have NO fixed entry in
+ * {@link X402_REST_PAYMENT_SCOPE_BY_PATH} and fall back to the
+ * merchant-configured payment rail (or, for the multichain lending guard, to
+ * the request-bound chainId validated at the route edge). Every other paid
+ * REST route MUST have a fixed scope entry.
+ */
+export const X402_CONFIGURED_SCOPE_FALLBACK_PATHS: ReadonlySet<string> = new Set([
+  /** Chain-neutral pre-trade gate: assessment only, no on-chain execution authority. */
+  X402_PRE_TRADE_ROUTE,
+  /** Execution preflight is advisory; the caller's settlement rail is a product choice. */
+  X402_EXECUTION_PREFLIGHT_ROUTE,
+  /** Multichain lending guard binds its scope from the validated request chainId. */
+  X402_MULTICHAIN_EVM_LENDING_GUARD_ROUTE,
+  /**
+   * Hyperliquid perp guard deliberately bypasses x402ConfigForPaymentScope:
+   * its natural scope is hypercore and fixed-scope resolution intentionally
+   * returns null for it (see its route handler), so it rides the configured
+   * fallback at the manifest surface.
+   */
+  X402_HYPERLIQUID_PERP_GUARD_ROUTE,
+  /** Two-gate swap lifecycle is chain-neutral at the manifest surface. */
+  X402_SWAP_INTENT_ROUTE,
+  /** Monitored-window purchase is chain-neutral; polls are token-authenticated. */
+  X402_ORACLE_WATCH_WINDOW_ROUTE,
+  /** Position-lifecycle bundle is chain-neutral; bundled calls are token-authenticated. */
+  X402_POSITION_LIFECYCLE_ROUTE,
+]);
+
+/**
+ * Fail fast when a paid REST route neither declares a fixed payment scope
+ * nor is on the explicit configured-rail fallback list. Without this check a
+ * new fixed-chain route missing its scope entry silently advertises the
+ * merchant rail in the discovery manifest (regression class #405).
+ */
+export function assertX402RestScopeCoverage(paidRestPaths: readonly string[]): void {
+  const undeclared = paidRestPaths.filter(
+    (path) =>
+      !(path in X402_REST_PAYMENT_SCOPE_BY_PATH) && !X402_CONFIGURED_SCOPE_FALLBACK_PATHS.has(path)
+  );
+  if (undeclared.length > 0) {
+    throw new Error(
+      'x402 paid REST routes missing a payment-scope declaration: ' +
+        undeclared.join(', ') +
+        '. Every paid REST route must either have an X402_REST_PAYMENT_SCOPE_BY_PATH entry ' +
+        '(fixed execution chain) or be listed in X402_CONFIGURED_SCOPE_FALLBACK_PATHS ' +
+        '(deliberate merchant-rail / request-bound scope); otherwise the discovery manifest ' +
+        'silently advertises the wrong payment rail.'
+    );
+  }
+}
 
 /**
  * Tools that are intentionally chain-neutral: their assessment is portable
