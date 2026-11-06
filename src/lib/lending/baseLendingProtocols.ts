@@ -88,14 +88,29 @@ export interface ReviewedMorphoBlueMarket {
 }
 
 /**
- * Intentionally EMPTY at this commit: no first-party-verified Morpho Blue Base
- * `marketId` values were found anywhere in this repository, and inventing ids
- * would fabricate review evidence. The ERC-4626 vault path is enabled by
- * default but stays fail-closed (every vault is refused) until a review
- * registers concrete markets here, or a caller injects `reviewedMarkets`
- * through the guard dependencies. Registering is idempotent per marketId.
+ * First-party reviewed Morpho Blue Base markets (2026-11-06): both ids were
+ * read out of the canonical Gauntlet USDC Prime vault
+ * 0xeE8F4eC5672F09119b96Ab6fB59C27E1b7e44b61 withdrawQueue by
+ * scripts/verify-morpho-base-reviewed-market.mjs, recomputed on-chain via
+ * idToMarketParams + keccak256(abi.encode(params)) (all MATCH, supply > 0,
+ * collateral/oracle/irm all carry on-chain code), and registered here by a
+ * human. This is deliberately NOT a "vault address -> market" whitelist.
+ * `vaultMarketMapping.ts` still reads `asset()`, the vault's market queues and
+ * `idToMarketParams(id)` on-chain before it will reduce a vault to one of
+ * these ids.
  */
-const reviewedMorphoBlueBaseMarkets: ReviewedMorphoBlueMarket[] = [];
+const reviewedMorphoBlueBaseMarkets: ReviewedMorphoBlueMarket[] = [
+  // cbBTC/USDC 86% LLTV (supply ~$1.8B).
+  {
+    marketId: '0x9103c3b4e834476c9a62ea009ba2c884ee42e94e6e314a26f04d312434191836',
+    loanAsset: '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913',
+  },
+  // Zero-collateral pure-USDC supply market.
+  {
+    marketId: '0x38c846197ac32a752a60c25d4536ebb0c3920c532e9a859c38c91efb7b8c2abb',
+    loanAsset: '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913',
+  },
+];
 
 export function registerReviewedMorphoBlueMarket(market: ReviewedMorphoBlueMarket): void {
   const marketId = market.marketId.toLowerCase() as `0x${string}`;

@@ -27,14 +27,16 @@ import {
   assessBaseLendingGuard,
   assessBaseLendingVaultGuard,
 } from '../baseLendingGuard';
+import {
+  getReviewedMorphoBlueMarkets,
+  type ReviewedMorphoBlueMarket,
+} from '../baseLendingProtocols';
 import { decodeErc4626VaultCall } from '../erc4626VaultDecoder';
 import {
   createRpcBackedVaultReader,
   resolveVaultMarket,
   type VaultRpcReader,
 } from '../vaultMarketMapping';
-
-import type { ReviewedMorphoBlueMarket } from '../baseLendingProtocols';
 
 const ACCOUNT = '0x1111111111111111111111111111111111111111' as const;
 const RECEIVER = '0x2222222222222222222222222222222222222222' as const;
@@ -148,6 +150,25 @@ async function rejectionCode(promise: Promise<unknown>): Promise<string> {
   }
   throw new Error('expected a VaultGuardRejectionError but the promise resolved');
 }
+
+// ---------------------------------------------------------------------------
+// 0 · default reviewed Morpho Blue Base registry (first-party 2026-11-06)
+// ---------------------------------------------------------------------------
+
+describe('default reviewed Morpho Blue Base registry', () => {
+  it('ships the two verified Gauntlet USDC Prime markets with Base USDC as loan asset', () => {
+    expect(getReviewedMorphoBlueMarkets()).toEqual([
+      {
+        marketId: '0x9103c3b4e834476c9a62ea009ba2c884ee42e94e6e314a26f04d312434191836',
+        loanAsset: '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913',
+      },
+      {
+        marketId: '0x38c846197ac32a752a60c25d4536ebb0c3920c532e9a859c38c91efb7b8c2abb',
+        loanAsset: '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913',
+      },
+    ]);
+  });
+});
 
 // ---------------------------------------------------------------------------
 // 1-4 · deposit / mint / redeem / withdraw: strict decode + successful reduce

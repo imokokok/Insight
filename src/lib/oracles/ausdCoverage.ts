@@ -17,18 +17,19 @@
  *   - an explicit independence provenance note.
  * A source missing ANY of these is not covered — fail closed.
  *
- * Verification result (2026-11-05), stated plainly:
- *   - In-repo: no AUSD/USD aggregator feed address exists. The Monad oracle
- *     constants in this repository cover majors (MON/BTC/ETH/SOL…), not AUSD.
- *   - Public first-hand sources: Monad's oracle listings enumerate feeds for
- *     majors and stablecoins such as USDC/USDT; no independent AUSD/USD
- *     aggregator feed or standalone AUSD oracle contract address was found.
- *     Perpl-style venues explicitly treat AUSD as "$1 for margining", which is
- *     venue-internal accounting, NOT an independent price source. A token
- *     CONTRACT address is not a price feed and is deliberately not registered.
+ * Re-check result (2026-11-06), stated plainly:
+ *   - Pyth hermes carries an independent Crypto.AUSD/USD feed
+ *     (id d9912df360b5b7f21a122f15bdd5e27f62ce5e72bd316c291f7c86620e07fb2a,
+ *     min_channel fixed_rate@200ms), independent of any venue's own quote.
+ *   - However, the Monad-side on-chain feed contract address, heartbeat and
+ *     deviation threshold are still unverified, so no fully-specified source
+ *     can be registered yet. A hermes feed id alone is not an RPC-readable
+ *     on-chain oracle contract, and a token CONTRACT address is not a price
+ *     feed — neither is registered.
  *
- * => 未找到，需人工 review 后登记. The default descriptor is empty/UNVERIFIED;
- * nothing here fabricates a feed address. The evaluator fails closed.
+ * => Monad 链上 AUSD feed 合约仍未找到，需人工 review 后登记. The default
+ * descriptor stays empty/UNVERIFIED and the evaluator fails closed; nothing
+ * here fabricates a feed address.
  */
 
 import { z } from 'zod';
@@ -126,7 +127,7 @@ export interface AusdCoverageDescriptor {
 
 export const AUSD_UNVERIFIED_DESCRIPTOR: AusdCoverageDescriptor = {
   sources: [],
-  note: '未找到，需人工 review 后登记：仓库与公开一手来源均未核实到独立于 venue 自身报价的 AUSD/USD 聚合器 feed 或独立 oracle 合约地址；不编造 feed 地址。',
+  note: '2026-11-06 复核：Pyth hermes 有独立 Crypto.AUSD/USD feed（id d9912df360b5b7f21a122f15bdd5e27f62ce5e72bd316c291f7c86620e07fb2a，独立 provider），但 Monad 链上 feed 合约地址、heartbeat、deviation threshold 未核实，按 fail-closed 维持 UNVERIFIED；链上 feed 合约未找到，需人工 review 后登记，不编造 feed 地址。',
 };
 
 /** A source is covered only when every required observable field is present. */
