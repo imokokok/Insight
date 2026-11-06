@@ -156,12 +156,19 @@ otherwise mechanical dependency PR.
 8. Promote the already-tested artifact. Watch 5xx rate, p95 latency, Sentry, CSP
    reports, and snapshot freshness for at least 30 minutes.
 
-The gated GitHub production job requires `VERCEL_DEPLOY_HOOK_URL` and a
-`VERCEL_TOKEN` repository secret with read access to the Vercel project. Set
-`VERCEL_TEAM_ID` as a repository variable when the project belongs to a team.
-After the hook queues a deployment, CI queries Vercel for the exact commit and
-waits until the production deployment is ready and promoted. A missing token,
-failed build, wrong commit, or timeout fails the GitHub release job.
+The gated GitHub production release (`deploy-production.yml`) requires
+`VERCEL_DEPLOY_HOOK_URL` and a `VERCEL_TOKEN` repository secret with read access
+to the Vercel project. Set `VERCEL_TEAM_ID` as a repository variable when the
+project belongs to a team. After the hook queues a deployment, CI queries Vercel
+for the exact commit and waits until the production deployment is ready and
+promoted. A missing token, failed build, wrong commit, or timeout fails the
+GitHub release job.
+
+When the deployment is live, the release workflow smoke-tests the payment rails.
+An application-class failure reverts production to the previous READY deployment
+automatically; infrastructure-class failures (timeouts, 429, 502/503/504) are
+retried and never trigger a rollback. The decision table, the rollback guard, and
+the manual fallback are in `docs/operations/release-runbook.md`.
 
 ## Load and failure testing
 
