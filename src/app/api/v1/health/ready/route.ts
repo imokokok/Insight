@@ -175,6 +175,7 @@ export const GET = createApiHandler(
           ? ApiResponseBuilder.success(
               {
                 status: 'ready',
+                runtime: { node: process.version },
                 checks: {
                   tursoRawCapture: rawCapture,
                   scheduler,
@@ -192,6 +193,7 @@ export const GET = createApiHandler(
               retryable: true,
               requestId: context.requestId,
               details: {
+                runtime: { node: process.version },
                 checks: {
                   tursoRawCapture: rawCapture,
                   scheduler,
@@ -213,6 +215,7 @@ export const GET = createApiHandler(
           retryable: true,
           requestId: context.requestId,
           details: {
+            runtime: { node: process.version },
             checks: {
               tursoRawCapture: 'unavailable',
               scheduler: 'unknown',

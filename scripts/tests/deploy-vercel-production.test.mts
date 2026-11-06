@@ -26,10 +26,12 @@ function response(body: unknown, status = 200) {
   return { ok: status >= 200 && status < 300, status, json: async () => body } as Response;
 }
 
-function harness(pages: unknown[][]) {
+function harness(pages: unknown[][], options: { runtimeNode?: string | null } = {}) {
   let time = 1_000_000;
   let listCalls = 0;
   const verifiedMajor = process.versions.node.split('.')[0];
+  const runtimeNode =
+    options.runtimeNode === undefined ? process.versions.node : options.runtimeNode;
   const requests: Array<{ url: URL | string; init?: RequestInit }> = [];
   return {
     requests,
@@ -39,6 +41,10 @@ function harness(pages: unknown[][]) {
       if (endpoint === hookUrl) return response({ job: { id: 'job-1', createdAt: 1_000_000 } });
       if (endpoint.includes('/v13/deployments/')) {
         return response({ nodeVersion: `${verifiedMajor}.x` });
+      }
+      if (endpoint.includes('/api/v1/health/ready')) {
+        if (runtimeNode === null) return response({}, 404);
+        return response({ success: true, data: { runtime: { node: runtimeNode } } });
       }
       if (endpoint.includes('/cancel')) return response({});
       const deployments = pages[Math.min(listCalls++, pages.length - 1)] ?? [];
@@ -225,4 +231,45 @@ test('fails when the deployment does not report a Node.js version', async () => 
     deployVercelProduction({ hookUrl, token: 'test-token', commitSha, ...setup }),
     /did not report its Node.js version/
   );
+});
+
+test('reports the exact runtime Node.js version with no drift', async () => {
+  const ready = deployment('READY', { aliasAssigned: 1, url: 'dpl-test.vercel.app' });
+  const setup = harness([[ready]], { runtimeNode: process.versions.node });
+  const result = await deployVercelProduction({
+    hookUrl,
+    token: 'test-token',
+    commitSha,
+    ...setup,
+  });
+  assert.equal(result.runtimeNodeVersion, process.versions.node);
+  assert.equal(result.runtimeNodeDrift, false);
+  assert.ok(setup.requests.some((request) => String(request.url).endsWith('/api/v1/health/ready')));
+});
+
+test('marks a minor or patch drift without blocking the release', async () => {
+  const major = process.versions.node.split('.')[0];
+  const ready = deployment('READY', { aliasAssigned: 1, url: 'dpl-test.vercel.app' });
+  const setup = harness([[ready]], { runtimeNode: `${major}.0.1` });
+  const result = await deployVercelProduction({
+    hookUrl,
+    token: 'test-token',
+    commitSha,
+    ...setup,
+  });
+  assert.equal(result.runtimeNodeVersion, `${major}.0.1`);
+  assert.equal(result.runtimeNodeDrift, true);
+});
+
+test('keeps the release when readiness cannot report the runtime version', async () => {
+  const ready = deployment('READY', { aliasAssigned: 1, url: 'dpl-test.vercel.app' });
+  const setup = harness([[ready]], { runtimeNode: null });
+  const result = await deployVercelProduction({
+    hookUrl,
+    token: 'test-token',
+    commitSha,
+    ...setup,
+  });
+  assert.equal(result.runtimeNodeVersion, null);
+  assert.equal(result.runtimeNodeDrift, null);
 });
