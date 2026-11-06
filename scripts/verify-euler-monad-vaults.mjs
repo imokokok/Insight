@@ -50,17 +50,59 @@ const MC3_ABI = [
   },
 ];
 const FACTORY_ABI = [
-  { name: 'isProxy', type: 'function', stateMutability: 'view', inputs: [{ type: 'address' }], outputs: [{ type: 'bool' }] },
+  {
+    name: 'isProxy',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [{ type: 'address' }],
+    outputs: [{ type: 'bool' }],
+  },
 ];
 const VAULT_ABI = [
-  { name: 'EVC', type: 'function', stateMutability: 'view', inputs: [], outputs: [{ type: 'address' }] },
-  { name: 'asset', type: 'function', stateMutability: 'view', inputs: [], outputs: [{ type: 'address' }] },
-  { name: 'name', type: 'function', stateMutability: 'view', inputs: [], outputs: [{ type: 'string' }] },
-  { name: 'totalAssets', type: 'function', stateMutability: 'view', inputs: [], outputs: [{ type: 'uint256' }] },
+  {
+    name: 'EVC',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ type: 'address' }],
+  },
+  {
+    name: 'asset',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ type: 'address' }],
+  },
+  {
+    name: 'name',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ type: 'string' }],
+  },
+  {
+    name: 'totalAssets',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ type: 'uint256' }],
+  },
 ];
 const ERC20_ABI = [
-  { name: 'symbol', type: 'function', stateMutability: 'view', inputs: [], outputs: [{ type: 'string' }] },
-  { name: 'decimals', type: 'function', stateMutability: 'view', inputs: [], outputs: [{ type: 'uint8' }] },
+  {
+    name: 'symbol',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ type: 'string' }],
+  },
+  {
+    name: 'decimals',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ type: 'uint8' }],
+  },
 ];
 
 function call(target, abi, fn, args = []) {
@@ -123,15 +165,32 @@ async function main() {
     let name = '';
     if (r[3].success) {
       try {
-        name = decodeFunctionResult({ abi: VAULT_ABI, functionName: 'name', data: r[3].returnData });
-      } catch { /* ignore */ }
+        name = decodeFunctionResult({
+          abi: VAULT_ABI,
+          functionName: 'name',
+          data: r[3].returnData,
+        });
+      } catch {
+        /* ignore */
+      }
     }
     const ta = r[4].success ? BigInt(r[4].returnData) : 0n;
-    rows.push({ vault: vaults[i], name, asset, totalAssets: ta.toString(), evcOk: !!(evc && evc.toLowerCase() === EVC.toLowerCase()), isProxy });
+    rows.push({
+      vault: vaults[i],
+      name,
+      asset,
+      totalAssets: ta.toString(),
+      evcOk: !!(evc && evc.toLowerCase() === EVC.toLowerCase()),
+      isProxy,
+    });
   }
 
   const assets = [
-    ...new Set(rows.map((r) => r.asset.toLowerCase()).filter((a) => a && a !== '0x0000000000000000000000000000000000000000')),
+    ...new Set(
+      rows
+        .map((r) => r.asset.toLowerCase())
+        .filter((a) => a && a !== '0x0000000000000000000000000000000000000000')
+    ),
   ];
   const meta = {};
   const metaCalls = [];
@@ -146,9 +205,19 @@ async function main() {
     let symbol = '';
     let decimals = 0;
     try {
-      if (sym.success) symbol = decodeFunctionResult({ abi: ERC20_ABI, functionName: 'symbol', data: sym.returnData });
-      if (dec.success) decimals = Number(decodeFunctionResult({ abi: ERC20_ABI, functionName: 'decimals', data: dec.returnData }));
-    } catch { /* ignore */ }
+      if (sym.success)
+        symbol = decodeFunctionResult({
+          abi: ERC20_ABI,
+          functionName: 'symbol',
+          data: sym.returnData,
+        });
+      if (dec.success)
+        decimals = Number(
+          decodeFunctionResult({ abi: ERC20_ABI, functionName: 'decimals', data: dec.returnData })
+        );
+    } catch {
+      /* ignore */
+    }
     meta[a] = { symbol, decimals };
   });
 
@@ -156,7 +225,11 @@ async function main() {
     .map((r) => {
       const m = meta[r.asset.toLowerCase()];
       const dec = m ? m.decimals : 0;
-      return { ...r, symbol: m ? m.symbol : '', tvlHuman: dec ? Number(r.totalAssets) / 10 ** dec : 0 };
+      return {
+        ...r,
+        symbol: m ? m.symbol : '',
+        tvlHuman: dec ? Number(r.totalAssets) / 10 ** dec : 0,
+      };
     })
     .sort((a, b) => b.tvlHuman - a.tvlHuman);
 

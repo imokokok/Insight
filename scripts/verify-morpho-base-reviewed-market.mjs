@@ -25,15 +25,47 @@ const vaultAddress = (process.argv[2] ?? DEFAULT_VAULT).toLowerCase();
 const client = createPublicClient({ transport: http(RPC_URL, { timeout: 30_000 }) });
 
 const ERC4626_ASSET_ABI = [
-  { name: 'asset', type: 'function', stateMutability: 'view', inputs: [], outputs: [{ type: 'address' }] },
+  {
+    name: 'asset',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ type: 'address' }],
+  },
 ];
 const QUEUE_ABI = [
-  { name: 'withdrawQueueLength', type: 'function', stateMutability: 'view', inputs: [], outputs: [{ type: 'uint256' }] },
-  { name: 'withdrawQueue', type: 'function', stateMutability: 'view', inputs: [{ type: 'uint256' }], outputs: [{ type: 'bytes32' }] },
-  { name: 'supplyQueueLength', type: 'function', stateMutability: 'view', inputs: [], outputs: [{ type: 'uint256' }] },
-  { name: 'supplyQueue', type: 'function', stateMutability: 'view', inputs: [{ type: 'uint256' }], outputs: [{ type: 'bytes32' }] },
+  {
+    name: 'withdrawQueueLength',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ type: 'uint256' }],
+  },
+  {
+    name: 'withdrawQueue',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [{ type: 'uint256' }],
+    outputs: [{ type: 'bytes32' }],
+  },
+  {
+    name: 'supplyQueueLength',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ type: 'uint256' }],
+  },
+  {
+    name: 'supplyQueue',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [{ type: 'uint256' }],
+    outputs: [{ type: 'bytes32' }],
+  },
 ];
-const MARKET_PARAMS_ABI = parseAbiParameters('address loanToken, address collateralToken, address oracle, address irm, uint256 lltv');
+const MARKET_PARAMS_ABI = parseAbiParameters(
+  'address loanToken, address collateralToken, address oracle, address irm, uint256 lltv'
+);
 const ID_TO_MARKET_PARAMS_ABI = [
   {
     name: 'idToMarketParams',
@@ -68,7 +100,13 @@ const MARKET_STATE_ABI = [
 
 function keccakOfParams(p) {
   return keccak256(
-    encodeAbiParameters(MARKET_PARAMS_ABI, [p.loanToken, p.collateralToken, p.oracle, p.irm, p.lltv])
+    encodeAbiParameters(MARKET_PARAMS_ABI, [
+      p.loanToken,
+      p.collateralToken,
+      p.oracle,
+      p.irm,
+      p.lltv,
+    ])
   );
 }
 
@@ -76,25 +114,62 @@ async function main() {
   const code = await client.getBytecode({ address: vaultAddress });
   if (!code || code === '0x') throw new Error(`vault ${vaultAddress} has no code`);
 
-  const asset = (await client.readContract({ address: vaultAddress, abi: ERC4626_ASSET_ABI, functionName: 'asset' })).toLowerCase();
+  const asset = (
+    await client.readContract({
+      address: vaultAddress,
+      abi: ERC4626_ASSET_ABI,
+      functionName: 'asset',
+    })
+  ).toLowerCase();
   console.log(`vault            ${vaultAddress}`);
-  console.log(`asset()          ${asset}  ${asset === BASE_USDC ? '== Base USDC OK' : '!= Base USDC MISMATCH'}`);
+  console.log(
+    `asset()          ${asset}  ${asset === BASE_USDC ? '== Base USDC OK' : '!= Base USDC MISMATCH'}`
+  );
 
   const ids = new Set();
-  const wLen = await client.readContract({ address: vaultAddress, abi: QUEUE_ABI, functionName: 'withdrawQueueLength' });
+  const wLen = await client.readContract({
+    address: vaultAddress,
+    abi: QUEUE_ABI,
+    functionName: 'withdrawQueueLength',
+  });
   for (let i = 0n; i < wLen; i++) {
-    ids.add(await client.readContract({ address: vaultAddress, abi: QUEUE_ABI, functionName: 'withdrawQueue', args: [i] }));
+    ids.add(
+      await client.readContract({
+        address: vaultAddress,
+        abi: QUEUE_ABI,
+        functionName: 'withdrawQueue',
+        args: [i],
+      })
+    );
   }
-  const sLen = await client.readContract({ address: vaultAddress, abi: QUEUE_ABI, functionName: 'supplyQueueLength' });
+  const sLen = await client.readContract({
+    address: vaultAddress,
+    abi: QUEUE_ABI,
+    functionName: 'supplyQueueLength',
+  });
   for (let i = 0n; i < sLen; i++) {
-    ids.add(await client.readContract({ address: vaultAddress, abi: QUEUE_ABI, functionName: 'supplyQueue', args: [i] }));
+    ids.add(
+      await client.readContract({
+        address: vaultAddress,
+        abi: QUEUE_ABI,
+        functionName: 'supplyQueue',
+        args: [i],
+      })
+    );
   }
   console.log(`market ids seen  ${ids.size} (withdrawQueue=${wLen}, supplyQueue=${sLen})`);
 
   let verifiedAny = false;
   for (const id of ids) {
-    const p = await client.readContract({ address: MORPHO_BLUE_BASE, abi: ID_TO_MARKET_PARAMS_ABI, functionName: 'idToMarketParams', args: [id] });
-    const params = Array.isArray(p) ? { loanToken: p[0], collateralToken: p[1], oracle: p[2], irm: p[3], lltv: p[4] } : p;
+    const p = await client.readContract({
+      address: MORPHO_BLUE_BASE,
+      abi: ID_TO_MARKET_PARAMS_ABI,
+      functionName: 'idToMarketParams',
+      args: [id],
+    });
+    const params = Array.isArray(p)
+      ? { loanToken: p[0], collateralToken: p[1], oracle: p[2], irm: p[3], lltv: p[4] }
+      : p;
     const recomputed = keccakOfParams({
       loanToken: params.loanToken,
       collateralToken: params.collateralToken,
@@ -103,14 +178,25 @@ async function main() {
       lltv: params.lltv,
     });
     const idMatches = recomputed.toLowerCase() === id.toLowerCase();
-    const stateRaw = await client.readContract({ address: MORPHO_BLUE_BASE, abi: MARKET_STATE_ABI, functionName: 'market', args: [id] });
-    const s = Array.isArray(stateRaw) ? { totalSupplyAssets: stateRaw[0], totalBorrowAssets: stateRaw[2] } : stateRaw;
+    const stateRaw = await client.readContract({
+      address: MORPHO_BLUE_BASE,
+      abi: MARKET_STATE_ABI,
+      functionName: 'market',
+      args: [id],
+    });
+    const s = Array.isArray(stateRaw)
+      ? { totalSupplyAssets: stateRaw[0], totalBorrowAssets: stateRaw[2] }
+      : stateRaw;
     const supply = s.totalSupplyAssets;
     const borrow = s.totalBorrowAssets;
     const loanAssetMatch = params.loanToken.toLowerCase() === BASE_USDC;
     // Non-zero param addresses must carry on-chain code (no fabricated/empty oracle or irm).
     const codeChecks = {};
-    for (const [label, addr] of [['collateralToken', params.collateralToken], ['oracle', params.oracle], ['irm', params.irm]]) {
+    for (const [label, addr] of [
+      ['collateralToken', params.collateralToken],
+      ['oracle', params.oracle],
+      ['irm', params.irm],
+    ]) {
       if (addr && addr !== '0x0000000000000000000000000000000000000000') {
         const bc = await client.getBytecode({ address: addr });
         codeChecks[label] = bc && bc !== '0x' ? 'has-code' : 'NO-CODE';
