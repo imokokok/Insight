@@ -81,6 +81,16 @@ both return `EOTP`; the account's only `bypass_2fa: true` token expired on
 tokens](https://github.blog/changelog/2026-07-31-restricting-npm-bypass-2fa-granular-access-tokens/)
 in January 2027. An agent cannot satisfy a proof-of-presence 2FA challenge.
 
+**Where the 2FA challenge comes from.** npm currently uses WebAuthn security
+keys (Touch ID / Face ID / Windows Hello / passkey / YubiKey), not a code that
+is emailed or texted. A maintainer approves on npmjs.com via **profile avatar →
+Staged Packages → Approve** and confirms with a fingerprint or security key.
+`--otp` on `npm publish` / `npm stage approve` is a legacy TOTP fallback: the
+6-digit value, if this account ever used TOTP, comes from the authenticator app
+bound at 2FA setup (1Password, Google Authenticator, etc.) and rotates every 30
+seconds. npm recovery codes are **not** OTPs — using one to log in triggers a
+72-hour security hold that blocks publishing.
+
 Both `0.1.0` tarballs were submitted with `npx npm@11 stage publish`, which
 needs no 2FA, then approved by the maintainer on npmjs.com (Staged Packages
 tab). Approval was the only step that made

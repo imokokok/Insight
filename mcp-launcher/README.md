@@ -107,12 +107,19 @@ tokens](https://github.blog/changelog/2026-07-31-restricting-npm-bypass-2fa-gran
 in January 2027. Use one of the two supported paths:
 
 ```bash
-# Path A: direct publish with a current authenticator code
-npm publish --access public --otp=<6-digit-code>
+# Path A: direct publish (2FA is confirmed with a WebAuthn security key / Touch ID)
+npm publish --access public
+# Legacy TOTP accounts only: append --otp=<6-digit-code> from the bound authenticator app
 
-# Path B: stage without 2FA, then approve on npmjs.com (Staged Packages tab)
+# Path B: stage without 2FA, then approve on npmjs.com
 npx --yes npm@11 stage publish
 ```
+
+The approval is under the **profile avatar → Staged Packages** menu (below
+`Access Tokens`), not under Account settings. Click **Approve** and confirm with
+the security key. npm does not email or text a code; a 6-digit OTP exists only
+for accounts still on legacy TOTP. Recovery codes are for account login, not
+publishing, and using one triggers a 72-hour security hold.
 
 After the first release, use `.github/workflows/agent-packages-release.yml`: it
 publishes this package and the ElizaOS plugin from GitHub Actions over npm
