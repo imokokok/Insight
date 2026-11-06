@@ -118,8 +118,9 @@ for (let attempt = 0; attempt < 10 && !run; attempt += 1) {
   if (attempt > 0) await new Promise((resolve) => setTimeout(resolve, 2000));
   const runs = JSON.parse(execFileSync('gh', listArgs, { encoding: 'utf8' }));
   run =
-    runs.find((candidate) => candidate.headSha === sha && candidate.event === 'workflow_dispatch') ??
-    null;
+    runs.find(
+      (candidate) => candidate.headSha === sha && candidate.event === 'workflow_dispatch'
+    ) ?? null;
 }
 
 if (!run) {

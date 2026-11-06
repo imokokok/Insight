@@ -428,4 +428,3 @@ These are never acceptable, not even during an incident:
 
 If a prohibited action already happened, open an incident, record the deployment
 id, and let the next normal release supersede it.
-
