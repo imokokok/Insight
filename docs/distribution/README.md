@@ -5,14 +5,55 @@ submission-ready content, not claims of approval. Keep the funnel deliberately
 narrow: **install → free discovery → one decision call → a bounded action
 handoff → evidence review**.
 
-| Surface                        | Package                                            | Status                                                                                                                                                                                                     | Required remaining authority                                  |
-| ------------------------------ | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| Official MCP Registry          | `io.github.imokokok/insight-oracle`                | already published                                                                                                                                                                                          | release only when product changes require it                  |
-| GitHub Agent Skill directories | `insight-pre-trade-safety`                         | [SendAI Skills PR #113](https://github.com/sendaifun/skills/pull/113) open                                                                                                                                 | maintainer review                                             |
-| Solana Agent directories       | same Skill / Oracle category                       | [Awesome Solana AI PR #275](https://github.com/solana-foundation/awesome-solana-ai/pull/275) and [Awesome Solana MCP Servers PR #56](https://github.com/sendaifun/awesome-solana-mcp-servers/pull/56) open | maintainer review                                             |
-| Wallet/Agent runtime           | `insight-lending-guard` + PriorSeal Guarded Action | developer preview prepared                                                                                                                                                                                 | target runtime's integration review and user wallet approval  |
-| x402 discovery surfaces        | public manifest/OpenAPI                            | technically discoverable                                                                                                                                                                                   | account/SIWX or facilitator-specific submission when required |
+Status verified 2026-11-06 against the public PR pages. A directory listing,
+marketplace acceptance, payment configuration, or a wallet integration is not
+"live" until its own verification and required user or partner approval are
+complete.
 
-Do not call a directory listing, marketplace acceptance, payment configuration,
-or a wallet integration “live” until its own verification and required user or
-partner approval are complete.
+| Surface                        | Package                                                     | Status (2026-11-06)                                                                                                                                                                                                                                              | Required remaining authority                                   |
+| ------------------------------ | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| Official MCP Registry          | `io.github.imokokok/insight-oracle`                         | already published (`server.json`); no release needed for these changes                                                                                                                                                                                           | release only when product changes require it                   |
+| GitHub Agent Skill directories | `insight-pre-trade-safety`                                  | [SendAI Skills PR #113](https://github.com/sendaifun/skills/pull/113) **open**, opened 2026-10-30, no maintainer response yet                                                                                                                                    | maintainer review                                              |
+| Solana Agent directories       | same Skill / Oracle category                                | [Awesome Solana AI PR #275](https://github.com/solana-foundation/awesome-solana-ai/pull/275) **open**, Greptile 5/5 low-impact review, not merged; [Awesome Solana MCP Servers PR #56](https://github.com/sendaifun/awesome-solana-mcp-servers/pull/56) **open** | maintainer review (both)                                       |
+| npm MCP launcher               | `@oracleinsight/mcp` (`mcp-launcher/`)                      | source, tests and pack contents verified locally; **not published**                                                                                                                                                                                              | maintainer npm account: `npm publish --access public`          |
+| npm ElizaOS plugin             | `elizaos-plugin-oracle-insight` (`integrations/`)           | build + pack contents verified locally; **not published** (npm 404)                                                                                                                                                                                              | maintainer npm account: `npm publish`                          |
+| Wallet/Agent runtime           | `insight-lending-guard` + PriorSeal Guarded Action          | developer preview prepared                                                                                                                                                                                                                                       | target runtime's integration review and user wallet approval   |
+| Form / account directories     | Smithery, Glama, mcp.so, mcpservers.org, PulseMCP, x402scan | unsubmitted; see [runbook](directory-submission-runbook.md)                                                                                                                                                                                                      | account holder: browser login, terms, token, or SIWX signature |
+| x402 discovery surfaces        | public manifest/OpenAPI                                     | technically discoverable; `.well-known/x402` exposes 18 paid resources                                                                                                                                                                                           | account/SIWX or facilitator-specific submission when required  |
+
+## Current blockers, in ROI order
+
+1. **Three open directory PRs.** All three are maintainer-gated and need no
+   code change. Respond to review comments if any arrive; do not open duplicate
+   PRs while these are open. PR #275 already has a clean automated review.
+2. **Two npm packages are built but unpublished.** Publishing is the only step
+   that makes `npx -y @oracleinsight/mcp` and
+   `npm install elizaos-plugin-oracle-insight` work. Until then, the generated
+   MCP configs in `McpConfigGenerator.tsx` deliberately use the already
+   published `mcp-remote` bridge so no user config points at a missing package.
+3. **Account-gated directory forms.** The runbook lists each form and the
+   exact material to paste. An agent must not accept terms, create tokens, or
+   sign a wallet message on the account holder's behalf.
+4. **Attribution was blind.** `supabase/migrations/0122` widens the database
+   CHECK to the full ten-label vocabulary, the Skill/quickstart/MCP configs now
+   send `x-insight-entry-source`, and the 402 response carries onboarding
+   hints. Without these, no distribution channel can be evaluated.
+
+## Verification
+
+After each distribution action, measure rather than assume:
+
+```bash
+npm run audit:x402 -- --days=7          # byAcquisitionSource breakdown
+npm run audit:x402 -- --days=30 --json  # machine-readable baseline
+```
+
+Watch for non-`unknown` labels (`skill`, `mcp`, `sendaifun`,
+`solana_directory`, `wallet_mcp`) and for a rise in signed retries after the 402. If four weeks after the PRs and npm releases every source is still
+`unknown` and the 402-to-signed-retry rate stays below 1%, the agent-native
+channel is not opening; stop adding surfaces and revisit the channel rather
+than adding capability.
+
+Do not call a directory listing, marketplace acceptance, payment
+configuration, or a wallet integration "live" until its own verification and
+required user or partner approval are complete.
