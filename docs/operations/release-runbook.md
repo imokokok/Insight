@@ -363,3 +363,69 @@ Follow-ups from the drill:
 - Hobby permits rollback only to the immediately previous deployment. The
   `--method promote` path is the tested restore route; re-run this drill after
   any Vercel plan or API change.
+
+## 9. Emergency release（紧急发布）
+
+Use this only when a change must reach production and the normal path cannot
+deliver it: the deploy hook or `deploy-production.yml` itself is failing, while
+`main` already contains the reviewed fix. Every other case goes through a
+normal merge.
+
+The only legal emergency channel is `workflow_dispatch` of
+`deploy-production.yml` through the wrapper:
+
+```bash
+npm run release:emergency -- --reason "deploy hook returned HTTP 503 for 20 minutes"
+# validates, prints the record, dispatches with expected_sha, then prints the run URL
+```
+
+The wrapper refuses to continue unless all of these hold:
+
+- The worktree is clean (`git status --porcelain` is empty).
+- The SHA is exactly `origin/main` after a fresh fetch. Feature branches,
+  unmerged commits, and a dirty tree are rejected.
+- `--reason` is present and at least 10 characters.
+- `gh` is authenticated.
+
+Record the printed JSON in the incident issue before the run finishes. The
+dispatched run goes through the same PR-check verification, the same deploy hook,
+and the same Node assertion (`node=22.x`) as a normal release. After it
+completes:
+
+1. Check the run conclusion and the deploy log line (`node=22.x`).
+2. Run `node scripts/smoke-live-payment-rails.mjs`.
+3. Confirm that the next normal release from `main` supersedes this deployment;
+   do not leave production on an emergency release indefinitely.
+
+Any production deployment that did not come from that workflow is flagged by
+`production-provenance-audit.yml` within 10 minutes: one issue per deployment id,
+labelled `deploy-provenance`. The audit is the enforcement layer, not a
+suggestion. Vercel Hobby has no "hook-only" switch, so a bypass cannot be hidden
+forever — only performed without a record.
+
+## 10. Prohibited operations（禁止事项）
+
+These are never acceptable, not even during an incident:
+
+- `vercel deploy --prod` (or any Vercel CLI/API production deployment) from a
+  laptop, a dirty checkout, a feature branch, or an ad-hoc CI job. This is the
+  exact class of deployment the provenance audit files issues for.
+- Releasing an unpushed commit or a worktree with uncommitted changes. Neither
+  the commit metadata nor the build output can prove what actually ran.
+- Bypassing branch protection or the quality gate: admin merge, `--no-verify`,
+  disabling required checks, or editing workflows to skip `smoke` or
+  `verify-merged-pr-checks`.
+- Force-pushing `main` or rewriting history to hide a release. Vercel keeps its
+  own deployment record; history edits do not remove it.
+- Changing the Vercel project Node.js version away from `22.x`, or loosening
+  `engines.node` to an open range, to make a build pass. Fix the build instead.
+- Deleting, relabelling, or silently closing provenance-audit issues without a
+  recorded reason and verification.
+- Printing, committing, or exporting `VERCEL_TOKEN`, or using it in a workflow
+  other than the deploy and provenance-audit workflows.
+- Promoting a deployment from another project, or a non-READY deployment, by
+  hand. The rollback controller refuses these; doing it manually is worse.
+
+If a prohibited action already happened, open an incident, record the deployment
+id, and let the next normal release supersede it.
+
