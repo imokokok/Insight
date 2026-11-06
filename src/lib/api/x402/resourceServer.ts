@@ -920,7 +920,7 @@ export async function buildX402HttpServer(
     ),
     [X402_SETTLEMENT_EVIDENCE_GRADE_ROUTE]: routeConfigWithoutDiscovery(
       cfg,
-      'Settlement Evidence Grade: an on-demand, idempotent grade of one settled Polymarket price contract against Insight’s independent sources (Kraken settlement-window candles plus the platform’s own oracle-consensus snapshots). POST takes a market slug only; the declared outcome is always read from Insight’s own watch list, never from the caller. Returns a signed EIP-712 evidence pack carrying derived analytics only — verdict, bps deltas, and coverage statistics — that a third party can independently recompute and verify against Insight’s published attester. Existing packs are returned cached and are never downgraded.'
+      'Settlement Evidence Grade (legacy): an on-demand, idempotent historical record of one settled Polymarket price contract. POST takes a market slug only; the declared outcome is always read from the Insight watch list, never from the caller. Returns a signed EIP-712 evidence pack carrying derived analytics: declared versus independently observed outcome, bps deltas, and coverage statistics. The grade describes a market that has already resolved. It is NOT a safety assessment, NOT a recommendation, and NOT a verdict about any live configuration. Retained for existing integrations. For a signed, advisory, independently recomputable record of an oracle configuration and its source state, use POST /api/v1/oracle-config/snapshot instead. Existing packs are returned cached and are never downgraded.'
     ),
     [X402_ORACLE_CONFIG_SNAPSHOT_ROUTE]: routeConfigWithoutDiscovery(
       cfg,

@@ -1758,17 +1758,20 @@ paths:
     post:
       operationId: gradeSettlementEvidence
       tags: [Execution Evidence]
-      summary: On-demand signed settlement-evidence grade 🔒
+      summary: On-demand signed settlement-evidence record (legacy) 🔒
       description: >-
-        Paid, idempotent, on-demand grade of one settled prediction-market price
-        contract against Insight's independent sources (settlement-window
-        derived analytics plus Insight's own oracle-consensus snapshots).
-        The request carries a market slug ONLY — the declared outcome is always
-        read from Insight's own watch list, never from the caller. Returns a
-        signed EIP-712 evidence pack carrying derived analytics only
-        (settlement-window venue data is vendor-licensed
-        derived-analytics-only and never redistributed). An existing persisted
-        pack is returned cached and is never downgraded.
+        Legacy, idempotent historical record of one settled prediction-market
+        price contract. The request carries a market slug ONLY; the declared
+        outcome is always read from the Insight watch list, never from the
+        caller. Returns a signed EIP-712 evidence pack carrying derived
+        analytics: declared versus independently observed outcome, bps
+        deltas, and coverage statistics. The grade describes a market that
+        has already resolved. It is NOT a safety assessment, NOT a
+        recommendation, and NOT a verdict about any live configuration.
+        Retained for existing integrations. For a signed, advisory,
+        independently recomputable record of an oracle configuration and its
+        source state, use POST /api/v1/oracle-config/snapshot instead.
+        An existing persisted pack is returned cached and is never downgraded.
 
         **x402-metered** (merchant-configured payment rail) or API key.
       security:

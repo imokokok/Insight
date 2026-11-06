@@ -5,20 +5,24 @@ import { SettlementEvidenceInputSchema } from './schemas';
 import type { McpToolDefinition } from './types';
 
 /**
- * `get_settlement_evidence` — signed prediction-market settlement evidence.
+ * `get_settlement_evidence` is a legacy, read-only historical record of a
+ * resolved prediction-market price contract. It is NOT a safety assessment
+ * and NOT advice about any live configuration. The recommended advisory
+ * record for an oracle configuration is POST /api/v1/oracle-config/snapshot,
+ * which returns a byte-exact payload that a third party can recompute offline.
  *
- * Chain-neutral derived analytics (the Kraken candles behind each verdict are
- * vendor-licensed internal collection artifacts and are never exposed; only
- * the graded comparison leaves the system). Registered in the x402
- * chain-neutral payment-scope registry like the other read-only tools.
+ * Chain-neutral derived analytics (the vendor-licensed settlement-window
+ * candles behind each comparison are never exposed; only the derived
+ * comparison leaves the system).
  */
 export const getSettlementEvidenceTool: McpToolDefinition<typeof SettlementEvidenceInputSchema> = {
   name: 'get_settlement_evidence',
   description:
-    'Get Insight-signed settlement evidence for prediction-market crypto price contracts: ' +
-    'the declared outcome vs Insight’s independent verdict, price change and oracle deviation ' +
-    'in basis points, candle coverage, and a consistency grade (consistent / inconsistent / ' +
-    'insufficient_data). Pass slug for one market, or omit it to list recent packs. ' +
+    'Get a legacy Insight-signed settlement evidence record for a resolved prediction-market price contract: ' +
+    'stated outcome versus the independently observed outcome, bps deltas, coverage and a descriptive consistency grade. ' +
+    'This describes a market that has already settled. It is NOT a safety assessment and NOT advice about any live configuration. ' +
+    'For a signed, advisory, independently recomputable oracle configuration record, use POST /api/v1/oracle-config/snapshot. ' +
+    'Pass slug for one market, or omit it to list recent packs. ' +
     'Derived analytics only; raw venue candles are not distributed.',
   parameters: SettlementEvidenceInputSchema,
   handler: async (args) => {

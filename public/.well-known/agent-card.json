@@ -1,20 +1,20 @@
 {
   "protocolVersion": "0.2.9",
   "name": "Insight",
-  "description": "Decision-input integrity for onchain AI agents: is the price or action trustworthy before it is signed? Oracle-manipulation-aware PASS/WARN/BLOCK verdicts, pre-signing guard families (lending, swaps, perps, prediction) across Base, BNB Chain, Monad, multichain EVM, Solana, and Hyperliquid, 24h Oracle Watch windows and Position Lifecycle bundles, with verifiable EIP-712 attestations. Every guard verdict is enforced against a reviewed-profile registry with evidence-graded fail-closed semantics: a venue whose activity premise fails first-hand on-chain verification (for example a frozen AMM) is marked STALE and hard-BLOCKs by default. Pay-per-call: $0.02 per C3 decision USDC via x402 v2 on Base, Polygon PoS, Arbitrum One, Monad, HyperEVM, BNB Chain, or Solana mainnet, or via MPP; settlement happens only after the check succeeds. Endpoint is MCP over Streamable HTTP.",
+  "description": "Decision-input integrity for onchain AI agents: is the price or action trustworthy before it is signed? Oracle-manipulation-aware PASS/WARN/BLOCK verdicts, pre-signing guard families (lending, swaps, perps, prediction) across Base, BNB Chain, Monad, multichain EVM, Solana, and Hyperliquid, 24h Oracle Watch windows and Position Lifecycle bundles, with verifiable EIP-712 attestations. Every guard verdict is enforced against a reviewed-profile registry with evidence-graded fail-closed semantics: a venue whose activity premise fails first-hand on-chain verification (for example a frozen AMM) is marked STALE and hard-BLOCKs by default. Pay-per-call: $0.02 per C3 decision USDC via x402 v2 or MPP; enabled networks are deployment-specific and advertised in the live 402 challenge; settlement happens only after the check succeeds. Endpoint is MCP over Streamable HTTP.",
   "url": "https://www.oracleinsight.xyz/api/mcp",
   "provider": {
     "organization": "Insight",
     "url": "https://www.oracleinsight.xyz"
   },
-  "version": "1.3.0",
+  "version": "1.4.0",
   "capabilities": {
     "streaming": false,
     "pushNotifications": false,
     "extensions": [
       {
         "uri": "https://github.com/google-agentic-commerce/a2a-x402/blob/main/spec/v0.2",
-        "description": "Supports payments using the x402 protocol for on-chain settlement. Every paid call returns an HTTP 402 challenge advertising USDC acceptance on eip155:8453 (Base), eip155:137 (Polygon), eip155:42161 (Arbitrum One), eip155:143 (Monad), eip155:999 (HyperEVM), eip155:56 (BNB Chain via AEON) and solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp (Solana mainnet).",
+        "description": "Supports payments using the x402 protocol for on-chain settlement. Every paid call returns an HTTP 402 challenge whose accepts[] array is the binding payment contract. Enabled rails are deployment-specific and may include EVM networks, Solana mainnet, and per-request HyperCore quotes. Read the live 402 response or /.well-known/x402 rather than assuming a fixed chain list.",
         "required": true
       }
     ]
@@ -142,6 +142,16 @@
       "examples": [
         "Cover my new BTC perp position for 24 hours: monitoring, four guard checks, and a signed execution receipt",
         "Buy one lifecycle bundle instead of paying per call while my agent manages this position"
+      ]
+    },
+    {
+      "id": "oracle_config_snapshot",
+      "name": "Oracle Config Snapshot (advisory record)",
+      "description": "A signed, idempotent, $0.50 record of one oracle configuration and its independent-source state at a point in time. The request names chainId, protocolId and assetSymbol only; all observable state is read server-side. Returns D1 to D6 advisory checks, configHash, checksHash, registryPin, payloadHash and an EIP-712 attestation with no expiry that a third party can recompute offline. This is NOT a safety assessment and makes no safe or unsafe claim. Assessment and evidence only, no custody, no execution authority.",
+      "tags": ["oracle", "config", "evidence", "attestation", "advisory"],
+      "examples": [
+        "Record the oracle configuration I relied on for this lending position",
+        "Give me a signed, independently recomputable snapshot of this market oracle setup"
       ]
     }
   ]
