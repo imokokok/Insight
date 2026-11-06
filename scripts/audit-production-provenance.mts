@@ -229,7 +229,9 @@ for (const violation of violations) {
   } else {
     const created = await fileIssue(violation);
     filed += created ? 1 : 0;
-    console.log(`${created ? 'filed' : 'already filed'} ${violation.id} (${violation.reasons.join('; ')})`);
+    console.log(
+      `${created ? 'filed' : 'already filed'} ${violation.id} (${violation.reasons.join('; ')})`
+    );
   }
 }
 
