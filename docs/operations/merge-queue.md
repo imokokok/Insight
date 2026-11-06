@@ -66,3 +66,12 @@ merge.
    `min_entries_to_merge: 1`, `min_entries_to_merge_wait_minutes: 0`).
 3. Delete `.github/workflows/merge-train.yml`; the `merge_group` triggers in
    `ci.yml` and `codeql.yml` become active automatically.
+
+## Drill record
+
+On 2026-11-06 the first stale auto-merge pull request was updated by the train
+21 seconds after auto-merge was enabled. The new head took about 2m30s of
+required checks. The drill exposed the `action_required` approval gap described
+above; the follow-up change now approves those runs automatically. Steady-state
+overhead for a stale pull request is therefore one full PR check run (~3
+minutes) instead of an untested merge.
