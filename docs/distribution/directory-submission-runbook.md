@@ -91,20 +91,32 @@ bound at 2FA setup (1Password, Google Authenticator, etc.) and rotates every 30
 seconds. npm recovery codes are **not** OTPs — using one to log in triggers a
 72-hour security hold that blocks publishing.
 
-Both `0.1.0` tarballs were submitted with `npx npm@11 stage publish`, which
-needs no 2FA, then approved by the maintainer on npmjs.com (Staged Packages
-tab). Approval was the only step that made
-`npx -y --package=oracle-insight-mcp insight-mcp` and
+Both first-release tarballs were submitted with `npx npm@11 stage publish`,
+which needs no 2FA, then approved by the maintainer on npmjs.com (Staged
+Packages tab). Approval was the only step that made
 `npm install elizaos-plugin-oracle-insight` work: before it, npm served only the
 public `0.0.0-stage` placeholder, which has no usable binary.
 
-The switch to the branded launcher was gated on both of these succeeding before
-merge. Re-run them after any registry incident:
+`oracle-insight-mcp@0.1.0` was published but is **not usable**: its bin checked
+`process.argv[1] === import.meta.url`, which is false under npm's `.bin`
+symlink, so the command exited `0` in silence. `0.1.1` fixes it by splitting
+the CLI entry from the importable module and adds a regression test that runs
+the real bin through a symlink. Do not pin `0.1.0` anywhere; deprecate it once
+`0.1.1` is live.
+
+The switch to the branded launcher was gated on a **working** release. Re-run
+these after any registry incident:
 
 ```bash
-npm view oracle-insight-mcp@0.1.0 version
+npm view oracle-insight-mcp@0.1.1 version
+npm view oracle-insight-mcp dist-tags.latest
 npm view elizaos-plugin-oracle-insight@0.1.0 version
 ```
+
+The CLI behaviour itself is covered offline by
+`mcp-launcher/test/binSymlink.test.mjs`, which stubs `mcp-remote` and asserts
+the real bin spawns it through both a `node_modules/.bin` symlink and its
+shebang.
 
 A staged version occupies the same semver index as a published one, so never
 attempt a separate `npm publish` of a staged version. For a manual release the
@@ -112,7 +124,7 @@ alternatives are `npm publish --access public --otp=<6-digit-code>` or
 `npx --yes npm@11 stage approve <stage-id> --otp=<6-digit-code>`; an agent
 cannot satisfy that proof-of-presence challenge on its own.
 
-### Tokenless releases after 0.1.0
+### Tokenless releases after 0.1.1
 
 `.github/workflows/agent-packages-release.yml` publishes both packages from
 GitHub Actions over npm Trusted Publishing (OIDC) with provenance, mirroring
@@ -150,7 +162,7 @@ test lock both sides in.
      {
        "registryType": "npm",
        "identifier": "oracle-insight-mcp",
-       "version": "0.1.0",
+       "version": "0.1.1",
        "transport": { "type": "stdio" },
        "runtimeHint": "npx"
      }
