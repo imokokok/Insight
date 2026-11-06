@@ -7,11 +7,22 @@
  * evidence: it proves that the exact commit being released is the merge commit of
  * a pull request whose required checks are all green.
  *
+ * A check run only counts as evidence when it is attached to the pull request's
+ * head commit AND was produced by this repository's own workflow file. An app id
+ * and a check name are not unique enough: any workflow in this repository can
+ * publish a check run with the same name, so the workflow run's path, event,
+ * repository and head SHA are verified as well. The newest run wins, so a failed
+ * re-run cannot be hidden behind an earlier success.
+ *
  * There is no "continue anyway" branch. Missing evidence, a mismatched SHA, or a
  * non-successful required check aborts the deploy before the Vercel hook fires.
  */
 
-const REQUIRED_CHECKS = ['validate', 'smoke', 'analyze'] as const;
+const REQUIRED_CHECKS = [
+  { name: 'validate', workflowPath: '.github/workflows/ci.yml' },
+  { name: 'smoke', workflowPath: '.github/workflows/ci.yml' },
+  { name: 'analyze', workflowPath: '.github/workflows/codeql.yml' },
+] as const;
 const REQUIRED_APP_ID = 15368; // GitHub Actions
 
 const apiBase = process.env.GITHUB_API_URL ?? 'https://api.github.com';
@@ -43,6 +54,31 @@ async function api(path: string): Promise<any> {
   return response.json();
 }
 
+/** Resolve the Actions run behind a check run without trusting any other field. */
+function actionsRunId(detailsUrl: unknown): string | null {
+  if (typeof detailsUrl !== 'string') return null;
+  try {
+    const match = new URL(detailsUrl).pathname.match(/\/actions\/runs\/(\d+)(?:\/|$)/);
+    return match?.[1] ?? null;
+  } catch {
+    return null;
+  }
+}
+
+const workflowRunCache = new Map<string, any>();
+async function workflowRun(runId: string): Promise<any> {
+  const cached = workflowRunCache.get(runId);
+  if (cached) return cached;
+  const run = await api(`/repos/${repository}/actions/runs/${runId}`);
+  workflowRunCache.set(runId, run);
+  return run;
+}
+
+function startedAt(run: any): number {
+  const value = Date.parse(run.started_at ?? run.created_at ?? '');
+  return Number.isFinite(value) ? value : 0;
+}
+
 const pulls: any[] = await api(`/repos/${repository}/commits/${deployedSha}/pulls?per_page=100`);
 const candidates = pulls.filter(
   (pull) =>
@@ -61,24 +97,73 @@ if (candidates.length !== 1) {
 
 const pull = candidates[0];
 const headSha: string = pull.head?.sha;
-if (!headSha) {
-  fail(`Pull request #${pull.number} has no head SHA; cannot resolve its required checks`);
+if (typeof headSha !== 'string' || !/^[0-9a-f]{40}$/.test(headSha)) {
+  fail(
+    `Pull request #${pull.number} has no resolvable head SHA; cannot resolve its required checks`
+  );
 }
 
 const failures: string[] = [];
-for (const name of REQUIRED_CHECKS) {
+for (const check of REQUIRED_CHECKS) {
   const body = await api(
-    `/repos/${repository}/commits/${headSha}/check-runs?check_name=${encodeURIComponent(name)}&filter=latest&per_page=10`
+    `/repos/${repository}/commits/${headSha}/check-runs` +
+      `?check_name=${encodeURIComponent(check.name)}&filter=all&per_page=100`
   );
-  const runs: any[] = body.check_runs ?? [];
-  const successful = runs.some(
-    (run) => run.app?.id === REQUIRED_APP_ID && run.conclusion === 'success'
-  );
-  if (!successful) {
-    const observed = runs.map(
-      (run) => `${run.app?.slug ?? 'unknown'}:${run.conclusion ?? run.status}`
+  // GitHub keeps every run for a SHA, including re-runs. Ordering by start time
+  // makes the newest attempt authoritative: a failure that came after a success
+  // must still block the deploy.
+  const runs: any[] = (body.check_runs ?? [])
+    .filter((run: any) => run.app?.id === REQUIRED_APP_ID)
+    .sort(
+      (left: any, right: any) =>
+        startedAt(right) - startedAt(left) || (right.id ?? 0) - (left.id ?? 0)
     );
-    failures.push(`${name} (observed: ${observed.length > 0 ? observed.join(', ') : 'none'})`);
+
+  const observed: string[] = [];
+  let latestExpected: any = null;
+  for (const run of runs) {
+    const runId = actionsRunId(run.details_url);
+    if (!runId) {
+      observed.push(`${check.name}: check run ${run.id ?? 'unknown'} has no Actions run URL`);
+      continue;
+    }
+    const workflow = await workflowRun(runId);
+    const source = `${workflow.path ?? 'unknown-workflow'}@${runId}`;
+    observed.push(`${source}:${run.status ?? 'unknown'}/${run.conclusion ?? 'none'}`);
+    const sameRepository =
+      typeof workflow.repository?.full_name === 'string' &&
+      workflow.repository.full_name.toLowerCase() === repository.toLowerCase();
+    if (
+      workflow.path === check.workflowPath &&
+      workflow.event === 'pull_request' &&
+      workflow.head_sha === headSha &&
+      sameRepository
+    ) {
+      latestExpected = { run, workflow, source };
+      break;
+    }
+  }
+
+  if (!latestExpected) {
+    failures.push(
+      `${check.name}: no check run from ${check.workflowPath} on ${headSha}` +
+        ` (observed: ${observed.length > 0 ? observed.join(', ') : 'none'})`
+    );
+    continue;
+  }
+
+  const { run, workflow, source } = latestExpected;
+  if (run.status !== 'completed' || run.conclusion !== 'success') {
+    failures.push(
+      `${check.name}: newest run from ${source} is ${run.status ?? 'unknown'}/${run.conclusion ?? 'none'}` +
+        ` instead of completed/success`
+    );
+    continue;
+  }
+  if (workflow.status !== 'completed' || workflow.conclusion !== 'success') {
+    failures.push(
+      `${check.name}: workflow run ${workflow.id} is ${workflow.status ?? 'unknown'}/${workflow.conclusion ?? 'none'}`
+    );
   }
 }
 
@@ -91,5 +176,6 @@ if (failures.length > 0) {
 
 console.log(
   `Deploy gate OK: ${deployedSha} is the squash merge of PR #${pull.number}, ` +
-    `whose head ${headSha} passed ${REQUIRED_CHECKS.join(', ')}.`
+    `whose head ${headSha} passed ${REQUIRED_CHECKS.map((check) => check.name).join(', ')} ` +
+    `from ${REQUIRED_CHECKS.map((check) => check.workflowPath).join(', ')}.`
 );
