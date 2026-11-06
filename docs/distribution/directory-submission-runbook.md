@@ -150,12 +150,12 @@ The user-facing switch is done: `McpConfigGenerator.tsx` generates the branded
 prepared directory material use the same command. A component test and a guard
 test lock both sides in.
 
-1. **Official MCP Registry `packages[]` (account-gated).** `server.json` still
-   advertises only the remote URL. When an npm maintainer can use the
-   registry's authenticated publish flow, bump `server.json`'s top-level
-   `version` and add the following validated entry (schema `2025-12-11` requires
-   `registryType`, `identifier` and `transport`; `version` must be exact, never
-   a range). Keep the existing `remotes` block.
+1. **Official MCP Registry `packages[]` (repo-side done, publish account-gated).**
+   `server.json` is now top-level `version: 0.3.1` and includes the following
+   schema-validated entry alongside the existing `remotes` block (schema
+   `2025-12-11` requires `registryType`, `identifier` and `transport`;
+   `transport` is an object with `type`, and `version` must be exact, never a
+   range or `latest`):
 
    ```json
    "packages": [
@@ -169,8 +169,12 @@ test lock both sides in.
    ]
    ```
 
-   Editing the file alone does not update the registry; it must be republished
-   through that flow, then verified on the public registry page.
+   Editing the file alone does not update the registry. The public entry is
+   still v0.3.0 with only the remote URL; the account holder must run the
+   registry's authenticated publish flow (`mcp-publisher login github` then
+   `mcp-publisher publish`, GitHub OIDC) so v0.3.1 ships the npm package, then
+   verify it on the public registry page. Do not bump `server.json` again until
+   v0.3.1 has actually been published.
 
 2. **Three open directory PRs.** Update the prepared entries with the shorter
    install command only if a maintainer asks for a change. Do not open duplicate
@@ -188,9 +192,18 @@ npm run audit:x402 -- --days=7
 curl -sS -D- -o /dev/null \
   'https://www.oracleinsight.xyz/api/v1/safety/pre-trade?asset=ETH&chainId=1&action=swap&tradeAmountUsd=1000' \
   | grep -i 'x-insight-'
+curl -sS -D- -o /dev/null 'https://www.oracleinsight.xyz/api/mcp' \
+  | grep -iE 'x-insight-|access-control-expose-headers'
 ```
 
-The curl check must show `x-insight-quickstart`, `x-insight-mcp-install`, and
+Both 402 paths now emit the same advisory hints. The REST guard and the MCP
+bridge (`handleMcpIndexerQuote` for GET probes, `handleMcpPaidToolCall` for
+unsigned POST `tools/call` quotes) share `x402OnboardingHeaders()`; signed but
+rejected requests deliberately keep the bare x402 lifecycle shape. The MCP GET
+probe also gets CORS headers, and both expose lists include the four
+`x-insight-*` names so browser-based clients can read them.
+
+The curl checks must show `x-insight-quickstart`, `x-insight-mcp-install`, and
 `x-insight-entry-source-hint`. The audit must start showing non-`unknown`
 labels once a Skill, MCP config, or directory link is actually used. If neither
 moves after four weeks, stop adding surfaces.

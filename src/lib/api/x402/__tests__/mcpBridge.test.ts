@@ -1,6 +1,11 @@
 import { type X402Config } from '../config';
 import { recordX402Settlement } from '../guard';
-import { handleMcpPaidToolCall, toResponse, type McpPaidCallInput } from '../mcpBridge';
+import {
+  handleMcpIndexerQuote,
+  handleMcpPaidToolCall,
+  toResponse,
+  type McpPaidCallInput,
+} from '../mcpBridge';
 import { getMcpX402HttpServer } from '../resourceServer';
 
 // Jest's Response polyfill lacks clone() (real Node/undici has it). The bridge
@@ -409,5 +414,61 @@ describe('toResponse 402 body compat', () => {
     const res = toResponse({ status: 200, headers: {}, body: { ok: true } });
     expect(res.status).toBe(200);
     await expect(res.json()).resolves.toEqual({ ok: true });
+  });
+});
+
+describe('unsigned MCP 402 onboarding hints', () => {
+  const INSTALL = 'npx -y --package=oracle-insight-mcp insight-mcp';
+
+  beforeEach(() => {
+    mockedServerFactory
+      .mockReset()
+      .mockResolvedValue(fakeServer as unknown as Awaited<ReturnType<typeof getMcpX402HttpServer>>);
+    mockedRecord.mockReset();
+    fakeServer.processHTTPRequest.mockReset().mockResolvedValue({
+      type: 'payment-error',
+      response: {
+        status: 402,
+        headers: { 'PAYMENT-REQUIRED': 'cXVvdGU=' },
+        body: { x402Version: 2, error: 'Payment required' },
+      },
+    });
+    fakeServer.processSettlement.mockReset();
+  });
+
+  it('advertises the launcher and the wallet-free path on a GET indexer quote', async () => {
+    const res = await handleMcpIndexerQuote(new Request('http://x/api/mcp'), cfg);
+
+    expect(res.status).toBe(402);
+    expect(res.headers.get('PAYMENT-REQUIRED')).toBe('cXVvdGU=');
+    expect(res.headers.get('x-insight-mcp-install')).toBe(INSTALL);
+    expect(res.headers.get('x-insight-no-wallet')).toContain('X-API-Key');
+    expect(res.headers.get('x-insight-quickstart')).toBe('https://www.oracleinsight.xyz/docs/x402');
+    expect(res.headers.get('x-insight-entry-source-hint')).toContain('x-insight-entry-source');
+    expect(res.headers.get('X-Request-Id')).toMatch(/^req_/);
+  });
+
+  it('advertises the launcher on an unsigned POST tools/call quote', async () => {
+    const res = await handleMcpPaidToolCall(
+      input(async () => jsonRpcResult({ content: [] }), { 'content-type': 'application/json' })
+    );
+
+    expect(res.status).toBe(402);
+    expect(res.headers.get('x-insight-mcp-install')).toBe(INSTALL);
+  });
+
+  it('keeps a signed-but-rejected 402 free of onboarding hints', async () => {
+    const res = await handleMcpPaidToolCall(
+      input(async () => jsonRpcResult({ content: [] }), {
+        'content-type': 'application/json',
+        'payment-signature': 'signed',
+      })
+    );
+
+    expect(res.status).toBe(402);
+    expect(res.headers.has('x-insight-mcp-install')).toBe(false);
+    expect(mockedRecord).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'payment_rejected' })
+    );
   });
 });
