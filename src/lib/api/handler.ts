@@ -2,6 +2,7 @@ import { after, type NextRequest, NextResponse } from 'next/server';
 
 import { type ZodSchema } from 'zod';
 
+import { corsExposeHeaders } from '@/lib/api/x402/corsExposeHeaders';
 import { consumeCredits } from '@/lib/billing/creditWallet';
 import { CREDIT_EXHAUSTED_RETRY_AFTER_SECONDS } from '@/lib/billing/metering';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
@@ -28,7 +29,7 @@ import { extractClientIp, rateLimitKeyGenerator } from './middleware/rateLimitMi
 import { rejectOversizedRequest } from './requestLimits';
 import { ApiResponseBuilder } from './response';
 
-import type { ApiResponse, ApiSuccessResponse } from './response/ApiResponse';
+import type { ApiSuccessResponse } from './response/ApiResponse';
 
 const logger = createLogger('api-handler');
 
@@ -110,6 +111,22 @@ export interface ApiHandlerContext<
   };
 }
 
+/**
+ * What a route handler may return from `createApiHandler`:
+ *   - a ready-made `NextResponse` / `Response` (passed through untouched —
+ *     required when the route needs custom status, headers or caching);
+ *   - a pre-built success envelope (`ApiSuccessResponse`, e.g. via `ok()`);
+ *   - raw payload data (object, array or primitive), which is wrapped in the
+ *     standard success envelope automatically.
+ *
+ * Raw-payload return is the low-boilerplate path for new routes: return the
+ * data, the handler supplies `success`/`meta`/`timestamp`. Payloads must not
+ * carry a top-level `success` boolean — that shape is reserved for the
+ * envelope (asserted nowhere at runtime on raw payloads, but enforced by the
+ * TS types for envelope returns).
+ */
+type ApiHandlerResult<T = unknown> = Response | ApiSuccessResponse<T> | T;
+
 type ApiHandler<
   T = unknown,
   TBody = Record<string, unknown>,
@@ -118,7 +135,7 @@ type ApiHandler<
 > = (
   request: NextRequest,
   context: ApiHandlerContext<TBody, TQuery, TParams>
-) => Promise<NextResponse<ApiResponse<T>> | NextResponse<ApiSuccessResponse<T>> | NextResponse>;
+) => Promise<ApiHandlerResult<T>> | ApiHandlerResult<T>;
 
 interface MiddlewareConfig {
   auth?:
@@ -197,8 +214,9 @@ export function getCorsHeaders(options: CorsOptions): Record<string, string> {
     'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Methods': methods.join(', '),
     'Access-Control-Allow-Headers': headers.join(', '),
-    'Access-Control-Expose-Headers':
-      'X-Request-Id, Server-Timing, X-Credit-Cost, X-Credit-Balance, X-Credit-Balance-After, X-Credit-Status, X-Credit-Receipt, Retry-After, PAYMENT-REQUIRED, PAYMENT-RESPONSE, WWW-Authenticate, Payment-Receipt, Payment-Settlement-Status',
+    // Shared with the MCP transport and the MPP pre-trade bridge so the
+    // x-insight-* hints on a bare 402 stay readable in a browser.
+    'Access-Control-Expose-Headers': corsExposeHeaders(),
     'Access-Control-Max-Age': String(maxAge),
   };
 }
@@ -266,6 +284,47 @@ function applyDiagnosticHeaders(
   const duration = Date.now() - startTime;
   response.headers.set('X-Request-Id', requestId);
   response.headers.set('Server-Timing', `app;dur=${duration}`);
+}
+
+/**
+ * Build a success envelope as a plain object (NOT a NextResponse). Return it
+ * from a `createApiHandler` handler and the orchestrator serializes it as-is;
+ * use this when a route needs custom `meta` fields without hand-writing
+ * `NextResponse.json(ApiResponseBuilder.success(...))`.
+ */
+export function ok<T>(data: T, meta?: Record<string, unknown>): ApiSuccessResponse<T> {
+  return ApiResponseBuilder.success(data, { meta });
+}
+
+/**
+ * Normalize a handler result into a concrete NextResponse.
+ *
+ *   - Response instances pass through untouched (custom status/headers stay
+ *     fully under the route's control).
+ *   - Pre-built success envelopes (shape: `success: true` + `data`, e.g. from
+ *     `ok()`) serialize verbatim.
+ *   - Anything else is raw payload data and gets wrapped in the standard
+ *     success envelope.
+ *
+ * Wire format for all three paths is identical to what
+ * `NextResponse.json(ApiResponseBuilder.success(data))` produced before —
+ * no existing response shape changes.
+ */
+function normalizeHandlerResult(result: unknown): NextResponse {
+  if (result instanceof Response) {
+    return result as NextResponse;
+  }
+
+  if (
+    result !== null &&
+    typeof result === 'object' &&
+    (result as { success?: unknown }).success === true &&
+    'data' in (result as Record<string, unknown>)
+  ) {
+    return NextResponse.json(result);
+  }
+
+  return NextResponse.json(ApiResponseBuilder.success(result));
 }
 
 /**
@@ -538,7 +597,9 @@ export function createApiHandler<
         apiContext.quotaInfo = quotaResult.quotaInfo;
       }
 
-      const response = await handler(request, apiContext);
+      // Raw payloads / plain envelopes are normalized into NextResponse here;
+      // ready-made Response instances pass through untouched.
+      const response = normalizeHandlerResult(await handler(request, apiContext));
 
       // Route-level response helpers may opt into public caching for market
       // data. On an authenticated route the HTTP response itself is never

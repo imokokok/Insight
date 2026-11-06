@@ -8,6 +8,7 @@ import { getCorsHeaders } from '@/lib/api/handler';
 import { rateLimitStore } from '@/lib/api/middleware/rateLimitStore';
 import { getMppConfig } from '@/lib/api/mpp/config';
 import { getX402Config } from '@/lib/api/x402/config';
+import { corsExposeHeaders } from '@/lib/api/x402/corsExposeHeaders';
 import { handleMcpIndexerQuote, handleMcpPaidToolCall } from '@/lib/api/x402/mcpBridge';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -28,12 +29,20 @@ interface McpHttpHandlerResult {
  * CORS headers applied to every MCP HTTP response so external browser-based
  * MCP clients can call /api/mcp cross-origin. Mirrors the v1 REST CORS config
  * (origin *, includes X-API-Key) and additionally exposes the rate-limit /
- * quota headers so browser clients can read usage info.
+ * quota headers so browser clients can read usage info. The x-insight-* hints
+ * are exposed too: a bare 402 from /api/mcp is where an agent learns the
+ * branded install command and the wallet-free credit path.
  */
 const CORS_HEADERS: Record<string, string> = {
   ...getCorsHeaders({}),
-  'Access-Control-Expose-Headers':
-    'X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, X-Quota-Limit, X-Quota-Remaining, X-Quota-Reset, X-Request-Id',
+  'Access-Control-Expose-Headers': corsExposeHeaders(
+    'X-RateLimit-Limit',
+    'X-RateLimit-Remaining',
+    'X-RateLimit-Reset',
+    'X-Quota-Limit',
+    'X-Quota-Remaining',
+    'X-Quota-Reset'
+  ),
 };
 
 function withCors(response: Response): Response {
@@ -662,8 +671,11 @@ export async function handleMcpHttpRequest(
         // the MPP rail already carries it above.
         const probeCfg = x402Config ?? getX402Config();
         if (probeCfg) {
+          // Mirror the POST tools/call path: CORS must expose the x402
+          // challenge and the x-insight-* onboarding hints to browser-based
+          // indexers and MCP clients, not just to server-side agents.
           return {
-            response: await handleMcpIndexerQuote(request, probeCfg),
+            response: withCors(await handleMcpIndexerQuote(request, probeCfg)),
             cleanup: async () => {},
           };
         }

@@ -175,6 +175,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
       decimals: 8,
       category: 'stablecoin',
     },
+    8453: {
+      address: '0x7e860098F58bBFC8648a4311b374B1D669a2bc6B',
+      name: 'USDC / USD',
+      symbol: 'USDC',
+      decimals: 8,
+      category: 'stablecoin',
+    },
   },
   USDT: {
     1: {

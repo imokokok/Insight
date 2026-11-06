@@ -213,7 +213,23 @@ function check(
     participantCount: 3,
     attestation: { uid: `0x${'33'.repeat(32)}` },
     decisionInputAssessment:
-      decisionInputStatus === null ? undefined : { status: decisionInputStatus },
+      decisionInputStatus === null
+        ? undefined
+        : {
+            status: decisionInputStatus,
+            prices: {
+              quoteDeviationBps: 5,
+              quoteAgeSeconds: 10,
+              chainlinkPriceUsd: consensusPrice,
+              chainlinkDeviationBps: 2,
+              cexMedianPriceUsd: consensusPrice,
+              cexDeviationBps: 1,
+            },
+            policy: {
+              maxReferenceDeviationBps: 100,
+              maxQuoteAgeSeconds: 60,
+            },
+          },
   };
 }
 
@@ -260,6 +276,20 @@ describe('Base Agent Swap Guard', () => {
       destinationConsensusPriceUsd: 1,
       routeQuotePriceUsd: 2_000,
     });
+    expect(result.oracleChecks?.source).toMatchObject({
+      decisionInputStatus: 'SUFFICIENT',
+      decisionInput: {
+        quoteDeviationBps: 5,
+        quoteDeviationLimitBps: 100,
+        quoteAgeSeconds: 10,
+        quoteAgeLimitSeconds: 60,
+        chainlinkPriceUsd: 2_000,
+        chainlinkDeviationBps: 2,
+        cexMedianPriceUsd: 2_000,
+        cexDeviationBps: 1,
+      },
+    });
+    expect(result.oracleChecks?.destination?.decisionInput).toBeNull();
     expect(deps.preTrade).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({

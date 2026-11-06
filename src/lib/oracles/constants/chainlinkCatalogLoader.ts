@@ -66,6 +66,13 @@ export function getFeedFromCatalog(symbol: string, chainId: number): ChainlinkPr
   return entry ? toChainlinkPriceFeed(entry, symbol) : null;
 }
 
+/** Every EVM network present in the catalog (numeric chain ids, ascending). */
+export function getCatalogNetworkChainIds(): number[] {
+  return Object.keys(catalog.networks)
+    .map(Number)
+    .sort((a, b) => a - b);
+}
+
 /** Unique base symbols across every network in the catalog (uppercased). */
 export function getCatalogSupportedSymbols(): string[] {
   const symbols = new Set<string>();

@@ -1,4 +1,5 @@
 import { BaseOracleClient } from '@/lib/oracles/base';
+import { CHAINLINK_SUPPORTED_CHAINS } from '@/lib/oracles/constants/chainlinkSupportedChains';
 import { BLOCKCHAIN_TO_CHAIN_ID } from '@/lib/oracles/constants/chainMapping';
 import {
   isPriceFeedSupported as isPriceFeedSupportedSync,
@@ -78,34 +79,20 @@ const CHAINLINK_QUALITY_CONFIG = {
 
 export class ChainlinkClient extends BaseOracleClient {
   name = OracleProvider.CHAINLINK;
-  // Chains ChainlinkClient can actually serve. This MUST stay in sync with
-  // CHAINLINK_RPC_CONFIG (rpcConfig.ts): a chain only works here if it has an
-  // RPC endpoint and a deployed Feed Registry. Solana is the one non-EVM
-  // exception: its OCR2 Transmissions accounts are read by the dedicated native
-  // reader below, with owner/layout/pair/freshness validation. Starknet is
-  // excluded because the EVM Feed Registry/aggregator path cannot query it.
-  // Scroll/zkSync Era/Linea are intentionally NOT listed: Chainlink does
-  // not deploy a Feed Registry on those L2s (the on-chain registry is Mainnet-
-  // only), and our CHAINLINK_PRICE_FEEDS fallback only covers the 7 chains
-  // below — so any feed request to them would fail regardless.
-  // NOTE: do NOT derive this from CHAINLINK_RPC_CONFIG at class-field init —
-  // that import is circular (chainlinkDataSources → cache → supabase/server →
-  // back to this client) and leaves the binding undefined under Jest/CJS,
-  // throwing "Cannot convert undefined or null to object". Keep it explicit.
-  supportedChains = [
-    Blockchain.ETHEREUM,
-    Blockchain.ARBITRUM,
-    Blockchain.OPTIMISM,
-    Blockchain.POLYGON,
-    Blockchain.AVALANCHE,
-    Blockchain.BNB_CHAIN,
-    Blockchain.BASE,
-    Blockchain.SOLANA,
-    // Monad: catalog-resolved proxy reads over the official public RPC. Unlike
-    // the chains above there is no Feed Registry on Monad — resolution relies
-    // on the committed catalog (network "143") and feedAddressOverride paths.
-    Blockchain.MONAD,
-  ];
+  // Chains ChainlinkClient can actually serve — derived from the committed
+  // catalog directory (EVM networks) plus the dedicated Solana reader. This
+  // is the same single source consumed by the UI metadata config, so the two
+  // surfaces cannot drift. Constraints that the derivation must respect:
+  //   - Every catalog network MUST also have a CHAINLINK_RPC_CONFIG entry
+  //     (asserted by chainlinkCatalogConsistency.test.ts) — a chain only
+  //     resolves if it has an RPC endpoint; Solana reads OCR2 Transmissions
+  //     accounts via the dedicated native reader below, not the EVM path.
+  //   - NOTE (historical): this list must NOT be derived from
+  //     CHAINLINK_RPC_CONFIG at class-field init — that import is circular
+  //     (chainlinkDataSources → cache → supabase/server → back to this
+  //     client) and leaves the binding undefined under Jest/CJS. The catalog
+  //     loader import below is pure (JSON + type-only) and safe here.
+  supportedChains = [...CHAINLINK_SUPPORTED_CHAINS];
 
   private useRealData: boolean;
 
