@@ -3,6 +3,12 @@
 // Usage: node scripts/run-checks-parallel.mjs <npm-script-name> [...more]
 // Concurrency can be tuned with CHECKS_PARALLEL_LIMIT (default: 6).
 //
+// Checks that read a build artifact declare their producer in package.json's
+// `checkPrerequisites` map. The scheduler runs those producers to completion
+// before any requested check starts, so bounded parallelism can never race a
+// consumer against an unfinished build (the old `sdk/dist/index.js`
+// ERR_MODULE_NOT_FOUND).
+//
 // Scripts are spawned through `npm run` only when they need npm's PATH shims;
 // a plain `node`/`npx` command line is executed directly, which skips one npm
 // process per check (22 checks would otherwise pay ~22 process startups).
@@ -14,15 +20,19 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import os from 'node:os';
 
+import { resolvePrerequisiteOrder } from './lib/check-prerequisites.mjs';
+
 const names = process.argv.slice(2);
 if (names.length === 0) {
   console.error('Usage: node scripts/run-checks-parallel.mjs <npm-script-name> [...more]');
   process.exit(1);
 }
 
-const scripts = JSON.parse(
+const packageJson = JSON.parse(
   readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', 'package.json'), 'utf8')
-).scripts;
+);
+const scripts = packageJson.scripts;
+const prerequisites = packageJson.checkPrerequisites ?? {};
 
 const cpus = os.availableParallelism?.() ?? os.cpus().length;
 const limit = Number(process.env.CHECKS_PARALLEL_LIMIT ?? Math.max(2, Math.min(6, cpus - 2)));
@@ -80,8 +90,8 @@ function run(name) {
   });
 }
 
-async function main() {
-  const queue = [...names];
+async function runAll(list) {
+  const queue = [...list];
   const workers = Array.from({ length: Math.min(limit, queue.length) }, async () => {
     for (;;) {
       const name = queue.shift();
@@ -90,6 +100,28 @@ async function main() {
     }
   });
   await Promise.all(workers);
+}
+
+async function main() {
+  let prerequisiteOrder;
+  try {
+    prerequisiteOrder = resolvePrerequisiteOrder(names, prerequisites);
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exit(1);
+  }
+
+  if (prerequisiteOrder.length > 0) {
+    console.log(`Running prerequisites first: ${prerequisiteOrder.join(', ')}`);
+    await runAll(prerequisiteOrder);
+    const failedPrerequisites = prerequisiteOrder.filter((name) => results.get(name) !== 0);
+    if (failedPrerequisites.length > 0) {
+      console.error(`Failed prerequisites: ${failedPrerequisites.join(', ')}`);
+      process.exit(1);
+    }
+  }
+
+  await runAll(names);
 
   const failures = names.filter((name) => results.get(name) !== 0);
   if (failures.length > 0) {

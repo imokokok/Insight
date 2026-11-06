@@ -28,7 +28,7 @@
     "validate:generated": "node scripts/run-checks-parallel.mjs build:cron:check generate:mcp-catalog:check db:check:decision-input-assessment-migration db:check:io-budget-migration db:check:feed-health-heartbeat-migration db:check:cron-dispatch-guard-index-migration db:check:monad-dex-dispatcher-migration db:check:adaptive-snapshot-persistence-migration db:check:atomic-snapshot-slot-migration db:check:dispatch-ledger-write-reduction-migration db:check:atomic-feed-health-lifecycle-migration db:check:dispatcher-cadence-alignment-migration db:check:nano-io-recovery-migration db:check:nano-io-backpressure-migration db:check:turso-price-projection db:check:turso-price-projection-dispatcher db:check:github-primary-turso-scheduler db:check:receipt-gated-turso-fallback db:check:supabase-primary-turso-scheduler",
     "prevalidate:ci": "npm run build --prefix verifier",
     "validate:ci": "npm run validate:generated && npm run workflow:check && npm run rwa:parity && npm run protocol:check && npm run validate:ci:checks && npm run build",
-    "validate:ci:static": "npm run sdk:build:unchecked && node scripts/run-checks-parallel.mjs lint format:check typecheck typecheck:scripts knip sdk:test rwa:registry:check rwa:execution-profiles",
+    "validate:ci:static": "node scripts/run-checks-parallel.mjs lint format:check typecheck typecheck:scripts knip sdk:test rwa:registry:check rwa:execution-profiles",
     "validate:ci:tests": "npm run test:coverage -- --maxWorkers=75% && npm run test:reliability",
     "validate:ci:checks": "npm run validate:ci:static && npm run validate:ci:tests",
     "test": "jest",
@@ -126,6 +126,11 @@
     "skills:check": "node --import tsx scripts/build-agent-skill-packages.mts --check",
     "test:reliability": "node --import tsx --test scripts/tests/*.test.mjs scripts/tests/*.test.mts",
     "interai:shadow:fixed": "node --import tsx scripts/interai-shadow-evaluation.mts"
+  },
+  "checkPrerequisites": {
+    "rwa:execution-profiles": [
+      "sdk:build:unchecked"
+    ]
   },
   "dependencies": {
     "@api3/contracts": "^27.4.0",
