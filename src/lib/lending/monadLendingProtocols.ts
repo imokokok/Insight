@@ -61,30 +61,32 @@ export function monadAaveUnderlyingForSymbol(symbol: string): `0x${string}` | nu
 }
 
 // ---------------------------------------------------------------------------
-// Euler V2 on Monad (chainId 143) — injectable, deliberately UNVERIFIED
+// Euler V2 on Monad (chainId 143) — reviewed deployment (2026-11-06)
 // ---------------------------------------------------------------------------
 
 /**
  * Monad Euler V2 deployment descriptor.
  *
- * Verification result (2026-11-05), stated plainly so nobody mistakes a
- * placeholder for a reviewed deployment:
+ * Verification result (2026-11-06), stated plainly:
  *
- * - In-repo: EULER_V2_EVM_MARKETS (src/lib/lending/multichainEvmLendingProtocols.ts:114-125)
- *   registers only `euler-v2-base` / `euler-v2-arbitrum`. The reviewed registry
- *   likewise has no chainId-143 Euler descriptor. There is no Monad Euler
- *   eVaultFactory, EVC, or EVault market list anywhere in this repository.
- * - Public first-hand sources: docs.euler.finance documents the EVC/EVK
- *   architecture but publishes no Monad-mainnet core addresses; the deployment
- *   addresses surfaced by a first-hand-source check belong to HyperEVM
- *   (HypurrFi), Base, and Arbitrum. No verifiable Monad-mainnet Euler V2
- *   eVaultFactory / EVC / EVault market list constant was found.
+ * - Official first-hand source: euler-xyz/euler-interfaces
+ *   addresses/143/CoreAddresses.json pins the Monad-mainnet eVaultFactory,
+ *   EVC and protocolConfig.
+ * - scripts/verify-euler-monad-vaults.mjs confirmed on-chain that each
+ *   reviewed vault below is a canonical factory proxy (isProxy=true) with
+ *   correct EVC wiring, and ranked them by live totalAssets against the
+ *   official euler-simple-monad subgraph (168 vaults total).
+ * - TVL leaders evUSD-2 / gAUSD-1 / eAUSD-16 / eAUSD-17 (vUSD/gAUSD/AUSD
+ *   ecosystem credit tokens) and PT-USDat (Pendle maturity asset) are outside
+ *   the stablecoin direct-lending scope and are deliberately NOT registered.
+ * - Clearstar Earn USDC 0xe1bca19baa63894d374578320551633320436523 appears in
+ *   the subgraph with isProxy=false (not a canonical-factory deployment) and
+ *   is correctly refused — the verification logic is doing its job.
  *
- * => 未找到，需人工 review 后登记. Every address field is null on purpose;
- * NEVER fabricate a contract address. The descriptor stays UNVERIFIED until a
- * human registers a first-hand source reference and the concrete addresses.
- * The evaluator (assessMonadLendingGuard) fails closed for any UNVERIFIED
- * descriptor and never reads a chain address that does not exist here.
+ * => VERIFIED. A VERIFIED descriptor is NOT an ALLOW: the guard still runs a
+ * live resolver (factory isProxy + EVC wiring + asset symbol + LTVFull/oracle
+ * reads) for every decision, and the evaluator (assessMonadLendingGuard)
+ * fails closed for any descriptor that is not fully specified.
  */
 export type MonadEulerVerificationStatus = 'UNVERIFIED' | 'VERIFIED';
 
@@ -96,28 +98,38 @@ export interface MonadEulerVaultDescriptor {
 export interface MonadEulerDeploymentDescriptor {
   status: MonadEulerVerificationStatus;
   chainId: typeof MONAD_CHAIN_ID;
-  /** Euler's canonical EVault factory on Monad. null while UNVERIFIED. */
+  /** Euler's canonical EVault factory on Monad. */
   eVaultFactory: `0x${string}` | null;
-  /** Ethereum Vault Connector on Monad. null while UNVERIFIED. */
+  /** Ethereum Vault Connector on Monad. */
   evc: `0x${string}` | null;
-  /** Reviewed EVault market list. Empty while UNVERIFIED. */
+  /** Reviewed EVault market list. */
   vaults: readonly MonadEulerVaultDescriptor[];
   /** First-hand source (official deployment repo file@commit / official docs). */
   sourceRef: string | null;
   note: string;
 }
 
-export const MONAD_EULER_UNVERIFIED_DESCRIPTOR: MonadEulerDeploymentDescriptor = {
-  status: 'UNVERIFIED',
+export const MONAD_EULER_REVIEWED_DESCRIPTOR: MonadEulerDeploymentDescriptor = {
+  status: 'VERIFIED',
   chainId: MONAD_CHAIN_ID,
-  eVaultFactory: null,
-  evc: null,
-  vaults: [],
-  sourceRef: null,
-  note: '未找到，需人工 review 后登记：仓库与公开一手来源均未核实到 Monad 主网 Euler V2 的 eVaultFactory / EVC / EVault 市场清单地址；不编造常量。',
+  eVaultFactory: '0xba4dd672062de8feedb665dd4410658864483f1e',
+  evc: '0x7a9324e8f270413fa2e458f5831226d99c7477cd',
+  vaults: [
+    // eUSDC-17, TVL ~9.1M
+    { address: '0x06047833d9aac144f7f4e9b8234d2c7dda1a8baf', assetSymbol: 'USDC' },
+    // eUSDC-15, TVL ~4.2M
+    { address: '0xa3b64e2674463c98cbd21807055d8c1e008b6e79', assetSymbol: 'USDC' },
+    // eUSDC-12, TVL ~3.4M
+    { address: '0x1905eddf5943ef6c92ccf1469bd40fc2cb4a77b0', assetSymbol: 'USDC' },
+    // eUSDT0-13, TVL ~2.5M
+    { address: '0xcf450973dee1ee41cb708496bf73f34324180035', assetSymbol: 'USDT0' },
+  ],
+  sourceRef:
+    'euler-xyz/euler-interfaces addresses/143/CoreAddresses.json + scripts/verify-euler-monad-vaults.mjs on-chain verification (2026-11-06)',
+  note: '2026-11-06 已核实：eVaultFactory / EVC 来自官方 euler-interfaces 143 地址簿，四个 reviewed vault 经链上 isProxy + EVC wiring + totalAssets 排序确认；VERIFIED descriptor 不等于 ALLOW，每笔决策仍需 live resolver 链上验证。',
 };
 
-/** Injection point: UNVERIFIED by default; a reviewed registration overrides this. */
+/** Injection point: a reviewed registration is the default; callers may override. */
 export function defaultMonadEulerDescriptor(): MonadEulerDeploymentDescriptor {
-  return MONAD_EULER_UNVERIFIED_DESCRIPTOR;
+  return MONAD_EULER_REVIEWED_DESCRIPTOR;
 }
