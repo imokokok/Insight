@@ -435,6 +435,20 @@ async function writeSummary(result: DeploymentResult) {
   );
 }
 
+async function writeOutputs(result: DeploymentResult) {
+  const outputPath = process.env.GITHUB_OUTPUT;
+  if (!outputPath) return;
+  await appendFile(
+    outputPath,
+    [
+      `deployment-id=${result.id}`,
+      `deployment-url=${result.url ?? ''}`,
+      `deployment-mode=${result.mode}`,
+      '',
+    ].join('\n')
+  );
+}
+
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   try {
     const result = await deployVercelProduction({
@@ -444,6 +458,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       teamId: process.env.VERCEL_TEAM_ID,
     });
     await writeSummary(result);
+    await writeOutputs(result);
     console.log(
       `Vercel production deployment ${result.id} ${result.mode}; queue=${minutes(result.queueMs)}m build=${minutes(result.buildMs)}m total=${minutes(result.totalMs)}m canceled=${result.canceledDeploymentIds.length}`
     );

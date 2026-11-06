@@ -330,101 +330,12 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-  deploy-production:
-    name: Deploy production (gated and verified)
-    # `strict` protection plus the merge train already prove that the tree was
-    # tested against the main it lands on. The post-merge run is still the first
-    # execution on the actual main commit, and a flake or an environment
-    # difference can fail it. Deploying in parallel with that run would put
-    # users on a commit whose required runtime checks had not finished; waiting
-    # for `validate` and `smoke` costs about three minutes but removes that
-    # window. `analyze` lives in codeql.yml (a separate workflow), so it cannot
-    # be a `needs` target; the evidence gate below still requires the pull
-    # request's analyze run to be green.
-    if: >-
-      github.ref == 'refs/heads/main' &&
-      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
-      needs.runtime-impact.outputs.runtime == 'true'
-    needs: [runtime-impact, validate, smoke]
-    runs-on: ubuntu-24.04
-    permissions:
-      # Read-only: the deploy needs the merge metadata of the released commit.
-      contents: read
-      checks: read
-      pull-requests: read
-    # Environment-scoped deployment: only the `main` branch may deploy to
-    # production, and the VERCEL_* secrets are (or will be) scoped to this
-    # environment instead of the repository.
-    environment: production
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-      # This job runs on a fresh runner, but it installs nothing: the deploy
-      # controller uses only Node builtins and Node 22.18+ strips the script's
-      # TypeScript types natively. Zero third-party code executes here, so a
-      # compromised release dependency cannot touch the deploy path.
-      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
-        with:
-          node-version: 22.23.2
-      - name: Refuse to release an outdated commit
-        run: |
-          current_sha="$(git ls-remote origin refs/heads/main | cut -f1)"
-          if [ "$current_sha" != "$GITHUB_SHA" ]; then
-            echo "::error::main advanced to $current_sha; this run validated $GITHUB_SHA"
-            exit 1
-          fi
-      - name: Verify the merged commit passed its pull-request checks
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: node scripts/verify-merged-pr-checks.mts
-      - name: Trigger the production deploy hook after both gates pass
-        env:
-          VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_TEAM_ID: ${{ vars.VERCEL_TEAM_ID }}
-        run: |
-          if [ -z "$VERCEL_DEPLOY_HOOK_URL" ]; then
-            echo "VERCEL_DEPLOY_HOOK_URL is required for gated production deployment" >&2
-            exit 1
-          fi
-          if [ -z "$VERCEL_TOKEN" ]; then
-            echo "VERCEL_TOKEN is required to verify the production deployment" >&2
-            exit 1
-          fi
-
-          current_sha="$(git ls-remote origin refs/heads/main | cut -f1)"
-          if [ "$current_sha" != "$GITHUB_SHA" ]; then
-            echo "::error::main advanced to $current_sha immediately before deployment; this run validated $GITHUB_SHA"
-            exit 1
-          fi
-
-          node scripts/deploy-vercel-production.mts
-
-          current_sha="$(git ls-remote origin refs/heads/main | cut -f1)"
-          if [ "$current_sha" != "$GITHUB_SHA" ]; then
-            echo "::error::main advanced to $current_sha while deployment $GITHUB_SHA was being verified"
-            exit 1
-          fi
-
-      # A READY deployment only proves the build succeeded. Probe the live
-      # pay-per-call challenge paths so a regression that still builds (e.g.
-      # the Next 16.4 homepage-artifact incident) cannot reach users silently.
-      # SMOKE_EXPECT_MPP (repo variable, default true) can be set to false if
-      # MPP is intentionally disabled on the deployment.
-      - name: Live smoke the payment rails
-        env:
-          SMOKE_BASE_URL: https://www.oracleinsight.xyz
-          SMOKE_EXPECT_MPP: ${{ vars.SMOKE_EXPECT_MPP || 'true' }}
-        run: |
-          set -euo pipefail
-          for attempt in 1 2; do
-            if node scripts/smoke-live-payment-rails.mjs; then
-              exit 0
-            fi
-            if [ "$attempt" -lt 2 ]; then
-              echo "::warning::Payment-rail smoke failed immediately after deployment; retrying once in 30 seconds."
-              sleep 30
-            fi
-          done
-          echo "::error::Payment-rail smoke failed after the post-deploy retry."
-          exit 1
+  # Production release lives in `.github/workflows/deploy-production.yml`.
+  #
+  # It is a separate workflow because this file's top-level `concurrency`
+  # (`cancel-in-progress: true`) cancels the whole run when a newer push arrives.
+  # That is correct for quality checks and fatal for a release: cancellation
+  # skips every later step, including the automatic rollback. The release workflow
+  # keeps the same gates (runtime-impact classification, the merged-PR evidence
+  # check, the protected `production` environment) and adds the rollback that
+  # this job could never guarantee.

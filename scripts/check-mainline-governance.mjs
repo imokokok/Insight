@@ -83,35 +83,44 @@ if (vercelConfig.git?.deploymentEnabled !== false) {
   throw new Error('vercel.json must disable Git auto-deployment; CI owns production release');
 }
 
-const ciWorkflow = readFileSync(ciWorkflowPath, 'utf8');
+const releaseWorkflowName = 'deploy-production.yml';
+const releaseWorkflowPath = join(workflowsRoot, releaseWorkflowName);
 const requiredDeploymentGateFragments = [
   'deploy-production:',
   "github.ref == 'refs/heads/main'",
   "github.event_name == 'push' || github.event_name == 'workflow_dispatch'",
-  // The deploy waits for the post-merge runtime gates on the same commit. The
-  // fail-closed evidence step below still proves this commit is the merge commit
-  // of a PR whose `validate`, `smoke`, and `analyze` checks are green, but a
-  // flake or environment difference on the actual main commit must be observed
-  // before users are sent to it. `analyze` runs in codeql.yml, so it cannot be a
-  // `needs` target and remains covered by the evidence gate.
-  'needs: [runtime-impact, validate, smoke]',
+  // The release must not be cancelled by a newer push: cancellation skips the
+  // automatic rollback step, which is the only thing that makes releasing before
+  // the post-merge quality run safe.
+  'cancel-in-progress: false',
+  // `strict` plus the merge train prove the tree was tested against the main it
+  // lands on. The evidence step proves this commit is the merge commit of a PR
+  // whose `validate`, `smoke`, and `analyze` checks are green. `analyze` runs in
+  // codeql.yml and cannot be a `needs` target; the evidence gate covers it.
   'name: Verify the merged commit passed its pull-request checks',
   'node scripts/verify-merged-pr-checks.mts',
   'VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}',
   'node scripts/deploy-vercel-production.mts',
+  'node scripts/auto-rollback-production.mjs',
 ];
+const releaseWorkflow = readFileSync(releaseWorkflowPath, 'utf8');
 for (const fragment of requiredDeploymentGateFragments) {
-  if (!ciWorkflow.includes(fragment)) {
-    throw new Error(`CI production deployment gate is missing: ${fragment}`);
+  if (!releaseWorkflow.includes(fragment)) {
+    throw new Error(`Production release gate is missing: ${fragment}`);
   }
+}
+if (readFileSync(ciWorkflowPath, 'utf8').includes('deploy-production:')) {
+  throw new Error(
+    'ci.yml must not define deploy-production: its cancel-in-progress would cancel releases before the rollback'
+  );
 }
 
 for (const workflowFile of readdirSync(workflowsRoot)) {
-  if (!workflowFile.match(/\.ya?ml$/) || workflowFile === 'ci.yml') continue;
+  if (!workflowFile.match(/\.ya?ml$/) || workflowFile === releaseWorkflowName) continue;
   const workflow = readFileSync(join(workflowsRoot, workflowFile), 'utf8');
   if (workflow.includes('VERCEL_DEPLOY_HOOK_URL')) {
     throw new Error(
-      `${workflowFile} must not access VERCEL_DEPLOY_HOOK_URL; only the gated CI deploy job may deploy production`
+      `${workflowFile} must not access VERCEL_DEPLOY_HOOK_URL; only ${releaseWorkflowName} may deploy production`
     );
   }
 }

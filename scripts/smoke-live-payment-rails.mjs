@@ -13,6 +13,18 @@
 //   SMOKE_BASE_URL    Base URL to probe (default https://www.oracleinsight.xyz)
 //   SMOKE_EXPECT_MPP  'false' skips MPP assertions (set when MPP is
 //                     intentionally disabled on the deployment; default 'true')
+//
+// Exit codes:
+//   0  all checks passed
+//   1  application failure (the server answered, but not with the contract)
+//   2  infrastructure-only failure (the probe never reached a usable server:
+//      timeouts, connection errors, or gateway/rate-limit responses). The release
+//      workflow retries this class and never rolls back on it.
+
+import {
+  classifyStatusFailure,
+  exitCodeForFailureKinds,
+} from './lib/live-smoke-classification.mjs';
 
 const BASE_URL = (process.env.SMOKE_BASE_URL ?? 'https://www.oracleinsight.xyz').replace(/\/$/, '');
 const EXPECT_MPP = process.env.SMOKE_EXPECT_MPP !== 'false';
@@ -36,8 +48,14 @@ const FIXED_SCOPE_PROBES = [
 
 const failures = [];
 
-function fail(probe, message) {
-  failures.push(`[${probe}] ${message}`);
+class LiveSmokeInfrastructureError extends Error {}
+
+function fail(probe, message, kind = 'application') {
+  failures.push({ kind, message: `[${probe}] ${message}` });
+}
+
+function failStatus(probe, expected, status) {
+  fail(probe, `expected HTTP ${expected}, got ${status}`, classifyStatusFailure(status));
 }
 
 function x402Networks(payload, source) {
@@ -67,13 +85,21 @@ async function fetchWithRetry(url, init, probe) {
         await new Promise((resolve) => setTimeout(resolve, 2_000 * attempt));
         continue;
       }
+      // A persistent 429 never reached an application verdict: it is a shared
+      // quota, not a regression, and must not trigger a rollback.
+      if (response.status === 429) {
+        throw new LiveSmokeInfrastructureError(
+          `[${probe}] still rate limited (HTTP 429) after ${ATTEMPTS} attempts`
+        );
+      }
       return response;
     } catch (error) {
+      if (error instanceof LiveSmokeInfrastructureError) throw error;
       lastError = error;
       if (attempt < ATTEMPTS) await new Promise((resolve) => setTimeout(resolve, 2_000 * attempt));
     }
   }
-  throw new Error(
+  throw new LiveSmokeInfrastructureError(
     `[${probe}] request failed after ${ATTEMPTS} attempts: ${lastError?.message ?? lastError}`
   );
 }
@@ -88,7 +114,7 @@ async function smokeRestRail() {
     ),
   ]);
   if (!manifestResponse.ok) {
-    fail('manifest', `expected HTTP 200, got ${manifestResponse.status}`);
+    failStatus('manifest', 200, manifestResponse.status);
   }
   let manifest;
   try {
@@ -97,7 +123,7 @@ async function smokeRestRail() {
     fail('manifest', 'response is not JSON');
   }
   if (response.status !== 402) {
-    fail('rest', `expected HTTP 402 challenge, got ${response.status}`);
+    failStatus('rest', 402, response.status);
     return;
   }
 
@@ -170,7 +196,7 @@ async function smokeFixedScopeParity() {
     'manifest-scopes'
   );
   if (!manifestResponse.ok) {
-    fail('manifest-scopes', `expected HTTP 200, got ${manifestResponse.status}`);
+    failStatus('manifest-scopes', 200, manifestResponse.status);
     return;
   }
   let manifest;
@@ -203,7 +229,7 @@ async function smokeFixedScopeParity() {
         `live-${name}`
       );
       if (response.status !== 402) {
-        fail(`live-${name}`, `expected HTTP 402 challenge, got ${response.status}`);
+        failStatus(`live-${name}`, 402, response.status);
         return;
       }
       const challenge = decodeX402Challenge(response.headers.get('payment-required'));
@@ -247,7 +273,7 @@ async function smokeMcpRail() {
     'mcp'
   );
   if (initResponse.status !== 200) {
-    fail('mcp', `initialize failed: HTTP ${initResponse.status}`);
+    failStatus('mcp', 200, initResponse.status);
     return;
   }
   const sessionId = initResponse.headers.get('mcp-session-id');
@@ -318,11 +344,16 @@ try {
   await smokeFixedScopeParity();
   await smokeMcpRail();
 } catch (error) {
-  failures.push(error instanceof Error ? error.message : String(error));
+  failures.push({
+    kind: error instanceof LiveSmokeInfrastructureError ? 'infrastructure' : 'application',
+    message: error instanceof Error ? error.message : String(error),
+  });
 }
 
 if (failures.length > 0) {
-  console.error(`Live payment-rail smoke FAILED:\n${failures.join('\n')}`);
-  process.exit(1);
+  console.error(
+    `Live payment-rail smoke FAILED:\n${failures.map((failure) => failure.message).join('\n')}`
+  );
+  process.exit(exitCodeForFailureKinds(failures.map((failure) => failure.kind)));
 }
 console.log('Live payment-rail smoke passed.');
