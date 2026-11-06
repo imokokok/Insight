@@ -8,12 +8,12 @@ import {
 } from '@/lib/dex/solanaSwapGuardSettlement';
 import { executionAdapterRegistry } from '@/lib/execution/adapters';
 
-import { getToolDefinitions } from '../index';
 import {
   settleSolanaSwapGuardTool,
   solanaSwapGuardTool,
   verifySolanaSwapGuardSettlementTool,
 } from '../solanaSwapGuardTools';
+import { LEGACY_TOOL_BY_NAME } from '../unified/runtime';
 
 jest.mock('@/lib/execution/adapters', () => ({
   executionAdapterRegistry: {
@@ -123,13 +123,13 @@ describe('solana_swap_guard MCP tool', () => {
   });
 
   it('is discoverable, priced, and validates its narrow input', () => {
-    expect(getToolDefinitions().map((tool) => tool.name)).toEqual(
-      expect.arrayContaining([
-        'solana_swap_guard',
-        'settle_solana_swap_guard',
-        'verify_solana_swap_guard_settlement',
-      ])
-    );
+    for (const name of [
+      'solana_swap_guard',
+      'settle_solana_swap_guard',
+      'verify_solana_swap_guard_settlement',
+    ]) {
+      expect(LEGACY_TOOL_BY_NAME.has(name)).toBe(true);
+    }
     expect(solanaSwapGuardTool.parameters.safeParse(args).success).toBe(true);
     expect(
       solanaSwapGuardTool.parameters.safeParse({

@@ -6,7 +6,7 @@ import {
 import { createBaseAgentSwapGuardDecision } from '@/lib/dex/baseAgentSwapGuardAttestation';
 
 import { prepareBaseAgentSwapGuardTool } from '../baseAgentSwapGuardTools';
-import { getToolDefinitions } from '../index';
+import { LEGACY_TOOL_BY_NAME } from '../unified/runtime';
 
 jest.mock('@/lib/dex/baseAgentSwapGuard', () => ({
   ...jest.requireActual('@/lib/dex/baseAgentSwapGuard'),
@@ -90,9 +90,7 @@ describe('prepare_base_agent_swap_guard MCP tool', () => {
   });
 
   it('is discoverable, validates the narrow profile and is priced as an agent gate', () => {
-    expect(getToolDefinitions().map((tool) => tool.name)).toContain(
-      'prepare_base_agent_swap_guard'
-    );
+    expect(LEGACY_TOOL_BY_NAME.has('prepare_base_agent_swap_guard')).toBe(true);
     expect(prepareBaseAgentSwapGuardTool.parameters.safeParse(args).success).toBe(true);
     expect(
       prepareBaseAgentSwapGuardTool.parameters.safeParse({

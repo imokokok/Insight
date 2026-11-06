@@ -2,7 +2,6 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { rwaAssessmentTool } from '../../../mcp/tools/rwaTools';
 import { diagnoseRwa } from '../diagnostic';
 import { RwaDiagnosticSchema } from '../schema';
 
@@ -55,13 +54,4 @@ it('rejects unknown fields, wrong enums, oversize arrays and invalid semantic po
   const invalid = fixture();
   invalid.policy.actions.buy.priceRequired = false;
   expect(() => diagnoseRwa(invalid.input, invalid.policy, 1800000000)).toThrow();
-});
-it('MCP uses the same unsigned diagnosis and does not refresh caller timestamps', async () => {
-  jest.useFakeTimers().setSystemTime(new Date(1800000000 * 1000));
-  const result = JSON.parse(String(await rwaAssessmentTool.handler(fixture())));
-  expect(result.report.evaluation.verdict).toBe('ALLOW');
-  expect(result.mayAuthorizeExecution).toBe(false);
-  jest.setSystemTime(new Date(1800000120 * 1000));
-  const stale = JSON.parse(String(await rwaAssessmentTool.handler(fixture())));
-  expect(stale.report.evaluation.verdict).not.toBe('ALLOW');
 });

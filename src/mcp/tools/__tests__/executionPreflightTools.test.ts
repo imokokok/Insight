@@ -2,7 +2,7 @@ import { getToolCreditCost } from '@/lib/billing/metering';
 import { assessExecutionPreflight } from '@/lib/preflight/executionPreflight';
 
 import { executionPreflightTool } from '../executionPreflightTools';
-import { getToolDefinitions } from '../index';
+import { LEGACY_TOOL_BY_NAME } from '../unified/runtime';
 
 jest.mock('@/lib/preflight/executionPreflight', () => ({
   assessExecutionPreflight: jest.fn(),
@@ -29,7 +29,7 @@ describe('execution_preflight MCP tool', () => {
     expect(executionPreflightTool.parameters.safeParse({ ...args, chainId: 1.5 }).success).toBe(
       false
     );
-    expect(getToolDefinitions().map((tool) => tool.name)).toContain('execution_preflight');
+    expect(LEGACY_TOOL_BY_NAME.has('execution_preflight')).toBe(true);
     expect(getToolCreditCost('execution_preflight')).toBe(5);
   });
 
