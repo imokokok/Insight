@@ -21,6 +21,9 @@ jobs:
     name: Audit production deployment provenance
     runs-on: ubuntu-24.04
     timeout-minutes: 8
+    # VERCEL_TOKEN is scoped to the Production environment (the same secret the
+    # release job uses); without this the scheduled run cannot read the API.
+    environment: Production
     permissions:
       contents: read
       issues: write
