@@ -94,7 +94,9 @@ describe('anonymous MCP discovery', () => {
     const body = await readJson(response);
     const tools = (body.result as { tools?: Array<{ name: string }> }).tools ?? [];
     expect(tools).toEqual(MCP_TOOL_CATALOG);
-    expect(tools.map((t) => t.name)).toContain('get_symbols');
+    expect(tools.length).toBe(16);
+    expect(tools.map((t) => t.name)).toContain('search_oracle_registry');
+    expect(tools.map((t) => t.name)).not.toContain('get_symbols');
     await cleanup();
   });
 

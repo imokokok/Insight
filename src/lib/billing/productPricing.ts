@@ -57,9 +57,13 @@ export const POSITION_LIFECYCLE_BEGIN_MCP_TOOL = 'position_lifecycle_begin';
 /** MCP tool → credit cost, consulted before the per-call class rules. */
 export const PRODUCT_MCP_TOOL_CREDIT_COSTS: Readonly<Record<string, number>> = {
   [ORACLE_WATCH_WINDOW_BEGIN_MCP_TOOL]: ORACLE_WATCH_WINDOW_CREDIT_COST,
+  // Consolidated control tool: poll and close are both covered by the purchase.
+  oracle_watch_window_control: 0,
   oracle_watch_window_poll: 0,
   oracle_watch_window_close: 0,
   [POSITION_LIFECYCLE_BEGIN_MCP_TOOL]: POSITION_LIFECYCLE_CREDIT_COST,
+  // Consolidated step tool: guard, receipt and close are all covered.
+  position_lifecycle_step: 0,
   position_lifecycle_guard: 0,
   position_lifecycle_receipt: 0,
   position_lifecycle_close: 0,

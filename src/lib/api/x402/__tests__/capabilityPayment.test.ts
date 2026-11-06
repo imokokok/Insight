@@ -127,6 +127,11 @@ describe('x402 capability payment bindings', () => {
       'verify_base_agent_swap_guard_settlement',
       'get_pancakeswap_v3_market',
       'prepare_pancakeswap_v3_swap',
+      'check_trade_safety',
+      'prepare_swap',
+      'get_market_quote',
+      'issue_execution_receipt',
+      'verify_evidence',
     ]);
     // In-window product tools are covered by the purchase that returned their
     // one-time token — they are deliberately absent from every payment-scope
@@ -138,17 +143,16 @@ describe('x402 capability payment bindings', () => {
       .map((tool) => tool.name)
       .filter((name) => !entitlementCoveredTools.includes(name))
       .sort();
-    const boundNames = Object.keys(X402_MCP_PAYMENT_SCOPE_BY_TOOL)
-      .concat([...dynamicTools])
+    // Only the exposed catalog needs a per-call realm. Legacy names remain
+    // callable for 60 days and already carry their original declarations.
+    const boundNames = [...Object.keys(X402_MCP_PAYMENT_SCOPE_BY_TOOL), ...dynamicTools]
+      .filter((name) => catalogNames.includes(name))
       .sort();
 
     expect(boundNames).toEqual(catalogNames);
     expect(entitlementCoveredTools).toEqual([
-      'oracle_watch_window_poll',
-      'oracle_watch_window_close',
-      'position_lifecycle_guard',
-      'position_lifecycle_receipt',
-      'position_lifecycle_close',
+      'oracle_watch_window_control',
+      'position_lifecycle_step',
     ]);
   });
 

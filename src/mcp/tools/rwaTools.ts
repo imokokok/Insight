@@ -6,6 +6,12 @@ import { RwaDiagnosticSchema } from '@/lib/rwa/schema';
 
 import type { McpToolDefinition } from './types';
 
+/**
+ * Not registered in the MCP catalog, the legacy registry, metering or x402.
+ * The object is kept only because its unit test lives under the
+ * protocol-governed `src/lib/rwa/` tree, which cannot be edited without an
+ * unrelated promotion chain. Calls to `assess_rwa_evidence` return "Unknown tool".
+ */
 export const rwaAssessmentTool: McpToolDefinition<typeof RwaDiagnosticSchema> = {
   name: 'assess_rwa_evidence',
   description:

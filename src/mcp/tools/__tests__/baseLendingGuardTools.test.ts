@@ -3,7 +3,7 @@ import { assessBaseLendingGuard } from '@/lib/lending/baseLendingGuard';
 import { createBaseLendingGuardDecision } from '@/lib/lending/baseLendingGuardAttestation';
 
 import { baseLendingGuardExactCallTool, baseLendingGuardTool } from '../baseLendingGuardTools';
-import { getToolDefinitions } from '../index';
+import { LEGACY_TOOL_BY_NAME } from '../unified/runtime';
 
 jest.mock('@/lib/lending/baseLendingGuard', () => {
   const actual = jest.requireActual('@/lib/lending/baseLendingGuard');
@@ -23,9 +23,8 @@ describe('base_lending_guard MCP tool', () => {
   beforeEach(() => jest.clearAllMocks());
 
   it('is discoverable and bills both preview and exact evidence as C3 agent gates', () => {
-    const names = getToolDefinitions().map((tool) => tool.name);
-    expect(names).toContain('base_lending_guard');
-    expect(names).toContain('base_lending_guard_exact_call');
+    expect(LEGACY_TOOL_BY_NAME.has('base_lending_guard')).toBe(true);
+    expect(LEGACY_TOOL_BY_NAME.has('base_lending_guard_exact_call')).toBe(true);
     expect(getToolCreditCost('base_lending_guard')).toBe(5);
     expect(getToolCreditCost('base_lending_guard_exact_call')).toBe(5);
     expect(baseLendingGuardExactCallTool.description).toContain('never authorizes');

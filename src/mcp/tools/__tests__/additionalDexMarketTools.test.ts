@@ -14,7 +14,7 @@ import {
   getHanjiMonadMarketTool,
   getSolanaDexRouteTool,
 } from '../dexMarketTools';
-import { getToolDefinitions } from '../index';
+import { LEGACY_TOOL_BY_NAME } from '../unified/runtime';
 
 jest.mock('@/lib/dex/baseUniswapV3', () => ({
   getBaseUniswapV3MarketSnapshot: jest.fn(),
@@ -54,16 +54,15 @@ describe('additional DEX market MCP tools', () => {
   });
 
   it('registers the reviewed Base, Aerodrome, Solana, Monad CLOB, and Hyperliquid evidence tools at C1', () => {
-    const names = getToolDefinitions().map((tool) => tool.name);
-    expect(names).toEqual(
-      expect.arrayContaining([
-        'get_base_dex_market',
-        'get_aerodrome_slipstream_market',
-        'get_solana_dex_route',
-        'get_hyperliquid_perp_market',
-        'get_hanji_monad_market',
-      ])
-    );
+    for (const name of [
+      'get_base_dex_market',
+      'get_aerodrome_slipstream_market',
+      'get_solana_dex_route',
+      'get_hyperliquid_perp_market',
+      'get_hanji_monad_market',
+    ]) {
+      expect(LEGACY_TOOL_BY_NAME.has(name)).toBe(true);
+    }
     expect(getBaseDexMarketTool.parameters.safeParse({}).success).toBe(true);
     expect(getAerodromeSlipstreamMarketTool.parameters.safeParse({}).success).toBe(true);
     expect(

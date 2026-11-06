@@ -181,7 +181,8 @@ and liquidity checks, key/revocation operations, and a shadow-to-capped-pilot re
 principal authorization, single-use submission and execution evidence, compose with PriorSeal's
 existing RWA v2 flow. Neither product activates or broadcasts from this SDK function.
 
-The REST and MCP `assess_rwa_evidence` tools remain caller-supplied diagnostics. The new orchestration
+The REST `POST /api/v1/rwa/assessment` tool remains caller-supplied diagnostics; the MCP
+`assess_rwa_evidence` tool was removed on 2026-11-07. The new orchestration
 is a local SDK API so applications can keep their provider credentials and source contracts in
 their own backend. It does not add a public server-side source proxy or make licensed data
 redistributable.

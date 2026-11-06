@@ -2,7 +2,7 @@ import { getToolCreditCost } from '@/lib/billing/metering';
 import { prepareAerodromeSlipstreamExactInput } from '@/lib/dex/aerodromeSlipstreamSwap';
 
 import { prepareAerodromeSlipstreamSwapTool } from '../aerodromeSlipstreamTools';
-import { getToolDefinitions } from '../index';
+import { LEGACY_TOOL_BY_NAME } from '../unified/runtime';
 
 jest.mock('@/lib/dex/aerodromeSlipstreamSwap', () => ({
   prepareAerodromeSlipstreamExactInput: jest.fn(),
@@ -23,9 +23,7 @@ describe('prepare_aerodrome_slipstream_swap MCP tool', () => {
   beforeEach(() => jest.clearAllMocks());
 
   it('is discoverable, strictly validates a user-controlled transaction request, and uses C3 pricing', () => {
-    expect(getToolDefinitions().map((tool) => tool.name)).toContain(
-      'prepare_aerodrome_slipstream_swap'
-    );
+    expect(LEGACY_TOOL_BY_NAME.has('prepare_aerodrome_slipstream_swap')).toBe(true);
     expect(prepareAerodromeSlipstreamSwapTool.parameters.safeParse(args).success).toBe(true);
     expect(
       prepareAerodromeSlipstreamSwapTool.parameters.safeParse({

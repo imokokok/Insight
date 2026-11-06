@@ -3,7 +3,7 @@ import { getMonadUniswapV3MarketSnapshot } from '@/lib/dex/monadUniswapV3';
 import { getMonadUniswapV3VolumeSummary } from '@/lib/dex/monadUniswapV3Volume';
 
 import { getMonadDexMarketTool } from '../dexMarketTools';
-import { getToolDefinitions } from '../index';
+import { LEGACY_TOOL_BY_NAME } from '../unified/runtime';
 
 jest.mock('@/lib/dex/monadUniswapV3', () => ({
   getMonadUniswapV3MarketSnapshot: jest.fn(),
@@ -24,7 +24,7 @@ describe('get_monad_dex_market MCP tool', () => {
 
   it('is discoverable, takes no untrusted market selector, and has C1 pricing', () => {
     expect(getMonadDexMarketTool.parameters.safeParse({}).success).toBe(true);
-    expect(getToolDefinitions().map((tool) => tool.name)).toContain('get_monad_dex_market');
+    expect(LEGACY_TOOL_BY_NAME.has('get_monad_dex_market')).toBe(true);
     expect(getToolCreditCost('get_monad_dex_market')).toBe(0.5);
   });
 

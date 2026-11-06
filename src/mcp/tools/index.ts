@@ -1,51 +1,11 @@
 import { assertX402PaymentScopeDeclaredForMcpTool } from '@/lib/api/x402/capabilityPayment';
 import { createLogger } from '@/lib/utils/logger';
 
-import { prepareAerodromeSlipstreamSwapTool } from './aerodromeSlipstreamTools';
-import { agentBeginTradeTool } from './agentBeginTradeTools';
-import {
-  getAnomaliesTool,
-  getCorrelationTool,
-  getCoverageTool,
-  getLatencyTool,
-  getMetricsTool,
-} from './analysisTools';
 import {
   prepareBaseAgentSwapGuardTool,
   settleBaseAgentSwapGuardTool,
   verifyBaseAgentSwapGuardSettlementTool,
 } from './baseAgentSwapGuardTools';
-import { baseLendingGuardExactCallTool, baseLendingGuardTool } from './baseLendingGuardTools';
-import { basePerpGuardExactCallTool, basePerpGuardTool } from './basePerpGuardTools';
-import { getOraclePricesBatchTool, getPriceHistoryTool } from './batchTools';
-import { getCrossChainSpreadsTool } from './crossChainTools';
-import {
-  getAerodromeSlipstreamMarketTool,
-  getPancakeSwapV3MarketTool,
-  getQuickSwapV2MarketTool,
-  getBaseDexMarketTool,
-  getBaseDexVenueIntegrationsTool,
-  getHanjiMonadMarketTool,
-  getHyperliquidPerpMarketTool,
-  getMonadDexMarketTool,
-  getSolanaDexRouteTool,
-} from './dexMarketTools';
-import { executionPreflightTool } from './executionPreflightTools';
-import { executionReceiptTool } from './executionReceiptTools';
-import {
-  getFeedFreshnessTool,
-  getFeedHealthTool,
-  getFeedUptimeTool,
-  getFeedsTool,
-} from './feedTools';
-import {
-  hyperliquidPerpGuardExactCallTool,
-  hyperliquidPerpGuardTool,
-} from './hyperliquidPerpGuardTools';
-import {
-  prepareHyperliquidPerpOrderTool,
-  verifyHyperliquidPerpExecutionTool,
-} from './hyperliquidPerpTools';
 import {
   AerodromeSlipstreamMarketJsonSchema,
   AerodromeSlipstreamSwapPreparationJsonSchema,
@@ -113,152 +73,36 @@ import {
   WrappedAssetJsonSchema,
 } from './jsonSchemas';
 import { loopscaleVaultDepositTool } from './loopscaleVaultDepositTools';
-import { monadLendingGuardExactCallTool, monadLendingGuardTool } from './monadLendingGuardTools';
-import {
-  multichainEvmLendingGuardExactCallTool,
-  multichainEvmLendingGuardTool,
-} from './multichainEvmLendingGuardTools';
-import {
-  compareOracleDeviationTool,
-  getConsensusPriceTool,
-  getOracleHealthTool,
-  getOraclePriceTool,
-} from './oracleTools';
-import { oracleWatchHistoryTool } from './oracleWatchHistoryTools';
-import { oracleWatchTool } from './oracleWatchTools';
-import {
-  oracleWatchWindowBeginTool,
-  oracleWatchWindowCloseTool,
-  oracleWatchWindowPollTool,
-} from './oracleWatchWindowTools';
-import { preparePancakeSwapV3SwapTool } from './pancakeSwapV3Tools';
-import {
-  positionLifecycleBeginTool,
-  positionLifecycleCloseTool,
-  positionLifecycleGuardTool,
-  positionLifecycleReceiptTool,
-} from './positionLifecycleTools';
-import { preTradeSafetyCheckTool } from './preTradeSafetyTools';
-import { getProtocolOracleExposureTool, getProtocolsTool } from './protocolTools';
-import { getDailyReportTool, getIncidentsTool } from './reportTools';
-import { getProviderReputationTool, getReputationRankingsTool } from './reputationTools';
-import {
-  checkLiquidationRiskTool,
-  getProtocolRiskParamsTool,
-  getRiskSummaryTool,
-} from './riskTools';
-import { robinhoodRwaContextTool, robinhoodRwaInstrumentTool, rwaAssessmentTool } from './rwaTools';
-import { checkPositionSafetyTool } from './safetyTools';
-import { getSettlementEvidenceTool } from './settlementEvidenceTools';
 import { solanaLendingGuardTool } from './solanaLendingGuardTools';
-import { solanaPerpGuardTool } from './solanaPerpGuardTools';
 import {
   settleSolanaSwapGuardTool,
   solanaSwapGuardTool,
   verifySolanaSwapGuardSettlementTool,
 } from './solanaSwapGuardTools';
-import { getStablecoinPegTool } from './stablecoinTools';
-import { getStablecoinListTool, getSymbolsTool, recommendOracleSetupTool } from './utilityTools';
-import { verifyExecutionPairTool } from './verifyExecutionPairTools';
-import { getWrappedAssetPegTool } from './wrappedAssetTools';
+import { UNIFIED_MCP_TOOLS, UNIFIED_TOOL_BY_NAME } from './unified';
+import {
+  LEGACY_MCP_TOOLS,
+  LEGACY_TOOL_BY_NAME,
+  LEGACY_TOOL_REMOVAL_DATE,
+  legacyToolsExpired,
+} from './unified/runtime';
 
-import type { McpToolCallContext, McpToolCallResult, McpToolDefinition } from './types';
+import type { McpToolCallContext, McpToolCallResult } from './types';
 
-const logger = createLogger('mcp-tools');
+const logger = createLogger(`mcp-tools`);
 
-const MCP_TOOLS: McpToolDefinition[] = [
-  rwaAssessmentTool,
-  robinhoodRwaInstrumentTool,
-  robinhoodRwaContextTool,
-  getOraclePriceTool,
-  getConsensusPriceTool,
-  getRiskSummaryTool,
-  getOracleHealthTool,
-  checkLiquidationRiskTool,
-  compareOracleDeviationTool,
-  getStablecoinPegTool,
-  getProtocolRiskParamsTool,
-  getSymbolsTool,
-  recommendOracleSetupTool,
-  getStablecoinListTool,
-  getOraclePricesBatchTool,
-  getPriceHistoryTool,
-  getCrossChainSpreadsTool,
-  getWrappedAssetPegTool,
-  getProtocolsTool,
-  getProtocolOracleExposureTool,
-  getFeedFreshnessTool,
-  getFeedsTool,
-  getFeedHealthTool,
-  getFeedUptimeTool,
-  getReputationRankingsTool,
-  getProviderReputationTool,
-  getDailyReportTool,
-  getIncidentsTool,
-  getSettlementEvidenceTool,
-  getLatencyTool,
-  getAnomaliesTool,
-  getCorrelationTool,
-  getCoverageTool,
-  getMetricsTool,
-  getMonadDexMarketTool,
-  getHanjiMonadMarketTool,
-  getBaseDexMarketTool,
-  getBaseDexVenueIntegrationsTool,
-  getAerodromeSlipstreamMarketTool,
-  prepareAerodromeSlipstreamSwapTool,
-  prepareBaseAgentSwapGuardTool,
-  settleBaseAgentSwapGuardTool,
-  verifyBaseAgentSwapGuardSettlementTool,
-  getPancakeSwapV3MarketTool,
-  preparePancakeSwapV3SwapTool,
-  getQuickSwapV2MarketTool,
-  getSolanaDexRouteTool,
-  getHyperliquidPerpMarketTool,
-  prepareHyperliquidPerpOrderTool,
-  verifyHyperliquidPerpExecutionTool,
-  baseLendingGuardTool,
-  baseLendingGuardExactCallTool,
-  basePerpGuardTool,
-  basePerpGuardExactCallTool,
-  hyperliquidPerpGuardTool,
-  hyperliquidPerpGuardExactCallTool,
-  monadLendingGuardTool,
-  monadLendingGuardExactCallTool,
-  multichainEvmLendingGuardTool,
-  multichainEvmLendingGuardExactCallTool,
-  solanaLendingGuardTool,
-  solanaPerpGuardTool,
-  solanaSwapGuardTool,
-  settleSolanaSwapGuardTool,
-  verifySolanaSwapGuardSettlementTool,
-  loopscaleVaultDepositTool,
-  checkPositionSafetyTool,
-  preTradeSafetyCheckTool,
-  oracleWatchTool,
-  oracleWatchHistoryTool,
-  oracleWatchWindowBeginTool,
-  oracleWatchWindowPollTool,
-  oracleWatchWindowCloseTool,
-  positionLifecycleBeginTool,
-  positionLifecycleGuardTool,
-  positionLifecycleReceiptTool,
-  positionLifecycleCloseTool,
-  executionReceiptTool,
-  executionPreflightTool,
-  agentBeginTradeTool,
-  verifyExecutionPairTool,
-];
+/**
+ * Default `core` lists the 16 consolidated tools. `MCP_TOOL_PROFILE=legacy`
+ * re-exposes the 80 legacy tools for rollback only until
+ * LEGACY_TOOL_REMOVAL_DATE. Legacy names are always callable by name in both
+ * profiles.
+ */
+const TOOL_PROFILE = process.env.MCP_TOOL_PROFILE === `legacy` ? `legacy` : `core`;
 
 const JSON_SCHEMA_MAP: Record<
   string,
   { type: 'object'; properties?: Record<string, unknown>; required?: string[] }
 > = {
-  assess_rwa_evidence: rwaAssessmentTool.parameters.toJSONSchema() as {
-    type: 'object';
-    properties?: Record<string, unknown>;
-    required?: string[];
-  },
   get_robinhood_rwa_context: {
     type: 'object',
     properties: {
@@ -689,23 +533,39 @@ const JSON_SCHEMA_MAP: Record<
 };
 
 // Wire schemas are separate from runtime validators because Zod transforms
-// cannot always be represented in JSON Schema. Check completeness in every
-// environment so a missing entry cannot silently change an advertised tool.
-for (const tool of MCP_TOOLS) {
+// cannot always be represented in JSON Schema. Legacy tools must keep their
+// advertised schema for the compatibility window; unified tools carry theirs.
+for (const tool of UNIFIED_MCP_TOOLS) {
+  if (!tool.inputSchema) {
+    throw new Error(
+      `Unified MCP tool "${tool.name}" is missing an inputSchema. Add one in ./unified/schemas.`
+    );
+  }
+  assertX402PaymentScopeDeclaredForMcpTool(tool.name);
+}
+
+for (const tool of LEGACY_MCP_TOOLS) {
   if (!JSON_SCHEMA_MAP[tool.name]) {
     throw new Error(
       `MCP tool "${tool.name}" is missing a JSON schema entry in JSON_SCHEMA_MAP. ` +
-        'Add a corresponding schema in ./jsonSchemas and register it in the map.'
+        `Add a corresponding schema in ./jsonSchemas and register it in the map.`
     );
   }
   assertX402PaymentScopeDeclaredForMcpTool(tool.name);
 }
 
 export function getToolDefinitions() {
-  return MCP_TOOLS.map((tool) => ({
+  if (TOOL_PROFILE === 'legacy') {
+    return LEGACY_MCP_TOOLS.map((tool) => ({
+      name: tool.name,
+      description: tool.description,
+      inputSchema: JSON_SCHEMA_MAP[tool.name],
+    }));
+  }
+  return UNIFIED_MCP_TOOLS.map((tool) => ({
     name: tool.name,
     description: tool.description,
-    inputSchema: JSON_SCHEMA_MAP[tool.name],
+    inputSchema: tool.inputSchema,
   }));
 }
 
@@ -714,33 +574,47 @@ export async function executeTool(
   args: unknown,
   context?: McpToolCallContext
 ): Promise<McpToolCallResult> {
-  const tool = MCP_TOOLS.find((t) => t.name === name);
-
-  if (!tool) {
-    return {
-      content: [{ type: 'text', text: `Unknown tool: ${name}` }],
-      isError: true,
-    };
+  const unified = UNIFIED_TOOL_BY_NAME.get(name);
+  if (unified) {
+    try {
+      const validatedArgs = unified.parameters.parse(args);
+      const result = await unified.handler(validatedArgs, context);
+      return { content: [{ type: `text`, text: result }] };
+    } catch (error) {
+      return toolError(name, error);
+    }
   }
 
-  try {
-    const validatedArgs = tool.parameters.parse(args);
-    const result = await tool.handler(validatedArgs, context);
-    return {
-      content: [{ type: 'text', text: result }],
-    };
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    // Tool inputs can contain transaction details and signed evidence. Keep
-    // them, and validation error text that may echo them, out of Sentry.
-    logger.error('MCP tool execution failed', undefined, {
-      tool: name,
-      category: error instanceof Error && error.name === 'ZodError' ? 'validation' : 'execution',
-    });
-
-    return {
-      content: [{ type: 'text', text: `Error executing ${name}: ${message}` }],
-      isError: true,
-    };
+  const legacy = LEGACY_TOOL_BY_NAME.get(name);
+  if (legacy && !legacyToolsExpired()) {
+    try {
+      const validatedArgs = legacy.parameters.parse(args);
+      const result = await legacy.handler(validatedArgs, context);
+      return { content: [{ type: `text`, text: result }] };
+    } catch (error) {
+      return toolError(name, error);
+    }
   }
+
+  const removalHint =
+    legacy && legacyToolsExpired() ? ` (legacy name removed on ${LEGACY_TOOL_REMOVAL_DATE})` : ``;
+  return {
+    content: [{ type: `text`, text: `Unknown tool: ${name}${removalHint}` }],
+    isError: true,
+  };
+}
+
+function toolError(name: string, error: unknown): McpToolCallResult {
+  const message = error instanceof Error ? error.message : String(error);
+  // Tool inputs can contain transaction details and signed evidence. Keep
+  // them, and validation error text that may echo them, out of Sentry.
+  logger.error(`MCP tool execution failed`, undefined, {
+    tool: name,
+    category: error instanceof Error && error.name === `ZodError` ? `validation` : `execution`,
+  });
+
+  return {
+    content: [{ type: `text`, text: `Error executing ${name}: ${message}` }],
+    isError: true,
+  };
 }

@@ -131,7 +131,7 @@ export function assertX402RestScopeCoverage(paidRestPaths: readonly string[]): v
  */
 const X402_CHAIN_NEUTRAL_MCP_PAYMENT_SCOPE_BY_TOOL = {
   agent_begin_trade: X402_PAYMENT_SCOPE.configured,
-  assess_rwa_evidence: X402_PAYMENT_SCOPE.configured,
+  begin_trade_evidence: X402_PAYMENT_SCOPE.configured,
   check_liquidation_risk: X402_PAYMENT_SCOPE.configured,
   check_position_safety: X402_PAYMENT_SCOPE.configured,
   compare_oracle_deviation: X402_PAYMENT_SCOPE.configured,
@@ -152,6 +152,7 @@ const X402_CHAIN_NEUTRAL_MCP_PAYMENT_SCOPE_BY_TOOL = {
   get_metrics: X402_PAYMENT_SCOPE.configured,
   get_oracle_health: X402_PAYMENT_SCOPE.configured,
   get_oracle_price: X402_PAYMENT_SCOPE.configured,
+  get_price_analytics: X402_PAYMENT_SCOPE.configured,
   get_oracle_prices_batch: X402_PAYMENT_SCOPE.configured,
   get_price_history: X402_PAYMENT_SCOPE.configured,
   get_protocol_oracle_exposure: X402_PAYMENT_SCOPE.configured,
@@ -176,6 +177,7 @@ const X402_CHAIN_NEUTRAL_MCP_PAYMENT_SCOPE_BY_TOOL = {
   position_lifecycle_begin: X402_PAYMENT_SCOPE.configured,
   pre_trade_safety_check: X402_PAYMENT_SCOPE.configured,
   recommend_oracle_setup: X402_PAYMENT_SCOPE.configured,
+  search_oracle_registry: X402_PAYMENT_SCOPE.configured,
   verify_execution_pair: X402_PAYMENT_SCOPE.configured,
 } as const satisfies Record<string, X402PaymentScope>;
 
@@ -215,6 +217,7 @@ export const X402_MCP_PAYMENT_SCOPE_BY_TOOL: Readonly<Record<string, X402Payment
   // these tools from falling back to an unrelated EVM quote until it does.
   get_hyperliquid_perp_market: X402_PAYMENT_SCOPE.hypercore,
   prepare_hyperliquid_perp_order: X402_PAYMENT_SCOPE.hypercore,
+  prepare_perp_order: X402_PAYMENT_SCOPE.hypercore,
   verify_hyperliquid_perp_execution: X402_PAYMENT_SCOPE.hypercore,
   // The Hyperliquid perp guard is venue-bound evidence about Hyperliquid, so
   // it names the same realm; the paid tier is served by the REST route, and
@@ -304,6 +307,48 @@ function baseAgentSwapGuardMcpPaymentScope(
 }
 
 /**
+ * Map a reviewed venue (plus an optional profile id) onto its payment realm.
+ * Venue families are explicit so an unknown venue fails closed.
+ */
+function venueMcpPaymentScope(venue: unknown, profileIdValue: unknown): X402PaymentScope | null {
+  if (venue === 'solana_jupiter' || venue === 'solana_loopscale_vault') {
+    return X402_PAYMENT_SCOPE.solana;
+  }
+  if (venue === 'hyperliquid_perp') return X402_PAYMENT_SCOPE.hypercore;
+  if (typeof venue !== 'string' || (!venue.startsWith('base_') && !venue.startsWith('monad_'))) {
+    return null;
+  }
+  const profileId = typeof profileIdValue === 'string' ? profileIdValue : null;
+  if (profileId !== null) {
+    if (profileId.startsWith('bnb-')) return X402_PAYMENT_SCOPE.bnb;
+    if (profileId.startsWith('base-')) return X402_PAYMENT_SCOPE.base;
+    if (profileId.startsWith('monad-')) return X402_PAYMENT_SCOPE.monad;
+    return null;
+  }
+  if (venue.startsWith('monad_')) return X402_PAYMENT_SCOPE.monad;
+  return X402_PAYMENT_SCOPE.base;
+}
+
+/** Read the execution chain carried by a signed guard decision/settlement. */
+function signedEvidenceChainId(value: unknown): number | null {
+  if (!isRecord(value)) return null;
+  const guard = isRecord(value.guard) ? value.guard : null;
+  const scope = guard && isRecord(guard.scope) ? guard.scope : null;
+  if (scope && typeof scope.chainId === 'number') return scope.chainId;
+  const settlement = isRecord(value.settlement) ? value.settlement : null;
+  if (settlement && typeof settlement.chainId === 'number') return settlement.chainId;
+  if (typeof value.chainId === 'number') return value.chainId;
+  return null;
+}
+
+function evmScopeFromChainId(chainId: number | null): X402PaymentScope | null {
+  if (chainId === 56) return X402_PAYMENT_SCOPE.bnb;
+  if (chainId === 8453) return X402_PAYMENT_SCOPE.base;
+  if (chainId === 143) return X402_PAYMENT_SCOPE.monad;
+  return x402PaymentScopeForEvmChainId(chainId);
+}
+
+/**
  * Resolve the required payment realm before a paid MCP call is quoted or
  * verified. A malformed/unsupported multichain request returns null rather
  * than inheriting the global rail and producing a deceptive quote.
@@ -331,6 +376,38 @@ export function x402PaymentScopeForMcpTool(
     return baseAgentSwapGuardMcpPaymentScope(toolName, argumentsValue);
   }
 
+  if (!isRecord(argumentsValue)) {
+    return X402_MCP_PAYMENT_SCOPE_BY_TOOL[toolName] ?? null;
+  }
+
+  if (toolName === 'check_trade_safety') {
+    const chain = argumentsValue.chain_id;
+    if (chain === 'solana') return X402_PAYMENT_SCOPE.solana;
+    if (chain === 'hyperliquid') return X402_PAYMENT_SCOPE.hypercore;
+    return x402PaymentScopeForEvmChainId(chain);
+  }
+
+  if (toolName === 'prepare_swap' || toolName === 'get_market_quote') {
+    return venueMcpPaymentScope(argumentsValue.venue, argumentsValue.profile_id);
+  }
+
+  if (toolName === 'issue_execution_receipt') {
+    if (argumentsValue.mode === 'settle_solana_swap') return X402_PAYMENT_SCOPE.solana;
+    if (argumentsValue.mode === 'settle_base_agent_swap') {
+      return evmScopeFromChainId(signedEvidenceChainId(argumentsValue.decision));
+    }
+    return X402_PAYMENT_SCOPE.configured;
+  }
+
+  if (toolName === 'verify_evidence') {
+    if (argumentsValue.kind === 'solana_swap') return X402_PAYMENT_SCOPE.solana;
+    if (argumentsValue.kind === 'hyperliquid_perp') return X402_PAYMENT_SCOPE.hypercore;
+    if (argumentsValue.kind === 'base_agent_swap') {
+      return evmScopeFromChainId(signedEvidenceChainId(argumentsValue.settlement));
+    }
+    return X402_PAYMENT_SCOPE.configured;
+  }
+
   return X402_MCP_PAYMENT_SCOPE_BY_TOOL[toolName] ?? null;
 }
 
@@ -341,6 +418,11 @@ const X402_DYNAMIC_MCP_PAYMENT_SCOPE_TOOLS = new Set([
   'verify_base_agent_swap_guard_settlement',
   'get_pancakeswap_v3_market',
   'prepare_pancakeswap_v3_swap',
+  'check_trade_safety',
+  'prepare_swap',
+  'get_market_quote',
+  'issue_execution_receipt',
+  'verify_evidence',
 ]);
 
 /**

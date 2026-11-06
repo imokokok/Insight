@@ -2,11 +2,11 @@ import { getToolCreditCost } from '@/lib/billing/metering';
 import { assessMultichainEvmLendingGuard } from '@/lib/lending/multichainEvmLendingGuard';
 import { createMultichainEvmLendingGuardDecision } from '@/lib/lending/multichainEvmLendingGuardAttestation';
 
-import { getToolDefinitions } from '../index';
 import {
   multichainEvmLendingGuardExactCallTool,
   multichainEvmLendingGuardTool,
 } from '../multichainEvmLendingGuardTools';
+import { LEGACY_TOOL_BY_NAME } from '../unified/runtime';
 
 jest.mock('@/lib/lending/multichainEvmLendingGuard', () => {
   const actual = jest.requireActual('@/lib/lending/multichainEvmLendingGuard');
@@ -38,9 +38,8 @@ describe('multichain_evm_lending_guard MCP tools', () => {
   beforeEach(() => jest.clearAllMocks());
 
   it('is discoverable and metered as an agent gate', () => {
-    const names = getToolDefinitions().map((tool) => tool.name);
-    expect(names).toContain('multichain_evm_lending_guard');
-    expect(names).toContain('multichain_evm_lending_guard_exact_call');
+    expect(LEGACY_TOOL_BY_NAME.has('multichain_evm_lending_guard')).toBe(true);
+    expect(LEGACY_TOOL_BY_NAME.has('multichain_evm_lending_guard_exact_call')).toBe(true);
     expect(getToolCreditCost('multichain_evm_lending_guard')).toBe(5);
     expect(getToolCreditCost('multichain_evm_lending_guard_exact_call')).toBe(5);
   });

@@ -5,7 +5,7 @@ import {
   prepareHyperliquidPerpOrderTool,
   verifyHyperliquidPerpExecutionTool,
 } from '../hyperliquidPerpTools';
-import { getToolDefinitions } from '../index';
+import { LEGACY_TOOL_BY_NAME } from '../unified/runtime';
 
 jest.mock('@/lib/dex/hyperliquidPerpExecution', () => ({
   verifyHyperliquidPerpExecution: jest.fn(),
@@ -31,12 +31,8 @@ describe('Hyperliquid order MCP tools', () => {
   beforeEach(() => jest.clearAllMocks());
 
   it('registers validated user-side preflight and observed execution tools with x402 classes', () => {
-    expect(getToolDefinitions().map((tool) => tool.name)).toEqual(
-      expect.arrayContaining([
-        'prepare_hyperliquid_perp_order',
-        'verify_hyperliquid_perp_execution',
-      ])
-    );
+    expect(LEGACY_TOOL_BY_NAME.has('prepare_hyperliquid_perp_order')).toBe(true);
+    expect(LEGACY_TOOL_BY_NAME.has('verify_hyperliquid_perp_execution')).toBe(true);
     expect(prepareHyperliquidPerpOrderTool.parameters.safeParse(preflight).success).toBe(true);
     expect(
       prepareHyperliquidPerpOrderTool.parameters.safeParse({ ...preflight, clientOrderId: 'nope' })

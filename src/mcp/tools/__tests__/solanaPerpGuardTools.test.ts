@@ -1,8 +1,8 @@
 import { getToolCreditCost } from '@/lib/billing/metering';
 import { assessSolanaPerpGuard } from '@/lib/perps/solanaPerpGuard';
 
-import { getToolDefinitions } from '../index';
 import { solanaPerpGuardTool } from '../solanaPerpGuardTools';
+import { LEGACY_TOOL_BY_NAME } from '../unified/runtime';
 
 jest.mock('@/lib/perps/solanaPerpGuard', () => {
   const actual = jest.requireActual('@/lib/perps/solanaPerpGuard');
@@ -108,8 +108,7 @@ const VALID_ARGS = {
 
 describe('solana_perp_guard tool', () => {
   it('is discoverable, x402-declared, and metered at C3', () => {
-    const tools = getToolDefinitions();
-    const tool = tools.find((definition) => definition.name === 'solana_perp_guard');
+    const tool = LEGACY_TOOL_BY_NAME.get('solana_perp_guard');
 
     expect(tool).toBeDefined();
     expect(getToolCreditCost('solana_perp_guard')).toBe(5);

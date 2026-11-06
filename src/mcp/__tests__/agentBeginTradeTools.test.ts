@@ -5,9 +5,9 @@ import { verifyDecisionInputAssessment } from '@/lib/decisionInputTrust/attestat
 import { recordDecisionInputExecutionGate } from '@/lib/decisionInputTrust/audit';
 import { getOnchainRouteQuote } from '@/lib/decisionInputTrust/onchainRouteQuote';
 
-import { getToolDefinitions } from '../tools';
 import { agentBeginTradeTool } from '../tools/agentBeginTradeTools';
 import { AgentBeginTradeInputSchema } from '../tools/schemas';
+import { LEGACY_TOOL_BY_NAME } from '../tools/unified/runtime';
 
 jest.mock('@/lib/api/services/preTradeSafetyService', () => ({
   preTradeSafetyCheck: jest.fn(),
@@ -400,12 +400,12 @@ describe('agent_begin_trade', () => {
 });
 
 describe('agent_begin_trade registration', () => {
-  it('is registered in the MCP tool registry with a JSON schema (dev assertion passes)', () => {
-    const defs = getToolDefinitions();
-    const tool = defs.find((t) => t.name === 'agent_begin_trade');
-    expect(tool).toBeDefined();
-    expect(tool!.inputSchema).toBeDefined();
-    expect(JSON.stringify(tool!.inputSchema)).toContain('maxSlippageBps');
-    expect(JSON.stringify(tool!.inputSchema)).toContain('decisionInput');
+  it('is registered in the legacy MCP tool registry with a JSON schema (dev assertion passes)', () => {
+    expect(LEGACY_TOOL_BY_NAME.get('agent_begin_trade')).toBeDefined();
+    expect(LEGACY_TOOL_BY_NAME.get('agent_begin_trade')!.parameters).toBe(
+      AgentBeginTradeInputSchema
+    );
+    expect(Object.keys(AgentBeginTradeInputSchema.shape)).toContain('maxSlippageBps');
+    expect(Object.keys(AgentBeginTradeInputSchema.shape)).toContain('decisionInput');
   });
 });
