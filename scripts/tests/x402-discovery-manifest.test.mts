@@ -93,6 +93,7 @@ test('plan-priced resources retain their fixed amounts across route scopes', () 
   const plans = [
     ['/api/v1/safety/oracle-watch-window', 'POST', '500000'],
     ['/api/v1/safety/position-lifecycle', 'POST', '550000'],
+    ['/api/v1/oracle-config/snapshot', 'POST', '500000'],
   ] as const;
 
   for (const [path, method, amount] of plans) {

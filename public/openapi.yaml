@@ -1820,6 +1820,80 @@ paths:
           description: 'WINDOW_TOO_OLD — the window predates the candle source retention.'
 
   # ── Prices ──────────────────────────────────────────────
+  /oracle-config/snapshot:
+    post:
+      operationId: createOracleConfigSnapshot
+      tags: [Execution Evidence]
+      summary: Signed, advisory oracle config snapshot 🔒
+      description: >-
+        Paid, idempotent, on-demand record of ONE oracle configuration and its
+        independent-source state at a point in time. This is an advisory INPUT
+        record, not a safety assessment: it states what was observable and does
+        not assert that a configuration is safe or unsafe, and does not
+        recommend parameter changes.
+
+        The request is strict and names chainId, protocolId and assetSymbol
+        ONLY. Caller-supplied feed lists, parameters, source claims or declared
+        outcomes are rejected. All observable state is read server-side from
+        the live feed registry, the Chainlink feed config and the
+        reviewed-profile registry. Returns configHash, checksHash, a D1-D6
+        check record, the observed source state and an EIP-712 attestation
+        with no expiry, so the holder can verify the record offline later.
+        Within one hour bucket an identical configuration yields a
+        byte-identical payload and typed-data hash.
+
+        **x402-metered** (merchant-configured payment rail) or API key.
+      security:
+        - apiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [chainId, protocolId, assetSymbol]
+              additionalProperties: false
+              properties:
+                chainId:
+                  type: integer
+                  minimum: 1
+                  description: EVM chain id of the configuration.
+                protocolId:
+                  type: string
+                  minLength: 1
+                  maxLength: 120
+                  description: Reviewed protocol or vault identifier.
+                assetSymbol:
+                  type: string
+                  minLength: 1
+                  maxLength: 40
+                  description: Collateral or loan asset symbol.
+      responses:
+        '200':
+          description: Signed snapshot record.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  data:
+                    type: object
+                    required: [snapshot, attested, idempotent, advisory, rightsNotice]
+                    properties:
+                      snapshot:
+                        type: object
+                        description: payload, payloadHash and nullable attestation.
+                      attested: { type: boolean }
+                      idempotent: { type: boolean }
+                      advisory: { type: boolean, const: true }
+                      rightsNotice: { type: string }
+        '400':
+          description: 'VALIDATION_ERROR — strict body violation or caller-supplied configuration claim.'
+
   /prices:
     get:
       operationId: getPrice

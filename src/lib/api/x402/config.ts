@@ -690,6 +690,15 @@ export const X402_LOOPSCALE_VAULT_DEPOSIT_ROUTE = '/api/v1/safety/loopscale-vaul
  */
 export const X402_SETTLEMENT_EVIDENCE_GRADE_ROUTE = '/api/v1/markets/settlement-evidence/grade';
 
+/**
+ * Oracle Config Snapshot (POST): an advisory, signed record of one oracle
+ * configuration and its independent-source state at a point in time. It is a
+ * historical input record, NOT a safety verdict, and is priced through the
+ * dedicated plan in src/lib/billing/oracleConfigSnapshot.ts rather than the
+ * configured per-call amount.
+ */
+export const X402_ORACLE_CONFIG_SNAPSHOT_ROUTE = '/api/v1/oracle-config/snapshot';
+
 /** A two-gate same-chain swap lifecycle with one post-settlement receipt credit. */
 export const X402_SWAP_INTENT_ROUTE = '/api/v1/safety/swap-intent';
 
@@ -749,6 +758,7 @@ export const X402_PAID_REST_ROUTE_PATHS = [
   X402_ORACLE_WATCH_WINDOW_ROUTE,
   X402_POSITION_LIFECYCLE_ROUTE,
   X402_SETTLEMENT_EVIDENCE_GRADE_ROUTE,
+  X402_ORACLE_CONFIG_SNAPSHOT_ROUTE,
 ] as const;
 
 /**
