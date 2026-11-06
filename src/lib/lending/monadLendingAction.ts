@@ -7,6 +7,7 @@ import {
   AAVE_V3_MONAD_POOL,
   MONAD_CHAIN_ID,
   MORPHO_BLUE_MONAD,
+  defaultMonadEulerDescriptor,
   monadAaveUnderlyingForSymbol,
 } from './monadLendingProtocols';
 
@@ -114,12 +115,76 @@ const MORPHO_ABI = [
   },
 ] as const;
 
+/** The direct (non-EVC-batched) EVault calls published by Euler. */
+const EULER_V2_EVAULT_ABI = [
+  {
+    type: 'function',
+    name: 'deposit',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: 'assets', type: 'uint256' },
+      { name: 'receiver', type: 'address' },
+    ],
+    outputs: [{ name: 'shares', type: 'uint256' }],
+  },
+  {
+    type: 'function',
+    name: 'borrow',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: 'amount', type: 'uint256' },
+      { name: 'receiver', type: 'address' },
+    ],
+    outputs: [{ name: 'assets', type: 'uint256' }],
+  },
+] as const;
+const EULER_V2_EVC_ABI = [
+  {
+    type: 'function',
+    name: 'batch',
+    stateMutability: 'payable',
+    inputs: [
+      {
+        name: 'items',
+        type: 'tuple[]',
+        components: [
+          { name: 'targetContract', type: 'address' },
+          { name: 'onBehalfOfAccount', type: 'address' },
+          { name: 'value', type: 'uint256' },
+          { name: 'data', type: 'bytes' },
+        ],
+      },
+    ],
+    outputs: [],
+  },
+  {
+    type: 'function',
+    name: 'enableCollateral',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: 'account', type: 'address' },
+      { name: 'collateral', type: 'address' },
+    ],
+    outputs: [],
+  },
+  {
+    type: 'function',
+    name: 'enableController',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: 'account', type: 'address' },
+      { name: 'controller', type: 'address' },
+    ],
+    outputs: [],
+  },
+] as const;
+
 /**
- * Reviewed Monad lending protocol ids. `euler-v2-monad` is registered as an
- * admission candidate only: its deployment descriptor is UNVERIFIED (no
- * verifiable Monad Euler addresses exist in-repo or in first-hand sources),
- * so the evaluator fails closed and no exact call is ever decoded for it.
- * See monadLendingProtocols.ts MONAD_EULER_UNVERIFIED_DESCRIPTOR.
+ * Reviewed Monad lending protocol ids. `euler-v2-monad` is reviewed against
+ * the VERIFIED deployment descriptor (monadLendingProtocols.ts
+ * MONAD_EULER_REVIEWED_DESCRIPTOR): only canonical direct EVault deposits and
+ * the exact four-step EVC borrow batch against descriptor-pinned addresses
+ * are ever decoded. See monadLendingProtocols.ts.
  */
 export const MonadLendingProtocolIdSchema = z.enum([
   'aave-v3-monad',
@@ -140,6 +205,10 @@ type ExpectedGuardScope = {
   marketId?: string;
   collateralSymbol?: string;
   loanSymbol?: string;
+  /** Required for a permissionless Monad Euler EVault; verified live by the guard. */
+  marketAddress?: string;
+  /** Required for a Monad Euler EVC collateral-deposit-and-borrow batch. */
+  collateralVaultAddress?: string;
 };
 
 export interface MonadLendingDecodedAction {
@@ -201,6 +270,154 @@ function morphoMarketId(params: {
 }
 
 /**
+ * Decode the reviewed Monad Euler exact calls: a canonical direct EVault
+ * deposit (supply) or the exact four-step EVC borrow batch
+ * (enableCollateral -> deposit -> enableController -> borrow), both pinned to
+ * the VERIFIED descriptor's addresses. Any other shape is refused.
+ */
+function decodeMonadEulerCall(
+  transaction: MonadLendingExactTransaction,
+  expected: ExpectedGuardScope,
+  target: `0x${string}`,
+  data: `0x${string}`,
+  calldataHash: `0x${string}`
+): MonadLendingDecodedAction {
+  const descriptor = defaultMonadEulerDescriptor();
+  if (
+    descriptor.status !== 'VERIFIED' ||
+    !descriptor.eVaultFactory ||
+    !descriptor.evc ||
+    !descriptor.sourceRef
+  ) {
+    throw new Error(
+      'Monad Euler exact-call binding requires a VERIFIED deployment descriptor (fail closed)'
+    );
+  }
+  const evc = address(descriptor.evc);
+  const inRegistry = (candidate: string) =>
+    descriptor.vaults.some((entry) => entry.address === address(candidate));
+  if (expected.action === 'supply') {
+    if (!expected.marketAddress || target !== address(expected.marketAddress)) {
+      throw new Error('Euler exact call target does not match the reviewed EVault address');
+    }
+    if (!inRegistry(expected.marketAddress)) {
+      throw new Error('Euler exact call EVault is not in the reviewed Monad registry');
+    }
+    const decoded = decodeFunctionData({ abi: EULER_V2_EVAULT_ABI, data });
+    if (decoded.functionName !== 'deposit') {
+      throw new Error('Euler supply exact call must be the canonical EVault deposit selector');
+    }
+    requireCanonicalCalldata(data, EULER_V2_EVAULT_ABI, decoded.functionName, decoded.args);
+    const [amount, receiver] = decoded.args;
+    if (address(receiver) !== address(transaction.from) || amount <= 0n) {
+      throw new Error('Euler direct supply must be positive and mint shares only to the sender');
+    }
+    return {
+      protocolId: expected.protocolId,
+      action: expected.action,
+      target,
+      calldataHash,
+      amount: uint(amount),
+      account: address(transaction.from),
+      receiver: address(receiver),
+      asset: null,
+      marketId: null,
+    };
+  }
+  if (!expected.collateralVaultAddress || target !== evc) {
+    throw new Error(
+      'Euler borrow must target the reviewed Monad EVC with an explicit collateral EVault'
+    );
+  }
+  if (
+    !expected.marketAddress ||
+    !inRegistry(expected.marketAddress) ||
+    !inRegistry(expected.collateralVaultAddress)
+  ) {
+    throw new Error('Euler exact call EVaults are not in the reviewed Monad registry');
+  }
+  const decoded = decodeFunctionData({ abi: EULER_V2_EVC_ABI, data });
+  if (decoded.functionName !== 'batch') {
+    throw new Error('Euler borrow must use the canonical EVC batch selector');
+  }
+  requireCanonicalCalldata(data, EULER_V2_EVC_ABI, decoded.functionName, decoded.args);
+  const [items] = decoded.args as unknown as [
+    readonly {
+      targetContract: `0x${string}`;
+      onBehalfOfAccount: `0x${string}`;
+      value: bigint;
+      data: `0x${string}`;
+    }[],
+  ];
+  if (items.length !== 4) {
+    throw new Error('Euler borrow must contain exactly the reviewed four-step EVC batch');
+  }
+  const sender = address(transaction.from);
+  const zero = '0x0000000000000000000000000000000000000000';
+  const collateralVault = address(expected.collateralVaultAddress);
+  const borrowVault = address(expected.marketAddress);
+  const [enableCollateral, depositCollateral, enableController, borrow] = items;
+  const expectedEnableCollateral = encodeFunctionData({
+    abi: EULER_V2_EVC_ABI,
+    functionName: 'enableCollateral',
+    args: [sender, collateralVault],
+  });
+  const expectedEnableController = encodeFunctionData({
+    abi: EULER_V2_EVC_ABI,
+    functionName: 'enableController',
+    args: [sender, borrowVault],
+  });
+  if (
+    address(enableCollateral.targetContract) !== evc ||
+    address(enableCollateral.onBehalfOfAccount) !== zero ||
+    enableCollateral.value !== 0n ||
+    enableCollateral.data.toLowerCase() !== expectedEnableCollateral.toLowerCase() ||
+    address(depositCollateral.targetContract) !== collateralVault ||
+    address(depositCollateral.onBehalfOfAccount) !== sender ||
+    depositCollateral.value !== 0n ||
+    address(enableController.targetContract) !== evc ||
+    address(enableController.onBehalfOfAccount) !== zero ||
+    enableController.value !== 0n ||
+    enableController.data.toLowerCase() !== expectedEnableController.toLowerCase() ||
+    address(borrow.targetContract) !== borrowVault ||
+    address(borrow.onBehalfOfAccount) !== sender ||
+    borrow.value !== 0n
+  ) {
+    throw new Error('Euler EVC batch does not match the reviewed collateral-and-borrow order');
+  }
+  const deposit = decodeFunctionData({ abi: EULER_V2_EVAULT_ABI, data: depositCollateral.data });
+  const borrowCall = decodeFunctionData({ abi: EULER_V2_EVAULT_ABI, data: borrow.data });
+  if (deposit.functionName !== 'deposit' || borrowCall.functionName !== 'borrow') {
+    throw new Error('Euler EVC batch must deposit collateral before borrowing');
+  }
+  requireCanonicalCalldata(depositCollateral.data, EULER_V2_EVAULT_ABI, 'deposit', deposit.args);
+  requireCanonicalCalldata(borrow.data, EULER_V2_EVAULT_ABI, 'borrow', borrowCall.args);
+  const [collateralAmount, collateralReceiver] = deposit.args;
+  const [borrowAmount, borrowReceiver] = borrowCall.args;
+  if (
+    collateralAmount <= 0n ||
+    borrowAmount <= 0n ||
+    address(collateralReceiver) !== sender ||
+    address(borrowReceiver) !== sender
+  ) {
+    throw new Error(
+      'Euler EVC batch must keep both collateral and borrowed assets with the sender'
+    );
+  }
+  return {
+    protocolId: expected.protocolId,
+    action: 'borrow',
+    target,
+    calldataHash,
+    amount: uint(borrowAmount),
+    account: sender,
+    receiver: sender,
+    asset: null,
+    marketId: null,
+  };
+}
+
+/**
  * Decode only canonical direct Aave V3 / Morpho Blue supply and borrow calls.
  * This does not simulate an account or grant any authority to submit a call.
  */
@@ -209,14 +426,6 @@ export function decodeMonadLendingExactCall(
   expected: ExpectedGuardScope
 ): MonadLendingDecodedAction {
   const transaction = MonadLendingExactTransactionSchema.parse(rawTransaction);
-  // Euler on Monad has no verified deployment descriptor. Refuse to decode any
-  // "exact" call for it instead of silently treating it as Morpho or inventing
-  // a target: 未找到，需人工 review 后登记。
-  if (isMonadEulerProtocolId(expected.protocolId)) {
-    throw new Error(
-      'Monad Euler exact-call binding is UNVERIFIED (未找到，需人工 review 后登记): no verified Monad Euler deployment addresses exist'
-    );
-  }
   if (BigInt(transaction.value) !== 0n) {
     throw new Error('Monad Lending Guard only accepts zero-value direct lending calls');
   }
@@ -224,6 +433,9 @@ export function decodeMonadLendingExactCall(
   const data = transaction.data as `0x${string}`;
   const calldataHash = keccak256(data);
 
+  if (isMonadEulerProtocolId(expected.protocolId)) {
+    return decodeMonadEulerCall(transaction, expected, target, data, calldataHash);
+  }
   if (expected.protocolId === 'aave-v3-monad') {
     if (target !== AAVE_V3_MONAD_POOL) {
       throw new Error('Exact call target is not the canonical Aave V3 Monad Pool');

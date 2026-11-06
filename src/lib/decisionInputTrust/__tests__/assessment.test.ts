@@ -264,6 +264,38 @@ describe('assessDecisionInput', () => {
     );
   });
 
+  it('marks a future quote timestamp as invalid rather than stale', () => {
+    const result = assess({ request: { quoteObservedAt: '2026-10-13T06:30:30.000Z' } });
+
+    expect(result.status).toBe('INSUFFICIENT_EVIDENCE');
+    expect(result.eligibleToProceed).toBe(false);
+    expect(result.reasons.map(({ code }) => code)).toContain('QUOTE_TIMESTAMP_INVALID');
+  });
+
+  it('blocks when the fresh Chainlink reference diverges beyond the deviation limit', () => {
+    const result = assess({ chainlink: { ...chainlink, price: 2030 } });
+
+    expect(result.status).toBe('BLOCK');
+    expect(result.eligibleToProceed).toBe(false);
+    expect(result.reasons.map(({ code }) => code)).toContain('CHAINLINK_DIVERGENCE');
+  });
+
+  it('blocks when the CEX median reference diverges beyond the deviation limit', () => {
+    const result = assess({ cex: { ...cex, refPrice: 2030 } });
+
+    expect(result.status).toBe('BLOCK');
+    expect(result.eligibleToProceed).toBe(false);
+    expect(result.reasons.map(({ code }) => code)).toContain('MARKET_REFERENCE_DIVERGENCE');
+  });
+
+  it('blocks when the CEX cross-exchange spread exceeds the reference-quality limit', () => {
+    const result = assess({ cex: { ...cex, crossExchangeSpreadPct: 1.0 } });
+
+    expect(result.status).toBe('BLOCK');
+    expect(result.eligibleToProceed).toBe(false);
+    expect(result.reasons.map(({ code }) => code)).toContain('MARKET_REFERENCE_SPREAD');
+  });
+
   it('does not reuse Ethereum DEX evidence for another chain', () => {
     const result = assess({ chainId: 8453 });
 

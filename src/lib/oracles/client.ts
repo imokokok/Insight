@@ -9,8 +9,9 @@
  * the browser bundle.
  *
  * Functions that need to instantiate oracle clients (e.g. getDefaultFactory)
- * should remain on the server or be called through API routes. The full
- * barrel at `@/lib/oracles` should only be used by Server Components / API
+ * should remain on the server or be called through API routes. Importing
+ * from `@/lib/oracles` submodules that pull in clients (e.g. the factory or
+ * concrete client modules) should only happen in Server Components / API
  * routes where the heavy dependencies are acceptable.
  */
 

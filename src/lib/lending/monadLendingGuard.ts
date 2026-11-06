@@ -31,6 +31,7 @@ import {
   monadAaveUnderlyingForSymbol,
   type MonadEulerDeploymentDescriptor,
 } from './monadLendingProtocols';
+import { EULER_V2_EVAULT_VIEW_ABI, EULER_V2_FACTORY_ABI } from './multichainEvmLendingGuard';
 
 export const MonadLendingGuardInputSchema = z
   .object({
@@ -44,6 +45,14 @@ export const MonadLendingGuardInputSchema = z
       .string()
       .regex(/^0x[a-fA-F0-9]{64}$/)
       .optional(),
+    marketAddress: z
+      .string()
+      .regex(/^0x[a-fA-F0-9]{40}$/)
+      .optional(),
+    collateralVaultAddress: z
+      .string()
+      .regex(/^0x[a-fA-F0-9]{40}$/)
+      .optional(),
   })
   .superRefine((value, context) => {
     if (value.protocolId === 'morpho-blue-monad' && !value.marketId) {
@@ -52,6 +61,24 @@ export const MonadLendingGuardInputSchema = z
         path: ['marketId'],
         message:
           'marketId is required for Morpho Blue because every market has separate risk parameters',
+      });
+    }
+    if (isMonadEulerProtocolId(value.protocolId) && !value.marketAddress) {
+      context.addIssue({
+        code: 'custom',
+        path: ['marketAddress'],
+        message: 'marketAddress is required to verify the selected Monad Euler EVault live',
+      });
+    }
+    if (
+      isMonadEulerProtocolId(value.protocolId) &&
+      value.action === 'borrow' &&
+      !value.collateralVaultAddress
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['collateralVaultAddress'],
+        message: 'collateralVaultAddress is required for a Monad Euler EVC borrow',
       });
     }
   });
@@ -64,7 +91,7 @@ export const MonadLendingGuardExactInputSchema = z
   .strict();
 export type MonadLendingGuardExactInput = z.infer<typeof MonadLendingGuardExactInputSchema>;
 
-type RiskSource = 'aave-live' | 'morpho-market' | 'unavailable';
+type RiskSource = 'aave-live' | 'morpho-market' | 'euler-evault' | 'unavailable';
 interface RiskParameters {
   maxLtv: number;
   liquidationLtv: number;
@@ -301,15 +328,97 @@ export interface MonadLendingGuardDependencies {
 }
 
 /**
- * Default Euler path is fail-closed. Even a VERIFIED descriptor does not grant
- * an ALLOW without a registered live risk resolver; this keeps a registration
- * from ever acting as a silent trust bypass.
+ * Euler EVaults are permissionless, so a VERIFIED deployment descriptor alone
+ * is never enough: the selected vault must prove, live on chain 143, that it
+ * is a proxy from the canonical factory with the descriptor's EVC wiring and
+ * the declared underlying asset. Supply is restricted to an unlevered
+ * single-asset position; borrowing is accepted only against a verified
+ * collateral EVault with live LTVFull and oracle reads (the same profiles as
+ * multichainEvmLendingGuard.ts resolveEulerV2Risk).
  */
-async function defaultMonadEulerRisk(
-  _input: MonadLendingGuardInput,
-  _descriptor: MonadEulerDeploymentDescriptor
+export async function resolveMonadEulerRisk(
+  input: MonadLendingGuardInput,
+  descriptor: MonadEulerDeploymentDescriptor
 ): Promise<RiskParameters> {
-  throw new Error('Monad Euler live risk resolver is not registered (fail closed)');
+  const factory = descriptor.eVaultFactory;
+  const descriptorEvc = descriptor.evc;
+  if (!factory || !descriptorEvc) {
+    throw new Error('Monad Euler descriptor is missing its canonical factory or EVC');
+  }
+  if (!input.marketAddress) {
+    throw new Error('Expected a reviewed Monad Euler EVault address');
+  }
+  const vault = address(input.marketAddress);
+  if (!descriptor.vaults.some((entry) => entry.address === vault)) {
+    throw new Error('Selected Monad Euler EVault is not in the reviewed registry');
+  }
+  const verifyVault = async (candidate: `0x${string}`) => {
+    const [isProxy, asset, evc] = await Promise.all([
+      readDecoded<boolean>(factory, EULER_V2_FACTORY_ABI, 'isProxy', [candidate]),
+      readDecoded<`0x${string}`>(candidate, EULER_V2_EVAULT_VIEW_ABI, 'asset'),
+      readDecoded<`0x${string}`>(candidate, EULER_V2_EVAULT_VIEW_ABI, 'EVC'),
+    ]);
+    if (!isProxy)
+      throw new Error('Selected Euler EVault is not a proxy from the canonical factory');
+    if (address(evc) !== address(descriptorEvc)) {
+      throw new Error('Selected Euler EVault is wired to an unexpected EVC deployment');
+    }
+    return address(asset);
+  };
+  const asset = await verifyVault(vault);
+  const symbol = await readErc20Symbol(asset);
+  if (input.action === 'supply') {
+    if (
+      input.debtValueUsd !== 0 ||
+      oracleSymbol(input.collateralSymbol) !== oracleSymbol(input.loanSymbol)
+    ) {
+      throw new Error(
+        'Euler direct supply profile is restricted to an unlevered single-asset position'
+      );
+    }
+    if (oracleSymbol(symbol) !== oracleSymbol(input.collateralSymbol)) {
+      throw new Error('Selected Euler EVault asset does not match the declared supply asset');
+    }
+    return {
+      maxLtv: 1,
+      liquidationLtv: 1,
+      source: 'euler-evault',
+      oracleAddress: undefined,
+    };
+  }
+  if (!input.collateralVaultAddress) {
+    throw new Error('Euler EVC borrow requires an explicit collateral EVault');
+  }
+  const collateralVault = address(input.collateralVaultAddress);
+  const collateralAsset = await verifyVault(collateralVault);
+  const collateralSymbol = await readErc20Symbol(collateralAsset);
+  if (
+    oracleSymbol(symbol) !== oracleSymbol(input.loanSymbol) ||
+    oracleSymbol(collateralSymbol) !== oracleSymbol(input.collateralSymbol)
+  ) {
+    throw new Error('Euler borrow or collateral EVault asset does not match the declared market');
+  }
+  const [ltv, oracle] = await Promise.all([
+    readDecoded<readonly [bigint, bigint, bigint, bigint, bigint]>(
+      vault,
+      EULER_V2_EVAULT_VIEW_ABI,
+      'LTVFull',
+      [collateralVault]
+    ),
+    readDecoded<`0x${string}`>(vault, EULER_V2_EVAULT_VIEW_ABI, 'oracle'),
+  ]);
+  const maxLtv = Number(ltv[0]) / 10_000;
+  const liquidationLtv = Number(ltv[1]) / 10_000;
+  if (!(maxLtv > 0 && maxLtv < 1 && liquidationLtv >= maxLtv && liquidationLtv <= 1)) {
+    throw new Error('Euler borrow EVault returned invalid collateral LTV controls');
+  }
+  if (/^0x0{40}$/i.test(oracle)) throw new Error('Euler borrow EVault returned a zero oracle');
+  return {
+    maxLtv,
+    liquidationLtv,
+    source: 'euler-evault',
+    oracleAddress: address(oracle),
+  };
 }
 
 /** Assess the Monad position proposal without any transaction authority. */
@@ -327,10 +436,10 @@ export async function assessMonadLendingGuard(
       risk = await (dependencies.resolveAaveRisk ?? resolveAaveRisk)(input);
     } else if (isMonadEulerProtocolId(input.protocolId)) {
       // Same EVM pattern as multichainEvmLendingGuard.ts resolveEulerV2Risk:
-      // a deployment descriptor pins eVaultFactory / EVC / reviewed EVaults,
-      // and live vault authentication is delegated to a resolver. With no
-      // verifiable Monad addresses the descriptor is UNVERIFIED, so this
-      // branch fails closed rather than reading a chain target we cannot name.
+      // the reviewed descriptor pins eVaultFactory / EVC / reviewed EVaults,
+      // and live vault authentication runs in resolveMonadEulerRisk. A
+      // descriptor that is not fully VERIFIED still fails closed before any
+      // chain address is read.
       const descriptor = (
         dependencies.resolveMonadEulerDescriptor ?? defaultMonadEulerDescriptor
       )();
@@ -343,10 +452,10 @@ export async function assessMonadLendingGuard(
         !descriptor.sourceRef
       ) {
         throw new Error(
-          `Monad Euler deployment is UNVERIFIED (未找到，需人工 review 后登记): ${descriptor.note}`
+          `Monad Euler deployment descriptor is not a complete VERIFIED registration: ${descriptor.note}`
         );
       }
-      risk = await (dependencies.resolveMonadEulerRisk ?? defaultMonadEulerRisk)(input, descriptor);
+      risk = await (dependencies.resolveMonadEulerRisk ?? resolveMonadEulerRisk)(input, descriptor);
     } else {
       const market = await (dependencies.resolveMorphoMarket ?? resolveMorphoMarket)(
         input.marketId!

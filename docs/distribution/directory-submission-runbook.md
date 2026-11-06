@@ -49,8 +49,10 @@ Shared facts for every form or listing:
 - Paid calls: x402 v2 USDC or `X-API-Key` credit wallet
 - No-wallet path: signup + email verification → one-time 100 credits →
   `X-API-Key` (a 402 carries the `x-insight-no-wallet` hint)
-- One-command install (before the launcher is published):
-  `npx -y mcp-remote https://www.oracleinsight.xyz/api/mcp --header x-insight-entry-source:mcp`
+- One-command install:
+  `npx -y --package=oracle-insight-mcp insight-mcp` (pins the hosted endpoint
+  and the `mcp` attribution label; `INSIGHT_MCP_URL` / `INSIGHT_API_KEY` override
+  them in the MCP host's `env` block)
 - Safety boundary: assessment only; no custody, no signing, no broadcast
 
 ## Account-gated actions (account holder only)
@@ -70,18 +72,114 @@ Paste the shared facts above, then verify the listing by fetching its public
 page and by checking `acquisition_source` in the weekly audit. A listing is not
 "live" until both checks pass.
 
-## After the two npm packages are published
+## npm 2FA gate and staged releases
 
-1. Replace the `mcp-remote` command in
-   `src/app/mcp/components/McpConfigGenerator.tsx` with
-   `['-y', '--package=oracle-insight-mcp', 'insight-mcp']` (one array, noted in
-   the component).
-2. Optionally add an npm `packages[]` entry to `server.json` for the official
-   MCP Registry, using the published version. Keep the existing remote URL.
-3. Update the three directory entries and the form submissions with the
-   shorter install command. Do not open duplicate PRs; amend the open ones if a
-   maintainer asks.
-4. Submit the ElizaOS plugin to the plugin directory as a separate listing.
+The npm account (`pengyutao`) enforces two-factor authentication. The publish
+token has `bypass_2fa: false`, so direct `npm publish` and `npm stage approve`
+both return `EOTP`; the account's only `bypass_2fa: true` token expired on
+2026-09-10. [npm is also removing direct publish from bypass-2FA granular
+tokens](https://github.blog/changelog/2026-07-31-restricting-npm-bypass-2fa-granular-access-tokens/)
+in January 2027. An agent cannot satisfy a proof-of-presence 2FA challenge.
+
+**Where the 2FA challenge comes from.** npm currently uses WebAuthn security
+keys (Touch ID / Face ID / Windows Hello / passkey / YubiKey), not a code that
+is emailed or texted. A maintainer approves on npmjs.com via **profile avatar →
+Staged Packages → Approve** and confirms with a fingerprint or security key.
+`--otp` on `npm publish` / `npm stage approve` is a legacy TOTP fallback: the
+6-digit value, if this account ever used TOTP, comes from the authenticator app
+bound at 2FA setup (1Password, Google Authenticator, etc.) and rotates every 30
+seconds. npm recovery codes are **not** OTPs — using one to log in triggers a
+72-hour security hold that blocks publishing.
+
+Both first-release tarballs were submitted with `npx npm@11 stage publish`,
+which needs no 2FA, then approved by the maintainer on npmjs.com (Staged
+Packages tab). Approval was the only step that made
+`npm install elizaos-plugin-oracle-insight` work: before it, npm served only the
+public `0.0.0-stage` placeholder, which has no usable binary.
+
+`oracle-insight-mcp@0.1.0` was published but is **not usable**: its bin checked
+`process.argv[1] === import.meta.url`, which is false under npm's `.bin`
+symlink, so the command exited `0` in silence. `0.1.1` fixes it by splitting
+the CLI entry from the importable module and adds a regression test that runs
+the real bin through a symlink. Do not pin `0.1.0` anywhere; deprecate it once
+`0.1.1` is live.
+
+The switch to the branded launcher was gated on a **working** release. Re-run
+these after any registry incident:
+
+```bash
+npm view oracle-insight-mcp@0.1.1 version
+npm view oracle-insight-mcp dist-tags.latest
+npm view elizaos-plugin-oracle-insight@0.1.0 version
+```
+
+The CLI behaviour itself is covered offline by
+`mcp-launcher/test/binSymlink.test.mjs`, which stubs `mcp-remote` and asserts
+the real bin spawns it through both a `node_modules/.bin` symlink and its
+shebang.
+
+A staged version occupies the same semver index as a published one, so never
+attempt a separate `npm publish` of a staged version. For a manual release the
+alternatives are `npm publish --access public --otp=<6-digit-code>` or
+`npx --yes npm@11 stage approve <stage-id> --otp=<6-digit-code>`; an agent
+cannot satisfy that proof-of-presence challenge on its own.
+
+### Tokenless releases after 0.1.1
+
+`.github/workflows/agent-packages-release.yml` publishes both packages from
+GitHub Actions over npm Trusted Publishing (OIDC) with provenance, mirroring
+`sdk-release.yml`. One-time maintainer setup on npmjs.com per package:
+
+1. Open the package settings and add a Trusted Publisher for GitHub Actions.
+2. Set organization/user `imokokok`, repository `Insight`, workflow filename
+   `agent-packages-release.yml` (filename only, case-sensitive).
+3. Allow direct `npm publish`. New configurations default to `npm stage
+publish` only, which will not run this workflow.
+4. Complete the first successful publish within two days or the configuration
+   expires and must be recreated.
+
+Then bump both `package.json` versions and push an `agent-packages-v*` tag.
+The workflow verifies `repository.url`, builds the plugin, runs the launcher
+tests, and skips any version already live on npm.
+
+## Remaining follow-ups after the launcher switch
+
+The user-facing switch is done: `McpConfigGenerator.tsx` generates the branded
+`npx -y --package=oracle-insight-mcp insight-mcp` command, the 402
+`x-insight-mcp-install` hint matches it, and `llms.txt` / `skill.md` / the
+prepared directory material use the same command. A component test and a guard
+test lock both sides in.
+
+1. **Official MCP Registry `packages[]` (account-gated).** `server.json` still
+   advertises only the remote URL. When an npm maintainer can use the
+   registry's authenticated publish flow, bump `server.json`'s top-level
+   `version` and add the following validated entry (schema `2025-12-11` requires
+   `registryType`, `identifier` and `transport`; `version` must be exact, never
+   a range). Keep the existing `remotes` block.
+
+   ```json
+   "packages": [
+     {
+       "registryType": "npm",
+       "identifier": "oracle-insight-mcp",
+       "version": "0.1.1",
+       "transport": { "type": "stdio" },
+       "runtimeHint": "npx"
+     }
+   ]
+   ```
+
+   Editing the file alone does not update the registry; it must be republished
+   through that flow, then verified on the public registry page.
+
+2. **Three open directory PRs.** Update the prepared entries with the shorter
+   install command only if a maintainer asks for a change. Do not open duplicate
+   PRs while #113, #275 and #56 remain open.
+3. **ElizaOS plugin directory.** Submit
+   `elizaos-plugin-oracle-insight@0.1.0` as a separate listing; it needs the
+   platform's authenticated submission flow.
+4. **Form / account directories.** Use the shared facts above; none may be
+   submitted by an agent on the account holder's behalf.
 
 ## Verification loop
 

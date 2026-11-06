@@ -6,6 +6,7 @@ import {
 } from '@/lib/api/services/preTradeSafetyService';
 
 import { BasePerpExactTransactionSchema } from './basePerpAction';
+import { SYNTHETIX_PERPS_V3_BASE_PROTOCOL_ID } from './basePerpConstants';
 import {
   basePerpLiquidityConcern,
   basePerpLiquidityEvidenceNotRequested,
@@ -23,7 +24,9 @@ import {
  * band. The venue's mark-price aggregation, funding, and liquidation engine
  * are outside this guard's claims.
  */
-export const SYNTHETIX_PERPS_V3_BASE_PROTOCOL_ID = 'synthetix-perps-v3-base' as const;
+
+// Re-exported for compatibility with existing importers.
+export { SYNTHETIX_PERPS_V3_BASE_PROTOCOL_ID } from './basePerpConstants';
 
 /**
  * Reviewed per-market leverage caps for Synthetix Perps V3 on Base. These are

@@ -308,7 +308,8 @@ const ERC20_SYMBOL_ABI = [
   },
 ] as const;
 
-const EULER_V2_FACTORY_ABI = [
+/** Exported for the Monad Euler resolver (same ABI, chainId 143 targets). */
+export const EULER_V2_FACTORY_ABI = [
   {
     type: 'function',
     name: 'isProxy',
@@ -317,7 +318,7 @@ const EULER_V2_FACTORY_ABI = [
     outputs: [{ name: '', type: 'bool' }],
   },
 ] as const;
-const EULER_V2_EVAULT_VIEW_ABI = [
+export const EULER_V2_EVAULT_VIEW_ABI = [
   {
     type: 'function',
     name: 'asset',

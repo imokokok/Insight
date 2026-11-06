@@ -115,6 +115,8 @@ export function x402AcquisitionSource(
  * server. Nothing here changes the payment body, price, accepts[] or the
  * verify/settle path; these are hints for machine clients only.
  *
+ * `x-insight-mcp-install` points at the published `oracle-insight-mcp`
+ * launcher, which pins the hosted endpoint and the `mcp` attribution label.
  * `x-insight-no-wallet` points at the existing one-time signup grant
  * (`POST /api/billing/signup-grant`, 100 credits after email verification)
  * plus the `X-API-Key` credit rail. It deliberately does not create an
@@ -126,8 +128,7 @@ export function x402OnboardingHeaders(): Record<string, string> {
   return {
     'x-insight-entry-source-hint': `optional self-attribution header x-insight-entry-source: ${X402_ACQUISITION_SOURCES.join('|')}`,
     'x-insight-quickstart': 'https://www.oracleinsight.xyz/docs/x402',
-    'x-insight-mcp-install':
-      'npx -y mcp-remote https://www.oracleinsight.xyz/api/mcp --header x-insight-entry-source:mcp',
+    'x-insight-mcp-install': 'npx -y --package=oracle-insight-mcp insight-mcp',
     'x-insight-no-wallet':
       'X-API-Key credit wallet: signup + email verification grants 100 credits (~20 C3 calls), no wallet or USDC needed; https://www.oracleinsight.xyz/docs/x402',
   };
