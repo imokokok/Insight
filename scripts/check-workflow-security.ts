@@ -10,9 +10,9 @@ async function checkNodeVersionAlignment(workspace: string, workflows: Map<strin
   }
   const major = nodeVersion.replace(/^v/, '').split('.')[0];
 
-  const packageJson = JSON.parse(
-    await readFile(resolve(workspace, 'package.json'), 'utf8')
-  ) as { engines?: { node?: unknown } };
+  const packageJson = JSON.parse(await readFile(resolve(workspace, 'package.json'), 'utf8')) as {
+    engines?: { node?: unknown };
+  };
   const enginesNode = packageJson.engines?.node;
   if (typeof enginesNode !== 'string' || enginesNode.length === 0) {
     failures.push('package.json: engines.node is required to pin the Vercel runtime');
@@ -31,9 +31,7 @@ async function checkNodeVersionAlignment(workspace: string, workflows: Map<strin
   for (const [name, source] of workflows) {
     let declarations = 0;
     for (const [index, line] of source.split('\n').entries()) {
-      const literal = line
-        .match(/^\s*node-version:\s*(\S+)/)?.[1]
-        ?.replace(/^['"]|['"]$/g, '');
+      const literal = line.match(/^\s*node-version:\s*(\S+)/)?.[1]?.replace(/^['"]|['"]$/g, '');
       if (literal) {
         declarations += 1;
         if (literal.includes('${{')) {
