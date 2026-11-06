@@ -10,6 +10,18 @@ async function checkNodeVersionAlignment(workspace: string, workflows: Map<strin
   }
   const major = nodeVersion.replace(/^v/, '').split('.')[0];
 
+  let nvmrc = '';
+  try {
+    nvmrc = (await readFile(resolve(workspace, '.nvmrc'), 'utf8')).trim();
+  } catch {
+    failures.push(
+      '.nvmrc is required so nvm/fnm switch this repository to the pinned Node version'
+    );
+  }
+  if (nvmrc && nvmrc !== nodeVersion) {
+    failures.push(`.nvmrc "${nvmrc}" must equal .node-version ${nodeVersion}`);
+  }
+
   const packageJson = JSON.parse(await readFile(resolve(workspace, 'package.json'), 'utf8')) as {
     engines?: { node?: unknown };
   };

@@ -77,6 +77,20 @@ npm run wt -- cleanup                                 # merged agent branches on
 
 Full rules and troubleshooting: `docs/operations/parallel-agent-worktrees.md`.
 
+## Local Node.js version
+
+- This repository pins Node.js **22.23.2** in `.node-version` and `.nvmrc`; `engines.node` is `22.x` because Vercel only accepts a major version. All three are enforced by `scripts/check-workflow-security.ts`.
+- Run `nvm use` (or `fnm use`) in the repository root before install/build. With `nvm` on zsh, auto-switch on directory change is one hook away:
+
+  ```zsh
+  autoload -U add-zsh-hook
+  load-nvmrc() { [[ -f .nvmrc ]] && nvm use --silent >/dev/null 2>&1 }
+  add-zsh-hook chpwd load-nvmrc
+  load-nvmrc
+  ```
+
+- Do **not** change the machine-wide default Node (`nvm alias default ...`, Homebrew `node`, or `fnm default`) for this repository: that affects every other project on the machine. If a global default is preferred anyway, the command is `nvm alias default 22.23.2` (or `fnm default 22.23.2`); it applies to all new shells everywhere, not just this repository.
+
 ## Local builds
 
 - `npm run build` uses Next.js Turbopack by default (what CI and Vercel run). Sandboxed local environments that cannot create Turbopack CSS worker processes must use `npm run build:webpack` (or run builds with `env -u NODE_OPTIONS` outside the sandbox).

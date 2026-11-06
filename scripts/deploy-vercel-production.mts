@@ -29,6 +29,8 @@ export type DeploymentResult = {
   url: string | null;
   commitSha: string;
   nodeVersion: string;
+  runtimeNodeVersion: string | null;
+  runtimeNodeDrift: boolean | null;
   mode: 'created' | 'reused';
   canceledDeploymentIds: string[];
   queueMs: number | null;
@@ -337,6 +339,59 @@ async function assertVerifiedNodeVersion({
   return nodeVersion;
 }
 
+type ReadinessPayload = {
+  data?: { runtime?: { node?: unknown } };
+  error?: { details?: { runtime?: { node?: unknown } } };
+};
+
+async function fetchRuntimeNodeVersion({
+  deploymentUrl,
+  fetcher,
+}: {
+  deploymentUrl: string | null;
+  fetcher: Fetcher;
+}) {
+  if (!deploymentUrl) return null;
+  const response = await fetcher(`https://${deploymentUrl}/api/v1/health/ready`, {
+    signal: AbortSignal.timeout(15_000),
+  });
+  if (response.status !== 200 && response.status !== 503) return null;
+  const body = (await response.json()) as ReadinessPayload | null;
+  const node = body?.data?.runtime?.node ?? body?.error?.details?.runtime?.node;
+  return typeof node === 'string' && node.length > 0 ? node : null;
+}
+
+async function probeRuntimeNodeVersion({
+  deploymentId,
+  deploymentUrl,
+  fetcher,
+}: {
+  deploymentId: string;
+  deploymentUrl: string | null;
+  fetcher: Fetcher;
+}) {
+  const runtimeNodeVersion = await fetchRuntimeNodeVersion({ deploymentUrl, fetcher });
+  const verified = process.versions.node;
+  if (!runtimeNodeVersion) {
+    console.warn(
+      `runtime-node=unverified deployment=${deploymentId}: readiness did not report process.version; Vercel only guarantees major versions, so verify manually with node -v on a preview deployment`
+    );
+    return { runtimeNodeVersion: null, runtimeNodeDrift: null };
+  }
+  if (nodeMajor(runtimeNodeVersion) !== nodeMajor(verified)) {
+    throw new Error(
+      `Vercel production deployment ${deploymentId} serves Node ${runtimeNodeVersion}, but CI verified Node ${verified}. The platform-reported version passed, so the runtime does not match the build toolchain; fix the Node pins before releasing.`
+    );
+  }
+  const runtimeNodeDrift = runtimeNodeVersion !== verified;
+  if (runtimeNodeDrift) {
+    console.warn(
+      `runtime-node-drift deployment=${deploymentId}: production runs ${runtimeNodeVersion}, CI verified ${verified}. Vercel only lets projects pin a major version and rolls out minor/patch updates itself, so this difference is expected but must stay visible.`
+    );
+  }
+  return { runtimeNodeVersion, runtimeNodeDrift };
+}
+
 export async function deployVercelProduction({
   hookUrl,
   token,
@@ -470,11 +525,18 @@ export async function deployVercelProduction({
     fetcher,
   });
   const metrics = deploymentMetrics(deployment);
+  const { runtimeNodeVersion, runtimeNodeDrift } = await probeRuntimeNodeVersion({
+    deploymentId: id,
+    deploymentUrl: typeof deployment.url === 'string' ? deployment.url : null,
+    fetcher,
+  });
   return {
     id,
     url: typeof deployment.url === 'string' ? deployment.url : null,
     commitSha,
     nodeVersion,
+    runtimeNodeVersion,
+    runtimeNodeDrift,
     mode,
     canceledDeploymentIds,
     ...metrics,
@@ -496,6 +558,7 @@ async function writeSummary(result: DeploymentResult) {
       `- Commit: \`${result.commitSha}\``,
       `- Deployment: \`${result.id}\` (${result.mode})`,
       `- Node.js: ${result.nodeVersion} (CI verified: ${process.versions.node})`,
+      `- Runtime Node.js: ${result.runtimeNodeVersion ?? 'unverified'} (CI: ${process.versions.node}, drift: ${result.runtimeNodeDrift === null ? 'unknown' : result.runtimeNodeDrift ? 'yes' : 'no'})`,
       `- Queue: ${minutes(result.queueMs)} min; build: ${minutes(result.buildMs)} min; total: ${minutes(result.totalMs)} min`,
       `- Superseded builds canceled: ${result.canceledDeploymentIds.length}`,
       '',
@@ -512,6 +575,8 @@ async function writeOutputs(result: DeploymentResult) {
       `deployment-id=${result.id}`,
       `deployment-url=${result.url ?? ''}`,
       `deployment-node-version=${result.nodeVersion}`,
+      `runtime-node-version=${result.runtimeNodeVersion ?? 'unverified'}`,
+      `runtime-node-drift=${result.runtimeNodeDrift === null ? 'unknown' : result.runtimeNodeDrift ? 'yes' : 'no'}`,
       `deployment-mode=${result.mode}`,
       '',
     ].join('\n')
@@ -529,7 +594,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     await writeSummary(result);
     await writeOutputs(result);
     console.log(
-      `Vercel production deployment ${result.id} ${result.mode}; node=${result.nodeVersion} queue=${minutes(result.queueMs)}m build=${minutes(result.buildMs)}m total=${minutes(result.totalMs)}m canceled=${result.canceledDeploymentIds.length}`
+      `Vercel production deployment ${result.id} ${result.mode}; node=${result.nodeVersion} runtime=${result.runtimeNodeVersion ?? 'unverified'} drift=${result.runtimeNodeDrift === null ? 'unknown' : result.runtimeNodeDrift ? 'yes' : 'no'} queue=${minutes(result.queueMs)}m build=${minutes(result.buildMs)}m total=${minutes(result.totalMs)}m canceled=${result.canceledDeploymentIds.length}`
     );
   } catch (error) {
     console.error(error instanceof Error ? error.message : String(error));
