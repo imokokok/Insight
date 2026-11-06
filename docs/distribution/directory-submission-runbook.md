@@ -74,7 +74,7 @@ page and by checking `acquisition_source` in the weekly audit. A listing is not
 
 1. Replace the `mcp-remote` command in
    `src/app/mcp/components/McpConfigGenerator.tsx` with
-   `['-y', '--package=@oracleinsight/mcp', 'insight-mcp']` (one array, noted in
+   `['-y', '--package=oracle-insight-mcp', 'insight-mcp']` (one array, noted in
    the component).
 2. Optionally add an npm `packages[]` entry to `server.json` for the official
    MCP Registry, using the published version. Keep the existing remote URL.

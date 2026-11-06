@@ -15,8 +15,8 @@ complete.
 | Official MCP Registry          | `io.github.imokokok/insight-oracle`                         | already published (`server.json`); no release needed for these changes                                                                                                                                                                                           | release only when product changes require it                   |
 | GitHub Agent Skill directories | `insight-pre-trade-safety`                                  | [SendAI Skills PR #113](https://github.com/sendaifun/skills/pull/113) **open**, opened 2026-10-30, no maintainer response yet                                                                                                                                    | maintainer review                                              |
 | Solana Agent directories       | same Skill / Oracle category                                | [Awesome Solana AI PR #275](https://github.com/solana-foundation/awesome-solana-ai/pull/275) **open**, Greptile 5/5 low-impact review, not merged; [Awesome Solana MCP Servers PR #56](https://github.com/sendaifun/awesome-solana-mcp-servers/pull/56) **open** | maintainer review (both)                                       |
-| npm MCP launcher               | `@oracleinsight/mcp` (`mcp-launcher/`)                      | source, tests and pack contents verified locally; **not published**                                                                                                                                                                                              | maintainer npm account: `npm publish --access public`          |
-| npm ElizaOS plugin             | `elizaos-plugin-oracle-insight` (`integrations/`)           | build + pack contents verified locally; **not published** (npm 404)                                                                                                                                                                                              | maintainer npm account: `npm publish`                          |
+| npm MCP launcher               | `oracle-insight-mcp` (`mcp-launcher/`)                      | source, tests and pack contents verified locally; **not published**                                                                                                                                                                                              | maintainer npm 2FA: OTP or staged publish approval             |
+| npm ElizaOS plugin             | `elizaos-plugin-oracle-insight` (`integrations/`)           | build + pack contents verified locally; **not published** (npm 404)                                                                                                                                                                                              | maintainer npm 2FA: OTP or staged publish approval             |
 | Wallet/Agent runtime           | `insight-lending-guard` + PriorSeal Guarded Action          | developer preview prepared                                                                                                                                                                                                                                       | target runtime's integration review and user wallet approval   |
 | Form / account directories     | Smithery, Glama, mcp.so, mcpservers.org, PulseMCP, x402scan | unsubmitted; see [runbook](directory-submission-runbook.md)                                                                                                                                                                                                      | account holder: browser login, terms, token, or SIWX signature |
 | x402 discovery surfaces        | public manifest/OpenAPI                                     | technically discoverable; `.well-known/x402` exposes 18 paid resources                                                                                                                                                                                           | account/SIWX or facilitator-specific submission when required  |
@@ -27,10 +27,17 @@ complete.
    code change. Respond to review comments if any arrive; do not open duplicate
    PRs while these are open. PR #275 already has a clean automated review.
 2. **Two npm packages are built but unpublished.** Publishing is the only step
-   that makes `npx -y @oracleinsight/mcp` and
+   that makes `npx -y --package=oracle-insight-mcp insight-mcp` and
    `npm install elizaos-plugin-oracle-insight` work. Until then, the generated
    MCP configs in `McpConfigGenerator.tsx` deliberately use the already
    published `mcp-remote` bridge so no user config points at a missing package.
+   The remaining gate is interactive 2FA on the maintainer's npm account: the
+   publish token has `bypass_2fa: false` and direct publish returns `EOTP`. The
+   launcher was also renamed from `@oracleinsight/mcp` to the unscoped
+   `oracle-insight-mcp`, because the `@oracleinsight` npm organization does not
+   exist (registry org endpoint returns 404) and npm will not create a scope on
+   first publish. Use `npm publish --otp=<code>` or `npx npm@11 stage publish`
+   followed by approval on npmjs.com.
 3. **Account-gated directory forms.** The runbook lists each form and the
    exact material to paste. An agent must not accept terms, create tokens, or
    sign a wallet message on the account holder's behalf.
