@@ -227,6 +227,12 @@ jobs:
     needs: runtime-impact
     if: ${{ always() }}
     runs-on: ubuntu-24.04
+    # Chromium and its system libraries are baked into the official Playwright
+    # image, so the job no longer runs `playwright install-deps` against the
+    # runner's apt mirror. Keep this tag (and its digest) in lockstep with the
+    # @playwright/test version in package-lock.json.
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble@sha256:eff16c30e6f3f4af0a03fa4b706120d5e9b0891c344a27d64559aff5900a4a27
     timeout-minutes: 20
     env:
       NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
@@ -257,6 +263,29 @@ jobs:
           cache: npm
       - if: needs.runtime-impact.outputs.runtime == 'true'
         run: npm ci
+      # Fail fast with an explicit message if the image no longer carries the
+      # Chromium revision that this @playwright/test version expects, instead
+      # of discovering it inside the e2e run.
+      - name: Verify the image Chromium matches the pinned Playwright
+        if: needs.runtime-impact.outputs.runtime == 'true'
+        run: |
+          node -e '
+          const { chromium } = require("@playwright/test");
+          (async () => {
+            const expected = "/ms-playwright";
+            if (process.env.PLAYWRIGHT_BROWSERS_PATH !== expected) {
+              throw new Error(
+                "Expected PLAYWRIGHT_BROWSERS_PATH=" + expected + ", got " + process.env.PLAYWRIGHT_BROWSERS_PATH
+              );
+            }
+            const browser = await chromium.launch({ headless: true });
+            console.log("Chromium " + browser.version() + " launched from " + chromium.executablePath());
+            await browser.close();
+          })().catch((error) => {
+            console.error(error);
+            process.exit(1);
+          });
+          '
       - name: Restore Next.js build cache
         if: needs.runtime-impact.outputs.runtime == 'true'
         id: next-cache
@@ -281,39 +310,6 @@ jobs:
         with:
           path: .next/cache
           key: nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - name: Restore Playwright Chromium
-        if: needs.runtime-impact.outputs.runtime == 'true'
-        id: playwright-cache
-        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      # System dependencies belong to the disposable Linux runner and must be
-      # installed every time. The Chromium binary is safe to reuse from the
-      # versioned cache, so avoid re-downloading it when the cache hits.
-      - name: Install Chromium system dependencies
-        if: needs.runtime-impact.outputs.runtime == 'true'
-        # apt mirror latency occasionally pushes this well past ten minutes.
-        # Bound each attempt and retry once instead of stalling the whole run.
-        run: |
-          set -euo pipefail
-          for attempt in 1 2; do
-            if timeout --signal=KILL 240 npx playwright install-deps chromium; then
-              exit 0
-            fi
-            echo "::warning::Playwright system dependency install attempt ${attempt} failed or exceeded 240s; retrying."
-          done
-          echo "::error::Playwright system dependencies could not be installed."
-          exit 1
-      - name: Install Chromium when the browser cache misses
-        if: needs.runtime-impact.outputs.runtime == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
-        run: npx playwright install chromium
-      - name: Cache Playwright Chromium
-        if: github.ref == 'refs/heads/main' && needs.runtime-impact.outputs.runtime == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - name: Verify the packed package shape in Chromium without network
         if: needs.runtime-impact.outputs.runtime == 'true'
         run: npm run verifier:release:check -- --browser
