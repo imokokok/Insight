@@ -116,8 +116,15 @@ npm view elizaos-plugin-oracle-insight version
 
 `elizaos-plugin-oracle-insight@0.1.1` is a README-only correction: the `0.1.0`
 tarball shipped an Install section saying the package was not published yet and
-described a plugin-directory submission that does not exist. Republish through
-staged publishing; no runtime code changes.
+described a plugin-directory submission that does not exist. It was staged on
+2026-11-06 (stage id `82609f29-b33d-4ba8-b597-5e5fa9dca2b9`, shasum
+`1b203219ca0e9fb5d44f4b932a82fa9f7884a9c9`) and still needs the maintainer's
+WebAuthn approval.
+
+`oracle-insight-mcp@0.1.2` is a metadata-only release adding `mcpName`, which
+the official MCP Registry requires to prove npm package ownership. Stage and
+approve it before publishing `server.json`; the exact procedure is in the
+`MCP Registry: tokenless OIDC release` section below.
 
 The CLI behaviour itself is covered offline by
 `mcp-launcher/test/binSymlink.test.mjs`, which stubs `mcp-remote` and asserts
@@ -157,30 +164,33 @@ prepared directory material use the same command. A component test and a guard
 test lock both sides in.
 
 1. **Official MCP Registry `packages[]` (repo-side done, publish account-gated).**
-   `server.json` is now top-level `version: 0.3.1` and includes the following
-   schema-validated entry alongside the existing `remotes` block (schema
-   `2025-12-11` requires `registryType`, `identifier` and `transport`;
-   `transport` is an object with `type`, and `version` must be exact, never a
-   range or `latest`):
+   `server.json` stays at top-level `version: 0.3.1` — it was never published —
+   keeps the `remotes` block for remote-only clients, and declares one npm
+   package (schema `2025-12-11` requires `registryType`, `identifier` and
+   `transport`; `transport` is an object with `type`, and `version` must be
+   exact, never a range or `latest`):
 
    ```json
    "packages": [
      {
        "registryType": "npm",
        "identifier": "oracle-insight-mcp",
-       "version": "0.1.1",
+       "version": "0.1.2",
        "transport": { "type": "stdio" },
        "runtimeHint": "npx"
      }
    ]
    ```
 
-   Editing the file alone does not update the registry. The public entry is
-   still v0.3.0 with only the remote URL; the account holder must run the
-   registry's authenticated publish flow (`mcp-publisher login github` then
-   `mcp-publisher publish`, GitHub OIDC) so v0.3.1 ships the npm package, then
-   verify it on the public registry page. Do not bump `server.json` again until
-   v0.3.1 has actually been published.
+   Schema validity is not enough. The registry's npm validator fetches
+   `https://registry.npmjs.org/oracle-insight-mcp/0.1.2` and requires that
+   version's `package.json` to contain
+   `"mcpName": "io.github.imokokok/insight-oracle"`, matching `server.json.name`
+   exactly. `0.1.1` has no `mcpName`, so the earlier declaration would have been
+   rejected. Editing the file alone does not update the registry: the public
+   entry is still v0.3.0 with only the remote URL. See the tokenless OIDC
+   release section below for the publish procedure. Do not bump `server.json`
+   again until v0.3.1 has actually been published.
 
 2. **Three open directory PRs.** Update the prepared entries with the shorter
    install command only if a maintainer asks for a change. Do not open duplicate
@@ -190,6 +200,72 @@ test lock both sides in.
    directly from npm; there is no community registry PR to open.
 4. **Form / account directories.** Use the shared facts above; none may be
    submitted by an agent on the account holder's behalf.
+
+## MCP Registry: tokenless OIDC release
+
+`.github/workflows/mcp-registry-release.yml` publishes `server.json` to the
+official MCP Registry **without any long-lived secret**. It uses
+`mcp-publisher login github-oidc`: GitHub Actions mints an OIDC token for
+`imokokok/Insight`, and the registry exchanges it for a token scoped to
+`io.github.imokokok/*`. Do not add an `MCP_GITHUB_TOKEN` secret or a PAT for
+this workflow. The job requests only `contents: read` and `id-token: write`.
+
+Following the [official GitHub Actions
+guide](https://github.com/modelcontextprotocol/registry/blob/main/docs/modelcontextprotocol-io/github-actions.mdx),
+the workflow pins `MCP_PUBLISHER_VERSION: v1.8.1`, downloads the release archive
+plus its Sigstore bundle, and verifies it with `cosign verify-blob` against
+`https://github.com/modelcontextprotocol/registry/.github/workflows/release.yml@refs/tags/v1.8.1`
+before extracting the binary. Every `uses:` is pinned to a 40-character commit
+SHA because `npm run workflow:check` rejects mutable action refs.
+
+Preconditions, in order:
+
+1. `oracle-insight-mcp@0.1.2` is live on npm. Under the account's WebAuthn 2FA
+   this means `npx --yes npm@11 stage publish` from `mcp-launcher/` followed by
+   the maintainer's **Staged Packages → Approve** confirmation. `0.1.1` cannot
+   be used: it has no `mcpName`.
+2. Offline parity passes (also part of `validate:ci:static`):
+
+   ```bash
+   npm run mcp:registry:check
+   ```
+
+3. The live npm ownership check passes — exactly what the registry will do:
+
+   ```bash
+   node scripts/verify-mcp-registry-package.mjs --check-npm
+   mcp-publisher validate server.json
+   ```
+
+Then publish by tagging the merged commit:
+
+```bash
+git tag mcp-registry-v0.3.1
+git push origin mcp-registry-v0.3.1
+```
+
+`workflow_dispatch` re-runs the same workflow without a new tag (useful after
+approving the staged npm package). The job probes
+`/v0/servers/<name>/versions/<version>` first and skips publishing when that
+exact version is already live, so a retry is safe. A final step re-fetches the
+published entry and asserts it actually contains the npm `packages[]` entry.
+
+Verify externally:
+
+```bash
+curl -sS \
+  'https://registry.modelcontextprotocol.io/v0/servers/io.github.imokokok%2Finsight-oracle/versions/0.3.1' \
+  | jq '.server | {name, version, packages}'
+```
+
+Expected failure modes: **404 / "not on npm yet"** means the staged version has
+not been approved; **"missing required mcpName"** or **"ownership validation
+failed"** means the pinned version was built without the field; **"invalid
+audience"** means `MCP_PUBLISHER_VERSION` is older than the registry deployment.
+
+Do not call the registry entry "live" until the public API returns v0.3.1 with
+`packages[0].identifier == "oracle-insight-mcp"` and
+`packages[0].version == "0.1.2"`.
 
 ## ElizaOS: community registry is gone, catalog is first-party
 

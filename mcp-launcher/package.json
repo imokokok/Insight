@@ -1,6 +1,7 @@
 {
   "name": "oracle-insight-mcp",
-  "version": "0.1.1",
+  "version": "0.1.2",
+  "mcpName": "io.github.imokokok/insight-oracle",
   "description": "One-command MCP launcher for Insight decision-input integrity. Bridges stdio-only MCP hosts to the hosted Insight MCP server with keyless discovery and optional paid tools.",
   "type": "module",
   "bin": {
