@@ -34,7 +34,25 @@ non-identifying label: `direct`, `docs`, `bazaar`, `mcp`, `sdk`, `skill`,
 `wallet_mcp`, `sendaifun`, `solana_directory`, or `unknown`. It is used only for
 aggregate conversion analysis and never affects pricing, authorization,
 verification, or settlement. Omitting it is fully supported. HTTP 402 responses
-also carry `x-insight-quickstart` and `x-insight-mcp-install` hints.
+also carry `x-insight-quickstart`, `x-insight-mcp-install` and
+`x-insight-no-wallet` hints.
+
+## Zero-wallet trial (no crypto needed)
+
+If an agent has no wallet, use the existing credit rail instead of x402:
+
+1. Sign up at https://www.oracleinsight.xyz and verify the email address. A
+   one-time, idempotent grant of 100 credits is issued to the account (about
+   20 C3 pre-trade decisions; 1 credit = $0.004).
+2. Create an API key at https://www.oracleinsight.xyz/settings?tab=api-keys.
+3. Send `X-API-Key: <key>` on REST calls, or set `INSIGHT_API_KEY` in the MCP
+   host's `env` block for the launcher. No wallet, USDC, private key or
+   `@x402/fetch` client is required.
+
+This is a per-account, email-verified, one-time grant — not an anonymous
+free tier and not a recurring allowance. It uses the same metering, quota and
+safety boundary as any paid API key; verdicts are identical. HTTP 402
+responses carry `x-insight-no-wallet` with this hint.
 
 ## Payment flow (x402 v2, exact scheme)
 

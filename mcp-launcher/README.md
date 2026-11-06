@@ -34,6 +34,32 @@ via x402 (USDC, no signup) or metered against a credit wallet when
 `INSIGHT_API_KEY` is set. The launcher never sees a private key. An x402 wallet
 is configured in the calling agent runtime, not here.
 
+## No-wallet trial
+
+If the agent has no wallet, use the credit rail. Sign up at
+https://www.oracleinsight.xyz, verify the email address (a one-time,
+idempotent 100-credit grant is issued — about 20 C3 decisions), create a key
+at https://www.oracleinsight.xyz/settings?tab=api-keys, and put it in the MCP
+host config's `env` block:
+
+```json
+{
+  "mcpServers": {
+    "insight": {
+      "command": "npx",
+      "args": ["-y", "--package=@oracleinsight/mcp", "insight-mcp"],
+      "env": { "INSIGHT_API_KEY": "ins_..." }
+    }
+  }
+}
+```
+
+The launcher passes `${INSIGHT_API_KEY}` as a placeholder and `mcp-remote`
+expands it from the child environment, so the key never appears in `argv` or
+in this package. Calls then meter against the credit wallet instead of x402.
+This is a one-time, email-verified, per-account grant — not an anonymous or
+recurring free tier. Verdicts and the safety boundary are identical.
+
 ## Environment
 
 | Variable               | Default                                 | Meaning                                                                                            |

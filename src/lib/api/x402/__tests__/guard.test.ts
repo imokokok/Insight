@@ -15,6 +15,7 @@ import {
   toNextResponse,
   X402_ACQUISITION_SOURCES,
   x402AcquisitionSource,
+  x402OnboardingHeaders,
 } from '../guard';
 import { getX402HttpServer } from '../resourceServer';
 
@@ -555,5 +556,39 @@ describe('x402AcquisitionSource agent-native attribution', () => {
         })
       )
     ).toBe('skill');
+  });
+});
+
+describe('x402OnboardingHeaders 402 hints', () => {
+  const headers = x402OnboardingHeaders();
+
+  it('exposes exactly the four advisory hints', () => {
+    expect(Object.keys(headers).sort()).toEqual([
+      'x-insight-entry-source-hint',
+      'x-insight-mcp-install',
+      'x-insight-no-wallet',
+      'x-insight-quickstart',
+    ]);
+  });
+
+  it('advertises the existing verified signup grant, not an anonymous free tier', () => {
+    const hint = headers['x-insight-no-wallet'];
+    expect(hint).toContain('X-API-Key');
+    expect(hint).toContain('100 credits');
+    expect(hint).toContain('email verification');
+    expect(hint).toContain('https://www.oracleinsight.xyz/docs/x402');
+  });
+
+  it('keeps every hint free of keys, wallets and payment challenges', () => {
+    for (const value of Object.values(headers)) {
+      expect(value).not.toMatch(/ins_[A-Za-z0-9]|0x[a-fA-F0-9]{20,}|PAYMENT-SIGNATURE|accepts/);
+      expect(value).not.toContain('\n');
+    }
+  });
+
+  it('keeps the attribution hint on the same ten-label vocabulary', () => {
+    for (const label of X402_ACQUISITION_SOURCES) {
+      expect(headers['x-insight-entry-source-hint']).toContain(label);
+    }
   });
 });

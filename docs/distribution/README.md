@@ -39,6 +39,24 @@ complete.
    send `x-insight-entry-source`, and the 402 response carries onboarding
    hints. Without these, no distribution channel can be evaluated.
 
+## First paid call without a wallet
+
+P3 is implemented as discovery, not billing. The repository already issues a
+one-time, email-verified, idempotent 100-credit signup grant
+(`src/app/api/billing/signup-grant/route.ts`) and meters `X-API-Key` calls
+against the credit wallet. The 402 response now carries `x-insight-no-wallet`,
+and `llms.txt`, `skill.md`, the x402 quickstart, the `/docs/x402` page and the
+launcher README spell out the three steps.
+
+No anonymous free tier was added. `plans.ts`, `quotaMiddleware.ts` and
+`mcp/middleware.ts` all state "no recurring free tier"; auto-issuing an
+anonymous key would require a shadow-account and quota subsystem, changes
+across roughly ten payment-dispatch points, and a new audit status — while
+`docs/operations/agent-distribution-funnel.md` forbids new per-user
+identifiers and new telemetry. An anonymous allowance can also be farmed by
+rotating IPs. If it is ever wanted, it belongs in its own project with an
+explicit abuse model, not in a distribution PR.
+
 ## Verification
 
 After each distribution action, measure rather than assume:

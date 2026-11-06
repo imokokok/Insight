@@ -109,6 +109,30 @@ export function x402AcquisitionSource(
   return passiveAcquisitionSource(request);
 }
 
+/**
+ * Advisory headers returned on a bare 402. Pure and side-effect free so the
+ * onboarding vocabulary is unit-testable without constructing a resource
+ * server. Nothing here changes the payment body, price, accepts[] or the
+ * verify/settle path; these are hints for machine clients only.
+ *
+ * `x-insight-no-wallet` points at the existing one-time signup grant
+ * (`POST /api/billing/signup-grant`, 100 credits after email verification)
+ * plus the `X-API-Key` credit rail. It deliberately does not create an
+ * anonymous free tier: a per-account, verified, idempotent grant is the only
+ * wallet-free entitlement, and plans.ts, quotaMiddleware.ts and
+ * mcp/middleware.ts all state "no recurring free tier".
+ */
+export function x402OnboardingHeaders(): Record<string, string> {
+  return {
+    'x-insight-entry-source-hint': `optional self-attribution header x-insight-entry-source: ${X402_ACQUISITION_SOURCES.join('|')}`,
+    'x-insight-quickstart': 'https://www.oracleinsight.xyz/docs/x402',
+    'x-insight-mcp-install':
+      'npx -y mcp-remote https://www.oracleinsight.xyz/api/mcp --header x-insight-entry-source:mcp',
+    'x-insight-no-wallet':
+      'X-API-Key credit wallet: signup + email verification grants 100 credits (~20 C3 calls), no wallet or USDC needed; https://www.oracleinsight.xyz/docs/x402',
+  };
+}
+
 /** Discovery/listing surfaces known to send human or agent traffic to paid routes. */
 const DISCOVERY_HOST_PATTERN = /(x402scan\.com|bazaar\.|agent402\.tools|x402-list\.com)/i;
 const INSIGHT_DOCS_PATTERN = /oracleinsight\.xyz\/(docs|ai)\b/i;
@@ -990,22 +1014,12 @@ export async function handlePaidPreTradeRequest(
     }
     let response = toNextResponse(result.response);
     if (!hasPaymentSignature) {
-      // Tell machine clients they may self-declare an entry source. The
-      // vocabulary is the same fixed, non-identifying set the settlement
-      // audit accepts; nothing here affects payment behavior.
-      response.headers.set(
-        'x-insight-entry-source-hint',
-        `optional self-attribution header x-insight-entry-source: ${X402_ACQUISITION_SOURCES.join('|')}`
-      );
-      // A bare 402 leaves an agent with no machine-readable next step. Point at
-      // the two zero-cost ways to proceed without touching the x402 payment
-      // body or the quote's price/accepts semantics. These are advisory
-      // response headers for SDK and agent clients, not browser-facing UI.
-      response.headers.set('x-insight-quickstart', 'https://www.oracleinsight.xyz/docs/x402');
-      response.headers.set(
-        'x-insight-mcp-install',
-        'npx -y mcp-remote https://www.oracleinsight.xyz/api/mcp --header x-insight-entry-source:mcp'
-      );
+      // A bare 402 leaves an agent with no machine-readable next step. These
+      // are advisory headers for SDK/agent clients, not browser-facing UI, and
+      // never touch the x402 payment body or the quote's price/accepts.
+      for (const [name, value] of Object.entries(x402OnboardingHeaders())) {
+        response.headers.set(name, value);
+      }
     }
     if (!hasPaymentSignature && cfg.hypercore) {
       try {

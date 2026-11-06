@@ -44,8 +44,22 @@ free-form campaign value in this header.
 
 An MCP host can connect with no API key using
 `npx -y mcp-remote https://www.oracleinsight.xyz/api/mcp --header x-insight-entry-source:mcp`.
-HTTP 402 responses also carry `x-insight-quickstart` and
-`x-insight-mcp-install` hints.
+HTTP 402 responses also carry `x-insight-quickstart`,
+`x-insight-mcp-install` and `x-insight-no-wallet` hints.
+
+## No-wallet trial (no crypto needed)
+
+An agent without a wallet can use the credit rail instead of x402:
+
+1. Sign up at https://www.oracleinsight.xyz and verify the email address. A
+   one-time, idempotent 100-credit grant is issued (about 20 C3 decisions).
+2. Create an API key at https://www.oracleinsight.xyz/settings?tab=api-keys.
+3. Send `X-API-Key: <key>` on REST calls, or set `INSIGHT_API_KEY` in the MCP
+   host's `env` block. No wallet, USDC, private key or x402 client is needed.
+
+This is a per-account, email-verified, one-time grant, not an anonymous or
+recurring free tier. It uses the same metering, quota, and safety boundary as
+a paid API key; verdicts are identical.
 
 ## Endpoints
 

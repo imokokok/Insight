@@ -47,6 +47,8 @@ Shared facts for every form or listing:
 - Skill source: `skills/insight-pre-trade-safety` (no credentials, no wallet logic)
 - Free discovery: `initialize`, `tools/list`, `ping` need no credential
 - Paid calls: x402 v2 USDC or `X-API-Key` credit wallet
+- No-wallet path: signup + email verification → one-time 100 credits →
+  `X-API-Key` (a 402 carries the `x-insight-no-wallet` hint)
 - One-command install (before the launcher is published):
   `npx -y mcp-remote https://www.oracleinsight.xyz/api/mcp --header x-insight-entry-source:mcp`
 - Safety boundary: assessment only; no custody, no signing, no broadcast
