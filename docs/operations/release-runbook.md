@@ -55,6 +55,47 @@ Exit codes:
 | 1    | Vercel call or live verification failed         |
 | 2    | Missing configuration or invalid arguments      |
 
+## 0. Automatic rollback on a failed release
+
+`deploy-production.yml` releases main as soon as a merge lands and then live-smokes
+the payment rails. The smoke result selects the path:
+
+| Live smoke result                                                            | Exit | Action                                                                                                                                              |
+| ---------------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Pass                                                                         | 0    | Release stays.                                                                                                                                      |
+| Application failure (the server answered, but not with the payment contract) | 1    | Automatic rollback to the previous READY deployment, then a second smoke on the restored release.                                                   |
+| Infrastructure only (timeouts, connection errors, HTTP 429, 502/503/504)     | 2    | Up to three retries. Never rolls back. If retries stay infrastructure-only, production keeps the release and the run fails for manual verification. |
+
+Infrastructure failures deliberately do not roll back: reverting a healthy release
+because the probe hit an edge or a shared rate limit turns a flake into an outage.
+The Chromium/apt flakiness of the browser `smoke` job is unrelated — that job runs
+in `ci.yml` and never triggers this rollback.
+
+Guards:
+
+- The rollback runs only while production still serves the deployment this run
+  released (`EXPECTED_DEPLOYMENT_ID`). If a queued newer release already owns
+  production, the step logs a warning and does nothing.
+- The release workflow uses `concurrency: cancel-in-progress: false`. A newer push
+  queues behind the running release instead of cancelling it, so cancellation can
+  never skip the rollback step.
+- A failed build or deploy step does not roll back: production never switched.
+
+Manual fallback:
+
+1. `gh run list --workflow=deploy-production.yml` and read the failing run.
+2. `npm run release:rollback` (dry run) to see current and previous deployments.
+3. `npm run release:rollback -- --to previous --yes` if the automatic step did not
+   run or failed.
+4. `node scripts/smoke-live-payment-rails.mjs` to verify the restored release.
+5. If the automatic step skipped because a newer release owns production, roll
+   back that newer release deliberately; never bypass the guard.
+6. `main` still contains the bad commit. Rollback is an availability control, not
+   a source revert: land a fix or a revert PR through the normal gates.
+
+The drill that proves this path, with timings and the exact commands, is recorded
+in [section 8](#8-drill-record).
+
 ## 1. Declare the incident and freeze deployments
 
 1. Declare the incident in the on-call channel and start a UTC stopwatch. Record
