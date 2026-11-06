@@ -124,6 +124,8 @@ npmjs.com with repository `imokokok/Insight`, workflow filename
 `agent-packages-release.yml`, and direct `npm publish` allowed. See the
 distribution runbook for the exact sequence.
 
-After publishing, the generated MCP configs in
-`src/app/mcp/components/McpConfigGenerator.tsx` can switch from the explicit
-`mcp-remote` command to `['-y', '--package=oracle-insight-mcp', 'insight-mcp']`.
+`0.1.0` was released through staged publishing plus a maintainer approval on
+npmjs.com. The generated MCP configs in
+`src/app/mcp/components/McpConfigGenerator.tsx`, the 402 install hint, and the
+discovery docs now use this command; they were switched only after
+`npm view oracle-insight-mcp@0.1.0 version` succeeded.
