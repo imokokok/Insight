@@ -114,11 +114,24 @@ const DISCOVERY_HOST_PATTERN = /(x402scan\.com|bazaar\.|agent402\.tools|x402-lis
 const INSIGHT_DOCS_PATTERN = /oracleinsight\.xyz\/(docs|ai)\b/i;
 const BROWSER_UA_PATTERN = /mozilla\/|chrome\/|safari\/|firefox\/|edg\//i;
 
+// Agent-native surfaces are invisible to the referral-based rules above: a
+// Skill package or an MCP bridge calls paid routes directly with a generic
+// Node user-agent. Keep these patterns deliberately narrow. A miss is a
+// harmless `unknown`, while a false positive would corrupt attribution.
+// `skill` and `wallet_mcp` are intentionally left to the self-declared header
+// in those packages; there is no reliable passive signal for either.
+const SENDAI_SKILL_HOST_PATTERN = /(sendaifun|claude\.ai\/skills|anthropic\.com\/skills)/i;
+const SOLANA_DIRECTORY_HOST_PATTERN = /(awesome-solana|solana-foundation|solana\.com\/developers)/i;
+const MCP_CLIENT_UA_PATTERN = /(@modelcontextprotocol|mcp-remote|mcp\/|claude-code|insight-mcp)/i;
+
 function passiveAcquisitionSource(request: Pick<NextRequest, 'headers'>): X402AcquisitionSource {
   const discovery = `${request.headers.get('referer') ?? ''} ${request.headers.get('origin') ?? ''}`;
   if (INSIGHT_DOCS_PATTERN.test(discovery)) return 'docs';
   if (DISCOVERY_HOST_PATTERN.test(discovery)) return 'bazaar';
+  if (SOLANA_DIRECTORY_HOST_PATTERN.test(discovery)) return 'solana_directory';
+  if (SENDAI_SKILL_HOST_PATTERN.test(discovery)) return 'sendaifun';
   const userAgent = request.headers.get('user-agent') ?? '';
+  if (MCP_CLIENT_UA_PATTERN.test(userAgent)) return 'mcp';
   if (/x402/i.test(userAgent)) return 'sdk';
   if (BROWSER_UA_PATTERN.test(userAgent)) return 'direct';
   return 'unknown';
@@ -983,6 +996,15 @@ export async function handlePaidPreTradeRequest(
       response.headers.set(
         'x-insight-entry-source-hint',
         `optional self-attribution header x-insight-entry-source: ${X402_ACQUISITION_SOURCES.join('|')}`
+      );
+      // A bare 402 leaves an agent with no machine-readable next step. Point at
+      // the two zero-cost ways to proceed without touching the x402 payment
+      // body or the quote's price/accepts semantics. These are advisory
+      // response headers for SDK and agent clients, not browser-facing UI.
+      response.headers.set('x-insight-quickstart', 'https://www.oracleinsight.xyz/docs/x402');
+      response.headers.set(
+        'x-insight-mcp-install',
+        'npx -y mcp-remote https://www.oracleinsight.xyz/api/mcp --header x-insight-entry-source:mcp'
       );
     }
     if (!hasPaymentSignature && cfg.hypercore) {

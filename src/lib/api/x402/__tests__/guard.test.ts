@@ -13,6 +13,7 @@ import {
   isPaidRequest,
   paymentAuditFields,
   toNextResponse,
+  X402_ACQUISITION_SOURCES,
   x402AcquisitionSource,
 } from '../guard';
 import { getX402HttpServer } from '../resourceServer';
@@ -498,5 +499,61 @@ describe('x402 guard', () => {
         global.fetch = originalFetch;
       }
     });
+  });
+});
+
+describe('x402AcquisitionSource agent-native attribution', () => {
+  it('exposes exactly the ten labels the database CHECK allows', () => {
+    expect(X402_ACQUISITION_SOURCES).toEqual([
+      'direct',
+      'docs',
+      'bazaar',
+      'mcp',
+      'sdk',
+      'skill',
+      'wallet_mcp',
+      'sendaifun',
+      'solana_directory',
+      'unknown',
+    ]);
+  });
+
+  it.each(['skill', 'wallet_mcp', 'sendaifun', 'solana_directory', 'mcp'])(
+    'honors the declared %s label',
+    (label) => {
+      expect(x402AcquisitionSource(makeRequest({ 'x-insight-entry-source': label }))).toBe(label);
+    }
+  );
+
+  it('ignores free-form values and falls back when the header is missing', () => {
+    expect(x402AcquisitionSource(makeRequest({ 'x-insight-entry-source': 'campaign-42' }))).toBe(
+      'unknown'
+    );
+    expect(x402AcquisitionSource(makeRequest())).toBe('unknown');
+  });
+
+  it('maps MCP bridges, Skill directories and Solana directories passively', () => {
+    expect(
+      x402AcquisitionSource(makeRequest({ 'user-agent': '@modelcontextprotocol/sdk/1.0.0' }))
+    ).toBe('mcp');
+    expect(x402AcquisitionSource(makeRequest({ referer: 'https://sendaifun.com/skills' }))).toBe(
+      'sendaifun'
+    );
+    expect(
+      x402AcquisitionSource(
+        makeRequest({ referer: 'https://github.com/solana-foundation/awesome-solana-ai' })
+      )
+    ).toBe('solana_directory');
+  });
+
+  it('keeps a declared label authoritative over passive signals', () => {
+    expect(
+      x402AcquisitionSource(
+        makeRequest({
+          'x-insight-entry-source': 'skill',
+          'user-agent': '@modelcontextprotocol/sdk/1.0.0',
+        })
+      )
+    ).toBe('skill');
   });
 });
