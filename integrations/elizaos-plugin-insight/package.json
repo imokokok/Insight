@@ -1,6 +1,6 @@
 {
   "name": "elizaos-plugin-oracle-insight",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "ElizaOS plugin for Insight (oracleinsight.xyz): pre-trade oracle-safety checks (PASS/WARN/BLOCK) paid per call via x402 v2 USDC, plus EIP-712 attestation verification. Gives an Eliza agent decision-input integrity before it signs a trade.",
   "type": "module",
   "main": "dist/index.js",
