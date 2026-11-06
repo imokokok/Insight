@@ -8,7 +8,8 @@ Git worktree, never in the primary checkout:
 ```sh
 npm run wt -- create <slug> --type <feat|fix|chore|docs|test|perf|ops|refactor> \
                         --paths "src/**,supabase/migrations/*" --goal "..."
-npm run wt -- status                                  # task -> branch -> worktree -> PR -> CI
+npm run wt -- status                                  # stage, deps mode, disk, PR, CI, next action
+npm run wt -- cost                                    # per-task disk, shared vs isolated deps, primary drift
 npm run wt -- queue                                   # open PRs in merge order
 npm run wt -- ship <slug> --message "feat: subject"   # commit + PR + auto-merge + cleanup
 npm run wt -- deps <slug> --isolate                    # real node_modules before a dependency change
@@ -28,11 +29,20 @@ npm run wt -- cleanup                                 # merged agent branches on
   session may own the index and HEAD at that moment.
 - Never run `git gc` or `git repack -a`; worktrees share the object database and
   a concurrent repack slows every session.
-- Worktree dependencies are symlinked from the primary checkout. Do not run
-  `npm install` in the primary checkout for worktree work. A task that changes
-  any `package.json`/`package-lock.json` (including nested workspaces) must run
-  `npm run wt -- deps <slug> --isolate` first; `ship` refuses to commit while
-  that directory's `node_modules` is still the shared link.
+- Worktree dependencies are symlinked from the primary checkout **only when**
+  `create` verifies the same lockfiles and Node ABI. If the primary sits on
+  another branch, or its tree is incomplete, `create` installs an isolated
+  `node_modules` for that task instead and says so; never assume the link.
+  `status` shows `shared`, `shared-mismatch!`, `isolated`, `isolated-broken!`
+  or `missing!`, and `cost` shows who paid for an isolated copy. If any command
+  reports `shared-mismatch!`, run `npm run wt -- deps <slug> --isolate`; do not
+  run `npm install` through the symlink and do not edit unrelated files to
+  "fix" a stale cron bundle. `build:cron:check`, `check` and `ship` block with
+  that remedy instead of a misleading failure.
+- A task that changes any `package.json`/`package-lock.json` (including nested
+  workspaces) must run `npm run wt -- deps <slug> --isolate` first; `ship`
+  refuses to commit while that directory's `node_modules` is still shared or
+  does not match the lockfile.
 - Dependency manifests, `.github/cron-dist/*` and `supabase/migrations/*` /
   `migrations/*` are serial by category: a second claim is refused, and `ship`
   will not enable auto-merge while another active claim or open PR touches one.
@@ -48,7 +58,11 @@ npm run wt -- cleanup                                 # merged agent branches on
 - This repository squash-merges, so `git branch --merged` and ancestor checks
   are not reliable. `cleanup` also accepts an identical tree or a merged PR head,
   and never deletes a branch whose content differs from `main`. Hand-named
-  branches (`perf/*`, `feat/*`, `dependabot/*`, …) are report-only.
+  branches (`perf/*`, `feat/*`, `dependabot/*`, …) are report-only. Pass
+  `--base <ref>` to `cleanup`/`resume` when the default branch is not
+  `origin/main`. `cleanup` reports orphan directories under the managed root
+  with their size, and `remove`/`ship` fail loudly (keeping the branch/claim)
+  if the directory still exists after removal.
 - Merge order: oldest green PR first. `strict=false`, so a BEHIND PR still
   auto-merges. A PR with red required checks is fixed by its owner before later
   PRs merge; if `strict` is enabled, rebase only your own branch.

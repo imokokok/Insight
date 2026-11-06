@@ -257,26 +257,53 @@ Rules:
    `node_modules` is still the shared symlink (or missing). It prints the exact
    path and remedy and creates no commit.
 
-Shared dependencies also affect local hooks: `build:cron:check` and typecheck
-run against `node_modules`. If the primary checkout sits on an older branch, a
-worktree based on newer `main` can fail the pre-commit hook with "committed cron
-bundles are stale" even though the task touched no cron file. That failure is
-indistinguishable from a real one by reading the hook output; run
-`deps <slug> --isolate` before triage. Measured on this task: after rebasing
-onto `main`, the hook failed with two changed and two obsolete chunks; the same
-commit passed once dependencies were isolated.
+### Shared dependencies are validated before use
+
+The primary checkout's tree is only a valid input when it was installed from the
+**same lockfiles and Node ABI** as the worktree's base. `create` computes a
+dependency fingerprint from every checked-out `package-lock.json` (root,
+`verifier/`, `sdk/`, `integrations/*`, `examples/*`) plus
+`platform-arch-node-abi`, and compares it with the primary checkout. It also
+checks `node_modules/.package-lock.json`, which is npm's record of what was
+actually installed (a tree copied with `--omit=optional` is missing esbuild's
+platform binary even when the lockfiles match).
+
+- **fingerprint matches and the tree is complete** — `create` links the primary
+  `node_modules` as before. No second install, no disk cost.
+- **fingerprint differs or the tree is incomplete** — `create` does **not**
+  link. It prints the reason and runs an isolated `npm ci` for that task, so
+  every later command sees the dependency set its branch expects.
+- **existing worktree** — `status`, `resume`, `check`, `ship` and
+  `build:cron:check` report or block on the same state. `check`/`ship` refuse to
+  proceed; `build:cron-bundles.mjs` calls the same guard before esbuild so a
+  direct `npm run build:cron:check` fails with the remedy instead of a false
+  “committed cron bundles are stale”.
+
+Measured on 2026-11-06 (primary checkout on an older branch, worktree on
+`origin/main`):
+
+| Scenario                                            | `build:cron:check`                                     | `typecheck` | `lint`                    |
+| --------------------------------------------------- | ------------------------------------------------------ | ----------- | ------------------------- |
+| shared tree from the older primary (old behaviour)  | fails: missing `@esbuild/darwin-arm64` / false “stale” | may fail    | may fail                  |
+| isolated `npm ci` on the worktree's lockfile        | **pass**                                               | **pass**    | **0 errors, 15 warnings** |
+| shared tree from a same-lockfile, complete checkout | **pass**                                               | **pass**    | **0 errors, 15 warnings** |
+
+The old root cause was dependency drift plus an incomplete tree, not the symlink
+path itself (`preserveSymlinks: true` already handled module-key paths).
 
 ```sh
-npm run wt -- deps <slug>             # mode, changed manifests, disk source
+npm run wt -- deps <slug>             # mode, validity, changed manifests, disk source
 npm run wt -- deps <slug> --isolate   # symlink -> real node_modules + npm install
+npm run wt -- cost                    # per-task disk, shared vs isolated, primary drift
 ```
 
 Disk trade-off (measured in this checkout): the primary `node_modules` is
-**1.9 GB**; a worktree’s own source checkout is **37 MB**. Sharing the link keeps
+**1.9 GB on disk** (about 1.5 GB apparent; `cost` reports apparent sizes); a
+worktree’s own source checkout is **37 MB**. Sharing the link keeps
 a worktree at ~37 MB. An isolated install costs another ~1.9 GB for that task
 only, which is the price of being able to change dependencies safely. Ship or
-remove the task to reclaim it; do not pre-isolate tasks that do not touch
-dependencies.
+remove the task to reclaim it. A task that does not change dependencies normally
+stays shared, and `cost` names the tasks that are paying for an isolated copy.
 
 ## Same file, different regions
 
@@ -314,8 +341,29 @@ ship  hunk-c   (line 2  vs PR line 2):  refusing to enable auto-merge           
 ## Observable status and merge order
 
 ```sh
-npm run wt -- status   # task -> branch -> session -> dirty -> port -> PR -> CI -> state -> handoff -> path
+npm run wt -- status   # task -> branch -> session -> dirty -> port -> deps -> disk -> PR -> CI -> state -> path
+npm run wt -- cost     # per-task disk, deps mode/source, isolated installs, primary drift
 npm run wt -- queue    # open PRs, oldest first, with the next action
+```
+
+`status` also shows `DEPS` (`shared`, `shared-mismatch!`, `isolated`,
+`isolated-broken!`, `missing!`) and `DISK`, so which tasks are sharing the
+primary tree and which paid for an isolated install is visible before work
+starts. `cost` adds the totals: primary `node_modules` size, task checkout
+bytes, isolated-install bytes and their owners, and whether the primary tree
+changed since the baseline recorded by `create`.
+
+```text
+TASK                       DEPS     DISK    SOURCE
+parallel-deps-mechanism    isolated 1.9 GB  this worktree
+oracle-config-snapshot     shared   38 MB   shared ~/Documents/insight/node_modules
+
+Summary
+  Primary deps:      1.9 GB at ~/Documents/insight/node_modules
+  Primary status:    matches the recorded baseline
+  Task checkouts:    2.0 GB across 2 worktree(s)
+  Isolated installs: 1.9 GB in 1 task(s) (parallel-deps-mechanism)
+  Shared consumers:  1 task(s) reuse 1.9 GB without a second copy
 ```
 
 `status` reports the **stage the task is stuck in**, how long it has been there,
@@ -431,9 +479,9 @@ repository:
   requirement makes `ship` wait for the branch to be current instead of
   assuming a stale PR can auto-merge.
 
-Remaining hard-coded assumption: the default branch is `main`. For a different
-default branch pass `--base origin/<branch>`; `cleanup`/`resume` still name
-`origin/main`.
+Remaining configurable assumptions: the default branch is `main`; pass
+`--base origin/<branch>` (or set `INSIGHT_WT_BASE`) for anything else. `cleanup`
+and `resume` now honour the same flag.
 
 ## Failure rules
 
@@ -458,17 +506,27 @@ default branch pass `--base origin/<branch>`; `cleanup`/`resume` still name
 npm run wt -- cleanup                 # report
 npm run wt -- cleanup --apply         # delete merged agent branches only
 npm run wt -- cleanup --stale-days 7  # change the age threshold
+npm run wt -- cleanup --base origin/release   # compare against another base ref
 ```
+
+`cleanup` and `resume` accept `--base <ref>` (default `origin/main`) instead of
+assuming the default branch. `cleanup` also scans the managed worktree root for
+directories that git no longer lists as worktrees; each orphan is reported with
+its size and, with `--apply`, removed. After `remove`/`ship` delete a directory,
+the command verifies it is actually gone: if a nested file, sandbox denial or
+running process left the directory behind, it exits with the path and measured
+size and keeps the branch/claim instead of printing a false success. This is the
+guard against the 1.5 GB orphan found by the audit.
 
 ## Cache and port isolation
 
-| Artifact                                                                                      | Isolation                                                                                                                                 |
-| --------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `.next/`, `.next/dev`, `*.tsbuildinfo`, `.eslintcache`, `playwright-report/`, `test-results/` | Separate per worktree because they live in the working tree; they stay untracked and are deleted with the worktree                        |
-| `node_modules`                                                                                | Symlinked from the primary checkout (read-only in practice: no session runs `npm install` inside a worktree unless it passes `--install`) |
-| Dev server                                                                                    | `npm run wt:dev` uses `INSIGHT_WT_PORT` from `.worktree.local`                                                                            |
-| E2E                                                                                           | `npm run wt:e2e` exports `PLAYWRIGHT_PORT`/`INSIGHT_E2E_PORT`; `playwright.config.ts` reads both                                          |
-| Git stash                                                                                     | `lint-staged --no-stash` in `.husky/pre-commit`, so no session writes to the shared stash stack                                           |
+| Artifact                                                                                      | Isolation                                                                                                                                                                 |
+| --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `.next/`, `.next/dev`, `*.tsbuildinfo`, `.eslintcache`, `playwright-report/`, `test-results/` | Separate per worktree because they live in the working tree; they stay untracked and are deleted with the worktree                                                        |
+| `node_modules`                                                                                | Symlinked from the primary checkout only when the dependency fingerprint matches; otherwise `create` installs an isolated copy for that task (`status`/`cost` show which) |
+| Dev server                                                                                    | `npm run wt:dev` uses `INSIGHT_WT_PORT` from `.worktree.local`                                                                                                            |
+| E2E                                                                                           | `npm run wt:e2e` exports `PLAYWRIGHT_PORT`/`INSIGHT_E2E_PORT`; `playwright.config.ts` reads both                                                                          |
+| Git stash                                                                                     | `lint-staged --no-stash` in `.husky/pre-commit`, so no session writes to the shared stash stack                                                                           |
 
 Because `node_modules` is a symlink, esbuild records the real path of every
 dependency inside the bundle, which makes the byte-for-byte `build:cron:check`
@@ -541,8 +599,35 @@ passed; each scenario below is an assertion, not an estimate:
 | Primary dependency tree after the 6-agent run             | still a real directory, never replaced by a link or mutated             |
 | Dev port already bound in another worktree                | `services` reports it, `wt dev` refuses instead of sharing the port     |
 
-The earlier 22-assertion suite still passes; the 52-assertion suite is the
-regression gate for the unique-artifact, dependency, hunk and observability rules.
+## Measured effect (dependency-truth harness, 2026-11-06)
+
+A third local harness (bare remote, fake `npm` that writes a matching
+`.package-lock.json`, deterministic `gh` stub) ran **23 assertions**, all
+passing. It covers six agents (`a`–`d`, `m`, plus a refused `n`) created
+concurrently from the same base:
+
+| Scenario                                                  | Result                                                      |
+| --------------------------------------------------------- | ----------------------------------------------------------- |
+| 5 concurrent `create` (shared deps)                       | 5/5 succeed in **12 s** (serialized by the repository lock) |
+| Second migration claim (different file)                   | refused, no sixth worktree or branch created                |
+| One agent edits `package-lock.json` then `deps --isolate` | mode `isolated`, `Valid: yes`; fake install **< 1 s**       |
+| Other agents after that isolation                         | still `shared`, `Valid: yes`                                |
+| Primary `node_modules/.package-lock.json` after isolation | byte-identical (no task replaced the shared tree)           |
+| Same file, overlapping hunk (both edit line 9)            | `check` exit 1 with `hunk-overlap`                          |
+| Same file, disjoint hunk (line 28)                        | `check` exit 0                                              |
+| Orphan directory under the managed root                   | `cleanup` reports it with size; `--apply` removes it        |
+| Remove all five tasks                                     | 0 worktrees, 0 `wt/*` branches, 0 claims, 0 lock files      |
+
+Real-repository dependency equivalence (same commit, Node 22, primary on an
+older branch): isolated and shared-from-complete-same-lock both produce
+`build:cron:check` = pass, `typecheck` = pass and `lint` = 0 errors, 15 warnings.
+Shared-from-older-primary is rejected by the guard with “node_modules does not
+match this branch's lockfiles” and the exact `deps --isolate` command; it never
+reaches esbuild's stale-bundle comparison.
+
+The earlier 22- and 52-assertion suites still pass; this 23-assertion suite is
+the regression gate for dependency truth, cost visibility, cleanup trust and
+first-run guardrails.
 
 ## Rules every session must follow
 

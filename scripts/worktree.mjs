@@ -8,11 +8,11 @@
 //   npm run wt -- status
 //   npm run wt -- queue
 //   npm run wt -- remove <slug> [--force] [--delete-branch]
-//   npm run wt -- cleanup [--apply] [--stale-days 14] [--report-all]
+//   npm run wt -- cleanup [--apply] [--stale-days 14] [--report-all] [--base <ref>]
 //   npm run wt -- claim <slug> [--paths "..."] [--goal "..."]
 //   npm run wt -- release <slug>
 //   npm run wt -- handoff <slug> [--goal "..."] [--next "..."] [--verify "..."]
-//   npm run wt -- resume <slug>
+//   npm run wt -- resume <slug> [--base <ref>]
 //   npm run wt -- dev
 //   npm run wt -- e2e -- --project=chromium
 //   npm run wt -- ship <slug> --message "feat: ..." [--session <id>]
@@ -23,6 +23,7 @@
 // cache. Dependencies are symlinked from the primary checkout, not reinstalled.
 
 import { execFileSync, spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import {
   chmodSync,
   copyFileSync,
@@ -40,7 +41,7 @@ import {
 } from 'node:fs';
 import { createServer } from 'node:net';
 import { homedir } from 'node:os';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const TYPES = ['feat', 'fix', 'chore', 'docs', 'test', 'perf', 'ops', 'refactor'];
@@ -58,6 +59,15 @@ const VALUE_OPTIONS = [
   'verify',
 ];
 const DEFAULT_BASE = process.env.INSIGHT_WT_BASE ?? 'origin/main';
+const SKIP_DEPENDENCY_DIRS = new Set([
+  'node_modules',
+  '.git',
+  '.next',
+  'coverage',
+  'test-results',
+  'playwright-report',
+  'output',
+]);
 const PORT_RANGE_START = 3300;
 const PORT_RANGE_SIZE = 600;
 const ENV_FILES = ['.env.local', '.env.vercel.local', '.env.x402-testnet'];
@@ -75,9 +85,12 @@ const HANDOFF_STALE_MS = 60 * 60 * 1000;
 const CI_STUCK_MS = 20 * 60 * 1000;
 const NO_PROGRESS_MS = 60 * 60 * 1000;
 const TASK_DIR = 'insight-tasks';
+const DEPS_STATE_FILE = '.worktree-deps.json';
+const PRIMARY_DEPS_BASELINE = 'primary-deps.json';
 const WORKTREE_EXCLUDES = [
   'node_modules',
   '.worktree.local',
+  '.worktree-deps.json',
   '.handoff.local',
   '.next/',
   '*.tsbuildinfo',
@@ -101,6 +114,8 @@ async function main() {
       return printList();
     case 'status':
       return printStatus();
+    case 'cost':
+      return printCost();
     case 'queue':
       return printQueue();
     case 'remove':
@@ -203,13 +218,49 @@ async function createWorktree() {
     const state = ensureWorktree({ branch, worktreePath, baseCommit });
 
     try {
-      if (install && state.created) {
-        console.log('worktree: installing dependencies with npm ci (opt-in, full install)');
-        run('npm', ['ci', '--prefer-offline', '--no-audit', '--no-fund'], { cwd: worktreePath });
-        linkNestedNodeModules(primary.path, worktreePath);
-      } else {
-        linkNodeModules(primary.path, worktreePath);
+      recordPrimaryDepsBaseline(primary.path, slug);
+      if (state.created) {
+        if (install) {
+          console.log('worktree: installing dependencies with npm ci (opt-in, full install)');
+          run('npm', ['ci', '--prefer-offline', '--no-audit', '--no-fund'], { cwd: worktreePath });
+          linkNestedNodeModules(primary.path, worktreePath);
+        } else {
+          const compatibility = dependencyCompatibility(primary.path, worktreePath);
+          if (compatibility.ok) {
+            linkNodeModules(primary.path, worktreePath);
+          } else {
+            // Reusing the primary tree here would run every check against the
+            // wrong dependency set and surface as a false "cron bundles stale"
+            // failure. Install a truthful tree instead of handing the agent a
+            // misleading error.
+            console.log(
+              `worktree: shared dependencies are not valid for ${base}: ${compatibility.reason}`
+            );
+            console.log(
+              'worktree: installing an isolated node_modules for this task (about 1.9 GB); ' +
+                '`npm run wt -- cost` reports usage'
+            );
+            run('npm', ['ci', '--prefer-offline', '--no-audit', '--no-fund'], {
+              cwd: worktreePath,
+            });
+            linkNestedNodeModules(primary.path, worktreePath);
+          }
+        }
+      } else if (!existsSync(join(worktreePath, 'node_modules'))) {
+        const compatibility = dependencyCompatibility(primary.path, worktreePath);
+        if (compatibility.ok) {
+          linkNodeModules(primary.path, worktreePath);
+        } else {
+          console.log(
+            `worktree: shared dependencies are not valid for ${base}: ${compatibility.reason}`
+          );
+          run('npm', ['ci', '--prefer-offline', '--no-audit', '--no-fund'], {
+            cwd: worktreePath,
+          });
+          linkNestedNodeModules(primary.path, worktreePath);
+        }
       }
+      writeDepsState(worktreePath, slug);
       linkEnvFiles(primary.path, worktreePath);
       excludeWorktreeArtifacts(worktreePath);
       installHooks(worktreePath);
@@ -235,6 +286,7 @@ Worktree ready${state.reused ? ' (reused existing branch)' : ''}
   path:     ${worktreePath}
   branch:   ${branch} (from ${base} @ ${baseCommit.slice(0, 8)})
   session:  ${session}
+  deps:     ${dependencyState(worktreePath).label} (${formatSize(directorySizeKb(worktreePath))})
   ports:    dev=${ports.dev}  e2e=${ports.e2e}
   claim:    ${paths.length ? paths.join(', ') : '(none; add with claim --paths)'}
 
@@ -304,6 +356,20 @@ function printList() {
   console.log(`\n* primary checkout; managed worktrees live under ${root}`);
 }
 
+// `git worktree remove` can report success while a nested mount, a running
+// process or a sandbox denial leaves the directory behind. Removing the
+// registration and then printing "removed" hides a multi-GB orphan, so verify
+// the directory is actually gone before deleting the branch or releasing rim.
+function assertWorktreeDirectoryGone(worktreePath) {
+  if (!existsSync(worktreePath)) return;
+  const size = formatSize(directorySizeKb(worktreePath));
+  throw new Error(
+    `worktree directory still exists after removal: ${worktreePath} (${size}).\n` +
+      'It is an orphan (git no longer tracks it), so the branch and claim were kept.\n' +
+      `Inspect and delete it manually, then rerun: ${commandPrefix()} remove ${basename(worktreePath)}`
+  );
+}
+
 async function removeWorktree() {
   const slug = normalizeSlug(positional(1));
   const force = flag('force');
@@ -317,6 +383,7 @@ async function removeWorktree() {
       const env = readWorktreeEnv(worktreePath);
       if (existsSync(worktreePath)) {
         rmSync(worktreePath, { recursive: true, force: true });
+        assertWorktreeDirectoryGone(worktreePath);
         console.log(`worktree: removed stale directory ${worktreePath}`);
       } else {
         console.log(`worktree: ${worktreePath} is already gone`);
@@ -346,6 +413,9 @@ async function removeWorktree() {
       forceRemoveWorktree(worktreePath);
     }
 
+    // Never report success while a multi-GB directory is still on disk. Keep
+    // the branch and claim so the task can be recovered.
+    assertWorktreeDirectoryGone(worktreePath);
     if (deleteBranch && branch) deleteAgentBranch(branch);
     removeClaim(slug);
 
@@ -401,12 +471,14 @@ async function cleanupBranches() {
     }
     const mergedPrs = fetchMergedPrHeads();
     const inUse = new Map(listWorktrees().map((worktree) => [worktree.branch, worktree.path]));
-    const head = DEFAULT_BASE;
+    const head = option('base') ?? DEFAULT_BASE;
 
     const all = readBranchRefs().filter((branch) => branch.ageMs >= minAgeMs);
     const agentBranches = all.filter((branch) => BRANCH_PATTERN.test(branch.name));
 
-    console.log(`Agent branches older than ${staleDays} days (${apply ? 'apply' : 'dry run'}):`);
+    console.log(
+      `Agent branches older than ${staleDays} days (${apply ? 'apply' : 'dry run'}, base ${head}):`
+    );
     if (agentBranches.length === 0) {
       console.log('  (none)');
     }
@@ -470,6 +542,39 @@ async function cleanupBranches() {
         if (apply) removeClaim(claim.slug);
       }
       if (apply) console.log('  released stale claims');
+    }
+
+    // A directory under the managed root that git does not list as a worktree is
+    // an orphan left by a failed remove. It is invisible to every other report
+    // and can hold a multi-GB node_modules.
+    const root = worktreeRoot();
+    const registered = new Set(listWorktrees().map((worktree) => realpathSync(worktree.path)));
+    const prefix = `${basename(primaryWorktree().path)}-`;
+    const orphans = [];
+    if (existsSync(root)) {
+      for (const entry of readdirSync(root, { withFileTypes: true })) {
+        if (!entry.isDirectory() || !entry.name.startsWith(prefix)) continue;
+        const candidate = join(root, entry.name);
+        if (registered.has(realpathSync(candidate))) continue;
+        orphans.push(candidate);
+      }
+    }
+    if (orphans.length > 0) {
+      console.log('\nOrphan directories (not registered as worktrees):');
+      for (const orphan of orphans) {
+        console.log(`  ! ${orphan}  ${formatSize(directorySizeKb(orphan))}`);
+        if (apply) {
+          rmSync(orphan, { recursive: true, force: true });
+          if (existsSync(orphan)) {
+            console.warn(
+              `  ! could not fully remove ${orphan}; it still exists - inspect it manually`
+            );
+          } else {
+            console.log('    removed');
+          }
+        }
+      }
+      if (!apply) console.log('  Run with --apply to delete them.');
     }
 
     if (!apply) console.log('\nRun with --apply to delete merged wt/* branches only.');
@@ -641,16 +746,19 @@ function resumeTask() {
   const claim = readClaims().find((item) => item.slug === slug) ?? {};
   const handoff = readHandoff(worktreePath) ?? {};
   const branch = env.INSIGHT_WT_BRANCH ?? claim.branch ?? '';
+  const base = option('base') ?? env.INSIGHT_WT_BASE ?? DEFAULT_BASE;
   const dirty = git(['-C', worktreePath, 'status', '--porcelain']).split('\n').filter(Boolean);
-  const ahead = branch ? commitsAhead(branch, DEFAULT_BASE) : Number.NaN;
+  const ahead = branch ? commitsAhead(branch, base) : Number.NaN;
   const last = git(['-C', worktreePath, 'log', '--oneline', '-1']).trim();
+  const deps = dependencyState(worktreePath);
 
   console.log(`
 Task:      ${slug}
 Path:      ${worktreePath}
-Branch:    ${branch} (ahead of ${DEFAULT_BASE} by ${Number.isNaN(ahead) ? '?' : ahead})
+Branch:    ${branch} (ahead of ${base} by ${Number.isNaN(ahead) ? '?' : ahead})
 Session:   ${env.INSIGHT_WT_SESSION ?? claim.session ?? '-'}
 Ports:     dev=${env.INSIGHT_WT_PORT ?? '-'}  e2e=${env.INSIGHT_E2E_PORT ?? '-'}
+Deps:      ${deps.label}${deps.compatible ? '' : ` - ${deps.reason}`}
 Goal:      ${handoff.goal || claim.goal || '(not recorded)'}
 Status:    ${handoff.status ?? 'unknown'}
 Next:      ${handoff.next || '(not recorded)'}
@@ -664,6 +772,11 @@ Dirty:     ${dirty.length} path(s)${
           .join('\n')}`
       : ''
   }
+${
+  deps.compatible
+    ? ''
+    : `\nWARNING: ${deps.label} - ${deps.reason}.\nRun \`${commandPrefix()} deps ${slug} --isolate\` before typecheck, lint or ship.\n`
+}
 
 Continue:
   cd ${shellQuote(worktreePath)}
@@ -680,6 +793,9 @@ function printStatus() {
     env: readWorktreeEnv(worktree.path),
     handoff: readHandoff(worktree.path),
     dirty: countDirty(worktree.path),
+    deps: dependencyState(worktree.path),
+    disk: directorySizeKb(worktree.path),
+    base: worktreeBase(worktree.path),
     managed: worktree.path.startsWith(`${root}/`),
   }));
   const claims = readClaims();
@@ -705,6 +821,8 @@ function printStatus() {
       session: worktree.env.INSIGHT_WT_SESSION ?? claim?.session ?? '-',
       dirty: worktree.dirty,
       port: worktree.env.INSIGHT_WT_PORT ?? '-',
+      deps: worktree.deps.label,
+      disk: formatSize(worktree.disk),
       pr: pull ? `#${pull.number}` : '-',
       ci: pull ? ciSummary(pull.statusCheckRollup) : '-',
       stage: `${stage.alert ? '!' : ''}${stage.stage}`,
@@ -724,6 +842,8 @@ function printStatus() {
       session: claim.session,
       dirty: '-',
       port: '-',
+      deps: '-',
+      disk: '-',
       pr: prByBranch.get(claim.branch) ? `#${prByBranch.get(claim.branch).number}` : '-',
       ci: '-',
       stage: stale ? '!claim-orphaned' : 'creating',
@@ -745,6 +865,8 @@ function printStatus() {
     'SESSION',
     'DIRTY',
     'PORT',
+    'DEPS',
+    'DISK',
     'PR',
     'CI',
     'STAGE',
@@ -758,6 +880,8 @@ function printStatus() {
     row.session,
     String(row.dirty),
     row.port,
+    row.deps,
+    row.disk,
     row.pr,
     row.ci,
     row.stage,
@@ -783,7 +907,79 @@ STUCK = time spent in the current stage. A leading "!" means act now:
   conflict     PR is DIRTY -> rebase this branch in this worktree
   blocked      handoff says blocked -> read .handoff.local
   claim-orphaned / creating: no worktree is attached to the claim
+
+DEPS = where node_modules comes from:
+  shared            valid symlink to the primary checkout (same lockfile + Node ABI)
+  shared-mismatch!  primary tree does not match this branch -> deps <task> --isolate
+  isolated          real install in this worktree (owned by this task)
+  isolated-broken!  real install does not match the lockfile -> npm ci here
+  missing!          no node_modules -> deps <task> --isolate
+DISK = checkout size; a shared symlink is not counted twice (see wt cost).
 `);
+}
+
+// Disk and dependency attribution: answer "how much space does parallel work
+// use, and is anyone running an isolated install?" without walking the whole
+// filesystem by hand. Shared symlinks are counted once (under the primary
+// checkout), never once per consumer.
+function printCost() {
+  const root = worktreeRoot();
+  const primaryPath = primaryWorktree().path;
+  const rows = [];
+  for (const worktree of listWorktrees()) {
+    if (!worktree.path.startsWith(`${root}/`)) continue;
+    const env = readWorktreeEnv(worktree.path);
+    rows.push({
+      task: env.INSIGHT_WT_NAME ?? worktree.path.slice(root.length + 1),
+      path: worktree.path,
+      deps: dependencyState(worktree.path),
+      size: directorySizeKb(worktree.path),
+    });
+  }
+
+  const primaryModules = join(primaryPath, 'node_modules');
+  const primarySize = directorySizeKb(primaryModules);
+  const consumers = rows.filter((row) => row.deps.mode === 'shared');
+  const isolated = rows.filter((row) => row.deps.mode === 'isolated');
+  const isolatedBytes = isolated.reduce((total, row) => total + row.size, 0);
+  const worktreeBytes = rows.reduce((total, row) => total + row.size, 0);
+  const primaryState = primaryDepsStatus(primaryPath);
+
+  const header = ['TASK', 'DEPS', 'DISK', 'SOURCE'];
+  const body = rows.map((row) => [
+    row.task,
+    row.deps.label,
+    formatSize(row.size),
+    row.deps.mode === 'shared'
+      ? `shared ${row.deps.source ?? '(unknown)'}`
+      : row.deps.mode === 'isolated'
+        ? 'this worktree'
+        : '(none)',
+  ]);
+  const widths = header.map((column, index) =>
+    Math.max(column.length, ...body.map((row) => row[index].length))
+  );
+  const format = (row) => row.map((cell, index) => cell.padEnd(widths[index])).join('  ');
+  console.log(format(header));
+  console.log(widths.map((width) => '-'.repeat(width)).join('  '));
+  body.forEach((row) => console.log(format(row)));
+
+  console.log(`
+Summary
+  Primary deps:      ${formatSize(primarySize)} at ${primaryModules}
+  Primary status:    ${primaryState.changed ? `CHANGED - ${primaryState.detail}` : primaryState.detail}
+  Task checkouts:    ${formatSize(worktreeBytes)} across ${rows.length} worktree(s)
+  Isolated installs: ${formatSize(isolatedBytes)} in ${isolated.length} task(s)${
+    isolated.length ? ` (${isolated.map((row) => row.task).join(', ')})` : ''
+  }
+  Shared consumers:  ${consumers.length} task(s) reuse ${formatSize(primarySize)} without a second copy
+  Total on disk:     ${formatSize(primarySize + worktreeBytes)} (primary deps + all task checkouts)
+`);
+  if (primaryState.changed) {
+    console.log(
+      `  action: ${primaryState.detail}; inspect \`git -C ${primaryPath} status\` before trusting builds.\n`
+    );
+  }
 }
 
 // Classify a task by the step it is stuck on and how long it has been there.
@@ -811,7 +1007,7 @@ function taskStage({ worktree, pull, handoff, dirty, task }) {
       return {
         stage: 'conflict',
         startedAt: parseTime(pull.updatedAt),
-        next: `rebase this branch: git -C ${worktree.path} rebase ${DEFAULT_BASE}`,
+        next: `rebase this branch: git -C ${worktree.path} rebase ${worktree.base}`,
         alert: true,
       };
     }
@@ -948,6 +1144,7 @@ function checkTask() {
   const worktreePath = resolveWorktreePath(slug);
   if (!existsSync(worktreePath)) throw new Error(`no worktree for "${slug}"`);
   const branch = readWorktreeEnv(worktreePath).INSIGHT_WT_BRANCH ?? branchName('feat', slug, null);
+  assertDependencyCompatibility(worktreePath, slug, `check ${slug}`);
   const hazards = detectMergeHazards(worktreePath, branch, slug);
   if (hazards.length === 0) {
     console.log(`check: no merge hazards for "${slug}"`);
@@ -1113,6 +1310,7 @@ async function shipWorktree() {
       }
     }
     assertDependencyIsolation(worktreePath, `ship ${slug}`);
+    assertDependencyCompatibility(worktreePath, slug, `ship ${slug}`);
     commitWorktree(worktreePath, message);
     pushBranch(worktreePath, branch);
     const pull = ensurePullRequest(branch, message);
@@ -1194,6 +1392,7 @@ Never switch another branch, never stash, never touch uncommitted files elsewher
     } catch {
       forceRemoveWorktree(worktreePath);
     }
+    assertWorktreeDirectoryGone(worktreePath);
     try {
       git(['push', 'origin', '--delete', branch]);
     } catch {
@@ -1745,14 +1944,312 @@ function readWorktreePorts(envPath) {
 
 // --- dependency isolation --------------------------------------------------
 
-function nodeModulesMode(worktreePath) {
-  const target = join(worktreePath, 'node_modules');
-  try {
-    if (lstatSync(target).isSymbolicLink()) return 'shared';
-    return 'isolated';
-  } catch {
-    return 'missing';
+// --- dependency compatibility ----------------------------------------------
+//
+// A symlinked `node_modules` is only safe when it was installed from the same
+// lockfiles this worktree checks out for the same Node ABI. Reusing the primary
+// checkout's tree while it sits on an older branch makes esbuild/tsc/eslint run
+// against a different dependency set, which surfaces as a false "committed cron
+// bundles are stale" pre-commit error (or a missing platform optional package).
+// The functions below make that state explicit and block work on it.
+
+// Every package-lock.json this worktree checks out, up to two levels (root,
+// verifier/, sdk/, integrations/*, examples/*).
+function lockfilesUnder(root) {
+  const found = [];
+  const walk = (dir, depth) => {
+    let entries;
+    try {
+      entries = readdirSync(join(root, dir), { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      if (entry.isDirectory()) {
+        if (depth > 0 && !SKIP_DEPENDENCY_DIRS.has(entry.name)) {
+          walk(join(dir, entry.name), depth - 1);
+        }
+        continue;
+      }
+      if (entry.name === 'package-lock.json') found.push(join(root, dir, entry.name));
+    }
+  };
+  walk('', 2);
+  return found.sort();
+}
+
+// Identity of the dependency set a checkout is entitled to: lockfile bytes
+// (with their relative path) plus the native ABI that installed binaries were
+// built for. Two trees with the same fingerprint are byte-compatible inputs.
+function dependencyFingerprint(root) {
+  const hash = createHash('sha256');
+  for (const file of lockfilesUnder(root)) {
+    hash.update(relative(root, file));
+    hash.update('\0');
+    hash.update(readFileSync(file));
+    hash.update('\0');
   }
+  hash.update(`${process.platform}-${process.arch}-modules-${process.versions.modules}`);
+  return hash.digest('hex').slice(0, 16);
+}
+
+function packageMatchesPlatform(entry) {
+  const test = (list, actual) => {
+    if (!Array.isArray(list) || list.length === 0) return true;
+    const denied = list.filter((value) => value.startsWith('!')).map((value) => value.slice(1));
+    if (denied.includes(actual)) return false;
+    const allowed = list.filter((value) => !value.startsWith('!'));
+    return allowed.length === 0 ? true : allowed.includes(actual);
+  };
+  return test(entry.os, process.platform) && test(entry.cpu, process.arch);
+}
+
+// npm records every package it installed in node_modules/.package-lock.json.
+// Compare that record with the lockfile this checkout expects, including the
+// platform optional binary (esbuild's native package is the common casualty of
+// an install run with --omit=optional or copied from another machine).
+function installedDependenciesIssue(root) {
+  const modules = join(root, 'node_modules');
+  let stat;
+  try {
+    stat = lstatSync(modules);
+  } catch {
+    return 'node_modules is missing';
+  }
+  if (stat.isSymbolicLink()) return null;
+  const installedPath = join(modules, '.package-lock.json');
+  if (!existsSync(installedPath)) {
+    return 'node_modules has no .package-lock.json, so npm never finished an install here';
+  }
+  let wanted;
+  let installed;
+  try {
+    wanted = JSON.parse(readFileSync(join(root, 'package-lock.json'), 'utf8'));
+    installed = JSON.parse(readFileSync(installedPath, 'utf8'));
+  } catch {
+    return null;
+  }
+  const wantedPackages = wanted.packages ?? {};
+  const installedPackages = installed.packages ?? {};
+  const missing = [];
+  const mismatched = [];
+  const ancestorsMissing = (path) => {
+    // node_modules/a/node_modules/b -> ["node_modules/a"]
+    const out = [];
+    let index = path.indexOf('/node_modules/');
+    while (index !== -1) {
+      out.push(path.slice(0, index));
+      index = path.indexOf('/node_modules/', index + 1);
+    }
+    return out;
+  };
+  for (const [path, entry] of Object.entries(wantedPackages)) {
+    if (!path || entry.link) continue;
+    const skip = ancestorsMissing(path).some((ancestor) => !installedPackages[ancestor]);
+    // A missing parent (usually a platform-specific optional package) is
+    // reported once; its transitive children are not separate problems.
+    if (skip) continue;
+    if (entry.optional && !packageMatchesPlatform(entry)) continue;
+    const actual = installedPackages[path];
+    if (!actual) {
+      // Top-level optional packages for another platform are expected to be
+      // absent; only report optional packages that match this platform.
+      if (entry.optional && !packageMatchesPlatform(entry)) continue;
+      missing.push(path);
+    } else if (entry.version && actual.version && entry.version !== actual.version) {
+      mismatched.push(`${path} (want ${entry.version}, have ${actual.version})`);
+    }
+  }
+  if (missing.length === 0 && mismatched.length === 0) return null;
+  const sample = [...missing.slice(0, 4), ...mismatched.slice(0, 4)].join(', ');
+  return `${missing.length + mismatched.length} package(s) do not match the lockfile: ${sample}${
+    missing.length + mismatched.length > 8 ? ', ...' : ''
+  }`;
+}
+
+// Describe how this worktree's node_modules was obtained and whether it is a
+// valid input for its own lockfile. `compatible` is what `typecheck`, `lint`
+// and `build:cron:check` need; `reason` is printed instead of a mysterious
+// downstream failure.
+function dependencyState(worktreePath) {
+  const target = join(worktreePath, 'node_modules');
+  const desired = dependencyFingerprint(worktreePath);
+  let stat;
+  try {
+    stat = lstatSync(target);
+  } catch {
+    return {
+      mode: 'missing',
+      label: 'missing!',
+      compatible: false,
+      source: null,
+      fingerprint: desired,
+      reason: 'node_modules is missing',
+    };
+  }
+  if (stat.isSymbolicLink()) {
+    let source;
+    try {
+      source = realpathSync(target);
+    } catch {
+      source = target;
+    }
+    const owner = dirname(source);
+    let sourceFingerprint = null;
+    let issue = null;
+    try {
+      sourceFingerprint = dependencyFingerprint(owner);
+      issue = installedDependenciesIssue(owner);
+    } catch {
+      // unreadable source: treat as incompatible below
+    }
+    const compatible = sourceFingerprint === desired && !issue;
+    const reason = !sourceFingerprint
+      ? `cannot read the lockfiles behind ${source}`
+      : sourceFingerprint !== desired
+        ? `the symlink target belongs to ${owner}, whose lockfile/ABI differs from this worktree`
+        : issue;
+    return {
+      mode: 'shared',
+      label: compatible ? 'shared' : 'shared-mismatch!',
+      compatible,
+      source,
+      fingerprint: desired,
+      sourceFingerprint,
+      reason,
+    };
+  }
+  const issue = installedDependenciesIssue(worktreePath);
+  return {
+    mode: 'isolated',
+    label: issue ? 'isolated-broken!' : 'isolated',
+    compatible: !issue,
+    source: target,
+    fingerprint: desired,
+    reason: issue,
+  };
+}
+
+function readDepsState(worktreePath) {
+  const path = join(worktreePath, DEPS_STATE_FILE);
+  if (!existsSync(path)) return null;
+  try {
+    return JSON.parse(readFileSync(path, 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
+function writeDepsState(worktreePath, task, state = dependencyState(worktreePath)) {
+  atomicWrite(
+    join(worktreePath, DEPS_STATE_FILE),
+    `${JSON.stringify(
+      {
+        task,
+        mode: state.mode,
+        source: state.source,
+        fingerprint: state.fingerprint,
+        sourceFingerprint: state.sourceFingerprint ?? null,
+        compatible: state.compatible,
+        node: process.versions.modules,
+        recordedAt: new Date().toISOString(),
+      },
+      null,
+      2
+    )}\n`
+  );
+}
+
+// Can the primary checkout's installed tree truthfully serve this worktree?
+function dependencyCompatibility(primaryPath, worktreePath) {
+  const desired = dependencyFingerprint(worktreePath);
+  const source = dependencyFingerprint(primaryPath);
+  if (desired !== source) {
+    return {
+      ok: false,
+      fingerprint: desired,
+      reason:
+        `the primary checkout (${primaryPath}) has a different dependency set ` +
+        `(${source} vs ${desired}); it is probably checked out on another branch`,
+    };
+  }
+  const issue = installedDependenciesIssue(primaryPath);
+  if (issue) {
+    return {
+      ok: false,
+      fingerprint: desired,
+      reason: `the primary node_modules is incomplete: ${issue}`,
+    };
+  }
+  return { ok: true, fingerprint: desired, reason: null };
+}
+
+// Hard gate for commands that build, typecheck or commit. A new agent must see
+// one actionable sentence, not a stale-bundle or missing-module error.
+function assertDependencyCompatibility(worktreePath, slug, label) {
+  const state = dependencyState(worktreePath);
+  if (state.compatible) return;
+  const remedy = `${commandPrefix()} deps ${slug} --isolate`;
+  throw new Error(
+    `${label}: node_modules in ${worktreePath} is not valid for this branch.\n` +
+      `  state:  ${state.mode}${state.reason ? ` - ${state.reason}` : ''}\n` +
+      '  effect: typecheck, lint and build:cron:check would fail or report false stale output.\n' +
+      `  fix:    ${remedy}\n` +
+      (state.mode === 'missing'
+        ? `  note:   an isolated install of this repository is about 1.9 GB; \`${commandPrefix()} cost\` shows usage.`
+        : '  note:   the shared tree is read-only; do not run npm install through it.')
+  );
+}
+
+function recordPrimaryDepsBaseline(primaryPath, slug) {
+  const path = join(taskDir(), PRIMARY_DEPS_BASELINE);
+  if (existsSync(path)) return;
+  mkdirSync(taskDir(), { recursive: true });
+  atomicWrite(
+    path,
+    `${JSON.stringify(
+      {
+        fingerprint: dependencyFingerprint(primaryPath),
+        node: process.versions.modules,
+        recordedAt: new Date().toISOString(),
+        byTask: slug,
+      },
+      null,
+      2
+    )}\n`
+  );
+}
+
+function primaryDepsStatus(primaryPath) {
+  const baselinePath = join(taskDir(), PRIMARY_DEPS_BASELINE);
+  let baseline = null;
+  try {
+    baseline = JSON.parse(readFileSync(baselinePath, 'utf8'));
+  } catch {
+    // no baseline yet
+  }
+  const modules = join(primaryPath, 'node_modules');
+  try {
+    if (lstatSync(modules).isSymbolicLink()) {
+      return {
+        changed: true,
+        detail: `primary node_modules is a symlink to ${realpathSync(modules)}; a task replaced the primary tree`,
+      };
+    }
+  } catch {
+    return { changed: true, detail: 'primary node_modules is missing' };
+  }
+  const current = dependencyFingerprint(primaryPath);
+  if (!baseline?.fingerprint) {
+    return { changed: false, detail: 'no baseline recorded yet (the next create records one)' };
+  }
+  if (baseline.fingerprint !== current) {
+    return {
+      changed: true,
+      detail: `primary dependency set changed since ${baseline.byTask ?? 'create'} recorded it at ${baseline.recordedAt}`,
+    };
+  }
+  return { changed: false, detail: 'matches the recorded baseline' };
 }
 
 function worktreeBase(worktreePath) {
@@ -1820,37 +2317,52 @@ function manageDependencies() {
 
   const manifests = changedFiles(worktreePath).filter(isDependencyManifest);
   const sharedDirs = sharedNodeModulesDirs(worktreePath);
-  const mode = nodeModulesMode(worktreePath);
+  const state = dependencyState(worktreePath);
   const disk = directorySizeKb(worktreePath);
   console.log(`
 Task:      ${slug}
 Path:      ${worktreePath}
-Mode:      ${mode === 'shared' ? 'shared symlink (unsafe for dependency changes)' : mode}
+Mode:      ${state.label}${state.mode === 'shared' ? ' (unsafe for dependency changes)' : ''}
+Valid:     ${state.compatible ? 'yes - matches this branch lockfile and Node ABI' : `no - ${state.reason}`}
 Shared:    ${sharedDirs.length ? sharedDirs.join(', ') : '(none)'}
 Manifests: ${manifests.length ? manifests.join(', ') : '(unchanged)'}
-Source:    ${mode === 'isolated' ? `${formatSize(disk)} local node_modules` : 'primary checkout'}
+Source:    ${state.mode === 'isolated' ? `${formatSize(disk)} local node_modules` : (state.source ?? 'primary checkout')}
 `);
 
   if (!flag('isolate')) return;
-  if (sharedDirs.length === 0) {
+  if (sharedDirs.length === 0 && state.compatible && manifests.length === 0) {
     console.log('worktree: already isolated; nothing to do');
     return;
   }
-  for (const dir of sharedDirs) {
-    const target = join(worktreePath, dir, 'node_modules');
-    rmSync(target, { recursive: true, force: true });
-    console.log(
-      `worktree: removed shared node_modules at ${dir || '.'}; installing an isolated copy`
-    );
+  // Install the removed shared dirs plus every directory whose manifest
+  // changed. An isolated tree can still be stale when an agent edited the
+  // lockfile without installing (`deps --isolate` is the single remedy).
+  const installDirs = new Set(sharedDirs);
+  for (const manifest of manifests) installDirs.add(manifestDir(manifest));
+  if (installDirs.size === 0) installDirs.add('');
+  for (const dir of [...installDirs].sort((a, b) => a.split('/').length - b.split('/').length)) {
+    if (sharedDirs.includes(dir)) {
+      rmSync(join(worktreePath, dir, 'node_modules'), { recursive: true, force: true });
+      console.log(`worktree: removed shared node_modules at ${dir || '.'}`);
+    }
+    console.log(`worktree: installing dependencies in ${dir || '.'}`);
     run('npm', ['install', '--prefer-offline', '--no-audit', '--no-fund'], {
       cwd: join(worktreePath, dir),
     });
   }
   installHooks(worktreePath);
+  const after = dependencyState(worktreePath);
+  writeDepsState(worktreePath, slug, after);
   console.log(
-    `worktree: isolated dependencies installed (${formatSize(directorySizeKb(worktreePath))}). ` +
+    `worktree: dependencies installed (${formatSize(directorySizeKb(worktreePath))}, ${after.label}). ` +
       'npm install now only mutates this worktree.'
   );
+  if (!after.compatible) {
+    console.warn(
+      `worktree: the isolated tree is still not valid for this branch (${after.reason}); ` +
+        'run npm ci in this directory before building or committing.'
+    );
+  }
 }
 
 // Any package.json/package-lock.json at any depth (root, verifier/, sdk/,
@@ -2532,16 +3044,17 @@ Commands:
                 [--paths "src/a.ts,scripts/b.mjs"] [--goal "..."] [--override]
   list
   status
+  cost
   queue
   remove <slug> [--force] [--delete-branch]
-  cleanup [--apply] [--stale-days <n>] [--report-all]
+  cleanup [--apply] [--stale-days <n>] [--report-all] [--base <ref>]
   claim <slug> [--paths "..."] [--goal "..."] [--override]
   release <slug>
   deps <slug> [--isolate]
   services
   check <slug>
   handoff <slug> [--goal "..."] [--next "..."] [--verify "..."] [--blocked]
-  resume <slug>
+  resume <slug> [--base <ref>]
   dev
   e2e [-- playwright args]
   ship <slug> --message "type: subject" [--session <id>]
@@ -2559,6 +3072,7 @@ Rules:
     hand-named branches are reported, never deleted
   - write a handoff before a long pause so any session can resume the task
   - status shows the stage, how long the task has been there, and the next command
+  - cost shows per-task disk, shared vs isolated dependencies, and primary-deps drift
 
 Environment:
   INSIGHT_WORKTREE_ROOT   worktree root (default ~/Documents/insight-worktrees)
