@@ -21,12 +21,14 @@ type Deployment = {
 };
 
 type HookResponse = { job?: { id?: unknown; createdAt?: unknown } };
+type DeploymentDetail = { nodeVersion?: unknown };
 type Fetcher = typeof fetch;
 
 export type DeploymentResult = {
   id: string;
   url: string | null;
   commitSha: string;
+  nodeVersion: string;
   mode: 'created' | 'reused';
   canceledDeploymentIds: string[];
   queueMs: number | null;
@@ -277,6 +279,64 @@ async function waitForDeployment({
   throw new Error(`Vercel production deployment for ${commitSha} was not ready before the timeout`);
 }
 
+function nodeMajor(version: string) {
+  return version.match(/^v?(\d+)/)?.[1] ?? null;
+}
+
+async function fetchDeploymentNodeVersion({
+  deploymentId,
+  token,
+  teamId,
+  fetcher,
+}: {
+  deploymentId: string;
+  token: string;
+  teamId?: string;
+  fetcher: Fetcher;
+}) {
+  const response = await fetcher(requestUrl(`/v13/deployments/${deploymentId}`, teamId), {
+    headers: { Authorization: `Bearer ${token}` },
+    signal: AbortSignal.timeout(15_000),
+  });
+  if (!response.ok) {
+    throw new Error(`Vercel deployment detail lookup failed: HTTP ${response.status}`);
+  }
+  const body: unknown = await response.json();
+  const nodeVersion = (body as DeploymentDetail | null)?.nodeVersion;
+  return typeof nodeVersion === 'string' && nodeVersion.length > 0 ? nodeVersion : null;
+}
+
+async function assertVerifiedNodeVersion({
+  deploymentId,
+  token,
+  teamId,
+  fetcher,
+}: {
+  deploymentId: string;
+  token: string;
+  teamId?: string;
+  fetcher: Fetcher;
+}) {
+  const nodeVersion = await fetchDeploymentNodeVersion({
+    deploymentId,
+    token,
+    teamId,
+    fetcher,
+  });
+  const verifiedMajor = process.versions.node.split('.')[0];
+  if (!nodeVersion) {
+    throw new Error(
+      `Vercel production deployment ${deploymentId} did not report its Node.js version; CI cannot prove that the verified and production runtimes match`
+    );
+  }
+  if (nodeMajor(nodeVersion) !== verifiedMajor) {
+    throw new Error(
+      `Vercel production deployment ${deploymentId} ran Node ${nodeVersion}, but CI verified Node ${process.versions.node}. Pin engines.node and the Vercel project Node.js version to the same major before releasing.`
+    );
+  }
+  return nodeVersion;
+}
+
 export async function deployVercelProduction({
   hookUrl,
   token,
@@ -403,11 +463,18 @@ export async function deployVercelProduction({
 
   const id = deploymentId(deployment);
   if (!id) throw new Error('Vercel returned a deployment without an id');
+  const nodeVersion = await assertVerifiedNodeVersion({
+    deploymentId: id,
+    token,
+    teamId,
+    fetcher,
+  });
   const metrics = deploymentMetrics(deployment);
   return {
     id,
     url: typeof deployment.url === 'string' ? deployment.url : null,
     commitSha,
+    nodeVersion,
     mode,
     canceledDeploymentIds,
     ...metrics,
@@ -428,6 +495,7 @@ async function writeSummary(result: DeploymentResult) {
       '',
       `- Commit: \`${result.commitSha}\``,
       `- Deployment: \`${result.id}\` (${result.mode})`,
+      `- Node.js: ${result.nodeVersion} (CI verified: ${process.versions.node})`,
       `- Queue: ${minutes(result.queueMs)} min; build: ${minutes(result.buildMs)} min; total: ${minutes(result.totalMs)} min`,
       `- Superseded builds canceled: ${result.canceledDeploymentIds.length}`,
       '',
@@ -443,6 +511,7 @@ async function writeOutputs(result: DeploymentResult) {
     [
       `deployment-id=${result.id}`,
       `deployment-url=${result.url ?? ''}`,
+      `deployment-node-version=${result.nodeVersion}`,
       `deployment-mode=${result.mode}`,
       '',
     ].join('\n')
@@ -460,7 +529,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     await writeSummary(result);
     await writeOutputs(result);
     console.log(
-      `Vercel production deployment ${result.id} ${result.mode}; queue=${minutes(result.queueMs)}m build=${minutes(result.buildMs)}m total=${minutes(result.totalMs)}m canceled=${result.canceledDeploymentIds.length}`
+      `Vercel production deployment ${result.id} ${result.mode}; node=${result.nodeVersion} queue=${minutes(result.queueMs)}m build=${minutes(result.buildMs)}m total=${minutes(result.totalMs)}m canceled=${result.canceledDeploymentIds.length}`
     );
   } catch (error) {
     console.error(error instanceof Error ? error.message : String(error));
