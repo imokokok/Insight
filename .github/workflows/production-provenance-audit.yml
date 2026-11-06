@@ -1,0 +1,48 @@
+name: Production provenance audit
+
+# The release workflow is the only sanctioned path to production. Vercel has no
+# setting that refuses direct CLI deployments on the Hobby plan, so the gate is
+# enforced after the fact: every production deployment that did not come from the
+# deploy hook gets one issue, filed once and deduplicated by deployment id.
+#
+# This runs on a schedule instead of a Vercel log drain because Hobby keeps
+# runtime logs for one hour only, while the deployment list is retained much
+# longer and needs no paid feature.
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Audit production deployment provenance
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 22.23.2
+      # The script uses only Node builtins and Node 22.18+ strips its TypeScript
+      # types natively, so the audit itself installs no third-party code.
+      - name: Audit deployments from the last two hours
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+          VERCEL_TEAM_ID: ${{ vars.VERCEL_TEAM_ID }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          if [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "::error::VERCEL_PROJECT_ID is not configured; the provenance audit cannot run"
+            exit 1
+          fi
+          node scripts/audit-production-provenance.mts --lookback-hours 2
