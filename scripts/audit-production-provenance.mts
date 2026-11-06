@@ -103,15 +103,34 @@ async function commitReachableFromMain(commitSha: string) {
   };
 }
 
+let labelReady = false;
+
+async function ensureLabel() {
+  const { status } = await githubApi(
+    `https://api.github.com/repos/${repository}/labels/${encodeURIComponent(ISSUE_LABEL)}`
+  );
+  if (status === 200) return true;
+  if (status !== 404) return false;
+  const created = await githubApi(`https://api.github.com/repos/${repository}/labels`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name: ISSUE_LABEL,
+      color: 'b60205',
+      description: 'Production deployment bypassed the release gate',
+    }),
+  });
+  return created.status === 201;
+}
+
+async function labelAvailable() {
+  if (!labelReady) labelReady = await ensureLabel();
+  return labelReady;
+}
+
 async function existingIssue(deploymentId: string) {
   if (dryRun) return false;
-  const query = [
-    `repo:${repository}`,
-    'is:issue',
-    `label:${ISSUE_LABEL}`,
-    `in:title`,
-    `"${deploymentId}"`,
-  ].join(' ');
+  const query = [`repo:${repository}`, 'is:issue', 'in:title', `"${deploymentId}"`].join(' ');
   const { status, body } = await githubApi(
     `https://api.github.com/search/issues?q=${encodeURIComponent(query)}`
   );
@@ -138,7 +157,11 @@ async function fileIssue(violation: Violation) {
   const { status } = await githubApi(`https://api.github.com/repos/${repository}/issues`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title, body, labels: [ISSUE_LABEL] }),
+    body: JSON.stringify({
+      title,
+      body,
+      labels: (await labelAvailable()) ? [ISSUE_LABEL] : [],
+    }),
   });
   if (status !== 201) throw new Error(`GitHub issue creation failed: HTTP ${status}`);
   return true;
