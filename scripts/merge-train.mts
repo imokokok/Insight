@@ -56,6 +56,54 @@ async function api(path: string, init?: RequestInit): Promise<any> {
   return body.length > 0 ? JSON.parse(body) : null;
 }
 
+const sleep = (milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds));
+
+/**
+ * A branch update performed with GITHUB_TOKEN is attributed to
+ * `github-actions[bot]`, so GitHub parks the resulting `pull_request` runs in
+ * `action_required` until a maintainer approves them. Auto-merge cannot start
+ * from that state. The train approves the runs it just created, and only those:
+ * the SHA is the update it performed on a trusted, same-repository PR.
+ */
+async function approvePendingRuns(headSha: string): Promise<number> {
+  for (let attempt = 0; attempt < 15; attempt += 1) {
+    const body = await api(`/repos/${repository}/actions/runs?head_sha=${headSha}&per_page=30`);
+    const pending: any[] = (body.workflow_runs ?? []).filter(
+      (run: any) => run.conclusion === 'action_required'
+    );
+    if (pending.length > 0) {
+      let approved = 0;
+      for (const run of pending) {
+        const response = await request(`/repos/${repository}/actions/runs/${run.id}/approve`, {
+          method: 'POST',
+        });
+        if (response.status !== 201 && response.status !== 202) {
+          fail(
+            `Approving run ${run.id} for ${headSha} failed with ${response.status}: ${await response.text()}`
+          );
+        }
+        approved += 1;
+        console.log(
+          `Merge train: approved ${run.name ?? 'workflow'} run ${run.id} for ${headSha}.`
+        );
+      }
+      return approved;
+    }
+    await sleep(2000);
+  }
+  console.log(`Merge train: no run required approval for ${headSha}.`);
+  return 0;
+}
+
+async function waitForNewHead(prNumber: number, previousHead: string): Promise<string | null> {
+  for (let attempt = 0; attempt < 15; attempt += 1) {
+    const detail = await api(`/repos/${repository}/pulls/${prNumber}`);
+    if (detail.head?.sha !== previousHead) return detail.head?.sha ?? null;
+    await sleep(2000);
+  }
+  return null;
+}
+
 const pulls: any[] = await api(
   `/repos/${repository}/pulls?state=open&base=main&sort=created&direction=asc&per_page=100`
 );
@@ -99,7 +147,16 @@ for (const pull of queue) {
     body: JSON.stringify({ expected_head_sha: detail.head.sha }),
   });
   if (response.status === 202) {
-    console.log(`Merge train: #${pull.number} updated; required checks will gate auto-merge.`);
+    console.log(`Merge train: #${pull.number} updated; waiting for the new head to run checks.`);
+    const newHead = await waitForNewHead(pull.number, detail.head.sha);
+    if (!newHead) {
+      fail(`#${pull.number} was updated but the new head SHA was not observable within 30s`);
+    }
+    const approved = await approvePendingRuns(newHead);
+    console.log(
+      `Merge train: #${pull.number} is at ${newHead}; approved ${approved} pending run(s); ` +
+        'required checks will gate auto-merge.'
+    );
     process.exit(0);
   }
   if (response.status === 422) {

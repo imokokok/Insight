@@ -35,6 +35,12 @@ Runs are serialized by the workflow's `concurrency` group and each invocation
 updates at most one pull request, so the train cannot update several branches
 onto the same base and recreate the stale-merge problem.
 
+A branch update made with `GITHUB_TOKEN` is attributed to `github-actions[bot]`,
+so GitHub parks the resulting `pull_request` runs in `action_required` until a
+maintainer approves them, and auto-merge cannot start. The train therefore
+approves the runs it just created (it has `actions: write`). It only approves
+runs on the head SHA it created for a trusted, same-repository pull request.
+
 ## Limits compared with the native queue
 
 - No batching of several pull requests into one build.

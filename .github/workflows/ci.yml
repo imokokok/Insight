@@ -332,18 +332,20 @@ jobs:
 
   deploy-production:
     name: Deploy production (gated and verified)
-    # Branch protection requires `validate`, `smoke`, and `analyze` before a
-    # pull request can merge, so waiting here for the post-merge re-run of the
-    # same suite only added ~190s of latency. The deploy now gates on evidence
-    # instead of on a duplicate run: `Verify the merged commit passed its
-    # pull-request checks` below proves that this exact commit is the squash
-    # merge of a PR whose required checks are all green, and fails closed if any
-    # of that evidence is missing. The post-merge suite still runs as a canary.
+    # `strict` protection plus the merge train already prove that the tree was
+    # tested against the main it lands on. The post-merge run is still the first
+    # execution on the actual main commit, and a flake or an environment
+    # difference can fail it. Deploying in parallel with that run would put
+    # users on a commit whose required runtime checks had not finished; waiting
+    # for `validate` and `smoke` costs about three minutes but removes that
+    # window. `analyze` lives in codeql.yml (a separate workflow), so it cannot
+    # be a `needs` target; the evidence gate below still requires the pull
+    # request's analyze run to be green.
     if: >-
       github.ref == 'refs/heads/main' &&
       (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
       needs.runtime-impact.outputs.runtime == 'true'
-    needs: [runtime-impact]
+    needs: [runtime-impact, validate, smoke]
     runs-on: ubuntu-24.04
     permissions:
       # Read-only: the deploy needs the merge metadata of the released commit.

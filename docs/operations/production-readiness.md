@@ -181,9 +181,10 @@ staging test, including `429`, `Retry-After`, and recovery after the window.
    request ID, release identifier, readiness response, and latest data-job run.
 2. Separate application failure from dependency failure: liveness proves the
    process is serving; readiness checks database reachability and snapshot age.
-3. Roll back the application release when errors correlate with the release.
-   Do not roll back a database migration until its down migration and data-loss
-   impact have been reviewed.
+3. Roll back the application release when errors correlate with the release,
+   following the [release rollback runbook](release-runbook.md). Do not roll
+   back a database migration until its down migration and data-loss impact have
+   been reviewed.
 4. For stale data, use the manual recovery route or workflow described in the
    cron dispatcher runbook, then verify the newest snapshot timestamp.
 5. For credential exposure, rotate the affected secret, invalidate API keys or
