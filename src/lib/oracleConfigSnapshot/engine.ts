@@ -8,6 +8,8 @@
 
 import { createHash } from 'node:crypto';
 
+import { ORACLE_CONFIG_SNAPSHOT_SCHEMA_VERSION } from './types';
+
 import type {
   OracleConfigCheck,
   OracleConfigGateResult,
@@ -15,7 +17,6 @@ import type {
   OracleConfigSnapshotPayload,
   OracleConfigSources,
 } from './types';
-import { ORACLE_CONFIG_SNAPSHOT_SCHEMA_VERSION } from './types';
 
 /** The pre-trade quorum gate, moved to config time. */
 export const MIN_INDEPENDENT_PROVIDERS = 3;

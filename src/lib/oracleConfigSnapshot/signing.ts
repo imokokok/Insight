@@ -18,8 +18,10 @@ import { getAttesterAccount, type AttesterAccount } from '@/lib/attestations/att
 import { createLogger } from '@/lib/utils/logger';
 import { nowInSeconds } from '@/lib/utils/time';
 
-import type { OracleConfigAttestation, OracleConfigSnapshotPayload } from './types';
+import { computePayloadHash } from './engine';
 import { ORACLE_CONFIG_SNAPSHOT_SCHEMA_VERSION } from './types';
+
+import type { OracleConfigAttestation, OracleConfigSnapshotPayload } from './types';
 
 const logger = createLogger('OracleConfigSnapshotSigning');
 
@@ -135,14 +137,23 @@ export interface OracleConfigSnapshotVerificationResult {
 }
 
 /**
- * Independent recomputation: re-hash the canonical payload, rebuild the typed
- * data, recover the signer and compare it with the claimed attester.
+ * Independent recomputation: re-hash the canonical payload and compare it with
+ * the claimed hash before trusting the typed data. Without this step a holder
+ * could swap an unsigned field, such as the check details or reason codes,
+ * while keeping the original signed hash and still pass signature recovery.
  */
 export async function verifyOracleConfigSnapshot(
   payload: OracleConfigSnapshotPayload,
   payloadHash: string,
   attestation: OracleConfigAttestation
 ): Promise<OracleConfigSnapshotVerificationResult> {
+  if (computePayloadHash(payload) !== payloadHash) {
+    return {
+      valid: false,
+      attester: attestation.attester,
+      reason: 'Payload hash does not match the supplied payload.',
+    };
+  }
   const { recoverTypedDataAddress, hashTypedData } = await import('viem');
   const args = typedDataArgs(buildOracleConfigSnapshotMessage(payload, payloadHash));
   try {

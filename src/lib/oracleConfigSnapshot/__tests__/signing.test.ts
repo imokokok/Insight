@@ -1,6 +1,5 @@
 import { privateKeyToAccount } from 'viem/accounts';
 
-import type { AttesterAccount } from '@/lib/attestations/attesterAccount';
 import { SETTLEMENT_EVIDENCE_DOMAIN } from '@/lib/settlementEvidence/signing';
 
 import { buildPayload, canonicalJson, computePayloadHash } from '../engine';
@@ -10,6 +9,8 @@ import {
   signOracleConfigSnapshot,
   verifyOracleConfigSnapshot,
 } from '../signing';
+
+import type { AttesterAccount } from '@/lib/attestations/attesterAccount';
 import type { OracleConfigSources } from '../types';
 
 const input = { chainId: 8453, protocolId: 'moonwell-iv2-base', assetSymbol: 'USDC' };
@@ -62,6 +63,22 @@ describe('oracle config snapshot signing', () => {
 
     const tampered = { ...payload, reasonCodes: ['TAMPERED'] };
     const result = await verifyOracleConfigSnapshot(tampered, payloadHash, attestation);
+    expect(result.valid).toBe(false);
+  });
+
+  it('rejects an altered payload even when the caller recomputes its hash', async () => {
+    const bucket = 1_800_000_000_000;
+    const payload = buildPayload(input, sources, bucket, bucket);
+    const payloadHash = computePayloadHash(payload);
+    const attestation = await signOracleConfigSnapshot(payload, payloadHash, testSigner());
+    if (!attestation) throw new Error('expected an attestation');
+
+    const altered = { ...payload, reasonCodes: ['ALTERED'] };
+    const result = await verifyOracleConfigSnapshot(
+      altered,
+      computePayloadHash(altered),
+      attestation
+    );
     expect(result.valid).toBe(false);
   });
 

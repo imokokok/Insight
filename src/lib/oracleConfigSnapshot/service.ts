@@ -17,12 +17,13 @@ import { listReviewedProfiles } from '@/lib/reviewed/registry';
 
 import { buildPayload, canonicalJson, computePayloadHash, sha256Hex } from './engine';
 import { signOracleConfigSnapshot } from './signing';
+import { ORACLE_CONFIG_SNAPSHOT_BUCKET_SECONDS } from './types';
+
 import type {
   OracleConfigSnapshotInput,
   OracleConfigSnapshotPack,
   OracleConfigSources,
 } from './types';
-import { ORACLE_CONFIG_SNAPSHOT_BUCKET_SECONDS } from './types';
 
 /** Deterministic pin of the exact reviewed-profile registry used. */
 export function computeRegistryPin(): string {

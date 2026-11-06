@@ -7,6 +7,7 @@ import {
   deriveGateResult,
   sha256Hex,
 } from '../engine';
+
 import type { OracleConfigSnapshotInput, OracleConfigSources } from '../types';
 
 const input: OracleConfigSnapshotInput = {
