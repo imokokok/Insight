@@ -141,11 +141,14 @@ npmjs.com with repository `imokokok/Insight`, workflow filename
 `agent-packages-release.yml`, and direct `npm publish` allowed. See the
 distribution runbook for the exact sequence.
 
-`0.1.0` and `0.1.1` were released through staged publishing plus a maintainer
-approval on npmjs.com. Use `0.1.1` or newer: `0.1.0` compared
-`process.argv[1]` with `import.meta.url`, which is false under npm's
-`node_modules/.bin` symlink, so `npx insight-mcp` exited `0` without starting
-the bridge. `0.1.1` removes that guard — `bin/insight-mcp.mjs` is a pure CLI
+`0.1.0`, `0.1.1` and `0.1.2` were released through staged publishing plus a
+maintainer approval on npmjs.com. `0.1.2` is the current `latest` and is the
+first version with `mcpName`, so pin it or newer anywhere the official MCP
+Registry is involved.
+
+The broken `0.1.0` compared `process.argv[1]` with `import.meta.url`, which is
+false under npm's `node_modules/.bin` symlink, so `npx insight-mcp` exited `0`
+without starting the bridge. `0.1.1` removes that guard — `bin/insight-mcp.mjs` is a pure CLI
 entry that always runs, the importable logic lives in `lib/remote-args.mjs`,
 and `test/binSymlink.test.mjs` executes the real bin through both a `.bin`
 symlink and its shebang.
