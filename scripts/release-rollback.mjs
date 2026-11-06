@@ -249,6 +249,20 @@ async function fetchProject({ projectId, token, teamId, fetcher }) {
   return { project, production, current: summarizeDeployment(production) };
 }
 
+/**
+ * Read the deployment that production serves right now. Used by the automatic
+ * rollback guard to prove that the release being rolled back is still live.
+ */
+export async function readProductionDeployment({
+  token,
+  projectId,
+  teamId,
+  fetcher = globalThis.fetch,
+}) {
+  const { current } = await fetchProject({ projectId, token, teamId, fetcher });
+  return current;
+}
+
 async function listProductionDeployments({ projectId, token, teamId, fetcher }) {
   const endpoint = new URL('/v6/deployments', API_HOST);
   endpoint.searchParams.set('projectId', projectId);

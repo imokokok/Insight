@@ -70,11 +70,22 @@ and must not be recorded as a partner production path.
 
 ## Production deployment gate
 
-Vercel Git auto-deployment is disabled in `vercel.json`. A push to `main` first
-runs the full `validate` job and the browser `smoke` job. Only the
-`deploy-production` job, which depends on both, may invoke the protected Vercel
-deploy hook. A failure or cancellation in either gate leaves production on its
-previous deployment.
+Vercel Git auto-deployment is disabled in `vercel.json`. A push to `main` starts
+two workflows in parallel: the quality workflow (`ci.yml`) runs `validate` and
+the browser `smoke`, and `deploy-production.yml` releases the same commit. The
+release workflow keeps the gates that matter: it classifies whether the change can
+affect the running app, verifies the merged commit's pull-request checks, and runs
+in the protected `production` environment. `strict` branch protection plus the
+merge train guarantee that the tree was already tested against the main it lands
+on, so the release does not wait for the post-merge quality run.
+
+The release then live-smokes the payment rails. An application-class failure
+automatically rolls production back to the previous READY deployment
+(`scripts/auto-rollback-production.mjs`); infrastructure-class failures are
+retried and never trigger a rollback. The release workflow never cancels on a
+newer push, because cancellation would skip the rollback step. See
+`docs/operations/release-runbook.md` for the decision table and the manual
+fallback.
 
 ## Public discovery
 

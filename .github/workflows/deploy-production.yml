@@ -1,0 +1,193 @@
+name: Production deploy
+
+# Releases main independently of the quality workflow.
+#
+# `strict` branch protection plus the merge train already prove that the tree was
+# tested against the main it lands on. The quality run that starts with this push
+# re-executes the same tree, so waiting for it only delays users by minutes. This
+# workflow therefore releases immediately, and the live payment-rail smoke decides
+# whether the release stays or is rolled back automatically.
+#
+# It runs in its own workflow with `cancel-in-progress: false` on purpose. The
+# previous in-CI deploy job inherited `cancel-in-progress: true`: a newer push
+# cancelled the job mid-flight, which skipped every later step and made "roll back
+# on failure" impossible. Here a newer push only queues behind the running one.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      expected_sha:
+        description: 'Commit expected by the operator (empty for manual runs)'
+        required: false
+        type: string
+      rollback_drill:
+        description: 'Type ROLLBACK-DRILL to inject an application failure and exercise the automatic rollback'
+        required: false
+        type: string
+
+# Never cancel. A cancelled run skips the rollback step, and the rollback is the
+# whole point of releasing before the post-merge quality run finishes. Queued runs
+# execute in push order, so the final state of production is the newest commit.
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  runtime-impact:
+    name: Classify production impact
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      runtime: ${{ steps.impact.outputs.runtime }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 22.23.2
+      - name: Determine whether this change can affect the running web app
+        id: impact
+        env:
+          # A dispatched run has no reliable comparison, so it releases.
+          CHANGE_BASE_SHA: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$CHANGE_BASE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "runtime=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if ! git cat-file -e "${CHANGE_BASE_SHA}^{commit}" 2>/dev/null; then
+            git fetch --no-tags --depth=1 origin "$CHANGE_BASE_SHA"
+          fi
+          node scripts/determine-runtime-impact.mts
+
+  deploy-production:
+    name: Deploy production (gated and verified)
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+      needs.runtime-impact.outputs.runtime == 'true'
+    needs: runtime-impact
+    runs-on: ubuntu-24.04
+    permissions:
+      # Read-only: the deploy needs the merge metadata of the released commit.
+      contents: read
+      checks: read
+      pull-requests: read
+    environment: production
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      # This job runs on a fresh runner, but it installs nothing: the deploy
+      # controller uses only Node builtins and Node 22.18+ strips the script's
+      # TypeScript types natively. Zero third-party code executes here, so a
+      # compromised release dependency cannot touch the deploy path.
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 22.23.2
+      - name: Verify the dispatched commit
+        if: github.event_name == 'workflow_dispatch' && inputs.expected_sha != ''
+        env:
+          EXPECTED_SHA: ${{ inputs.expected_sha }}
+        run: |
+          if [ "$EXPECTED_SHA" != "$GITHUB_SHA" ]; then
+            echo "::error::Dispatch resolved to $GITHUB_SHA instead of $EXPECTED_SHA"
+            exit 1
+          fi
+      - name: Record whether main advanced while this deploy was queued
+        # Informational only. Aborting here would skip the rollback step that
+        # protects the release this run is already making.
+        run: |
+          current_sha="$(git ls-remote origin refs/heads/main | cut -f1)"
+          if [ "$current_sha" != "$GITHUB_SHA" ]; then
+            echo "::warning::main advanced to $current_sha; this run still releases $GITHUB_SHA and the queued run releases the rest."
+          fi
+      - name: Verify the merged commit passed its pull-request checks
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/verify-merged-pr-checks.mts
+      - name: Deploy the commit to production
+        id: deploy
+        env:
+          VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_TEAM_ID: ${{ vars.VERCEL_TEAM_ID }}
+        run: |
+          if [ -z "$VERCEL_DEPLOY_HOOK_URL" ]; then
+            echo "VERCEL_DEPLOY_HOOK_URL is required for gated production deployment" >&2
+            exit 1
+          fi
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "VERCEL_TOKEN is required to verify the production deployment" >&2
+            exit 1
+          fi
+
+          node scripts/deploy-vercel-production.mts
+
+      # A READY deployment only proves the build succeeded. Probe the live
+      # pay-per-call challenge paths so a regression that still builds (e.g. the
+      # Next 16.4 homepage-artifact incident) cannot reach users silently.
+      # Exit codes decide the recovery path: 1 = application failure (roll back),
+      # 2 = infrastructure failure (retry, never roll back on a flake).
+      - name: Live smoke the payment rails
+        id: live-smoke
+        env:
+          SMOKE_BASE_URL: https://www.oracleinsight.xyz
+          SMOKE_EXPECT_MPP: ${{ vars.SMOKE_EXPECT_MPP || 'true' }}
+          ROLLBACK_DRILL: ${{ github.event_name == 'workflow_dispatch' && inputs.rollback_drill || '' }}
+        run: |
+          set -uo pipefail
+          if [ "$ROLLBACK_DRILL" = "ROLLBACK-DRILL" ]; then
+            echo "::warning::Rollback drill requested: injecting an application-class failure."
+            echo "classification=application" >> "$GITHUB_OUTPUT"
+            echo "::error::Injected live payment-rail smoke failure (rollback drill)."
+            exit 1
+          fi
+          attempt=1
+          while [ "$attempt" -le 3 ]; do
+            if node scripts/smoke-live-payment-rails.mjs; then
+              echo "classification=none" >> "$GITHUB_OUTPUT"
+              exit 0
+            else
+              rc=$?
+            fi
+            if [ "$rc" -eq 1 ]; then
+              echo "::error::Live payment-rail smoke failed an application contract check; rolling back."
+              echo "classification=application" >> "$GITHUB_OUTPUT"
+              exit 1
+            fi
+            echo "::warning::Live payment-rail smoke could not reach the application (exit $rc); infrastructure attempt $attempt of 3."
+            if [ "$attempt" -lt 3 ]; then
+              sleep $((attempt * 30))
+            fi
+            attempt=$((attempt + 1))
+          done
+          echo "::error::Live smoke never reached an application verdict after 3 infrastructure attempts; not rolling back automatically. Verify manually with scripts/smoke-live-payment-rails.mjs."
+          echo "classification=infrastructure" >> "$GITHUB_OUTPUT"
+          exit 1
+
+      # The rollback runs only for an application-class failure and only while
+      # production still serves the deployment this run released. If a queued
+      # newer release already owns production, reverting it would be wrong.
+      - name: Roll back after an application failure
+        id: rollback
+        if: failure() && steps.live-smoke.outcome == 'failure' && steps.live-smoke.outputs.classification == 'application'
+        env:
+          VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_TEAM_ID: ${{ vars.VERCEL_TEAM_ID }}
+          EXPECTED_DEPLOYMENT_ID: ${{ steps.deploy.outputs.deployment-id }}
+          ROLLBACK_BASE_URL: https://www.oracleinsight.xyz
+        run: node scripts/auto-rollback-production.mjs
+
+      - name: Verify the release that was restored
+        if: failure() && steps.rollback.outputs.rollback == 'executed'
+        env:
+          SMOKE_BASE_URL: https://www.oracleinsight.xyz
+          SMOKE_EXPECT_MPP: ${{ vars.SMOKE_EXPECT_MPP || 'true' }}
+        run: node scripts/smoke-live-payment-rails.mjs

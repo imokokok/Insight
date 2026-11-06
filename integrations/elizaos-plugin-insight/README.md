@@ -12,17 +12,16 @@ ElizaOS plugin for [Insight](https://www.oracleinsight.xyz/) — pre-trade decis
 
 ## Install
 
-This package is prepared for its first npm release but is not published yet.
-Until then, install from a local checkout:
-
-```bash
-npm install /path/to/Insight/integrations/elizaos-plugin-insight
-```
-
-After publishing (see [Publishing](#publishing)):
+Published on npm as `elizaos-plugin-oracle-insight`:
 
 ```bash
 npm install elizaos-plugin-oracle-insight
+```
+
+For local development, install from a checkout instead:
+
+```bash
+npm install /path/to/Insight/integrations/elizaos-plugin-insight
 ```
 
 Add the plugin to your character config:
@@ -92,16 +91,25 @@ The plugin targets `@elizaos/core >= 1.x` (peer dependency) and the x402 v2 spec
 
 ## Publishing
 
-Publishing is a manual maintainer action, not a CI job:
+The first release (`0.1.0`) was published 2026-11-06 through npm staged
+publishing and maintainer approval, because the npm account enforces WebAuthn
+2FA. Later releases use `.github/workflows/agent-packages-release.yml`, which
+publishes over npm Trusted Publishing (OIDC) with provenance after a one-time
+Trusted Publisher setup on npmjs.com. See
+`docs/distribution/directory-submission-runbook.md` for both gates.
+
+For a manual release:
 
 ```bash
 npm run build
 npm pack --dry-run   # expect dist/, README.md, LICENSE and package.json only
-npm publish          # requires the maintainer's npm account
 ```
 
-`prepublishOnly` rebuilds `dist` automatically. Before announcing the release,
-confirm the name is available on npm, check that the packed tarball has no
-credentials, and smoke-test `npm install` in a clean directory. The ElizaOS
-plugin directory / marketplace submission is a separate step and needs its own
-maintainer review.
+`prepublishOnly` rebuilds `dist` automatically. Before announcing a release,
+check that the packed tarball has no credentials and smoke-test `npm install`
+in a clean directory.
+
+There is currently no ElizaOS community plugin registry to submit to. The
+`elizaOS-plugins/registry` repository referenced in older ElizaOS docs no
+longer exists, and the in-repo catalog is first-party curated. Direct npm
+install plus the character config above is the supported distribution path.
