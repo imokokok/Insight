@@ -24,19 +24,24 @@
 
 import { execFileSync, spawnSync } from 'node:child_process';
 import {
+  chmodSync,
+  copyFileSync,
   existsSync,
+  lstatSync,
   mkdirSync,
   readFileSync,
   readdirSync,
   realpathSync,
   renameSync,
   rmSync,
+  statSync,
   symlinkSync,
   writeFileSync,
 } from 'node:fs';
 import { createServer } from 'node:net';
 import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const TYPES = ['feat', 'fix', 'chore', 'docs', 'test', 'perf', 'ops', 'refactor'];
 const VALUE_OPTIONS = [
@@ -52,17 +57,32 @@ const VALUE_OPTIONS = [
   'next',
   'verify',
 ];
-const DEFAULT_BASE = 'origin/main';
+const DEFAULT_BASE = process.env.INSIGHT_WT_BASE ?? 'origin/main';
 const PORT_RANGE_START = 3300;
 const PORT_RANGE_SIZE = 600;
 const ENV_FILES = ['.env.local', '.env.vercel.local', '.env.x402-testnet'];
-const NESTED_INSTALLS = ['verifier/node_modules', 'sdk/node_modules'];
+const NESTED_INSTALLS = (
+  process.env.INSIGHT_WT_NESTED_INSTALLS ?? 'verifier/node_modules,sdk/node_modules'
+)
+  .split(',')
+  .map((entry) => entry.trim())
+  .filter(Boolean);
 const BRANCH_PATTERN = /^wt\/[a-z]+-/;
 const LOCK_TTL_MS = 10 * 60 * 1000;
 const LOCK_WAIT_MS = 120 * 1000;
 const CLAIM_STALE_MS = 6 * 60 * 60 * 1000;
 const HANDOFF_STALE_MS = 60 * 60 * 1000;
+const CI_STUCK_MS = 20 * 60 * 1000;
+const NO_PROGRESS_MS = 60 * 60 * 1000;
 const TASK_DIR = 'insight-tasks';
+const WORKTREE_EXCLUDES = [
+  'node_modules',
+  '.worktree.local',
+  '.handoff.local',
+  '.next/',
+  '*.tsbuildinfo',
+  '.eslintcache',
+];
 
 const args = process.argv.slice(2);
 const command = args[0];
@@ -93,6 +113,12 @@ async function main() {
       return updateClaim();
     case 'release':
       return releaseClaim();
+    case 'deps':
+      return manageDependencies();
+    case 'services':
+      return printServices();
+    case 'check':
+      return checkTask();
     case 'handoff':
       return writeHandoffCommand();
     case 'resume':
@@ -142,6 +168,16 @@ async function createWorktree() {
       }
     }
     const conflicts = findClaimConflicts(slug, paths);
+    const unique = findUniqueClaimConflicts(slug, paths);
+    if (unique.length > 0) {
+      throw new Error(
+        `task "${slug}" touches an artifact that must be edited serially:\n${unique
+          .map((claim) => `  - ${claim.slug} (${claim.session}) claims ${claim.paths.join(', ')}`)
+          .join(
+            '\n'
+          )}\nMerge that task first (or release its claim), then start this one. There is no override for unique artifacts.`
+      );
+    }
     if (conflicts.length > 0) {
       const detail = conflicts
         .map((claim) => `  - ${claim.slug} (${claim.session}) claims ${claim.paths.join(', ')}`)
@@ -153,6 +189,15 @@ async function createWorktree() {
       }
       console.warn(`worktree: --override set; continuing despite claimed paths:\n${detail}`);
     }
+    if (dependencyPathsIn(paths).length > 0 && !install) {
+      throw new Error(
+        `task "${slug}" declares a dependency manifest (${dependencyPathsIn(paths).join(', ')}).\n` +
+          'Shared (symlinked) node_modules must never be mutated: re-run create with --install, ' +
+          'or create first and run `npm run wt -- deps ' +
+          slug +
+          ' --isolate` before editing the manifest.'
+      );
+    }
 
     const baseCommit = resolveCommit(base);
     const state = ensureWorktree({ branch, worktreePath, baseCommit });
@@ -161,10 +206,12 @@ async function createWorktree() {
       if (install && state.created) {
         console.log('worktree: installing dependencies with npm ci (opt-in, full install)');
         run('npm', ['ci', '--prefer-offline', '--no-audit', '--no-fund'], { cwd: worktreePath });
+        linkNestedNodeModules(primary.path, worktreePath);
       } else {
         linkNodeModules(primary.path, worktreePath);
       }
       linkEnvFiles(primary.path, worktreePath);
+      excludeWorktreeArtifacts(worktreePath);
       installHooks(worktreePath);
 
       const ports = await allocatePorts(slug, root, worktreePath);
@@ -178,6 +225,11 @@ async function createWorktree() {
       });
       writeClaim({ slug, branch, session, worktree: worktreePath, paths, goal });
 
+      const prefix = commandPrefix();
+      const devCommand = repoHasScript('wt:dev') ? 'npm run wt:dev' : `${prefix} dev`;
+      const e2eCommand = repoHasScript('wt:e2e')
+        ? 'npm run wt:e2e -- --project=chromium'
+        : `${prefix} e2e -- --project=chromium`;
       console.log(`
 Worktree ready${state.reused ? ' (reused existing branch)' : ''}
   path:     ${worktreePath}
@@ -188,17 +240,17 @@ Worktree ready${state.reused ? ' (reused existing branch)' : ''}
 
 Work:
   cd ${shellQuote(worktreePath)}
-  npm run wt:dev
-  npm run wt:e2e -- --project=chromium
+  ${devCommand}
+  ${e2eCommand}
 
 Handoff (write context before a long pause):
-  npm run wt -- handoff ${slug} --next "..."
+  ${prefix} handoff ${slug} --next "..."
 
 Ship (commit + push + PR + auto-merge + cleanup):
-  npm run wt -- ship ${slug} --message "feat: ..."
+  ${prefix} ship ${slug} --message "feat: ..."
 
 Remove a finished task:
-  npm run wt -- remove ${slug} --delete-branch
+  ${prefix} remove ${slug} --delete-branch
 `);
       return { worktreePath, branch, baseCommit };
     } catch (error) {
@@ -349,7 +401,7 @@ async function cleanupBranches() {
     }
     const mergedPrs = fetchMergedPrHeads();
     const inUse = new Map(listWorktrees().map((worktree) => [worktree.branch, worktree.path]));
-    const head = 'origin/main';
+    const head = DEFAULT_BASE;
 
     const all = readBranchRefs().filter((branch) => branch.ageMs >= minAgeMs);
     const agentBranches = all.filter((branch) => BRANCH_PATTERN.test(branch.name));
@@ -513,12 +565,25 @@ async function updateClaim() {
     if (!current) throw new Error(`no claim for "${slug}"; run create first`);
     const paths = option('paths') ? splitPaths(option('paths')) : (current.paths ?? []);
     const conflicts = findClaimConflicts(slug, paths);
+    const unique = findUniqueClaimConflicts(slug, paths);
+    if (unique.length > 0) {
+      throw new Error(
+        `paths include a serial artifact owned by another task:\n${unique
+          .map((claim) => `  - ${claim.slug} (${claim.session}) ${claim.paths.join(', ')}`)
+          .join('\n')}\nMerge that task first; unique artifacts cannot be overridden.`
+      );
+    }
     if (conflicts.length > 0 && !flag('override')) {
       throw new Error(
         `paths overlap other tasks:\n${conflicts
           .map((claim) => `  - ${claim.slug} (${claim.session}) ${claim.paths.join(', ')}`)
           .join('\n')}`
       );
+    }
+    if (dependencyPathsIn(paths).length > 0 && current.worktree) {
+      assertDependencyIsolation(current.worktree, `claim ${slug}`, {
+        allowSymlink: flag('shared-deps'),
+      });
     }
     const claim = writeClaim({
       slug,
@@ -577,13 +642,13 @@ function resumeTask() {
   const handoff = readHandoff(worktreePath) ?? {};
   const branch = env.INSIGHT_WT_BRANCH ?? claim.branch ?? '';
   const dirty = git(['-C', worktreePath, 'status', '--porcelain']).split('\n').filter(Boolean);
-  const ahead = branch ? commitsAhead(branch, 'origin/main') : Number.NaN;
+  const ahead = branch ? commitsAhead(branch, DEFAULT_BASE) : Number.NaN;
   const last = git(['-C', worktreePath, 'log', '--oneline', '-1']).trim();
 
   console.log(`
 Task:      ${slug}
 Path:      ${worktreePath}
-Branch:    ${branch} (ahead of origin/main by ${Number.isNaN(ahead) ? '?' : ahead})
+Branch:    ${branch} (ahead of ${DEFAULT_BASE} by ${Number.isNaN(ahead) ? '?' : ahead})
 Session:   ${env.INSIGHT_WT_SESSION ?? claim.session ?? '-'}
 Ports:     dev=${env.INSIGHT_WT_PORT ?? '-'}  e2e=${env.INSIGHT_E2E_PORT ?? '-'}
 Goal:      ${handoff.goal || claim.goal || '(not recorded)'}
@@ -603,8 +668,8 @@ Dirty:     ${dirty.length} path(s)${
 Continue:
   cd ${shellQuote(worktreePath)}
   git status
-  npm run wt -- handoff ${slug} --next "..." --verify "..."
-  npm run wt -- ship ${slug} --message "..."
+  ${commandPrefix()} handoff ${slug} --next "..." --verify "..."
+  ${commandPrefix()} ship ${slug} --message "..."
 `);
 }
 
@@ -623,14 +688,17 @@ function printStatus() {
 
   const rows = [];
   for (const worktree of worktrees.filter((item) => item.managed)) {
-    const task = worktree.env.INSIGHT_WT_NAME ?? '(unnamed)';
+    const task =
+      worktree.env.INSIGHT_WT_NAME ?? worktree.path.slice(root.length + 1) ?? '(unnamed)';
     const pull = prByBranch.get(worktree.branch) ?? null;
-    const handoff = worktree.handoff;
     const claim = claims.find((item) => item.slug === task) ?? null;
-    let state = 'active';
-    if (pull?.mergeStateStatus === 'DIRTY') state = 'conflict';
-    else if (handoff?.status === 'blocked') state = 'blocked';
-    else if (claim && claimIsStale(claim) && worktree.dirty > 0) state = 'stale';
+    const stage = taskStage({
+      worktree,
+      pull,
+      handoff: worktree.handoff,
+      dirty: worktree.dirty,
+      task,
+    });
     rows.push({
       task,
       branch: worktree.branch,
@@ -639,8 +707,9 @@ function printStatus() {
       port: worktree.env.INSIGHT_WT_PORT ?? '-',
       pr: pull ? `#${pull.number}` : '-',
       ci: pull ? ciSummary(pull.statusCheckRollup) : '-',
-      state,
-      handoff: handoff?.updatedAt ? ageLabel(handoff.updatedAt) : '-',
+      stage: `${stage.alert ? '!' : ''}${stage.stage}`,
+      stuck: stage.startedAt ? ageLabel(new Date(stage.startedAt).toISOString()) : '-',
+      next: stage.next,
       path: worktree.path,
     });
   }
@@ -648,6 +717,7 @@ function printStatus() {
   for (const claim of claims.filter(
     (item) => !worktrees.some((worktree) => worktree.env.INSIGHT_WT_NAME === item.slug)
   )) {
+    const stale = claimIsStale(claim);
     rows.push({
       task: claim.slug,
       branch: claim.branch,
@@ -656,8 +726,11 @@ function printStatus() {
       port: '-',
       pr: prByBranch.get(claim.branch) ? `#${prByBranch.get(claim.branch).number}` : '-',
       ci: '-',
-      state: claimIsStale(claim) ? 'claim-orphaned' : 'creating',
-      handoff: ageLabel(claim.updatedAt),
+      stage: stale ? '!claim-orphaned' : 'creating',
+      stuck: ageLabel(claim.updatedAt),
+      next: stale
+        ? `npm run wt -- cleanup --apply   # or create ${claim.slug} to rebuild`
+        : `npm run wt -- create ${claim.slug}   # finish setup`,
       path: claim.worktree || '(not created)',
     });
   }
@@ -674,8 +747,9 @@ function printStatus() {
     'PORT',
     'PR',
     'CI',
-    'STATE',
-    'HANDOFF',
+    'STAGE',
+    'STUCK',
+    'NEXT',
     'PATH',
   ];
   const body = rows.map((row) => [
@@ -686,8 +760,9 @@ function printStatus() {
     row.port,
     row.pr,
     row.ci,
-    row.state,
-    row.handoff,
+    row.stage,
+    row.stuck,
+    row.next,
     row.path,
   ]);
   const widths = header.map((column, index) =>
@@ -697,9 +772,190 @@ function printStatus() {
   console.log(format(header));
   console.log(widths.map((width) => '-'.repeat(width)).join('  '));
   body.forEach((row) => console.log(format(row)));
-  console.log(
-    '\nclaim-orphaned = claim left behind, worktree gone; run cleanup --apply to release'
-  );
+  console.log(`
+STUCK = time spent in the current stage. A leading "!" means act now:
+  working      dirty files, progress within the last hour
+  stalled      dirty files, no file change for over an hour -> run NEXT
+  not-shipped  clean, no PR yet -> ship it
+  ci-pending   checks still running
+  ci-stuck     checks have not settled for over 20 min -> inspect the run / rerun an infra flake
+  ci-red       at least one check failed -> fix, commit, push
+  conflict     PR is DIRTY -> rebase this branch in this worktree
+  blocked      handoff says blocked -> read .handoff.local
+  claim-orphaned / creating: no worktree is attached to the claim
+`);
+}
+
+// Classify a task by the step it is stuck on and how long it has been there.
+// Timestamps come from the PR/check/handoff, so "stuck" is observable without
+// reading the agent's chat log.
+function taskStage({ worktree, pull, handoff, dirty, task }) {
+  if (handoff?.status === 'blocked') {
+    return {
+      stage: 'blocked',
+      startedAt: parseTime(handoff.updatedAt),
+      next: handoff.next || 'read .handoff.local',
+      alert: true,
+    };
+  }
+  if (pull) {
+    if (pull.state === 'MERGED') {
+      return {
+        stage: 'merged',
+        startedAt: parseTime(pull.updatedAt),
+        next: 'cleanup',
+        alert: false,
+      };
+    }
+    if (pull.mergeStateStatus === 'DIRTY') {
+      return {
+        stage: 'conflict',
+        startedAt: parseTime(pull.updatedAt),
+        next: `rebase this branch: git -C ${worktree.path} rebase ${DEFAULT_BASE}`,
+        alert: true,
+      };
+    }
+    const ci = ciDetail(pull.statusCheckRollup);
+    if (ci.failed) {
+      return {
+        stage: 'ci-red',
+        startedAt: ci.at ?? parseTime(pull.updatedAt),
+        next: 'fix failing checks in this worktree, commit, push',
+        alert: true,
+      };
+    }
+    if (ci.pending) {
+      const startedAt = ci.at ?? parseTime(pull.createdAt);
+      const stuck = startedAt && Date.now() - startedAt > CI_STUCK_MS;
+      return {
+        stage: stuck ? 'ci-stuck' : 'ci-pending',
+        startedAt,
+        next: stuck
+          ? 'CI has not settled for 20+ min: inspect the run, rerun infrastructure failures'
+          : 'wait for CI (auto-merge is enabled)',
+        alert: Boolean(stuck),
+      };
+    }
+    return {
+      stage: 'ready',
+      startedAt: parseTime(pull.updatedAt),
+      next: 'auto-merge takes it',
+      alert: false,
+    };
+  }
+  if (dirty > 0) {
+    const startedAt = newestActivity(worktree.path);
+    const stalled = startedAt && Date.now() - startedAt > NO_PROGRESS_MS;
+    return {
+      stage: stalled ? 'stalled' : 'working',
+      startedAt,
+      next: stalled
+        ? `resume and finish: ${commandPrefix()} resume ${task}`
+        : `record a handoff: ${commandPrefix()} handoff ${task} --next "..."`,
+      alert: Boolean(stalled),
+    };
+  }
+  return {
+    stage: 'not-shipped',
+    startedAt: lastCommitTime(worktree.path),
+    next: `${commandPrefix()} ship ${task} --message "..."`,
+    alert: false,
+  };
+}
+
+function parseTime(value) {
+  const time = Date.parse(value ?? '');
+  return Number.isNaN(time) ? null : time;
+}
+
+function newestActivity(worktreePath) {
+  const times = [];
+  const commit = lastCommitTime(worktreePath);
+  if (commit) times.push(commit);
+  try {
+    const status = execFileSync('git', ['-C', worktreePath, 'status', '--porcelain'], {
+      encoding: 'utf8',
+    });
+    for (const line of status.split('\n').filter(Boolean).slice(0, 30)) {
+      const file = line
+        .slice(3)
+        .trim()
+        .replace(/^.* -> /, '');
+      try {
+        times.push(statSync(join(worktreePath, file)).mtimeMs);
+      } catch {
+        // deleted files have no mtime
+      }
+    }
+  } catch {
+    // not a git worktree
+  }
+  return times.length ? Math.max(...times) : null;
+}
+
+function lastCommitTime(worktreePath) {
+  try {
+    const iso = execFileSync('git', ['-C', worktreePath, 'log', '-1', '--format=%cI'], {
+      encoding: 'utf8',
+    }).trim();
+    return parseTime(iso);
+  } catch {
+    return null;
+  }
+}
+
+function ciDetail(rollup) {
+  if (!Array.isArray(rollup)) return { failed: false, pending: false, at: null };
+  const failed = new Set(['FAILURE', 'ERROR', 'CANCELLED', 'TIMED_OUT', 'STARTUP_FAILURE']);
+  const outstanding = new Set([
+    'PENDING',
+    'IN_PROGRESS',
+    'QUEUED',
+    'EXPECTED',
+    'WAITING',
+    'REQUESTED',
+  ]);
+  let sawFailure = false;
+  let sawPending = false;
+  let earliestFailure = null;
+  let earliestPending = null;
+  for (const check of rollup) {
+    const conclusion = String(check.conclusion ?? '').toUpperCase();
+    const state = String(check.state ?? '').toUpperCase();
+    const status = String(check.status ?? '').toUpperCase();
+    if (failed.has(conclusion) || failed.has(state)) {
+      sawFailure = true;
+      earliestFailure = earliest(earliestFailure, parseTime(check.completedAt ?? check.startedAt));
+    } else if (outstanding.has(state) || outstanding.has(status)) {
+      sawPending = true;
+      earliestPending = earliest(earliestPending, parseTime(check.startedAt ?? check.createdAt));
+    }
+  }
+  if (sawFailure) return { failed: true, pending: false, at: earliestFailure };
+  return { failed: false, pending: sawPending, at: earliestPending };
+}
+
+function earliest(current, candidate) {
+  if (candidate === null) return current;
+  if (current === null) return candidate;
+  return Math.min(current, candidate);
+}
+
+// Pre-flight collision report: same check ship runs, without committing,
+// pushing, or touching GitHub beyond reading PR metadata.
+function checkTask() {
+  const slug = normalizeSlug(positional(1));
+  const worktreePath = resolveWorktreePath(slug);
+  if (!existsSync(worktreePath)) throw new Error(`no worktree for "${slug}"`);
+  const branch = readWorktreeEnv(worktreePath).INSIGHT_WT_BRANCH ?? branchName('feat', slug, null);
+  const hazards = detectMergeHazards(worktreePath, branch, slug);
+  if (hazards.length === 0) {
+    console.log(`check: no merge hazards for "${slug}"`);
+    return;
+  }
+  console.log(`check: ${hazards.length} merge hazard(s) for "${slug}"`);
+  for (const hazard of hazards) console.log(`  - [${hazard.kind}] ${hazard.message}`);
+  process.exitCode = 1;
 }
 
 function printQueue() {
@@ -741,7 +997,7 @@ function fetchOpenPrs() {
         '--state',
         'open',
         '--json',
-        'number,headRefName,title,url,mergeStateStatus,statusCheckRollup,createdAt,isDraft',
+        'number,headRefName,title,url,mergeStateStatus,statusCheckRollup,createdAt,updatedAt,isDraft,files,state',
         '--limit',
         '100',
       ],
@@ -789,6 +1045,12 @@ function ageLabel(iso) {
 async function runDevServer() {
   const env = readWorktreeEnv(repoRoot());
   if (!env.INSIGHT_WT_PORT) throw new Error('not a managed worktree (missing .worktree.local)');
+  if (!(await isPortFree(Number(env.INSIGHT_WT_PORT)))) {
+    throw new Error(
+      `dev port ${env.INSIGHT_WT_PORT} is already listening; refusing to attach to another worktree's server.\n` +
+        'Inspect owners with: npm run wt -- services'
+    );
+  }
   const next = join(repoRoot(), 'node_modules', '.bin', 'next');
   const result = spawnSync(
     next,
@@ -805,6 +1067,12 @@ async function runDevServer() {
 function runE2E() {
   const env = readWorktreeEnv(repoRoot());
   if (!env.INSIGHT_E2E_PORT) throw new Error('not a managed worktree (missing .worktree.local)');
+  if (!portIsFree(Number(env.INSIGHT_E2E_PORT))) {
+    throw new Error(
+      `e2e port ${env.INSIGHT_E2E_PORT} is already listening; refusing to reuse another worktree's server.\n` +
+        'Inspect owners with: npm run wt -- services'
+    );
+  }
   const playwright = join(repoRoot(), 'node_modules', '.bin', 'playwright');
   const result = spawnSync(playwright, ['test', ...args.slice(1)], {
     stdio: 'inherit',
@@ -831,6 +1099,7 @@ async function shipWorktree() {
 
   if (!existsSync(join(worktreePath, '.husky', '_'))) installHooks(worktreePath);
 
+  let hazards = [];
   // Short critical section: fetch, commit, push, open PR, enable auto-merge.
   const pr = await withLock('ship', async () => {
     // Re-check inside the lock: a concurrent ship of the same task may have
@@ -843,10 +1112,12 @@ async function shipWorktree() {
         console.warn('worktree: could not fetch origin; using the local base ref');
       }
     }
+    assertDependencyIsolation(worktreePath, `ship ${slug}`);
     commitWorktree(worktreePath, message);
     pushBranch(worktreePath, branch);
     const pull = ensurePullRequest(branch, message);
-    enableAutoMerge(pull);
+    hazards = detectMergeHazards(worktreePath, branch, slug);
+    if (hazards.length === 0) enableAutoMerge(pull);
     return pull;
   });
 
@@ -855,6 +1126,29 @@ async function shipWorktree() {
       `worktree: ${worktreePath} is already gone; the task was finished by another session`
     );
     return;
+  }
+
+  if (hazards.length > 0) {
+    const next = hazards.map((hazard) => hazard.message).join(' / ');
+    writeHandoff(worktreePath, {
+      slug,
+      goal: claim?.goal ?? message,
+      next,
+      verify: `npm run wt -- status`,
+      branch,
+      pr: pr.url ?? '',
+      status: 'blocked',
+    });
+    console.error(`
+worktree: refusing to enable auto-merge; this task collides with another open task.
+${hazards.map((hazard) => `  - [${hazard.kind}] ${hazard.message}`).join('\n')}
+  PR:       ${pr.url ?? '(unknown)'}
+  handoff:  ${join(worktreePath, '.handoff.local')}
+Merge the blocking task first, then rebase ONLY this branch:
+  git -C ${shellQuote(worktreePath)} rebase ${base}
+Unique artifacts (lockfiles, cron bundles, migrations) are never allowed to race.
+`);
+    process.exit(1);
   }
 
   const outcome = await waitForMerge(branch);
@@ -999,6 +1293,131 @@ function ensurePullRequest(branch, message) {
   );
 }
 
+// Ship-time semantic collision check. Claim-time checks only see declared
+// paths; this sees what the branch actually changed and what other PRs already
+// contain. Unique artifacts block; overlapping hunks in a shared file block;
+// same-file-but-different-regions only warn (merge order is enough).
+function detectMergeHazards(worktreePath, branch, slug) {
+  const hazards = [];
+  const changed = changedFiles(worktreePath);
+  const uniqueChanged = changed.filter((file) => isUniquePath(file));
+
+  for (const claim of readClaims().filter((item) => item.slug !== slug && claimIsActive(item))) {
+    const shared = sharedUniqueCategories(uniqueChanged, claim.paths ?? []);
+    if (shared.length > 0) {
+      hazards.push({
+        kind: 'unique-claim',
+        message: `${claim.slug} (${claim.session}) still owns ${shared.join(', ')}; merge it first`,
+      });
+    }
+  }
+
+  let openPrs = [];
+  try {
+    openPrs = fetchOpenPrs();
+  } catch {
+    console.warn('worktree: could not list open PRs; skipping cross-PR collision checks');
+  }
+  openPrs = openPrs.filter((other) => other.headRefName !== branch);
+  const prFiles = new Map(
+    openPrs.map((other) => [other.number, new Set((other.files ?? []).map((file) => file.path))])
+  );
+
+  for (const other of openPrs) {
+    const shared = sharedUniqueCategories(uniqueChanged, [...prFiles.get(other.number)]);
+    if (shared.length > 0) {
+      hazards.push({
+        kind: 'unique-pr',
+        message: `PR #${other.number} (${other.headRefName}) already changes ${shared.join(', ')}; merge it first`,
+      });
+    }
+  }
+
+  if (openPrs.length === 0) return hazards;
+  let ownHunks;
+  try {
+    ownHunks = diffHunks(ownDiffPatch(worktreePath));
+  } catch {
+    return hazards;
+  }
+  for (const other of openPrs) {
+    const files = prFiles.get(other.number) ?? new Set();
+    const common = changed.filter((file) => files.has(file) && !isUniquePath(file));
+    if (common.length === 0) continue;
+    let patch;
+    try {
+      patch = execFileSync('gh', ['pr', 'diff', String(other.number)], {
+        cwd: primaryWorktree().path,
+        encoding: 'utf8',
+        maxBuffer: 20 * 1024 * 1024,
+      });
+    } catch {
+      console.warn(`worktree: could not read the diff of PR #${other.number}; skipping hunk check`);
+      continue;
+    }
+    const overlapping = overlappingHunks(ownHunks, diffHunks(patch), common);
+    if (overlapping.length > 0) {
+      hazards.push({
+        kind: 'hunk-overlap',
+        message: `PR #${other.number} edits the same lines in ${overlapping.join(', ')}; merge it first`,
+      });
+    }
+  }
+  return hazards;
+}
+
+function ownDiffPatch(worktreePath) {
+  const base = worktreeBase(worktreePath);
+  const mergeBase = execFileSync('git', ['-C', worktreePath, 'merge-base', base, 'HEAD'], {
+    encoding: 'utf8',
+  }).trim();
+  return execFileSync('git', ['-C', worktreePath, 'diff', '-U0', mergeBase], {
+    encoding: 'utf8',
+    maxBuffer: 20 * 1024 * 1024,
+  });
+}
+
+// Parse `@@ -start,count +start,count @@` into base-file line ranges. Both
+// branches are compared against origin/main, so the `-` side is the shared
+// coordinate system; only approximations are needed to spot collisions.
+function diffHunks(patch) {
+  const hunks = [];
+  let file = null;
+  for (const line of patch.split('\n')) {
+    if (line.startsWith('diff --git ')) {
+      const match = line.match(/ b\/(.+)$/);
+      file = match ? match[1] : null;
+      continue;
+    }
+    const match = line.match(/^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/);
+    if (!match || !file) continue;
+    const start = Number(match[1]);
+    const count = match[2] === undefined ? 1 : Number(match[2]);
+    hunks.push({ file, start, end: start + Math.max(count - 1, 0), empty: count === 0 });
+  }
+  return hunks;
+}
+
+function overlappingHunks(left, right, files) {
+  const result = [];
+  for (const file of files) {
+    const mine = left.filter((hunk) => hunk.file === file);
+    const theirs = right.filter((hunk) => hunk.file === file);
+    const hit = mine.some((a) => theirs.some((b) => rangesOverlap(a, b)));
+    if (hit) result.push(file);
+  }
+  return result;
+}
+
+function rangesOverlap(left, right) {
+  if (left.empty && right.empty) return left.start === right.start;
+  if (left.empty) return right.start <= left.start && left.start <= right.end;
+  if (right.empty) return left.start <= right.start && right.start <= left.end;
+  return Math.max(left.start, right.start) <= Math.min(left.end, right.end);
+}
+
+let autoMergeEnabled = true;
+
 function enableAutoMerge(pr) {
   if (pr.state === 'MERGED' || pr.state === 'CLOSED') return;
   try {
@@ -1007,7 +1426,10 @@ function enableAutoMerge(pr) {
       cwd: primaryWorktree().path,
     });
   } catch {
-    console.warn('worktree: auto-merge could not be enabled; merge the PR manually');
+    autoMergeEnabled = false;
+    console.warn(
+      'worktree: auto-merge is unavailable on this repo; will merge directly once checks pass'
+    );
   }
 }
 
@@ -1088,12 +1510,28 @@ async function waitForMerge(branch) {
       console.warn(`worktree: PR for ${branch} stayed BEHIND for ~60s; it needs a rebase`);
       return { status: 'behind' };
     }
+    // Repos without native auto-merge (or with it disabled) still get a
+    // one-shot squash merge once checks are clean.
+    if (!autoMergeEnabled && !hasPendingChecks(pr.statusCheckRollup)) {
+      try {
+        execFileSync('gh', ['pr', 'merge', String(pr.number), '--squash'], {
+          stdio: 'inherit',
+          cwd: primaryWorktree().path,
+        });
+      } catch (error) {
+        console.warn(`worktree: direct merge did not go through yet (${error.message})`);
+      }
+    }
     await sleep(20_000);
   }
   console.warn(
     `worktree: PR for ${branch} was not merged within ${Math.round(timeoutMs / 60_000)} min`
   );
   return { status: 'timeout' };
+}
+
+function hasPendingChecks(rollup) {
+  return ciDetail(rollup).pending;
 }
 
 // True only when at least one check failed and nothing is still pending.
@@ -1115,18 +1553,42 @@ function hasFailingChecks(rollup) {
 // --- setup helpers ---------------------------------------------------------
 
 function linkNodeModules(primaryPath, worktreePath) {
-  for (const relative of ['node_modules', ...NESTED_INSTALLS]) {
+  for (const relative of ['node_modules', ...nestedNodeModules(primaryPath)]) {
     linkIfPresent(join(primaryPath, relative), join(worktreePath, relative));
   }
+}
 
-  const integrations = join(primaryPath, 'integrations');
-  if (!existsSync(integrations)) return;
-  for (const entry of readdirSync(integrations)) {
-    linkIfPresent(
-      join(integrations, entry, 'node_modules'),
-      join(worktreePath, 'integrations', entry, 'node_modules')
-    );
+// After an isolated `npm ci`, the root tree belongs to this worktree; every
+// nested workspace still reuses the primary checkout's install.
+function linkNestedNodeModules(primaryPath, worktreePath) {
+  for (const relative of nestedNodeModules(primaryPath)) {
+    linkIfPresent(join(primaryPath, relative), join(worktreePath, relative));
   }
+}
+
+// Repos differ: Insight has verifier/sdk, PriorSeal has examples/*. Detect
+// node_modules directories up to two levels deep instead of hardcoding them.
+function nestedNodeModules(primaryPath) {
+  const found = new Set(NESTED_INSTALLS);
+  const skip = new Set(['node_modules', '.git', '.next', 'coverage', 'test-results', 'output']);
+  for (const top of readdirSync(primaryPath, { withFileTypes: true }).filter((entry) =>
+    entry.isDirectory()
+  )) {
+    if (skip.has(top.name)) continue;
+    const dir = join(primaryPath, top.name);
+    if (existsSync(join(dir, 'package.json')) && existsSync(join(dir, 'node_modules'))) {
+      found.add(join(top.name, 'node_modules'));
+    }
+    for (const child of readdirSync(dir, { withFileTypes: true }).filter((entry) =>
+      entry.isDirectory()
+    )) {
+      const sub = join(dir, child.name);
+      if (existsSync(join(sub, 'package.json')) && existsSync(join(sub, 'node_modules'))) {
+        found.add(join(top.name, child.name, 'node_modules'));
+      }
+    }
+  }
+  return [...found];
 }
 
 function linkIfPresent(source, target) {
@@ -1136,12 +1598,69 @@ function linkIfPresent(source, target) {
 }
 
 function linkEnvFiles(primaryPath, worktreePath) {
-  for (const file of ENV_FILES) {
-    linkIfPresent(join(primaryPath, file), join(worktreePath, file));
+  // Copy, not symlink: a task that edits .env.local must not rewrite every
+  // other worktree's environment. The files are a few KB, so the copy is cheap.
+  for (const file of localEnvFiles(primaryPath)) {
+    const source = join(primaryPath, file);
+    const target = join(worktreePath, file);
+    if (!existsSync(source) || existsSync(target)) continue;
+    copyFileSync(source, target);
+    try {
+      chmodSync(target, 0o600);
+    } catch {
+      // best effort; the file is untracked and local-only
+    }
+  }
+}
+
+function localEnvFiles(primaryPath) {
+  try {
+    return readdirSync(primaryPath).filter(
+      (file) => file.startsWith('.env') && !file.endsWith('.example')
+    );
+  } catch {
+    return ENV_FILES;
+  }
+}
+
+// `node_modules/` in a .gitignore only matches real directories, so the symlink
+// a worktree gets shows up as untracked. That makes `git add -A` stage the link
+// and makes status look permanently dirty. Add local-only excludes instead of
+// touching the repository's tracked .gitignore.
+function excludeWorktreeArtifacts(worktreePath) {
+  try {
+    const excludePath = execFileSync(
+      'git',
+      ['-C', worktreePath, 'rev-parse', '--git-path', 'info/exclude'],
+      { encoding: 'utf8' }
+    ).trim();
+    if (!excludePath) return;
+    const current = existsSync(excludePath) ? readFileSync(excludePath, 'utf8') : '';
+    const lines = new Set(current.split('\n').map((line) => line.trim()));
+    const missing = WORKTREE_EXCLUDES.filter((pattern) => !lines.has(pattern));
+    if (missing.length === 0) return;
+    writeFileSync(
+      excludePath,
+      `${current}${current && !current.endsWith('\n') ? '\n' : ''}` +
+        `# worktree artifacts (managed by scripts/worktree.mjs)\n${missing.join('\n')}\n`
+    );
+  } catch (error) {
+    console.warn(`worktree: could not update info/exclude (${error.message})`);
   }
 }
 
 function installHooks(worktreePath) {
+  // Repos that keep hooks in .githooks (PriorSeal) share core.hooksPath, so a
+  // new worktree inherits the hooks; just make sure the config points at it.
+  if (existsSync(join(worktreePath, '.githooks'))) {
+    try {
+      execFileSync('git', ['-C', worktreePath, 'config', 'core.hooksPath', '.githooks']);
+      chmodSync(join(worktreePath, '.githooks', 'pre-commit'), 0o755);
+    } catch {
+      console.warn('worktree: could not activate .githooks');
+    }
+    return;
+  }
   const husky = join(worktreePath, 'node_modules', '.bin', 'husky');
   if (!existsSync(husky)) {
     console.warn('worktree: husky is unavailable; install dependencies before committing');
@@ -1224,6 +1743,297 @@ function readWorktreePorts(envPath) {
     .map((match) => Number(match[1]));
 }
 
+// --- dependency isolation --------------------------------------------------
+
+function nodeModulesMode(worktreePath) {
+  const target = join(worktreePath, 'node_modules');
+  try {
+    if (lstatSync(target).isSymbolicLink()) return 'shared';
+    return 'isolated';
+  } catch {
+    return 'missing';
+  }
+}
+
+function worktreeBase(worktreePath) {
+  return readWorktreeEnv(worktreePath).INSIGHT_WT_BASE ?? DEFAULT_BASE;
+}
+
+// Every tracked or untracked path this worktree differs from its base in. The
+// union matters: a brand-new migration or manifest is untracked until staged.
+function changedFiles(worktreePath) {
+  const base = worktreeBase(worktreePath);
+  const files = new Set();
+  try {
+    const mergeBase = execFileSync('git', ['-C', worktreePath, 'merge-base', base, 'HEAD'], {
+      encoding: 'utf8',
+    }).trim();
+    execFileSync('git', ['-C', worktreePath, 'diff', '--name-only', mergeBase], {
+      encoding: 'utf8',
+    })
+      .split('\n')
+      .filter(Boolean)
+      .forEach((file) => files.add(file));
+  } catch {
+    execFileSync('git', ['-C', worktreePath, 'diff', '--name-only', 'HEAD'], { encoding: 'utf8' })
+      .split('\n')
+      .filter(Boolean)
+      .forEach((file) => files.add(file));
+  }
+  execFileSync('git', ['-C', worktreePath, 'ls-files', '--others', '--exclude-standard'], {
+    encoding: 'utf8',
+  })
+    .split('\n')
+    .filter(Boolean)
+    .forEach((file) => files.add(file));
+  return [...files];
+}
+
+function assertDependencyIsolation(worktreePath, label, options = {}) {
+  const manifests = changedFiles(worktreePath).filter(isDependencyManifest);
+  if (manifests.length === 0) return;
+  const shared = manifests
+    .map((manifest) => ({ manifest, mode: nodeModulesModeFor(worktreePath, manifest) }))
+    .filter((entry) => entry.mode !== 'isolated');
+  if (shared.length === 0) return;
+  if (options.allowSymlink) {
+    console.warn(
+      `worktree: ${label} has dependency changes (${manifests.join(', ')}) with shared node_modules; ` +
+        'this pollutes every worktree and is only allowed because --shared-deps was passed'
+    );
+    return;
+  }
+  throw new Error(
+    `${label}: dependency manifests changed (${shared
+      .map((entry) => `${entry.manifest} -> ${entry.mode}`)
+      .join(', ')}) while node_modules is shared or missing.\n` +
+      'Installing through the symlink rewrites every worktree. Do this instead:\n' +
+      '  npm run wt -- deps <slug> --isolate   # real node_modules, then npm install\n' +
+      'Never run npm install in shared mode.'
+  );
+}
+
+function manageDependencies() {
+  const slug = normalizeSlug(positional(1));
+  const worktreePath = resolveWorktreePath(slug);
+  if (!existsSync(worktreePath)) throw new Error(`no worktree for "${slug}"`);
+
+  const manifests = changedFiles(worktreePath).filter(isDependencyManifest);
+  const sharedDirs = sharedNodeModulesDirs(worktreePath);
+  const mode = nodeModulesMode(worktreePath);
+  const disk = directorySizeKb(worktreePath);
+  console.log(`
+Task:      ${slug}
+Path:      ${worktreePath}
+Mode:      ${mode === 'shared' ? 'shared symlink (unsafe for dependency changes)' : mode}
+Shared:    ${sharedDirs.length ? sharedDirs.join(', ') : '(none)'}
+Manifests: ${manifests.length ? manifests.join(', ') : '(unchanged)'}
+Source:    ${mode === 'isolated' ? `${formatSize(disk)} local node_modules` : 'primary checkout'}
+`);
+
+  if (!flag('isolate')) return;
+  if (sharedDirs.length === 0) {
+    console.log('worktree: already isolated; nothing to do');
+    return;
+  }
+  for (const dir of sharedDirs) {
+    const target = join(worktreePath, dir, 'node_modules');
+    rmSync(target, { recursive: true, force: true });
+    console.log(
+      `worktree: removed shared node_modules at ${dir || '.'}; installing an isolated copy`
+    );
+    run('npm', ['install', '--prefer-offline', '--no-audit', '--no-fund'], {
+      cwd: join(worktreePath, dir),
+    });
+  }
+  installHooks(worktreePath);
+  console.log(
+    `worktree: isolated dependencies installed (${formatSize(directorySizeKb(worktreePath))}). ` +
+      'npm install now only mutates this worktree.'
+  );
+}
+
+// Any package.json/package-lock.json at any depth (root, verifier/, sdk/,
+// examples/*) shares the primary checkout's dependency tree, so a change in
+// any of them needs an isolated install in that same directory.
+function isDependencyManifest(path) {
+  return /(^|\/)(package-lock\.json|package\.json)$/.test(path);
+}
+
+function manifestDir(manifest) {
+  return manifest.includes('/') ? manifest.slice(0, manifest.lastIndexOf('/')) : '';
+}
+
+function nodeModulesModeFor(worktreePath, manifest) {
+  const target = join(worktreePath, manifestDir(manifest), 'node_modules');
+  try {
+    return lstatSync(target).isSymbolicLink() ? 'shared' : 'isolated';
+  } catch {
+    return 'missing';
+  }
+}
+
+// Every directory in this worktree whose node_modules is still the primary
+// checkout's symlink. Mirrors linkNodeModules, so --isolate leaves no shared
+// tree behind anywhere in the repo (root, verifier/, sdk/, integrations/, examples/).
+function sharedNodeModulesDirs(worktreePath) {
+  const dirs = [];
+  const walk = (dir, depth) => {
+    const target = join(worktreePath, dir, 'node_modules');
+    try {
+      if (lstatSync(target).isSymbolicLink()) dirs.push(dir);
+    } catch {
+      // no node_modules here
+    }
+    if (depth === 0) return;
+    let entries = [];
+    try {
+      entries = readdirSync(join(worktreePath, dir), { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      if (
+        !entry.isDirectory() ||
+        ['node_modules', '.git', '.next', 'coverage'].includes(entry.name)
+      ) {
+        continue;
+      }
+      walk(join(dir, entry.name), depth - 1);
+    }
+  };
+  walk('', 2);
+  return dirs;
+}
+
+function directorySizeKb(worktreePath) {
+  try {
+    return Math.round(
+      Number(
+        execFileSync('du', ['-sk', canonicalPath(worktreePath)], { encoding: 'utf8' })
+          .split('\t')[0]
+          .trim()
+      )
+    );
+  } catch {
+    return '?';
+  }
+}
+
+// directorySizeKb returns KB (du -sk); format it so the printed unit matches.
+function formatSize(kb) {
+  if (!Number.isFinite(kb)) return '?';
+  if (kb >= 1024 * 1024) return `${(kb / 1024 / 1024).toFixed(1)} GB`;
+  return `${Math.max(Math.round(kb / 1024), 1)} MB`;
+}
+
+// --- local service observability ------------------------------------------
+
+async function printServices() {
+  const root = worktreeRoot();
+  const managed = listWorktrees().filter(
+    (worktree) =>
+      worktree.path.startsWith(`${root}/`) && existsSync(join(worktree.path, '.worktree.local'))
+  );
+  const header = ['TASK', 'DEV', 'E2E', 'DEV LISTENING', 'E2E LISTENING', 'SUPABASE'];
+  const body = [];
+  let localSupabase = 0;
+  for (const worktree of managed) {
+    const env = readWorktreeEnv(worktree.path);
+    const dev = Number(env.INSIGHT_WT_PORT);
+    const e2e = Number(env.INSIGHT_E2E_PORT);
+    const devFree = Number.isFinite(dev) ? await isPortFree(dev) : true;
+    const e2eFree = Number.isFinite(e2e) ? await isPortFree(e2e) : true;
+    const supabase = supabaseHost(worktree.path);
+    if (supabase.local) localSupabase += 1;
+    body.push([
+      env.INSIGHT_WT_NAME ?? worktree.path.slice(root.length + 1),
+      String(dev || '-'),
+      String(e2e || '-'),
+      Number.isFinite(dev) ? (devFree ? 'no' : 'yes') : '-',
+      Number.isFinite(e2e) ? (e2eFree ? 'no' : 'yes') : '-',
+      supabase.label,
+    ]);
+  }
+
+  if (body.length === 0) {
+    console.log('services: no managed worktrees');
+    return;
+  }
+  const widths = header.map((column, index) =>
+    Math.max(column.length, ...body.map((row) => row[index].length))
+  );
+  const format = (row) => row.map((cell, index) => cell.padEnd(widths[index])).join('  ');
+  console.log(format(header));
+  console.log(widths.map((width) => '-'.repeat(width)).join('  '));
+  body.forEach((row) => console.log(format(row)));
+
+  const supabasePorts = [54321, 54322, 54323, 54324].filter((port) => !portIsFree(port));
+  const containers = supabaseContainers();
+  console.log('');
+  if (supabasePorts.length > 0 || containers.length > 0) {
+    console.log(
+      `Shared local Supabase: ports ${supabasePorts.join(', ') || '(none)'}; containers ${containers.join(', ') || '(none)'}`
+    );
+  }
+  if (localSupabase > 1 || (containers.length > 0 && managed.length > 1)) {
+    console.log(
+      '! Local Supabase is a single shared instance (project_id and ports are fixed in supabase/config.toml).\n' +
+        '  Two worktrees must not run `supabase start`/`supabase db reset` at the same time.\n' +
+        '  Serialize database work, or point worktrees at the hosted project (this repo uses the hosted URL).'
+    );
+  } else {
+    console.log('No shared local database conflict detected.');
+  }
+  console.log(
+    'Ports come from .worktree.local; `wt e2e` refuses to start when its port is already taken.\n' +
+      'If a port is stuck, find the owner with: lsof -nP -iTCP:<port> -sTCP:LISTEN'
+  );
+}
+
+function supabaseHost(worktreePath) {
+  const envPath = join(worktreePath, '.env.local');
+  if (!existsSync(envPath)) return { label: '-', local: false };
+  try {
+    const line = readFileSync(envPath, 'utf8')
+      .split('\n')
+      .find((entry) => /^NEXT_PUBLIC_SUPABASE_URL=/.test(entry));
+    if (!line) return { label: '(unset)', local: false };
+    const url = line.slice(line.indexOf('=') + 1).trim();
+    const host = url
+      .replace(/^https?:\/\//, '')
+      .split('/')[0]
+      .split(':')[0];
+    const local = /^(localhost|127\.0\.0\.1)$/.test(host) || /:54321$/.test(url);
+    return { label: local ? `local (${host})` : `hosted (${host})`, local };
+  } catch {
+    return { label: '-', local: false };
+  }
+}
+
+function supabaseContainers() {
+  try {
+    return execFileSync('docker', ['ps', '--format', '{{.Names}}'], { encoding: 'utf8' })
+      .split('\n')
+      .filter((name) => name.includes('supabase'));
+  } catch {
+    return [];
+  }
+}
+
+// Synchronous best-effort port check for reporting (the async one cannot be
+// awaited from cleanup/status paths).
+function portIsFree(port) {
+  try {
+    const result = spawnSync('lsof', ['-nP', `-iTCP:${port}`, '-sTCP:LISTEN'], {
+      encoding: 'utf8',
+    });
+    return result.status !== 0 || !result.stdout.trim();
+  } catch {
+    return true;
+  }
+}
+
 // --- git helpers -----------------------------------------------------------
 
 function git(gitArgs, options = {}) {
@@ -1284,6 +2094,23 @@ function primaryWorktree() {
   ).trim();
   const path = basename(commonDir) === '.git' ? dirname(commonDir) : commonDir;
   return { path, name: basename(path) };
+}
+
+function repoHasScript(name) {
+  try {
+    const pkg = JSON.parse(readFileSync(join(primaryWorktree().path, 'package.json'), 'utf8'));
+    return Boolean(pkg.scripts?.[name]);
+  } catch {
+    return false;
+  }
+}
+
+// In Insight the script is exposed as `npm run wt`. In a repository that has not
+// added that script (PriorSeal), print the exact `node <script>` invocation instead
+// of handing the agent a command that does not exist.
+function commandPrefix() {
+  if (repoHasScript('wt')) return 'npm run wt --';
+  return `node ${shellQuote(fileURLToPath(import.meta.url))}`;
 }
 
 function branchExists(branch) {
@@ -1352,8 +2179,13 @@ async function withLock(label, work) {
     } catch (error) {
       if (error.code !== 'EEXIST') throw error;
       const owner = readLockOwner(dir);
-      if (owner && Date.now() - owner.startedAt > LOCK_TTL_MS) {
-        console.warn(`worktree: clearing stale lock from ${owner.command} (pid ${owner.pid})`);
+      const ownerDead = owner?.pid && !pidAlive(owner.pid);
+      if (ownerDead || (owner && Date.now() - owner.startedAt > LOCK_TTL_MS)) {
+        console.warn(
+          `worktree: clearing ${ownerDead ? 'abandoned' : 'stale'} lock from ${
+            owner.command
+          } (pid ${owner.pid})`
+        );
         rmSync(dir, { recursive: true, force: true });
         continue;
       }
@@ -1377,6 +2209,15 @@ function readLockOwner(dir) {
     return JSON.parse(readFileSync(join(dir, 'meta.json'), 'utf8'));
   } catch {
     return null;
+  }
+}
+
+function pidAlive(pid) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    return error.code === 'EPERM';
   }
 }
 
@@ -1448,12 +2289,53 @@ function findClaimConflicts(slug, paths) {
     .filter((claim) => pathsOverlap(claim.paths ?? [], paths));
 }
 
+// Unique artifacts collide by category even when the exact files differ (two
+// migrations, two cron bundles), so this check ignores path intersection.
+function findUniqueClaimConflicts(slug, paths) {
+  if (uniqueCategories(paths).length === 0) return [];
+  return readClaims()
+    .filter((claim) => claim.slug !== slug && claimIsActive(claim))
+    .filter((claim) => sharedUniqueCategories(paths, claim.paths ?? []).length > 0);
+}
+
 function splitPaths(value) {
   if (!value) return [];
   return String(value)
     .split(',')
     .map((path) => path.trim())
     .filter(Boolean);
+}
+
+function dependencyPathsIn(paths) {
+  return paths.filter((path) => isDependencyManifest(path));
+}
+
+function isUniquePath(path) {
+  return uniqueCategory(path) !== null;
+}
+
+// Two different migrations still collide with each other, so serialization is
+// per category, not per exact file.
+function uniqueCategory(path) {
+  if (isDependencyManifest(path)) return 'dependency-manifests';
+  if (globsIntersect(path, '.github/cron-dist/*')) return 'cron-bundles';
+  if (globsIntersect(path, 'supabase/migrations/*') || globsIntersect(path, 'migrations/*')) {
+    return 'migrations';
+  }
+  return null;
+}
+
+function uniqueCategories(paths) {
+  return [...new Set(paths.map(uniqueCategory).filter(Boolean))];
+}
+
+function sharedUniqueCategories(left, right) {
+  const mine = new Set(uniqueCategories(left));
+  return uniqueCategories(right).filter((category) => mine.has(category));
+}
+
+function overlappingPaths(left, right) {
+  return left.filter((a) => right.some((b) => globsIntersect(a, b)));
 }
 
 function pathsOverlap(left, right) {
@@ -1641,6 +2523,9 @@ Commands:
   cleanup [--apply] [--stale-days <n>] [--report-all]
   claim <slug> [--paths "..."] [--goal "..."] [--override]
   release <slug>
+  deps <slug> [--isolate]
+  services
+  check <slug>
   handoff <slug> [--goal "..."] [--next "..."] [--verify "..."] [--blocked]
   resume <slug>
   dev
@@ -1650,14 +2535,21 @@ Commands:
 Rules:
   - one task = one branch = one worktree; never share a branch between sessions
   - declare expected paths at create time; overlapping claims are refused before work starts
-  - dependencies come from the primary checkout via symlink (use --install to opt out)
+  - unique artifacts (package.json, lockfiles, .github/cron-dist/*, migrations) are
+    serial: the second claim is refused and ship blocks while another PR owns one
+  - dependency changes need isolated node_modules: create --install or deps --isolate
+  - shared symlinked node_modules must never receive npm install output
+  - ship refuses auto-merge when another open PR edits the same hunks; unique artifacts always block
   - pre-commit never touches the shared stash stack
   - cleanup deletes merged branches only (ancestor | no unique commits | tree identical | merged PR);
     hand-named branches are reported, never deleted
   - write a handoff before a long pause so any session can resume the task
+  - status shows the stage, how long the task has been there, and the next command
 
 Environment:
   INSIGHT_WORKTREE_ROOT   worktree root (default ~/Documents/insight-worktrees)
   INSIGHT_AGENT_SESSION   session id used in branch names and .worktree.local
+  INSIGHT_WT_BASE         base ref (default origin/main)
+  INSIGHT_WT_NESTED_INSTALLS  comma-separated nested node_modules paths to symlink
 `);
 }
