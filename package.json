@@ -123,6 +123,7 @@
     "prepare": "husky",
     "integration:doctor": "node scripts/integration-doctor.mjs",
     "release:rollback": "node --env-file-if-exists=.env.vercel.local scripts/release-rollback.mjs",
+    "release:emergency": "node scripts/deploy-emergency.mjs",
     "skills:build": "node --import tsx scripts/build-agent-skill-packages.mts",
     "skills:check": "node --import tsx scripts/build-agent-skill-packages.mts --check",
     "test:reliability": "node --import tsx --test scripts/tests/*.test.mjs scripts/tests/*.test.mts",
