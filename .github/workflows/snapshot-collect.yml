@@ -150,5 +150,32 @@ jobs:
       # Prediction-market settlement evidence (Gamma watch → Kraken candles →
       # signed packs). Kraken is the only rights-cleared collection venue; the
       # library fails closed and every step above tolerates an upstream outage.
+      #
+      # Hourly gate: the series this collector covers currently yields zero
+      # output, so 3 of 4 dispatches per hour are pure Supabase IO. Run it only
+      # on the top-of-hour slot. The Supabase dispatch ledger supplies
+      # `scheduled_for`; fall back to the runner clock (UTC minute < 15) for
+      # manual dispatches. Worst case a delayed top-of-hour dispatch skips one
+      # hourly pass, which is acceptable for a zero-output pipeline.
+      - name: Settlement hourly gate
+        id: settlement_gate
+        run: |
+          minute=""
+          slot="${{ inputs.scheduled_for }}"
+          if [ -n "$slot" ]; then
+            minute=$(date -u -d "$slot" +%M 2>/dev/null || echo "")
+          fi
+          if [ -z "$minute" ]; then
+            minute=$(date -u +%M)
+          fi
+          if [ "$((10#$minute))" -lt 15 ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            echo "settlement slot: top-of-hour (minute=$minute), running"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "settlement slot: non-top-of-hour (minute=$minute), skipping"
+          fi
+
       - name: Collect settlement evidence
+        if: steps.settlement_gate.outputs.run == 'true'
         run: node .github/cron-dist/collect-settlement-evidence.mjs
