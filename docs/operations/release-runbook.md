@@ -1,0 +1,272 @@
+# Release rollback runbook
+
+Operational manual for restoring the production website/API to a previously
+deployed Vercel release when a code release is causing an incident. It is a
+step-by-step procedure, not a description of Vercel features.
+
+- Scope: the Next.js application and API routes served from the `insight` Vercel
+  project (`www.oracleinsight.xyz`, `oracleinsight.xyz`,
+  `insight-xi-two.vercel.app`).
+- Out of scope: database restore, data repair, secret rotation, cron/workflow
+  rollback, and external dependency changes. Those have separate procedures in
+  [production-readiness.md](production-readiness.md) and
+  [cron-dispatcher.md](cron-dispatcher.md).
+- The controller is [scripts/release-rollback.mjs](../../scripts/release-rollback.mjs);
+  it uses Vercel's REST API and Node builtins only.
+
+Rollback moves the production alias at the routing layer. It does not rebuild,
+does not revert `main`, and does not undo a database migration. Treat it as an
+availability control, not as a source-control revert.
+
+## Quick reference
+
+```bash
+# Show what production runs now and what `previous` resolves to. Read-only.
+npm run release:rollback
+
+# Roll back to the immediately previous READY production deployment.
+npm run release:rollback -- --to previous --yes
+
+# Roll back (or restore forward) to a specific deployment id or deployment URL.
+npm run release:rollback -- --to dpl_xxxxxxxxxxxxxxxxxxxxxxxx --yes
+npm run release:rollback -- --to https://app-abc123.vercel.app --yes
+
+# Force a forward restore through the promote API when the target is newer,
+# or when the rollback endpoint refuses a non-adjacent target on Hobby.
+npm run release:rollback -- --to dpl_xxxxxxxxxxxxxxxxxxxxxxxx --method promote --yes
+```
+
+`--method auto` (the default) uses `rollback` for a target older than the live
+deployment and `promote` for a target newer than it. The command prints the
+current deployment, the target deployment, the exact API path, and the affected
+production aliases before doing anything. Without `--yes` it is a dry run.
+
+Credentials are read from `VERCEL_TOKEN`, `VERCEL_PROJECT_ID`, and optionally
+`VERCEL_TEAM_ID` / `ROLLBACK_BASE_URL`. The npm script loads
+`.env.vercel.local` when it exists in the current checkout; otherwise export the
+variables first. A missing token or project id fails with exit code 2 and an
+explicit message — it never silently skips the switch. Never commit the token.
+
+Exit codes:
+
+| Code | Meaning                                         |
+| ---- | ----------------------------------------------- |
+| 0    | Switch and live verification passed, or dry run |
+| 1    | Vercel call or live verification failed         |
+| 2    | Missing configuration or invalid arguments      |
+
+## 1. Declare the incident and freeze deployments
+
+1. Declare the incident in the on-call channel and start a UTC stopwatch. Record
+   `T+0`.
+2. Freeze the release line: stop merging to `main` and do not trigger the
+   production deploy hook. CI deploys every push to `main`, so a rollback is only
+   durable while no new production deployment is created.
+3. Write down the current `main` SHA and the production deployment id. The
+   dry-run output gives both; the Vercel dashboard shows the same values.
+4. Capture evidence before changing traffic: first failing request id, HTTP
+   status, page/route, Sentry issue or release, readiness response, and the
+   latest cron/data-job run.
+
+## 2. Decide: roll back or fix forward
+
+Roll back when all of these are true:
+
+- Errors started within minutes of a production deployment, or the previous
+  deployment is known good.
+- The failure is in application code, routing, rendering, or the bundled API.
+- The bad release did not apply an irreversible database migration and did not
+  require a new environment variable or external configuration.
+- The previous deployment is `READY` and its commit is the last known-good
+  release.
+
+Fix forward when any of these are true:
+
+- A migration already dropped or renamed columns, or new code wrote rows in a
+  format the old code cannot read. Rolling back the app makes it read data it
+  cannot interpret.
+- The release depends on a new environment variable, rotated secret, partner
+  endpoint, or external allow-list that is already active.
+- The release contains a security fix that must remain deployed.
+- The previous deployment is also affected (no known-good target). Bisect or
+  promote an older known-good deployment instead of guessing.
+- The incident is data corruption, a stale snapshot, or a dependency outage
+  rather than an application regression.
+- The target is not `READY`, belongs to another project, or is not a production
+  deployment. The controller refuses these cases.
+
+Before rolling back, inspect the release delta:
+
+```bash
+git log --oneline <target-sha>..<current-sha>
+git diff --stat <target-sha>..<current-sha> -- supabase/migrations .github/cron-dist .github/workflows
+```
+
+Any migration, cron bundle, or workflow change in that range needs a decision
+before switching traffic. See “What rollback does not cover” below.
+
+## 3. Execute the rollback
+
+```bash
+# Reads .env.vercel.local if present; use `export` instead in a clean checkout.
+npm run release:rollback -- --to previous --yes
+```
+
+The command performs these steps:
+
+1. Reads `GET /v9/projects/{projectId}` and uses `targets.production.id` as the
+   authoritative live deployment. It does not infer the live version from
+   `latestDeployments`, whose alias arrays retain historical entries.
+2. Lists production deployments and resolves `previous` as the newest `READY`
+   production deployment older than the live one, or resolves the explicit
+   deployment id/URL. Non-production, non-READY, and cross-project targets are
+   rejected.
+3. Prints the plan and the exact endpoint:
+   `POST /v1/projects/{projectId}/rollback/{deploymentId}` or
+   `POST /v10/projects/{projectId}/promote/{deploymentId}`.
+4. Switches production, then polls the project until `targets.production.id`
+   equals the target deployment. It does not trust the POST response alone.
+5. Probes the live site and prints a timing breakdown.
+
+If the rollback endpoint answers HTTP 402 on the Hobby plan, the target is not
+the immediately previous production deployment. Use `--method promote` with the
+same `--to` value. Promote was verified to work on this project's Hobby plan
+during the forward restore of the 2026-11-06 drill; if Vercel starts refusing
+it, the remaining options are upgrading the plan or fixing forward.
+
+## 4. Verify production
+
+Do not close the incident from the POST response. Verify in this order.
+
+| Check              | Command / evidence                                                                          | Pass condition                             |
+| ------------------ | ------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| Version switched   | Re-run `npm run release:rollback` (dry run); `current production` must show target          | Deployment id and commit SHA match         |
+| Liveness           | `curl -sS -o /dev/null -w '%{http_code}' https://www.oracleinsight.xyz/api/v1/health`       | `200`, body `success:true`                 |
+| Readiness          | `curl -sS -o /dev/null -w '%{http_code}' https://www.oracleinsight.xyz/api/v1/health/ready` | `200` (database reachable, snapshot fresh) |
+| Homepage and login | `curl -sS -o /dev/null -w '%{http_code}' https://www.oracleinsight.xyz/` and `/login`       | `200`                                      |
+| Payment rails      | `node scripts/smoke-live-payment-rails.mjs`                                                 | exits `0`; x402 + MPP 402 challenges       |
+| Error rate         | Vercel logs / Sentry, 5xx since the switch                                                  | falling, no new release-correlated issue   |
+| Data freshness     | readiness timestamp and newest `price_snapshots` row                                        | advancing, below the 45-minute SLO         |
+| Money/data writes  | Wallet, credit ledger, subscriptions, x402 settlement rows                                  | balanced and readable by the restored code |
+
+Keep watching for 30 minutes before closing. A rollback is not complete while
+the bad commit remains on `main`: land a revert or a fix-forward PR, let CI
+deploy it through the normal gate, and verify that deployment.
+
+## 5. Data-layer handling
+
+Application rollback is safe for read-only data paths: snapshots, oracle feeds,
+market reference, and rendered pages keep their existing contracts. It is not
+safe when the bad release changed how data is written or interpreted.
+
+Check these before declaring closure:
+
+1. **Migrations.** The database does not roll back with the app. Confirm which
+   migrations the bad release applied:
+   `git diff --stat <target-sha>..<current-sha> -- supabase/migrations`.
+   Additive, backwards-compatible migrations are safe to leave in place.
+2. **Destructive migrations.** Dropped/renamed columns, rewritten enums,
+   destructive backfills, and RLS tightening can make the old code fail even
+   after the alias moves. In that case, do not roll back casually: fix forward,
+   or restore the most recent encrypted logical export into an isolated project
+   first (target RTO four hours). Never run a down migration in production
+   without reviewing its data-loss impact.
+3. **New writes.** If the bad release wrote rows (credits, subscriptions,
+   dispatch ledgers, x402 settlements, ops actions), verify the restored code
+   can read them. If it cannot, freeze the writer, repair the rows with a
+   reviewed script, and reconcile balances before reopening.
+4. **Operator controls.** `/ops/issuance` state lives in the database and is not
+   affected by the alias move. Recheck the banner: a halt left engaged keeps
+   returning signed `BLOCK`s while the site looks healthy.
+5. **Cron and workflows.** GitHub Actions cron bundles run from `main`, not from
+   the Vercel deployment. Rolling back Vercel does not revert a bad cron bundle
+   or workflow. Revert those on `main` separately, then verify the newest
+   snapshot timestamp.
+
+## 6. What rollback does not cover
+
+| Not covered                                  | Why                                                       | Alternative                                                          |
+| -------------------------------------------- | --------------------------------------------------------- | -------------------------------------------------------------------- |
+| Database migrations already applied          | DDL and data changes are independent of the Vercel alias  | Fix forward with a compatible migration, or restore a logical export |
+| Data written or corrupted by the bad release | Moving the alias does not rewrite rows                    | Freeze writers, repair with a reviewed script, reconcile             |
+| Vercel environment variables                 | Env vars are project-scoped, not versioned per deployment | Revert the variable and redeploy, or fix forward                     |
+| GitHub Actions workflows and cron bundles    | They are read from `main`                                 | Revert on `main`; see [cron-dispatcher.md](cron-dispatcher.md)       |
+| External keys, allow-lists, partner configs  | They live outside the deployment                          | Rotate/revert them explicitly                                        |
+| Email, webhooks, and payments already sent   | Side effects already happened                             | Reconcile and replay only after review                               |
+| The bad commit on `main`                     | Rollback only changes traffic                             | Land a revert/fix PR and deploy through CI                           |
+| DNS, domains, certificates                   | Managed separately from deployments                       | Revert the domain change in Vercel                                   |
+| Browser-cached client bundles                | Old clients may keep running until reload                 | Tell users to reload; verify server contracts tolerate old clients   |
+
+## 7. Post-incident record
+
+Write a blameless record within one working day. Keep it short and factual.
+
+```markdown
+### Incident <date> — <one-line impact>
+
+- Detected: <UTC>, by <signal>
+- Production before: <deployment id> / <commit sha>
+- Rollback target: <deployment id> / <commit sha>
+- Method: rollback | promote
+- Decision to rollback: <UTC>; live verified: <UTC>; measured: <seconds>
+- Impact window: <start>–<end>
+- Customer-visible impact: <routes, status codes, duration>
+- Data impact: <none | rows/tables | reconciliation result>
+- Migrations/workflows involved: <none | details>
+- Root cause: <known | investigating>
+- Fix-forward PR / revert: <link>
+- Follow-ups: <owner + date>
+```
+
+## 8. Drill record
+
+First live drill of this controller. It used the two most recent existing
+production deployments; no temporary deployment was created, so the drill did
+not add a build to the release line.
+
+- Date: 2026-11-06 (UTC), production project `insight` on Vercel Hobby.
+- Pre-drill production: `dpl_6rGAfsBcteeBY6i6sTWqWX48tPh4`, commit
+  `0e7329f53f467851ccf0704efff0b6e5aceea301`.
+- Drill target (previous): `dpl_BsTXuKbVpcieajQm3auXL7tHnSzs`, commit
+  `2663f0182a9988bbc0a688ebf9e19061c40aadab`.
+- Command: `npm run release:rollback -- --to previous --yes`.
+- Result: production moved to the target and live smoke passed.
+
+| Step                         | Measured                |
+| ---------------------------- | ----------------------- |
+| Command issued (UTC)         | 2026-11-06T10:27:48Z    |
+| Vercel accepted the switch   | 0.5s after the API call |
+| Production alias on target   | 1.1s after the API call |
+| Live verification passed     | 7.2s after the API call |
+| Command wall time (with npm) | 10s                     |
+
+Decision-to-restored-availability for the automated path was **7.2s**; the full
+operator command, including npm startup and plan rendering, took 10s. While on
+the rollback deployment, `node scripts/smoke-live-payment-rails.mjs` passed: the
+REST x402 + MPP 402 challenge and the MCP challenge both matched their scopes.
+
+Restore after the drill:
+
+- Command: `npm run release:rollback -- --to dpl_6rGAfsBcteeBY6i6sTWqWX48tPh4 --method promote --yes`
+- Result: production returned to `0e7329f53f467851ccf0704efff0b6e5aceea301`
+  (the pre-drill deployment) without a rebuild.
+- Measured: Vercel accepted in 0.4s, alias on target in 0.9s, live verification
+  in 3.9s, 6s wall time including npm.
+- Final state verified by a read-only dry run (current production
+  `dpl_6rGAfsBcteeBY6i6sTWqWX48tPh4`), `200` from liveness and readiness, and a
+  `402` x402 quote from the direct base-lending probe. The MCP half of the
+  payment smoke also passed after the restore. The full multi-probe payment
+  smoke then exhausted the x402 quote limiter (six quotes per hour per
+  identity) and returned `429` on three probes; that is a probe-rate limit, not
+  an application failure. The full smoke had passed while production served the
+  rollback deployment. The drill did not leave production on the intermediate
+  deployment.
+
+Follow-ups from the drill:
+
+- Repeated back-to-back payment smoke probes can hit the public rate limit
+  (`429`). Wait for the window or rely on the controller's built-in liveness /
+  readiness checks when re-running the full payment smoke under pressure.
+- Hobby permits rollback only to the immediately previous deployment. The
+  `--method promote` path is the tested restore route; re-run this drill after
+  any Vercel plan or API change.
