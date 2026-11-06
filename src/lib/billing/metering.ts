@@ -127,7 +127,15 @@ const ENDPOINT_RULES: Array<[RegExp, MeteringClass]> = [
  * names like `pre_trade_safety_check` and `get_risk_summary`. Default is C1.
  */
 const TOOL_RULES: Array<[RegExp, MeteringClass]> = [
-  [/^assess_rwa_evidence$/, 'C1'],
+  // Consolidated 16-tool surface. Explicit rules keep each unified tool at its
+  // documented class regardless of later broad-regex changes.
+  [/^get_price_analytics$/, 'C2'],
+  [/^search_oracle_registry$/, 'C1'],
+  [/^check_trade_safety$/, 'C3'],
+  [/^prepare_swap$/, 'C3'],
+  [/^prepare_perp_order$/, 'C3'],
+  [/^begin_trade_evidence$/, 'C4'],
+  [/^verify_evidence$/, 'C4'],
   [/^get_robinhood_rwa_context$/, 'C1'],
   [/^get_robinhood_rwa_instrument$/, 'C1'],
   // Block-pinned, single-market evidence — foundational data, not a safety gate.

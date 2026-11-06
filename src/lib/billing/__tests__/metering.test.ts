@@ -2,7 +2,6 @@ import { getToolCreditCost, getCreditCost } from '../metering';
 
 describe('MCP tool metering', () => {
   it('prices unsigned supplied RWA diagnostics identically without charging for signing', () => {
-    expect(getToolCreditCost('assess_rwa_evidence')).toBe(0.5);
     expect(getCreditCost('/api/v1/rwa/assessment')).toBe(0.5);
   });
   it('prices Robinhood issuer context as cached foundational evidence', () => {

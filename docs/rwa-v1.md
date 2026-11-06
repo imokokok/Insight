@@ -122,7 +122,7 @@ explicitly excluded from oracle quorum and remains non-authorizing.
 - Typed client: `InsightClient.rwaAssessment(input, policy)`.
 - Typed issuer-context client: `InsightClient.robinhoodRwaContext(symbol)`.
 - Typed master-data client: `InsightClient.robinhoodRwaInstrument(symbol)`.
-- MCP tool: `assess_rwa_evidence`.
+- MCP tool: `assess_rwa_evidence` was removed on 2026-11-07; caller-supplied diagnostics remain available through `InsightClient.rwaAssessment` and `POST /api/v1/rwa/assessment`.
 - MCP issuer-context tool: `get_robinhood_rwa_context`.
 - MCP instrument tool: `get_robinhood_rwa_instrument`.
 - [Machine-readable strict request schema](../public/rwa-assessment.schema.json).
