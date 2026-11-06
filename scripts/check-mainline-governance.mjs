@@ -88,12 +88,13 @@ const requiredDeploymentGateFragments = [
   'deploy-production:',
   "github.ref == 'refs/heads/main'",
   "github.event_name == 'push' || github.event_name == 'workflow_dispatch'",
-  // The deploy no longer waits for the post-merge re-run of the pull-request
-  // suite: branch protection already required those checks before the merge, so
-  // waiting behind the duplicate run only added ~190s. The gate is now the
-  // fail-closed evidence step below, which proves this commit is the merge
-  // commit of a PR whose `validate`, `smoke`, and `analyze` checks are green.
-  'needs: [runtime-impact]',
+  // The deploy waits for the post-merge runtime gates on the same commit. The
+  // fail-closed evidence step below still proves this commit is the merge commit
+  // of a PR whose `validate`, `smoke`, and `analyze` checks are green, but a
+  // flake or environment difference on the actual main commit must be observed
+  // before users are sent to it. `analyze` runs in codeql.yml, so it cannot be a
+  // `needs` target and remains covered by the evidence gate.
+  'needs: [runtime-impact, validate, smoke]',
   'name: Verify the merged commit passed its pull-request checks',
   'node scripts/verify-merged-pr-checks.mts',
   'VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}',
