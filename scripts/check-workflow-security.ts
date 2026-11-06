@@ -1,6 +1,70 @@
 import { readFile, readdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
+async function checkNodeVersionAlignment(workspace: string, workflows: Map<string, string>) {
+  const failures: string[] = [];
+  const nodeVersion = (await readFile(resolve(workspace, '.node-version'), 'utf8')).trim();
+  if (!/^v?\d+\.\d+\.\d+$/.test(nodeVersion)) {
+    failures.push(`.node-version: expected an exact version such as 22.23.2, got "${nodeVersion}"`);
+    return failures;
+  }
+  const major = nodeVersion.replace(/^v/, '').split('.')[0];
+
+  const packageJson = JSON.parse(await readFile(resolve(workspace, 'package.json'), 'utf8')) as {
+    engines?: { node?: unknown };
+  };
+  const enginesNode = packageJson.engines?.node;
+  if (typeof enginesNode !== 'string' || enginesNode.length === 0) {
+    failures.push('package.json: engines.node is required to pin the Vercel runtime');
+  } else {
+    if (/[<>*]|\|\|/.test(enginesNode)) {
+      failures.push(
+        `package.json: engines.node "${enginesNode}" must pin one major (for example 22.x), not an open-ended range`
+      );
+    } else if (enginesNode.match(/\d+/)?.[0] !== major) {
+      failures.push(
+        `package.json: engines.node "${enginesNode}" must match .node-version major ${major}`
+      );
+    }
+  }
+
+  for (const [name, source] of workflows) {
+    let declarations = 0;
+    for (const [index, line] of source.split('\n').entries()) {
+      const literal = line.match(/^\s*node-version:\s*(\S+)/)?.[1]?.replace(/^['"]|['"]$/g, '');
+      if (literal) {
+        declarations += 1;
+        if (literal.includes('${{')) {
+          failures.push(
+            `${name}:${index + 1}: node-version must be a literal or use node-version-file`
+          );
+        } else if (literal !== nodeVersion) {
+          failures.push(
+            `${name}:${index + 1}: node-version ${literal} must match .node-version ${nodeVersion}`
+          );
+        }
+      }
+      const versionFile = line
+        .match(/^\s*node-version-file:\s*(\S+)/)?.[1]
+        ?.replace(/^['"]|['"]$/g, '');
+      if (versionFile) {
+        declarations += 1;
+        if (versionFile !== '.node-version') {
+          failures.push(
+            `${name}:${index + 1}: node-version-file ${versionFile} must be .node-version`
+          );
+        }
+      }
+    }
+    const setupNodeSteps = (source.match(/^\s*-?\s*uses:\s*actions\/setup-node@/gm) ?? []).length;
+    if (setupNodeSteps > 0 && declarations === 0) {
+      failures.push(`${name}: every actions/setup-node step must declare node-version`);
+    }
+  }
+
+  return failures;
+}
+
 async function main(): Promise<void> {
   const workspace = process.cwd();
   const workflowsRoot = resolve(workspace, '.github/workflows');
@@ -37,6 +101,8 @@ async function main(): Promise<void> {
       }
     }
   }
+
+  failures.push(...(await checkNodeVersionAlignment(workspace, workflows)));
 
   const codeql = workflows.get('codeql.yml');
   if (!codeql?.includes('workflow_dispatch:')) {
