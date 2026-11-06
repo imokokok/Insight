@@ -1,5 +1,6 @@
 import { privateKeyToAccount } from 'viem/accounts';
 
+import type { AttesterAccount } from '@/lib/attestations/attesterAccount';
 import { SETTLEMENT_EVIDENCE_DOMAIN } from '@/lib/settlementEvidence/signing';
 
 import { buildPayload, canonicalJson, computePayloadHash } from '../engine';
@@ -10,7 +11,6 @@ import {
   verifyOracleConfigSnapshot,
 } from '../signing';
 
-import type { AttesterAccount } from '@/lib/attestations/attesterAccount';
 import type { OracleConfigSources } from '../types';
 
 const input = { chainId: 8453, protocolId: 'moonwell-iv2-base', assetSymbol: 'USDC' };
