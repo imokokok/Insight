@@ -6,13 +6,16 @@ collisions, plus the commands that enforce it.
 
 ## Why parallel sessions collide
 
-| Shared resource                                         | What goes wrong                                                                                                                        |
-| ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| One working tree: `.git/index` + `HEAD`                 | Session A checks out `main` while session B has staged work; B's commit lands on A's branch, and local `main` forks from `origin/main` |
-| One `refs/stash` stack                                  | `lint-staged` auto-stashes ~30 unrelated unstaged files, a second session stashes on top, and a pop restores the wrong entry           |
-| Build caches: `.next/`, `*.tsbuildinfo`, `.eslintcache` | Two `next dev` / `tsc` runs overwrite each other's outputs and read stale results                                                      |
-| Fixed ports (`3000` dev, `3000` e2e)                    | Second window fails to bind, or e2e silently tests the first window's server                                                           |
-| Branch names typed by hand                              | Two sessions pick the same name; the loser inherits the winner's commits                                                               |
+| Shared resource                                                | What goes wrong                                                                                                                        |
+| -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| One working tree: `.git/index` + `HEAD`                        | Session A checks out `main` while session B has staged work; B's commit lands on A's branch, and local `main` forks from `origin/main` |
+| One `refs/stash` stack                                         | `lint-staged` auto-stashes ~30 unrelated unstaged files, a second session stashes on top, and a pop restores the wrong entry           |
+| Build caches: `.next/`, `*.tsbuildinfo`, `.eslintcache`        | Two `next dev` / `tsc` runs overwrite each other's outputs and read stale results                                                      |
+| Fixed ports (`3000` dev, `3000` e2e)                           | Second window fails to bind, or e2e silently tests the first window's server                                                           |
+| Branch names typed by hand                                     | Two sessions pick the same name; the loser inherits the winner's commits                                                               |
+| One `node_modules` (even when symlinked)                       | A dependency change + `npm install` in one worktree can rewrite, detach or empty the shared tree for every worktree                    |
+| One copy of `package.json`, lockfile, cron bundles, migrations | Two PRs change the same generated/ordered artifact and the second can only be resolved by hand after CI                                |
+| Same source file, different regions                            | Path-level claims do not see that both agents edited `src/shared.ts`; the overlap only appears at merge time                           |
 
 A Git worktree gives each task its own `HEAD`, index, working tree and cache
 directories while sharing one object database. That is the fix; the rules below
@@ -23,7 +26,8 @@ make it the default.
 ```
 npm run wt -- create <slug> [--type feat|fix|chore|docs|test|perf|ops|refactor]
                             [--session <id>] [--base origin/main]
-                            [--no-fetch] [--install]
+                            [--paths "a.ts,dir/**"] [--goal "..."]
+                            [--no-fetch] [--install] [--override]
 ```
 
 The command:
@@ -34,13 +38,19 @@ The command:
   `~/Documents/insight-worktrees/<repo>-<slug>` (override with
   `INSIGHT_WORKTREE_ROOT`), so the primary checkout's `tsc`, `next build` and
   `eslint` never scan another task's sources;
-- symlinks `node_modules` (root, `verifier/`, `sdk/`, `integrations/*`) and the
-  `.env*` files from the primary checkout instead of reinstalling — a worktree
-  adds one checkout of the source tree and its own build output, never a second
-  copy of the dependencies or the git object database;
-- runs `husky` inside the worktree so `core.hooksPath` points at that worktree's
-  `.husky/_`, which means the pre-commit hook fires in the worktree, not in the
-  primary checkout;
+- symlinks `node_modules` (root plus every nested `*/node_modules` found up to
+  two levels, e.g. `verifier/`, `sdk/`, `integrations/*`, PriorSeal's
+  `examples/*`) instead of reinstalling — a worktree adds one checkout of the
+  source tree and its own build output, never a second copy of the dependencies
+  or the git object database. The link is **read-only by contract**: a task that
+  declares `package.json`/`package-lock.json` must pass `--install` (or run
+  `deps --isolate` before editing the manifest), because installing through the
+  shared link is not safe across npm versions;
+- **copies** every local `.env*` file (0600) instead of symlinking it, so a task
+  that edits `.env.local` cannot rewrite another worktree's environment; the
+  files are a few KB, so there is no meaningful disk cost;
+- activates the repo's hook layout: `husky` for this repo, `.githooks` +
+  `core.hooksPath` for PriorSeal;
 - allocates a deterministic free port pair in `3300-3899`, records it in the
   untracked `.worktree.local`, and prints the paths to use.
 
@@ -181,6 +191,126 @@ ok=1 blocked=3
 stderr: task "cN" touches paths already claimed: - cM (sim-M) claims src/shared.ts
 ```
 
+## Unique artifacts are serial (no override)
+
+Some paths are global singletons: two concurrent edits cannot be resolved
+mechanically even when the files look different.
+
+| Category             | Paths                                                                              | Why it must be serial                                                     |
+| -------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| dependency manifests | `package.json`, `package-lock.json`, `verifier/package*.json`, `sdk/package*.json` | an install rewrites the lock and the shared dependency tree               |
+| cron bundles         | `.github/cron-dist/**`                                                             | regenerated byte-for-byte; two regenerations conflict in every bundle     |
+| migrations           | `supabase/migrations/*`, `migrations/*`                                            | ordering plus one applied history; two new files still race the directory |
+
+Rules:
+
+- `create` and `claim` compare **categories**, not file paths. A second claim in
+  the same category is refused even when it names a different migration file.
+- There is deliberately no `--override` for these categories.
+- `ship` refuses to enable auto-merge while another active claim (`unique-claim`)
+  or another open PR (`unique-pr`) still changes a unique category. The PR stays
+  open and a blocked handoff records “merge that task first”.
+- “Merge first, then change”: the second task merges the owner, rebases **only
+  its own branch**, then edits the artifact.
+
+Measured in the harness: two concurrent creates, one per new migration file:
+
+```text
+worktree: task "mig-x" touches an artifact that must be edited serially:
+  - mig-y (harness) claims supabase/migrations/9004_y.sql
+Merge that task first (or release its claim), then start this one. There is no override for unique artifacts.
+exit=1   worktrees created=0   branches created=0
+```
+
+## Dependency changes: isolate, never install through the link
+
+Measured with npm 10.8.2 on a real `npm install` inside a worktree whose
+`node_modules` was a symlink to the primary checkout:
+
+```text
+$ npm install            # wt-a, package.json now asks for probe-dep 2.0.0
+npm warn reify Removing non-directory /tmp/wt-dep-probe/wt-a/node_modules
+added 1 package in 179ms
+wt-a/node_modules: drwxr-xr-x (real directory)
+wt-a sees probe-dep: 2.0.0
+primary sees probe-dep: 1.0.0        # mtime unchanged
+wt-b sees probe-dep: 1.0.0           # through the same symlink
+```
+
+So npm **destroys the symlink instead of writing through it**. Other worktrees
+are not corrupted, but the installing worktree silently becomes an unmanaged,
+partially updated install. A failed install makes that worse: after
+`ENOTCACHED` the link was already gone and the worktree was left with stale
+`0.1.0`-era packages while its manifest asked for another version. Older npm
+versions can write through a symlink, which is why this is a hard error rather
+than a warning.
+
+Rules:
+
+1. A task that declares a manifest must be created with `--install`, or must run
+   `deps --isolate` **before** editing `package.json`/`package-lock.json`.
+2. `deps <slug> --isolate` removes **every** shared link in that worktree (root,
+   `verifier/`, `sdk/`, `integrations/`, `examples/*`) and runs `npm install` in
+   each directory that had one. A nested manifest is checked against the
+   `node_modules` of its own directory, not just the root.
+3. `ship` refuses to commit when a manifest changed while that directory's
+   `node_modules` is still the shared symlink (or missing). It prints the exact
+   path and remedy and creates no commit.
+
+Shared dependencies also affect local hooks: `build:cron:check` and typecheck
+run against `node_modules`. If the primary checkout sits on an older branch, a
+worktree based on newer `main` can fail the pre-commit hook with "committed cron
+bundles are stale" even though the task touched no cron file. That failure is
+indistinguishable from a real one by reading the hook output; run
+`deps <slug> --isolate` before triage. Measured on this task: after rebasing
+onto `main`, the hook failed with two changed and two obsolete chunks; the same
+commit passed once dependencies were isolated.
+
+```sh
+npm run wt -- deps <slug>             # mode, changed manifests, disk source
+npm run wt -- deps <slug> --isolate   # symlink -> real node_modules + npm install
+```
+
+Disk trade-off (measured in this checkout): the primary `node_modules` is
+**1.9 GB**; a worktree’s own source checkout is **37 MB**. Sharing the link keeps
+a worktree at ~37 MB. An isolated install costs another ~1.9 GB for that task
+only, which is the price of being able to change dependencies safely. Ship or
+remove the task to reclaim it; do not pre-isolate tasks that do not touch
+dependencies.
+
+## Same file, different regions
+
+Path claims already stop two tasks that _declare_ the same file. The remaining
+hole is an undeclared edit: task A declares `src/a.ts` but also edits
+`src/shared.ts`, while task B claims `src/shared.ts`; the claims do not intersect,
+so both proceed.
+
+Evaluating file-level exclusivity for every file: rejected. It would serialize
+most work in this repository, because large shared files (`route.ts`,
+`perpGuardKernel.ts`, `page.tsx`) are edited by unrelated tasks every day, and
+the owner would have to merge first even when the edits are hundreds of lines
+apart. A per-file claim for _everything_ converts parallel work back into a
+queue.
+
+The compromise that is implemented:
+
+- unique artifacts stay hard-serial (table above);
+- everything else may proceed in parallel;
+- `check <slug>` and `ship` diff the worktree with `git diff -U0` and compare
+  **base-side line ranges** against every open PR that touches the same file;
+- overlapping ranges block auto-merge (`hunk-overlap`, blocked handoff);
+- disjoint ranges in the same file merge normally.
+
+Measured in the harness with three tasks that all edit `src/shared.ts` while
+declaring different files:
+
+```text
+check hunk-b   (line 11 vs PR line 2):  check: no merge hazards for "hunk-b"      exit=0
+ship  hunk-c   (line 2  vs PR line 2):  refusing to enable auto-merge              exit=1
+  - [hunk-overlap] PR #209 edits the same lines in src/shared.ts; merge it first
+  handoff: .../repo-hunk-c-harnes/.handoff.local   (status=blocked)
+```
+
 ## Observable status and merge order
 
 ```sh
@@ -188,11 +318,34 @@ npm run wt -- status   # task -> branch -> session -> dirty -> port -> PR -> CI 
 npm run wt -- queue    # open PRs, oldest first, with the next action
 ```
 
-`status` shows `active`, `conflict` (PR is DIRTY), `blocked` (handoff says so),
-`stale` (claim old and worktree dirty), `creating` and `claim-orphaned`
-(worktree gone but the claim remains). A task whose directory/handoff is older
-than an hour is visibly stale, so a stuck agent is identifiable without reading
-session logs.
+`status` reports the **stage the task is stuck in**, how long it has been there,
+and the next command — not just a status flag:
+
+| STAGE            | Meaning                                  | NEXT shown                                     |
+| ---------------- | ---------------------------------------- | ---------------------------------------------- |
+| `working`        | dirty files changed within the last hour | record a handoff                               |
+| `stalled`        | dirty files, no change for over 60 min   | `resume` and finish                            |
+| `not-shipped`    | clean, no PR yet                         | `ship`                                         |
+| `ci-pending`     | checks running                           | wait (auto-merge is enabled)                   |
+| `ci-stuck`       | checks have not settled for over 20 min  | inspect the run, rerun infrastructure failures |
+| `ci-red`         | a required check failed                  | fix in this worktree, commit, push             |
+| `conflict`       | PR is DIRTY                              | rebase only this branch                        |
+| `blocked`        | handoff says blocked                     | the blocking task named in `.handoff.local`    |
+| `ready`          | green, auto-merge will take it           | wait                                           |
+| `claim-orphaned` | worktree gone, claim remains             | `cleanup --apply` or re-create                 |
+| `creating`       | claim exists, worktree not finished      | re-run `create`                                |
+
+Thresholds come from real timestamps (PR `updatedAt`, check `startedAt`, newest
+file mtime, handoff `updatedAt`), so an agent that died is visible from another
+terminal. A leading `!` means act now.
+
+Measured with two PRs whose checks were held pending for 31 minutes:
+
+```text
+TASK    BRANCH                 PR    CI         STAGE      STUCK     NEXT
+hunk-a  wt/feat-hunk-a-harnes  #209  pending:1  !ci-stuck  31m       CI has not settled for 20+ min: inspect the run, rerun infrastructure failures
+hunk-c  wt/feat-hunk-c-harnes  #211  pending:1  !blocked   just now  PR #209 edits the same lines in src/shared.ts; merge it first
+```
 
 This repository's branch protection (`strict=false`, required `validate`,
 `smoke`, `analyze`, linear history) means a PR does **not** need to be up to
@@ -239,22 +392,48 @@ Measured in the harness: 4 concurrent creates → 1 accepted / 3 refused;
 `cleanup` concurrent with `create` → both exit 0 and no lock left; two concurrent
 `ship` of one task → both exit 0, one merge, no residue.
 
+A killed holder does not leave a permanent lock: the metadata records the pid,
+and a waiter clears the directory immediately when that pid is gone.
+
+```text
+$ mkdir .git/insight-wt.lock; echo '{"pid":999999,...}' > .git/insight-wt.lock/meta.json
+$ npm run wt -- create killtask ...
+worktree: clearing abandoned lock from sim-dead-session (pid 999999)
+Worktree ready ...
+```
+
 ## Cross-repository use (PriorSeal)
 
-The script only depends on `git`, `gh` and a `wt/*` branch naming convention. To
-use it in `PriorSeal`:
+The script only depends on `git`, `gh` and a `wt/*` branch naming convention.
+No copy or package.json change is required: run it from the target repository's
+root with the absolute script path (or add `"wt": "node <path>/scripts/worktree.mjs"`
+if the repository adopts it permanently).
 
-1. copy `scripts/worktree.mjs` and add `wt`/`wt:dev`/`wt:e2e`/`wt:cleanup`
-   scripts to `package.json`;
-2. set `INSIGHT_WORKTREE_ROOT` if the repo name/path differs (the default
-   `~/Documents/insight-worktrees/<repo>-<slug>` still works);
-3. adapt `NESTED_INSTALLS` / `ENV_FILES` to that repo's layout (the current list
-   is Insight-specific);
-4. run `node scripts/worktree.mjs status` once to confirm `gh repo view` and
-   branch protection are readable; `requiresUpToDate` auto-detects `strict`;
-5. if PriorSeal uses a different default branch, pass `--base origin/<branch>`
-   and change the `origin/main` strings in `cleanup`/`resume` (the only
-   remaining hard-coded name).
+Verified end to end in `PriorSeal` on 2026-11-06: `create` → edit `AGENTS.md` →
+`status` → `ship` produced [PR #170](https://github.com/imokokok/PriorSeal/pull/170),
+waited for the required `release-check`, auto-merged and removed the worktree
+(merge commit `42e6b1951ac8f927a73eea7c5d1d4197115bdec1`). Fixes made for that
+repository:
+
+- `installHooks` activates `.githooks` (PriorSeal keeps hooks there) and does
+  not require husky.
+- `nestedNodeModules` discovers `examples/*/node_modules`; `migrations/*` and
+  any nested manifest are already covered by the category rules.
+- PriorSeal's `.gitignore` uses `node_modules/`, which does not match a symlink,
+  so worktrees looked permanently dirty and `git add -A` would have staged the
+  links. `create` now appends local-only entries to `info/exclude`
+  (`node_modules`, `.worktree.local`, `.handoff.local`, `.next/`, build caches).
+  This touches no tracked file.
+- All printed `NEXT`/`Work` commands switch to `node <script>` when the
+  repository has no `npm run wt` script, so an agent is never handed a command
+  that does not exist.
+- `requiresUpToDate` reads branch protection from `gh`; PriorSeal's `strict`
+  requirement makes `ship` wait for the branch to be current instead of
+  assuming a stale PR can auto-merge.
+
+Remaining hard-coded assumption: the default branch is `main`. For a different
+default branch pass `--base origin/<branch>`; `cleanup`/`resume` still name
+`origin/main`.
 
 ## Failure rules
 
@@ -338,6 +517,32 @@ in ~60 s (two consecutive runs, same results):
 | Kill → `resume` in another session → `ship`    | merged, cleaned up                                                |
 | Hand-named merged branch + `cleanup --apply`   | survives, listed as report-only                                   |
 | Final residue                                  | 0 worktrees, 0 `wt/*` branches, 0 claims, 0 lock, 0 stash entries |
+
+## Measured effect (hardening harness, 2026-11-06)
+
+A second local harness (bare remote + deterministic `gh` stub, nested `examples/demo`
+workspace, `left-pad` installed from the npm cache) ran 52 assertions. All 52
+passed; each scenario below is an assertion, not an estimate:
+
+| Scenario                                                  | Result                                                                  |
+| --------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Second migration claim (different file)                   | refused in `create`, 0 worktrees and 0 branches created                 |
+| Second `.github/cron-dist` claim (different file)         | refused by category, same as migrations                                 |
+| `--paths package.json` without `--install`                | refused, message names `deps --isolate`                                 |
+| `ship` with a changed manifest + shared link              | exit 1 before commit, remedy printed                                    |
+| `deps --isolate` then `ship`                              | commit + merge; sibling worktree still links the untouched primary tree |
+| Nested `examples/demo/package.json` change                | blocked on `examples/demo -> shared`; nested isolate then merges        |
+| Same file, disjoint hunks (lines 2 vs 20)                 | `check` clean, both PRs merge                                           |
+| Same file, overlapping hunk (line 2 twice)                | `check`/`ship` exit 1 with `hunk-overlap` and `.handoff.local` blocked  |
+| Killed agent with a pending PR                            | `status` shows `!ci-stuck` at `31m` and the next action                 |
+| Blocked PR with a handoff                                 | `status` shows `!blocked` and the PR number                             |
+| 6 agents create concurrently                              | 6/6 succeed, 6 distinct dev/e2e ports                                   |
+| 6 agents ship concurrently (incl. migration + dependency) | 6/6 merged; 0 worktrees, 0 `wt/*` branches, 0 claims, 0 lock left       |
+| Primary dependency tree after the 6-agent run             | still a real directory, never replaced by a link or mutated             |
+| Dev port already bound in another worktree                | `services` reports it, `wt dev` refuses instead of sharing the port     |
+
+The earlier 22-assertion suite still passes; the 52-assertion suite is the
+regression gate for the unique-artifact, dependency, hunk and observability rules.
 
 ## Rules every session must follow
 

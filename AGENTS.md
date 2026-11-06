@@ -11,6 +11,7 @@ npm run wt -- create <slug> --type <feat|fix|chore|docs|test|perf|ops|refactor> 
 npm run wt -- status                                  # task -> branch -> worktree -> PR -> CI
 npm run wt -- queue                                   # open PRs in merge order
 npm run wt -- ship <slug> --message "feat: subject"   # commit + PR + auto-merge + cleanup
+npm run wt -- deps <slug> --isolate                    # real node_modules before a dependency change
 npm run wt -- handoff <slug> --next "..."             # context for any session
 npm run wt -- resume <slug>                           # take over a killed/paused task
 npm run wt -- cleanup                                 # merged agent branches only
@@ -28,7 +29,17 @@ npm run wt -- cleanup                                 # merged agent branches on
 - Never run `git gc` or `git repack -a`; worktrees share the object database and
   a concurrent repack slows every session.
 - Worktree dependencies are symlinked from the primary checkout. Do not run
-  `npm install` in the primary checkout for worktree work.
+  `npm install` in the primary checkout for worktree work. A task that changes
+  any `package.json`/`package-lock.json` (including nested workspaces) must run
+  `npm run wt -- deps <slug> --isolate` first; `ship` refuses to commit while
+  that directory's `node_modules` is still the shared link.
+- Dependency manifests, `.github/cron-dist/*` and `supabase/migrations/*` /
+  `migrations/*` are serial by category: a second claim is refused, and `ship`
+  will not enable auto-merge while another active claim or open PR touches one.
+  There is no override for these.
+- Same file in different regions may proceed in parallel; `check` and `ship`
+  compare `git diff -U0` hunks against open PRs and block only overlapping
+  ranges (`hunk-overlap`). Do not add file-level exclusivity for ordinary files.
 - Use `npm run wt:dev` and `npm run wt:e2e` so each worktree binds its own
   allocated port; never rely on the default `3000`.
 - Build caches (`.next`, `*.tsbuildinfo`, `.eslintcache`) are isolated because
