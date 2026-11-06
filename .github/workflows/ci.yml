@@ -113,12 +113,30 @@ jobs:
         run: npm run rwa:parity
       - name: Enforce main-only protocol isolation
         run: npm run protocol:check
+      # ESLint's cache is content-addressed per file, so a cache published by
+      # main lets a pull request re-lint only the files it actually touched.
+      # The key pins the config and lockfile, so a rule or dependency change can
+      # never be answered from a stale cache.
+      - name: Restore ESLint cache
+        id: eslint-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .eslintcache
+          key: eslint-${{ runner.os }}-${{ hashFiles('eslint.config.mjs', 'package-lock.json', 'tsconfig.json') }}
       - name: Run remaining static validation checks
         # Bounded parallelism: the default (cores - 2) is too conservative on
         # the 4-core CI runner for these mostly-single-threaded checks.
         env:
           CHECKS_PARALLEL_LIMIT: 4
         run: npm run validate:ci:static
+      # Publish only from main so pull-request refs stop accumulating
+      # unreachable copies of the same cache.
+      - name: Save ESLint cache
+        if: github.ref == 'refs/heads/main' && steps.eslint-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .eslintcache
+          key: eslint-${{ runner.os }}-${{ hashFiles('eslint.config.mjs', 'package-lock.json', 'tsconfig.json') }}
 
   validate-tests:
     name: Unit coverage tests
@@ -150,9 +168,12 @@ jobs:
           path: .jest-cache
           key: jest-${{ runner.os }}-${{ hashFiles('package-lock.json', 'jest.config.js', 'jest.setup.ts') }}
       - name: Run coverage tests
-        run: npm run test:coverage -- --maxWorkers=75%
+        # 75% left one of the runner's four cores idle while this job was the
+        # longest pole; 100% uses the whole box and still restarts idle workers
+        # through workerIdleMemoryLimit.
+        run: npm run test:coverage -- --maxWorkers=100%
       - name: Save Jest transform cache
-        if: steps.jest-cache.outputs.cache-hit != 'true'
+        if: github.ref == 'refs/heads/main' && steps.jest-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .jest-cache
@@ -255,7 +276,7 @@ jobs:
       - if: needs.runtime-impact.outputs.runtime == 'true'
         run: npm run build
       - name: Cache Next.js build state
-        if: needs.runtime-impact.outputs.runtime == 'true' && steps.next-cache.outputs.cache-hit != 'true'
+        if: github.ref == 'refs/heads/main' && needs.runtime-impact.outputs.runtime == 'true' && steps.next-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .next/cache
@@ -288,7 +309,7 @@ jobs:
         if: needs.runtime-impact.outputs.runtime == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
         run: npx playwright install chromium
       - name: Cache Playwright Chromium
-        if: needs.runtime-impact.outputs.runtime == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
+        if: github.ref == 'refs/heads/main' && needs.runtime-impact.outputs.runtime == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/ms-playwright
