@@ -1,6 +1,5 @@
-import { BASE_USDC_ADDRESS } from '@/lib/constants/tokenAddresses';
-
 import { ALCHEMY_RPC } from '@/lib/config/serverEnv';
+import { BASE_USDC_ADDRESS } from '@/lib/constants/tokenAddresses';
 
 import { resolveFeed, resolveFeedAddress } from '../utils/dynamicFeedResolver';
 
