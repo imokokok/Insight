@@ -80,6 +80,10 @@ Guards:
   queues behind the running release instead of cancelling it, so cancellation can
   never skip the rollback step.
 - A failed build or deploy step does not roll back: production never switched.
+- If the commit was already READY and Vercel reused its deployment, `previous`
+  resolves to the release before that one. Automatic rollback then removes the
+  live release, which is correct for a bad build; after a drill or a re-deploy of
+  an already-live commit, restore forward explicitly (see Drill 2 in section 8).
 
 Manual fallback:
 
@@ -260,6 +264,54 @@ Write a blameless record within one working day. Keep it short and factual.
 ```
 
 ## 8. Drill record
+
+### Drill 2 — automated rollback inside the release workflow (2026-11-06T12:31Z)
+
+This drill exercised the automatic path, not the manual controller. Dispatching
+`deploy-production.yml` with `rollback_drill=ROLLBACK-DRILL` makes the live
+smoke step report an application-class failure, so the classification guard and
+the rollback steps run exactly as they would after a genuinely bad release.
+
+- Run: `42218308728` (`workflow_dispatch`, ref `main`, head
+  `48b5beb157940a1885f3430e6c44e17da2cc9ff9`).
+- Command: `gh workflow run deploy-production.yml --ref main -f rollback_drill=ROLLBACK-DRILL`.
+- Pre-drill production: `dpl_7LXBiSPy64FnWTC1P3jo15gi54St` (commit `48b5beb`).
+- The deploy step found this commit already READY and reused its deployment
+  (`dpl_7LXBiSPy… reused; queue=0.02m build=1.28m total=1.30m`), so the drill
+  added no build to the release line.
+
+| Step                                 | Measured                  |
+| ------------------------------------ | ------------------------- |
+| Drill dispatched (UTC)               | 2026-11-06T12:31:22Z      |
+| Deploy job started                   | 12:31:40Z                 |
+| Injected application failure         | 12:31:51.335Z             |
+| Guard passed, rollback requested     | 12:31:51.339Z             |
+| Production alias on previous release | 12:31:56.076Z (**4.7s**)  |
+| Restored release verified (smoke)    | 12:32:08.499Z (**17.2s**) |
+
+The run ends as `failure` by design: the injected smoke failure is what fails,
+while `Roll back after an application failure` and `Verify the release that was
+restored` both pass. Production moved from `dpl_7LXBiSPy…` to
+`dpl_C9w1G6rxaDRGp8mT6rem7d8J2qxJ` (commit `4b230b1`) and the restored release
+passed the full payment smoke.
+
+**Boundary this drill exposed.** Because the dispatched commit was already
+READY, Vercel reused its deployment and `previous` resolved to the release
+_before_ that one (`4b230b1`). Automatic rollback therefore restored the release
+before the drilled commit rather than the drilled commit itself. That is the
+correct behaviour for the case it guards — the failing build is what must leave
+production — but a drill, or any re-deploy of a commit that is already live,
+needs an explicit forward restore afterwards:
+
+```bash
+npm run release:rollback -- --to dpl_7LXBiSPy64FnWTC1P3jo15gi54St --yes
+# action: promote; API accepted 0.8s, production switched 2.3s, verified 6.2s
+```
+
+Post-drill state: production `dpl_7LXBiSPy64FnWTC1P3jo15gi54St` (`48b5beb`),
+live verification passed.
+
+### Drill 1 — manual controller (2026-11-06T10:27Z)
 
 First live drill of this controller. It used the two most recent existing
 production deployments; no temporary deployment was created, so the drill did
