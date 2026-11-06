@@ -4,10 +4,14 @@
  * shared by the resource-server route configs and the discovery manifest so
  * a plan-price change propagates to both surfaces by construction.
  */
-import { POSITION_LIFECYCLE_PLAN } from '@/lib/billing/positionLifecycle';
 import { ORACLE_WATCH_WINDOW_PLAN } from '@/lib/billing/oracleWatchWindow';
+import { POSITION_LIFECYCLE_PLAN } from '@/lib/billing/positionLifecycle';
 
-import { usdToAtomicUnits, X402_ORACLE_WATCH_WINDOW_ROUTE, X402_POSITION_LIFECYCLE_ROUTE } from './config';
+import {
+  usdToAtomicUnits,
+  X402_ORACLE_WATCH_WINDOW_ROUTE,
+  X402_POSITION_LIFECYCLE_ROUTE,
+} from './config';
 
 /**
  * The atomic-USDC amount override for a paid REST route, or null when the

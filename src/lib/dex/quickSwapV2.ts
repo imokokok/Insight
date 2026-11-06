@@ -8,7 +8,6 @@ import {
 } from 'viem';
 
 import { BASE_USDC_ADDRESS } from '@/lib/constants/tokenAddresses';
-
 import { CHAINLINK_RPC_CONFIG } from '@/lib/oracles/services/chainlinkDataSources/rpcConfig';
 
 import { UniswapV3MarketRpcClient, type UniswapV3Hex } from './uniswapV3Market';

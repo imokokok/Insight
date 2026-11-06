@@ -1,5 +1,3 @@
-import { BASE_USDC_ADDRESS } from '@/lib/constants/tokenAddresses';
-
 import { ExactEvmScheme } from '@x402/evm/exact/client';
 import {
   wrapFetchWithPayment,
@@ -8,6 +6,8 @@ import {
   type PaymentRequirements,
 } from '@x402/fetch';
 import { privateKeyToAccount } from 'viem/accounts';
+
+import { BASE_USDC_ADDRESS } from '@/lib/constants/tokenAddresses';
 
 /** Headless's published Option A terms (/.well-known/x402.json, 2026-09-08). */
 export const HEADLESS_X402_NETWORK = 'eip155:8453' as const;

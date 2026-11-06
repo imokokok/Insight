@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 import { BASE_USDC_ADDRESS, SOLANA_USDC_MINT } from '@/lib/constants/tokenAddresses';
 
 import {
@@ -5,13 +7,10 @@ import {
   isDaydreamsFacilitatorUrl,
   PAYAI_SOLANA_FACILITATOR_URL,
 } from './facilitators';
-
-export { isCdpFacilitatorUrl, isDaydreamsFacilitatorUrl } from './facilitators';
-
-import { z } from 'zod';
-
 import { parseHypercoreX402Config, type HypercoreX402Config } from './hypercore';
 import { isSolanaPublicKey } from './solanaEncoding';
+
+export { isCdpFacilitatorUrl, isDaydreamsFacilitatorUrl } from './facilitators';
 
 /**
  * x402 keyless paid-tier configuration for the pre-trade safety check.

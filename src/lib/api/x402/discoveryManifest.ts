@@ -1,12 +1,10 @@
-import { X402_MULTICHAIN_EVM_LENDING_GUARD_ROUTE } from './config';
-import { paidRestRouteAmountOverride } from './paidRouteAmounts';
-
 import {
   X402_PAYMENT_SCOPE,
   X402_REST_PAYMENT_SCOPE_BY_PATH,
   x402ConfigForPaymentScope,
   type X402PaymentScope,
 } from './capabilityPayment';
+import { X402_MULTICHAIN_EVM_LENDING_GUARD_ROUTE } from './config';
 import {
   getX402PaymentOptions,
   tokenDecimalsForNetwork,
@@ -16,6 +14,7 @@ import {
   X402_MCP_ROUTE,
 } from './config';
 import template from './discoveryManifest.template.json';
+import { paidRestRouteAmountOverride } from './paidRouteAmounts';
 
 type TemplateAcceptance = { amount: string };
 type TemplateResource = {

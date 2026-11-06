@@ -1,5 +1,4 @@
 import { SOLANA_USDC_MINT } from '@/lib/constants/tokenAddresses';
-
 import { getRpcEndpoints } from '@/lib/execution/rpcEndpoints';
 import {
   SOLANA_MAINNET_CAIP2,

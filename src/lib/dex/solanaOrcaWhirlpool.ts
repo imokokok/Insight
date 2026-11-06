@@ -17,11 +17,11 @@
  * outside the reviewed profile.
  */
 
+import { SOLANA_USDC_MINT } from '@/lib/constants/tokenAddresses';
+
 export const ORCA_WHIRLPOOL_PROGRAM_ID = 'whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc' as const;
 /** Canonical SPL Token program; Token-2022 variants are outside the profile. */
 export const SPL_TOKEN_PROGRAM_ID = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA' as const;
-
-import { SOLANA_USDC_MINT } from '@/lib/constants/tokenAddresses';
 
 export { SOLANA_USDC_MINT };
 export const SOLANA_USDT_MINT = 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB' as const;

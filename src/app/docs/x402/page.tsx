@@ -1,11 +1,10 @@
 import Link from 'next/link';
 
-import { BASE_USDC_ADDRESS } from '@/lib/constants/tokenAddresses';
-
 import { ArrowRight, BookOpen, KeyRound, Radio, ShieldCheck, Coins } from 'lucide-react';
 
 import { EditorialWorkspaceHeader, EvidenceProcessRail } from '@/components/editorial';
 import { CodeBlock } from '@/components/shared/CodeBlock';
+import { BASE_USDC_ADDRESS } from '@/lib/constants/tokenAddresses';
 
 import type { Metadata } from 'next';
 

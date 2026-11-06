@@ -7,10 +7,9 @@ import { ExactEvmScheme } from '@x402/evm/exact/server';
 import { bazaarResourceServerExtension, declareDiscoveryExtension } from '@x402/extensions/bazaar';
 import { ExactSvmScheme } from '@x402/svm/exact/server';
 
-import { isCdpFacilitatorUrl, isPayAiSolanaFacilitatorUrl } from './facilitators';
-import { paidRestRouteAmountOverride } from './paidRouteAmounts';
 import { BaseAgentSwapGuardInputSchema } from '@/lib/dex/baseAgentSwapGuard';
 
+import { assertX402RestScopeCoverage } from './capabilityPayment';
 import {
   assertPaidRestRouteCoverage,
   facilitatorBearerTokenForNetwork,
@@ -37,8 +36,9 @@ import {
   X402_SWAP_INTENT_ROUTE,
   getX402PaymentOptions,
 } from './config';
-import { assertX402RestScopeCoverage } from './capabilityPayment';
 import { createResilientFacilitator } from './facilitatorResilience';
+import { isCdpFacilitatorUrl, isPayAiSolanaFacilitatorUrl } from './facilitators';
+import { paidRestRouteAmountOverride } from './paidRouteAmounts';
 import { isSolanaPublicKey } from './solanaEncoding';
 
 /**

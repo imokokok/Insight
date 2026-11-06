@@ -1,6 +1,5 @@
-import { CHAIN_ID } from '@/lib/constants/tokenAddresses';
-
 import { isEntitlementCoveredMcpTool } from '@/lib/billing/productPricing';
+import { CHAIN_ID } from '@/lib/constants/tokenAddresses';
 
 import {
   facilitatorBearerTokenForNetwork,

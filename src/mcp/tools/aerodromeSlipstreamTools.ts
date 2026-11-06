@@ -1,9 +1,13 @@
+import {
+  BASE_USDC_ADDRESS,
+  caip19Erc20,
+  CHAIN_ID,
+  TOKEN_ADDRESS,
+} from '@/lib/constants/tokenAddresses';
 import type {
   PrepareAerodromeSlipstreamExactInputRequest,
   PreparedAerodromeSlipstreamExactInput,
 } from '@/lib/dex/aerodromeSlipstreamSwap';
-import { BASE_USDC_ADDRESS, caip19Erc20, CHAIN_ID, TOKEN_ADDRESS } from '@/lib/constants/tokenAddresses';
-
 import { executionAdapterRegistry } from '@/lib/execution/adapters';
 
 import { formatAsText } from './formatters';
