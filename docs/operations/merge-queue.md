@@ -35,6 +35,12 @@ Runs are serialized by the workflow's `concurrency` group and each invocation
 updates at most one pull request, so the train cannot update several branches
 onto the same base and recreate the stale-merge problem.
 
+A branch update made with `GITHUB_TOKEN` is attributed to `github-actions[bot]`,
+so GitHub parks the resulting `pull_request` runs in `action_required` until a
+maintainer approves them, and auto-merge cannot start. The train therefore
+approves the runs it just created (it has `actions: write`). It only approves
+runs on the head SHA it created for a trusted, same-repository pull request.
+
 ## Limits compared with the native queue
 
 - No batching of several pull requests into one build.
@@ -66,3 +72,12 @@ merge.
    `min_entries_to_merge: 1`, `min_entries_to_merge_wait_minutes: 0`).
 3. Delete `.github/workflows/merge-train.yml`; the `merge_group` triggers in
    `ci.yml` and `codeql.yml` become active automatically.
+
+## Drill record
+
+On 2026-11-06 the first stale auto-merge pull request was updated by the train
+21 seconds after auto-merge was enabled. The new head took about 2m30s of
+required checks. The drill exposed the `action_required` approval gap described
+above; the follow-up change now approves those runs automatically. Steady-state
+overhead for a stale pull request is therefore one full PR check run (~3
+minutes) instead of an untested merge.
