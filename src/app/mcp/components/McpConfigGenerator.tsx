@@ -38,8 +38,9 @@ export function McpConfigGenerator({ defaultApiKey, onApiKeyChange }: McpConfigG
   }, [baseUrl, apiKey]);
 
   // `mcp-remote` is published and needs no local checkout. Once the branded
-  // @oracleinsight/mcp launcher is published, replacing these two args arrays
-  // with ['-y', '@oracleinsight/mcp'] is the only change required here.
+  // oracle-insight-mcp launcher is published, replacing these two args arrays
+  // with ['-y', '--package=oracle-insight-mcp', 'insight-mcp'] is the only
+  // change required here.
   const claudeDesktopConfig = useMemo(() => {
     const args = [
       '-y',

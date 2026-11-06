@@ -1,4 +1,4 @@
-# @oracleinsight/mcp
+# oracle-insight-mcp
 
 One-command MCP launcher for [Insight](https://www.oracleinsight.xyz). It lets a
 stdio-only MCP host (Claude Desktop, Cursor, Windsurf, ElizaOS, Docker MCP
@@ -17,7 +17,7 @@ line long. It contains no Insight source, no credentials, and no payment logic.
   "mcpServers": {
     "insight": {
       "command": "npx",
-      "args": ["-y", "--package=@oracleinsight/mcp", "insight-mcp"]
+      "args": ["-y", "--package=oracle-insight-mcp", "insight-mcp"]
     }
   }
 }
@@ -26,7 +26,7 @@ line long. It contains no Insight source, no credentials, and no payment logic.
 Or run it directly:
 
 ```bash
-npx -y --package=@oracleinsight/mcp insight-mcp
+npx -y --package=oracle-insight-mcp insight-mcp
 ```
 
 `initialize`, `tools/list`, and `ping` are free. `tools/call` is paid per call
@@ -47,7 +47,7 @@ host config's `env` block:
   "mcpServers": {
     "insight": {
       "command": "npx",
-      "args": ["-y", "--package=@oracleinsight/mcp", "insight-mcp"],
+      "args": ["-y", "--package=oracle-insight-mcp", "insight-mcp"],
       "env": { "INSIGHT_API_KEY": "ins_..." }
     }
   }
@@ -94,13 +94,31 @@ node --test test/*.test.mjs
 npm pack --dry-run
 ```
 
-Publishing requires the maintainer's npm account and is intentionally not
-automated in this repository:
+Publishing requires the maintainer's npm account. The name is deliberately
+unscoped: the npm organization `@oracleinsight` does not exist, and npm requires
+an organization to be created before any package can be published under that
+scope. `oracle-insight-mcp` matches the existing `oracle-insight-guard` and
+`verify-insight-receipt` packages owned by the same account.
+
+The account enforces two-factor authentication on publish. A granular access
+token with `bypass_2fa: false` therefore cannot publish directly (`EOTP`), and
+npm is [removing direct publish from bypass-2FA
+tokens](https://github.blog/changelog/2026-07-31-restricting-npm-bypass-2fa-granular-access-tokens/)
+in January 2027. Use one of the two supported paths:
 
 ```bash
-npm publish --access public
+# Path A: direct publish with a current authenticator code
+npm publish --access public --otp=<6-digit-code>
+
+# Path B: stage without 2FA, then approve on npmjs.com (Staged Packages tab)
+npx --yes npm@11 stage publish
 ```
+
+The repository's `sdk-release.yml` already publishes the SDK and verifier via
+npm Trusted Publishing (OIDC, no long-lived token). Once this package exists on
+npm and a trusted publisher is configured for it, releases should move to the
+same mechanism rather than relying on tokens.
 
 After publishing, the generated MCP configs in
 `src/app/mcp/components/McpConfigGenerator.tsx` can switch from the explicit
-`mcp-remote` command to `['-y', '--package=@oracleinsight/mcp', 'insight-mcp']`.
+`mcp-remote` command to `['-y', '--package=oracle-insight-mcp', 'insight-mcp']`.
