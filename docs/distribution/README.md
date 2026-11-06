@@ -12,7 +12,7 @@ complete.
 
 | Surface                        | Package                                                     | Status (2026-11-06)                                                                                                                                                                                                                                              | Required remaining authority                                   |
 | ------------------------------ | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| Official MCP Registry          | `io.github.imokokok/insight-oracle`                         | already published (`server.json`); no release needed for these changes                                                                                                                                                                                           | release only when product changes require it                   |
+| Official MCP Registry          | `io.github.imokokok/insight-oracle`                         | v0.3.0 already published. Repo `server.json` is now v0.3.1 with a schema-valid npm `packages[]` entry pinned to `oracle-insight-mcp@0.1.1`; **not yet republished to the registry**                                                                              | account holder: authenticated `mcp-publisher publish`          |
 | GitHub Agent Skill directories | `insight-pre-trade-safety`                                  | [SendAI Skills PR #113](https://github.com/sendaifun/skills/pull/113) **open**, opened 2026-10-30, no maintainer response yet                                                                                                                                    | maintainer review                                              |
 | Solana Agent directories       | same Skill / Oracle category                                | [Awesome Solana AI PR #275](https://github.com/solana-foundation/awesome-solana-ai/pull/275) **open**, Greptile 5/5 low-impact review, not merged; [Awesome Solana MCP Servers PR #56](https://github.com/sendaifun/awesome-solana-mcp-servers/pull/56) **open** | maintainer review (both)                                       |
 | npm MCP launcher               | `oracle-insight-mcp` (`mcp-launcher/`)                      | `0.1.1` **published and verified through a `.bin` symlink**; `0.1.0` is a broken no-op and must not be pinned. Generated MCP configs, `llms.txt`, `skill.md` and the 402 install hint use the branded launcher                                                   | none; later releases via `agent-packages-release.yml` (OIDC)   |
@@ -26,11 +26,12 @@ complete.
 1. **Three open directory PRs.** All three are maintainer-gated and need no
    code change. Respond to review comments if any arrive; do not open duplicate
    PRs while these are open. PR #275 already has a clean automated review.
-2. **Registry follow-ups after 0.1.1.** The official MCP Registry entry
-   (`server.json`) still advertises only the remote URL; adding an npm
-   `packages[]` entry and republishing it needs the registry's authenticated
-   publish flow. The ElizaOS plugin also still needs its own plugin-directory
-   listing. Both are account-gated and prepared in the runbook.
+2. **Registry follow-ups after 0.1.1.** The repo `server.json` now carries the
+   npm `packages[]` entry (v0.3.1, exact package version `0.1.1`); the public
+   registry entry is still v0.3.0 with only the remote URL, so the remaining
+   step is the account holder's authenticated `mcp-publisher publish`. The
+   ElizaOS plugin likewise still needs its own plugin-directory listing. Both
+   are account-gated and prepared in the runbook.
 3. **Account-gated directory forms.** The runbook lists each form and the
    exact material to paste. An agent must not accept terms, create tokens, or
    sign a wallet message on the account holder's behalf.
