@@ -114,10 +114,15 @@ npm publish --access public --otp=<6-digit-code>
 npx --yes npm@11 stage publish
 ```
 
-The repository's `sdk-release.yml` already publishes the SDK and verifier via
-npm Trusted Publishing (OIDC, no long-lived token). Once this package exists on
-npm and a trusted publisher is configured for it, releases should move to the
-same mechanism rather than relying on tokens.
+After the first release, use `.github/workflows/agent-packages-release.yml`: it
+publishes this package and the ElizaOS plugin from GitHub Actions over npm
+Trusted Publishing (OIDC, no long-lived token) with provenance. It mirrors
+`sdk-release.yml`, which already publishes the SDK and verifier that way.
+Trigger it with an `agent-packages-v*` tag after bumping the package versions.
+For each package, an npm maintainer must first add a Trusted Publisher on
+npmjs.com with repository `imokokok/Insight`, workflow filename
+`agent-packages-release.yml`, and direct `npm publish` allowed. See the
+distribution runbook for the exact sequence.
 
 After publishing, the generated MCP configs in
 `src/app/mcp/components/McpConfigGenerator.tsx` can switch from the explicit

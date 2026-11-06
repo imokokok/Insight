@@ -70,6 +70,49 @@ Paste the shared facts above, then verify the listing by fetching its public
 page and by checking `acquisition_source` in the weekly audit. A listing is not
 "live" until both checks pass.
 
+## npm 2FA gate and staged releases
+
+The npm account (`pengyutao`) enforces two-factor authentication. The publish
+token has `bypass_2fa: false`, so direct `npm publish` and `npm stage approve`
+both return `EOTP`; the account's only `bypass_2fa: true` token expired on
+2026-09-10. [npm is also removing direct publish from bypass-2FA granular
+tokens](https://github.blog/changelog/2026-07-31-restricting-npm-bypass-2fa-granular-access-tokens/)
+in January 2027. An agent cannot satisfy a proof-of-presence 2FA challenge.
+
+`oracle-insight-mcp@0.1.0` and `elizaos-plugin-oracle-insight@0.1.0` have been
+submitted with `npx npm@11 stage publish`, which needs no 2FA. Until a
+maintainer approves them, `npm view <name>` returns only the public placeholder
+version `0.0.0-stage`, which has no usable binary. Do not point any user-facing
+config at the package before `npm view <name>@0.1.0 version` succeeds.
+
+To finish, either approve both entries on npmjs.com (Staged Packages tab, 2FA
+prompted), or give the agent a current authenticator code for:
+
+```bash
+npx --yes npm@11 stage approve <stage-id> --otp=<6-digit-code>
+```
+
+A staged version occupies the same semver index as a published one, so do not
+attempt a separate `npm publish` of the same version while the entry is pending.
+
+### Tokenless releases after 0.1.0
+
+`.github/workflows/agent-packages-release.yml` publishes both packages from
+GitHub Actions over npm Trusted Publishing (OIDC) with provenance, mirroring
+`sdk-release.yml`. One-time maintainer setup on npmjs.com per package:
+
+1. Open the package settings and add a Trusted Publisher for GitHub Actions.
+2. Set organization/user `imokokok`, repository `Insight`, workflow filename
+   `agent-packages-release.yml` (filename only, case-sensitive).
+3. Allow direct `npm publish`. New configurations default to `npm stage
+publish` only, which will not run this workflow.
+4. Complete the first successful publish within two days or the configuration
+   expires and must be recreated.
+
+Then bump both `package.json` versions and push an `agent-packages-v*` tag.
+The workflow verifies `repository.url`, builds the plugin, runs the launcher
+tests, and skips any version already live on npm.
+
 ## After the two npm packages are published
 
 1. Replace the `mcp-remote` command in
