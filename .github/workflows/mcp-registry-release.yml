@@ -1,0 +1,119 @@
+name: MCP Registry release
+
+on:
+  push:
+    tags: ['mcp-registry-v*']
+  workflow_dispatch:
+
+concurrency:
+  group: mcp-registry-release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Publish server.json with GitHub OIDC
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      # mcp-publisher login github-oidc exchanges the Actions OIDC token for a
+      # registry token scoped to io.github.imokokok/*; no MCP_* secret exists.
+      contents: read
+      id-token: write
+    env:
+      # Pinned deliberately. Verify the Sigstore bundle below before extracting.
+      MCP_PUBLISHER_VERSION: v1.8.1
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 22.23.2
+
+      # `mcp-publisher validate` only checks the schema. The official registry
+      # additionally fetches <npm>/<version> and requires mcpName === name.
+      # Failing here is much cheaper than a rejected publish after login.
+      - name: Verify server.json and the live npm package
+        run: node scripts/verify-mcp-registry-package.mjs --check-npm
+      - name: Run the offline registry guard tests
+        run: node --test scripts/__tests__/verify-mcp-registry-package.test.mjs
+
+      - name: Check whether this server version is already published
+        id: registry
+        run: |
+          set -euo pipefail
+          name="$(node -p "require('./server.json').name")"
+          version="$(node -p "require('./server.json').version")"
+          encoded_name="${name//\//%2F}"
+          url="https://registry.modelcontextprotocol.io/v0/servers/${encoded_name}/versions/${version}"
+          status="$(curl -sS -o /tmp/mcp-server-version.json -w '%{http_code}' "$url")"
+          case "$status" in
+            200)
+              echo "already_published=true" >> "$GITHUB_OUTPUT"
+              echo "$name@$version is already in the MCP Registry; skipping publish"
+              ;;
+            404)
+              echo "already_published=false" >> "$GITHUB_OUTPUT"
+              echo "$name@$version is not published yet"
+              ;;
+            *)
+              echo "Unexpected registry status $status" >&2
+              cat /tmp/mcp-server-version.json >&2
+              exit 1
+              ;;
+          esac
+          echo "MCP_SERVER_NAME=$name" >> "$GITHUB_ENV"
+          echo "MCP_SERVER_VERSION=$version" >> "$GITHUB_ENV"
+          echo "MCP_SERVER_URL=$url" >> "$GITHUB_ENV"
+          echo "MCP_PACKAGE_NAME=$(node -p "require('./mcp-launcher/package.json').name")" >> "$GITHUB_ENV"
+          echo "MCP_PACKAGE_VERSION=$(node -p "require('./mcp-launcher/package.json').version")" >> "$GITHUB_ENV"
+
+      - name: Install cosign
+        if: steps.registry.outputs.already_published == 'false'
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+      - name: Download and verify mcp-publisher
+        if: steps.registry.outputs.already_published == 'false'
+        run: |
+          set -euo pipefail
+          os="$(uname -s | tr '[:upper:]' '[:lower:]')"
+          arch="$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')"
+          archive="mcp-publisher_${os}_${arch}.tar.gz"
+          base_url="https://github.com/modelcontextprotocol/registry/releases/download/${MCP_PUBLISHER_VERSION}"
+
+          curl --fail --location --silent --show-error --output "$archive" "$base_url/$archive"
+          curl --fail --location --silent --show-error --output "$archive.sigstore.json" "$base_url/$archive.sigstore.json"
+          cosign verify-blob \
+            --bundle "$archive.sigstore.json" \
+            --certificate-identity "https://github.com/modelcontextprotocol/registry/.github/workflows/release.yml@refs/tags/${MCP_PUBLISHER_VERSION}" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            "$archive"
+          tar xzf "$archive" mcp-publisher
+          rm -f "$archive" "$archive.sigstore.json"
+
+      - name: Authenticate to the MCP Registry with GitHub OIDC
+        if: steps.registry.outputs.already_published == 'false'
+        run: ./mcp-publisher login github-oidc
+      - name: Publish server.json
+        if: steps.registry.outputs.already_published == 'false'
+        run: ./mcp-publisher publish
+
+      - name: Verify the published version carries the npm package
+        run: |
+          set -euo pipefail
+          status="$(curl -sS -o /tmp/mcp-published.json -w '%{http_code}' "$MCP_SERVER_URL")"
+          if [ "$status" != "200" ]; then
+            echo "Registry returned HTTP $status for $MCP_SERVER_URL" >&2
+            cat /tmp/mcp-published.json >&2
+            exit 1
+          fi
+          node -e '
+            const data = require("/tmp/mcp-published.json");
+            const server = data.server;
+            const pkg = (server.packages || []).find((entry) => entry.registryType === "npm");
+            if (!pkg || pkg.identifier !== process.argv[1] || pkg.version !== process.argv[2]) {
+              console.error("Published entry does not declare the expected npm package", JSON.stringify(server.packages));
+              process.exit(1);
+            }
+            console.log(`verified ${server.name}@${server.version} -> ${pkg.identifier}@${pkg.version}`);
+          ' "$MCP_PACKAGE_NAME" "$MCP_PACKAGE_VERSION"

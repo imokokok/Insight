@@ -94,6 +94,16 @@ node --test test/*.test.mjs
 npm pack --dry-run
 ```
 
+`mcpName` in `package.json` is not npm metadata. The official MCP Registry uses
+it to prove package ownership: when `server.json` declares this package, the
+registry fetches `https://registry.npmjs.org/oracle-insight-mcp/<version>` and
+requires that version's `mcpName` to equal `server.json.name` exactly
+(`io.github.imokokok/insight-oracle`). Removing or renaming the field makes a
+schema-valid `server.json` fail at publish time. `npm run mcp:registry:check` at
+the repository root enforces the parity, and `server.json` always pins the exact
+version carrying the field. `0.1.1` has no `mcpName`; that is why the registry
+entry needs `0.1.2` or newer.
+
 Publishing requires the maintainer's npm account. The name is deliberately
 unscoped: the npm organization `@oracleinsight` does not exist, and npm requires
 an organization to be created before any package can be published under that
