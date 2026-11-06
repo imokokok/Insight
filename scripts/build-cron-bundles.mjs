@@ -13,6 +13,19 @@ import { join, relative } from 'node:path';
 
 import { build } from 'esbuild';
 
+import { assertWorktreeDependencies } from './worktree-deps-guard.mjs';
+
+// A managed worktree must not bundle with node_modules borrowed from another
+// branch: the output differs and the committed-bundle comparison reports a
+// false "stale" result. Fail with the remedy before esbuild even loads a
+// platform binary that may be missing.
+try {
+  assertWorktreeDependencies();
+} catch (error) {
+  console.error(error.message);
+  process.exit(1);
+}
+
 const committedOutdir = '.github/cron-dist';
 const check = process.argv.includes('--check');
 const outdir = check ? await mkdtemp(join(tmpdir(), 'insight-cron-bundles-')) : committedOutdir;
