@@ -1906,21 +1906,35 @@ function sharedNodeModulesDirs(worktreePath) {
   return dirs;
 }
 
-function directorySizeKb(worktreePath) {
-  try {
-    return Math.round(
-      Number(
-        execFileSync('du', ['-sk', canonicalPath(worktreePath)], { encoding: 'utf8' })
-          .split('\t')[0]
-          .trim()
-      )
-    );
-  } catch {
-    return '?';
-  }
+function directorySizeKb(targetPath) {
+  let bytes = 0;
+  const walk = (current) => {
+    let stat;
+    try {
+      stat = lstatSync(current);
+    } catch {
+      return;
+    }
+    // Do not follow the shared node_modules symlink: an isolated tree must
+    // report its own size, not the primary checkout's.
+    if (stat.isSymbolicLink()) return;
+    if (stat.isDirectory()) {
+      let entries = [];
+      try {
+        entries = readdirSync(current);
+      } catch {
+        return;
+      }
+      for (const entry of entries) walk(join(current, entry));
+      return;
+    }
+    bytes += stat.size;
+  };
+  walk(targetPath);
+  return Math.round(bytes / 1024);
 }
 
-// directorySizeKb returns KB (du -sk); format it so the printed unit matches.
+// directorySizeKb returns KB; format it so the printed unit matches.
 function formatSize(kb) {
   if (!Number.isFinite(kb)) return '?';
   if (kb >= 1024 * 1024) return `${(kb / 1024 / 1024).toFixed(1)} GB`;

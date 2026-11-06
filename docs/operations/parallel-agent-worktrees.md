@@ -257,6 +257,15 @@ Rules:
    `node_modules` is still the shared symlink (or missing). It prints the exact
    path and remedy and creates no commit.
 
+Shared dependencies also affect local hooks: `build:cron:check` and typecheck
+run against `node_modules`. If the primary checkout sits on an older branch, a
+worktree based on newer `main` can fail the pre-commit hook with "committed cron
+bundles are stale" even though the task touched no cron file. That failure is
+indistinguishable from a real one by reading the hook output; run
+`deps <slug> --isolate` before triage. Measured on this task: after rebasing
+onto `main`, the hook failed with two changed and two obsolete chunks; the same
+commit passed once dependencies were isolated.
+
 ```sh
 npm run wt -- deps <slug>             # mode, changed manifests, disk source
 npm run wt -- deps <slug> --isolate   # symlink -> real node_modules + npm install
