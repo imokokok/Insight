@@ -344,37 +344,61 @@ type ReadinessPayload = {
   error?: { details?: { runtime?: { node?: unknown } } };
 };
 
+// Individual deployment URLs are behind Vercel Authentication, so an
+// unauthenticated request there is redirected to an SSO HTML page instead of
+// the JSON readiness payload. The public production domain is the only
+// unauthenticated way to read the Node.js version the release actually runs on.
+const PRODUCTION_BASE_URL = 'https://www.oracleinsight.xyz';
+
 async function fetchRuntimeNodeVersion({
-  deploymentUrl,
+  baseUrl,
   fetcher,
+  sleep,
 }: {
-  deploymentUrl: string | null;
+  baseUrl: string;
   fetcher: Fetcher;
+  sleep: (ms: number) => Promise<void>;
 }) {
-  if (!deploymentUrl) return null;
-  const response = await fetcher(`https://${deploymentUrl}/api/v1/health/ready`, {
-    signal: AbortSignal.timeout(15_000),
-  });
-  if (response.status !== 200 && response.status !== 503) return null;
-  const body = (await response.json()) as ReadinessPayload | null;
-  const node = body?.data?.runtime?.node ?? body?.error?.details?.runtime?.node;
-  return typeof node === 'string' && node.length > 0 ? node : null;
+  const attempts = 3;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      const response = await fetcher(`${baseUrl}/api/v1/health/ready`, {
+        signal: AbortSignal.timeout(15_000),
+      });
+      if (response.status === 200 || response.status === 503) {
+        let body: ReadinessPayload | null = null;
+        try {
+          body = (await response.json()) as ReadinessPayload | null;
+        } catch {
+          // A login or error page is HTML, not the readiness payload.
+        }
+        const node = body?.data?.runtime?.node ?? body?.error?.details?.runtime?.node;
+        if (typeof node === 'string' && node.length > 0) return node;
+      }
+    } catch {
+      // Network failures and timeouts must never block a release.
+    }
+    if (attempt < attempts) await sleep(5_000);
+  }
+  return null;
 }
 
 async function probeRuntimeNodeVersion({
   deploymentId,
-  deploymentUrl,
+  baseUrl,
   fetcher,
+  sleep,
 }: {
   deploymentId: string;
-  deploymentUrl: string | null;
+  baseUrl: string;
   fetcher: Fetcher;
+  sleep: (ms: number) => Promise<void>;
 }) {
-  const runtimeNodeVersion = await fetchRuntimeNodeVersion({ deploymentUrl, fetcher });
+  const runtimeNodeVersion = await fetchRuntimeNodeVersion({ baseUrl, fetcher, sleep });
   const verified = process.versions.node;
   if (!runtimeNodeVersion) {
     console.warn(
-      `runtime-node=unverified deployment=${deploymentId}: readiness did not report process.version; Vercel only guarantees major versions, so verify manually with node -v on a preview deployment`
+      `runtime-node=unverified deployment=${deploymentId}: ${baseUrl}/api/v1/health/ready did not report process.version; Vercel only guarantees major versions, so compare manually with node -v after the release`
     );
     return { runtimeNodeVersion: null, runtimeNodeDrift: null };
   }
@@ -527,8 +551,9 @@ export async function deployVercelProduction({
   const metrics = deploymentMetrics(deployment);
   const { runtimeNodeVersion, runtimeNodeDrift } = await probeRuntimeNodeVersion({
     deploymentId: id,
-    deploymentUrl: typeof deployment.url === 'string' ? deployment.url : null,
+    baseUrl: PRODUCTION_BASE_URL,
     fetcher,
+    sleep,
   });
   return {
     id,

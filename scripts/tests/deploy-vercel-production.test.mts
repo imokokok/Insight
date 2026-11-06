@@ -26,7 +26,10 @@ function response(body: unknown, status = 200) {
   return { ok: status >= 200 && status < 300, status, json: async () => body } as Response;
 }
 
-function harness(pages: unknown[][], options: { runtimeNode?: string | null } = {}) {
+function harness(
+  pages: unknown[][],
+  options: { runtimeNode?: string | null; runtimeHtml?: boolean } = {}
+) {
   let time = 1_000_000;
   let listCalls = 0;
   const verifiedMajor = process.versions.node.split('.')[0];
@@ -43,6 +46,15 @@ function harness(pages: unknown[][], options: { runtimeNode?: string | null } = 
         return response({ nodeVersion: `${verifiedMajor}.x` });
       }
       if (endpoint.includes('/api/v1/health/ready')) {
+        if (options.runtimeHtml) {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => {
+              throw new SyntaxError('Unexpected token \'<\', "<!DOCTYPE "... is not valid JSON');
+            },
+          } as unknown as Response;
+        }
         if (runtimeNode === null) return response({}, 404);
         return response({ success: true, data: { runtime: { node: runtimeNode } } });
       }
@@ -264,6 +276,19 @@ test('marks a minor or patch drift without blocking the release', async () => {
 test('keeps the release when readiness cannot report the runtime version', async () => {
   const ready = deployment('READY', { aliasAssigned: 1, url: 'dpl-test.vercel.app' });
   const setup = harness([[ready]], { runtimeNode: null });
+  const result = await deployVercelProduction({
+    hookUrl,
+    token: 'test-token',
+    commitSha,
+    ...setup,
+  });
+  assert.equal(result.runtimeNodeVersion, null);
+  assert.equal(result.runtimeNodeDrift, null);
+});
+
+test('keeps the release when readiness returns an HTML page instead of JSON', async () => {
+  const ready = deployment('READY', { aliasAssigned: 1, url: 'dpl-test.vercel.app' });
+  const setup = harness([[ready]], { runtimeHtml: true });
   const result = await deployVercelProduction({
     hookUrl,
     token: 'test-token',
