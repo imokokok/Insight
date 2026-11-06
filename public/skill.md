@@ -18,6 +18,12 @@ Agent-facing contacts:
 - [Hyperliquid Perp Guard Skill](https://www.oracleinsight.xyz/downloads/insight-hyperliquid-perp-guard-skill-v0.1.0.zip) — a decision-input skill for one reviewed Hyperliquid HyperCore open-position intent (BTC, ETH), with disclosed venue evidence and exact IOC order envelope binding.
 - [Solana Perp Guard Skill](https://www.oracleinsight.xyz/downloads/insight-solana-perp-guard-skill-v0.1.0.zip) — a decision-input skill for one reviewed Drift Protocol v2 Solana open-position intent (SOL, BTC, ETH), with disclosed on-chain venue evidence (mark/oracle deviation, funding rate, open interest). Status disclosure: Drift's reviewed profile is currently **STALE**. First-hand on-chain verification (2026-11-05) confirmed the Drift AMM has been frozen since 2026-04-01 and the team migrated to Velocity, so position openings hard-BLOCK by default and no decision attestation is signed; the skill remains available for reading venue evidence.
 
+## Oracle Config Snapshot (advisory input record)
+
+`POST /api/v1/oracle-config/snapshot` returns a signed, idempotent record of one oracle configuration and its independent-source state at a point in time. The request is strict: `chainId`, `protocolId`, `assetSymbol` only. Caller-supplied feed lists, parameters, source claims or declared outcomes are rejected; all observable state is read server-side.
+
+This is an advisory INPUT record, not a safety assessment. It does not assert that a configuration is safe or unsafe and does not recommend parameter changes. The response carries `configHash`, `checksHash`, a D1 to D6 check record, `registryPin`, `payloadHash` and an EIP-712 attestation with no expiry, so the holder can keep and verify the record offline later. Within one hour bucket the same configuration yields a byte-identical payload and typed-data hash. $0.50 USDC via x402 v2, or equivalent credits with an API key. Settlement happens only after the record is produced.
+
 ## Reviewed profiles and evidence grading
 
 Every guard verdict is enforced against a reviewed-profile registry (currently 38 profiles: 25 lending, 8 swap, 5 perp, 1 prediction). The enforcement is evidence-graded and fail-closed:

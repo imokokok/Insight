@@ -29,6 +29,7 @@ import {
   X402_BNB_PERP_GUARD_ROUTE,
   X402_PREDICTION_GUARD_ROUTE,
   X402_SETTLEMENT_EVIDENCE_GRADE_ROUTE,
+  X402_ORACLE_CONFIG_SNAPSHOT_ROUTE,
   X402_LOOPSCALE_VAULT_DEPOSIT_ROUTE,
   X402_EXECUTION_PREFLIGHT_ROUTE,
   X402_MCP_ROUTE,
@@ -920,6 +921,11 @@ export async function buildX402HttpServer(
     [X402_SETTLEMENT_EVIDENCE_GRADE_ROUTE]: routeConfigWithoutDiscovery(
       cfg,
       'Settlement Evidence Grade: an on-demand, idempotent grade of one settled Polymarket price contract against Insight’s independent sources (Kraken settlement-window candles plus the platform’s own oracle-consensus snapshots). POST takes a market slug only; the declared outcome is always read from Insight’s own watch list, never from the caller. Returns a signed EIP-712 evidence pack carrying derived analytics only — verdict, bps deltas, and coverage statistics — that a third party can independently recompute and verify against Insight’s published attester. Existing packs are returned cached and are never downgraded.'
+    ),
+    [X402_ORACLE_CONFIG_SNAPSHOT_ROUTE]: routeConfigWithoutDiscovery(
+      cfg,
+      'Oracle Config Snapshot (signed record): an advisory, idempotent EIP-712 record of one oracle configuration and its independent-source state at a point in time. The request names chainId, protocolId and assetSymbol only; all observable configuration and sources are read server-side. This is NOT a safety assessment and makes no safe or unsafe claim. Derived analytics only, no custody, no execution authority.',
+      paidRestRouteAmountOverride(X402_ORACLE_CONFIG_SNAPSHOT_ROUTE)!
     ),
     [X402_SWAP_INTENT_ROUTE]: routeConfigFor(
       cfg,

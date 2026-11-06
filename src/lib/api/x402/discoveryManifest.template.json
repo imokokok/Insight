@@ -297,6 +297,27 @@
       ]
     },
     {
+      "url": "https://www.oracleinsight.xyz/api/v1/oracle-config/snapshot",
+      "method": "POST",
+      "description": "Oracle Config Snapshot (signed record): an advisory, idempotent EIP-712 record of one oracle configuration and its independent-source state at a point in time. The request names chainId, protocolId and assetSymbol only; all observable configuration and sources are read server-side. This is NOT a safety assessment and makes no safe or unsafe claim. Derived analytics only, no custody, no execution authority.",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "eip155:999",
+          "amount": "500000",
+          "asset": "0xb88339CB7199b77E23DB6E890353E22632Ba630f",
+          "assetSymbol": "USDC",
+          "assetDecimals": 6,
+          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
+          "maxTimeoutSeconds": 60,
+          "extra": {
+            "name": "USDC",
+            "version": "2"
+          }
+        }
+      ]
+    },
+    {
       "url": "https://www.oracleinsight.xyz/api/v1/safety/swap-intent",
       "method": "GET",
       "description": "Verified Swap Intent: two signed schema-v3 Pre-Trade gates for one same-chain swap, plus one Execution Receipt credit after x402 settlement. A BLOCK is a complete, charged decision.",
