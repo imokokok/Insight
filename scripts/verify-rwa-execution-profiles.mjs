@@ -1,11 +1,23 @@
 import assert from 'node:assert/strict';
 import { access, readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { createPublicClient, http, keccak256, parseAbi } from 'viem';
 
-import * as sdk from '../sdk/dist/index.js';
-
 const root = resolve(new URL('..', import.meta.url).pathname);
+const sdkEntry = resolve(root, 'sdk/dist/index.js');
+// Fail with the missing prerequisite instead of a bare ERR_MODULE_NOT_FOUND.
+// The parallel scheduler also declares this edge in package.json's
+// `checkPrerequisites`, so a clean environment builds the SDK first.
+try {
+  await access(sdkEntry);
+} catch {
+  console.error(
+    'SDK_BUILD_REQUIRED: sdk/dist/index.js is missing. Run `npm run sdk:build:unchecked` before `npm run rwa:execution-profiles`.'
+  );
+  process.exit(2);
+}
+const sdk = await import(pathToFileURL(sdkEntry).href);
 const executionRegistry = JSON.parse(
   await readFile(resolve(root, 'protocol/rwa-execution-profiles.v1.json'), 'utf8')
 );
