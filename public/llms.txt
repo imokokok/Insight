@@ -26,7 +26,12 @@
 
 Any MCP host can connect with no API key and no local checkout:
 
-`npx -y mcp-remote https://www.oracleinsight.xyz/api/mcp --header x-insight-entry-source:mcp`
+`npx -y --package=oracle-insight-mcp insight-mcp`
+
+The launcher pins `https://www.oracleinsight.xyz/api/mcp` and sends
+`x-insight-entry-source: mcp`. Set `INSIGHT_MCP_URL` for a self-hosted endpoint
+or `INSIGHT_API_KEY` (plus the `INSIGHT_ENTRY_SOURCE` label if needed) in the
+MCP host's `env` block.
 
 `initialize`, `tools/list`, and `ping` are free; `tools/call` is priced by
 metering class. Clients may send `x-insight-entry-source` with one bounded,

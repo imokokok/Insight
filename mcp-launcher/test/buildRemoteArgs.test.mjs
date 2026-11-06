@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { buildRemoteArgs } from '../bin/insight-mcp.mjs';
+import { buildRemoteArgs } from '../lib/remote-args.mjs';
 
 test('defaults to the hosted endpoint and the mcp label', () => {
   assert.deepEqual(buildRemoteArgs({}), [
