@@ -107,12 +107,19 @@ tokens](https://github.blog/changelog/2026-07-31-restricting-npm-bypass-2fa-gran
 in January 2027. Use one of the two supported paths:
 
 ```bash
-# Path A: direct publish with a current authenticator code
-npm publish --access public --otp=<6-digit-code>
+# Path A: direct publish (2FA is confirmed with a WebAuthn security key / Touch ID)
+npm publish --access public
+# Legacy TOTP accounts only: append --otp=<6-digit-code> from the bound authenticator app
 
-# Path B: stage without 2FA, then approve on npmjs.com (Staged Packages tab)
+# Path B: stage without 2FA, then approve on npmjs.com
 npx --yes npm@11 stage publish
 ```
+
+The approval is under the **profile avatar → Staged Packages** menu (below
+`Access Tokens`), not under Account settings. Click **Approve** and confirm with
+the security key. npm does not email or text a code; a 6-digit OTP exists only
+for accounts still on legacy TOTP. Recovery codes are for account login, not
+publishing, and using one triggers a 72-hour security hold.
 
 After the first release, use `.github/workflows/agent-packages-release.yml`: it
 publishes this package and the ElizaOS plugin from GitHub Actions over npm
@@ -124,6 +131,16 @@ npmjs.com with repository `imokokok/Insight`, workflow filename
 `agent-packages-release.yml`, and direct `npm publish` allowed. See the
 distribution runbook for the exact sequence.
 
-After publishing, the generated MCP configs in
-`src/app/mcp/components/McpConfigGenerator.tsx` can switch from the explicit
-`mcp-remote` command to `['-y', '--package=oracle-insight-mcp', 'insight-mcp']`.
+`0.1.0` and `0.1.1` were released through staged publishing plus a maintainer
+approval on npmjs.com. Use `0.1.1` or newer: `0.1.0` compared
+`process.argv[1]` with `import.meta.url`, which is false under npm's
+`node_modules/.bin` symlink, so `npx insight-mcp` exited `0` without starting
+the bridge. `0.1.1` removes that guard — `bin/insight-mcp.mjs` is a pure CLI
+entry that always runs, the importable logic lives in `lib/remote-args.mjs`,
+and `test/binSymlink.test.mjs` executes the real bin through both a `.bin`
+symlink and its shebang.
+
+The generated MCP configs in
+`src/app/mcp/components/McpConfigGenerator.tsx`, the 402 install hint, and the
+discovery docs use this command; they were switched only after
+`npm view oracle-insight-mcp@0.1.1 version` succeeded.
