@@ -114,7 +114,12 @@ export async function runPreTrade(
 ): Promise<PreTradeOutcome> {
   const url = buildPreTradeUrl(settings.baseUrl, query);
   const fetcher = paidFetch ?? globalThis.fetch;
-  const response = await fetcher(url, { headers: { accept: 'application/json' } });
+  // Bounded, non-identifying attribution label. It never affects pricing,
+  // payment verification, or settlement. @x402/fetch preserves request headers
+  // across the 402 -> signed retry.
+  const response = await fetcher(url, {
+    headers: { accept: 'application/json', 'x-insight-entry-source': 'wallet_mcp' },
+  });
 
   if (response.status === 402 && !paidFetch) {
     const error = new Error(
@@ -167,7 +172,7 @@ export async function verifyAttestation(
 ): Promise<AttestationVerifyResult> {
   const response = await fetch(`${settings.baseUrl}/api/v1/safety/attestation/verify`, {
     method: 'POST',
-    headers: { 'content-type': 'application/json' },
+    headers: { 'content-type': 'application/json', 'x-insight-entry-source': 'wallet_mcp' },
     body: JSON.stringify({ attestation }),
   });
   const body: unknown = await response.json().catch(() => null);
