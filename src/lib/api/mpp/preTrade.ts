@@ -14,6 +14,7 @@ import {
   payToForEvmNetwork,
   usdcForNetwork,
 } from '@/lib/api/x402/config';
+import { corsExposeHeaders } from '@/lib/api/x402/corsExposeHeaders';
 import {
   atomicUnitsToUsdc,
   recordX402Settlement,
@@ -119,10 +120,7 @@ function withCors(response: Response): NextResponse {
   const headers = new Headers(response.headers);
   headers.set('Access-Control-Allow-Origin', '*');
   headers.set('Cache-Control', 'no-store');
-  headers.set(
-    'Access-Control-Expose-Headers',
-    'X-Request-Id, Retry-After, PAYMENT-REQUIRED, PAYMENT-RESPONSE, WWW-Authenticate, Payment-Receipt, Payment-Settlement-Status'
-  );
+  headers.set('Access-Control-Expose-Headers', corsExposeHeaders());
   return new NextResponse(response.body, {
     status: response.status,
     statusText: response.statusText,
@@ -141,10 +139,9 @@ function mergeChallenges(x402Response: Response, mppResponse: Response): NextRes
   if (mppChallenge) headers.append('WWW-Authenticate', mppChallenge);
   headers.set('Cache-Control', 'no-store');
   headers.set('Access-Control-Allow-Origin', '*');
-  headers.set(
-    'Access-Control-Expose-Headers',
-    'X-Request-Id, PAYMENT-REQUIRED, PAYMENT-RESPONSE, WWW-Authenticate, Payment-Receipt, Payment-Settlement-Status'
-  );
+  // This replaces the x402 quote's own CORS header wholesale. Reuse the
+  // shared list, or the merged 402 hides the onboarding hints from browsers.
+  headers.set('Access-Control-Expose-Headers', corsExposeHeaders());
   return new NextResponse(x402Response.body, {
     status: x402Response.status,
     statusText: x402Response.statusText,

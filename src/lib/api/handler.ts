@@ -2,6 +2,7 @@ import { after, type NextRequest, NextResponse } from 'next/server';
 
 import { type ZodSchema } from 'zod';
 
+import { corsExposeHeaders } from '@/lib/api/x402/corsExposeHeaders';
 import { consumeCredits } from '@/lib/billing/creditWallet';
 import { CREDIT_EXHAUSTED_RETRY_AFTER_SECONDS } from '@/lib/billing/metering';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
@@ -197,11 +198,9 @@ export function getCorsHeaders(options: CorsOptions): Record<string, string> {
     'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Methods': methods.join(', '),
     'Access-Control-Allow-Headers': headers.join(', '),
-    // The x-insight-* advisory hints on a bare 402 are only useful to a
-    // browser-based agent if CORS exposes them. Keep in sync with the MCP
-    // transport's expose list and with x402OnboardingHeaders().
-    'Access-Control-Expose-Headers':
-      'X-Request-Id, Server-Timing, X-Credit-Cost, X-Credit-Balance, X-Credit-Balance-After, X-Credit-Status, X-Credit-Receipt, Retry-After, PAYMENT-REQUIRED, PAYMENT-RESPONSE, WWW-Authenticate, Payment-Receipt, Payment-Settlement-Status, x-insight-entry-source-hint, x-insight-quickstart, x-insight-mcp-install, x-insight-no-wallet',
+    // Shared with the MCP transport and the MPP pre-trade bridge so the
+    // x-insight-* hints on a bare 402 stay readable in a browser.
+    'Access-Control-Expose-Headers': corsExposeHeaders(),
     'Access-Control-Max-Age': String(maxAge),
   };
 }

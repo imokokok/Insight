@@ -8,6 +8,7 @@ import { getCorsHeaders } from '@/lib/api/handler';
 import { rateLimitStore } from '@/lib/api/middleware/rateLimitStore';
 import { getMppConfig } from '@/lib/api/mpp/config';
 import { getX402Config } from '@/lib/api/x402/config';
+import { corsExposeHeaders } from '@/lib/api/x402/corsExposeHeaders';
 import { handleMcpIndexerQuote, handleMcpPaidToolCall } from '@/lib/api/x402/mcpBridge';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -34,8 +35,14 @@ interface McpHttpHandlerResult {
  */
 const CORS_HEADERS: Record<string, string> = {
   ...getCorsHeaders({}),
-  'Access-Control-Expose-Headers':
-    'X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, X-Quota-Limit, X-Quota-Remaining, X-Quota-Reset, X-Request-Id, x-insight-entry-source-hint, x-insight-quickstart, x-insight-mcp-install, x-insight-no-wallet',
+  'Access-Control-Expose-Headers': corsExposeHeaders(
+    'X-RateLimit-Limit',
+    'X-RateLimit-Remaining',
+    'X-RateLimit-Reset',
+    'X-Quota-Limit',
+    'X-Quota-Remaining',
+    'X-Quota-Reset'
+  ),
 };
 
 function withCors(response: Response): Response {

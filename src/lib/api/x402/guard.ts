@@ -17,6 +17,7 @@ import {
   type X402Config,
   type X402NetworkId,
 } from './config';
+import { X402_ONBOARDING_HEADER_NAMES, type X402OnboardingHeaderName } from './corsExposeHeaders';
 import {
   HYPERCORE_X402_MAINNET,
   HYPERCORE_X402_TESTNET,
@@ -125,13 +126,18 @@ export function x402AcquisitionSource(
  * mcp/middleware.ts all state "no recurring free tier".
  */
 export function x402OnboardingHeaders(): Record<string, string> {
-  return {
+  // The explicit key type makes a missing or renamed hint a compile error:
+  // every emitted name must also appear in the shared CORS expose list.
+  const values: Record<X402OnboardingHeaderName, string> = {
     'x-insight-entry-source-hint': `optional self-attribution header x-insight-entry-source: ${X402_ACQUISITION_SOURCES.join('|')}`,
     'x-insight-quickstart': 'https://www.oracleinsight.xyz/docs/x402',
     'x-insight-mcp-install': 'npx -y --package=oracle-insight-mcp insight-mcp',
     'x-insight-no-wallet':
       'X-API-Key credit wallet: signup + email verification grants 100 credits (~20 C3 calls), no wallet or USDC needed; https://www.oracleinsight.xyz/docs/x402',
   };
+  // Iterate the shared name list, not the object's own keys: the same list is
+  // what CORS exposes, so an added hint can never become unreadable in a browser.
+  return Object.fromEntries(X402_ONBOARDING_HEADER_NAMES.map((name) => [name, values[name]]));
 }
 
 /** Discovery/listing surfaces known to send human or agent traffic to paid routes. */
