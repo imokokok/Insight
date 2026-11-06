@@ -29,6 +29,7 @@ function response(body: unknown, status = 200) {
 function harness(pages: unknown[][]) {
   let time = 1_000_000;
   let listCalls = 0;
+  const verifiedMajor = process.versions.node.split('.')[0];
   const requests: Array<{ url: URL | string; init?: RequestInit }> = [];
   return {
     requests,
@@ -36,6 +37,9 @@ function harness(pages: unknown[][]) {
       requests.push({ url, init });
       const endpoint = String(url);
       if (endpoint === hookUrl) return response({ job: { id: 'job-1', createdAt: 1_000_000 } });
+      if (endpoint.includes('/v13/deployments/')) {
+        return response({ nodeVersion: `${verifiedMajor}.x` });
+      }
       if (endpoint.includes('/cancel')) return response({});
       const deployments = pages[Math.min(listCalls++, pages.length - 1)] ?? [];
       return response({ deployments });
@@ -62,6 +66,7 @@ test('reuses an already promoted deployment for the exact commit', async () => {
   });
   assert.equal(result.mode, 'reused');
   assert.equal(result.id, 'dpl_test');
+  assert.equal(result.nodeVersion, `${process.versions.node.split('.')[0]}.x`);
   assert.equal(result.queueMs, 1_000);
   assert.equal(result.buildMs, 2_000);
   assert.equal(
@@ -183,5 +188,41 @@ test('requires a Vercel token before reading or mutating deployments', async () 
   await assert.rejects(
     deployVercelProduction({ hookUrl, token: '', commitSha }),
     /VERCEL_TOKEN is required/
+  );
+});
+
+test('fails when production runs a different Node.js major than CI', async () => {
+  const ready = deployment('READY', { aliasAssigned: 1 });
+  const setup = harness([[], [], [ready]]);
+  const fetcher = setup.fetcher;
+  const verifiedMajor = process.versions.node.split('.')[0];
+  const otherMajor = verifiedMajor === '22' ? '24' : '22';
+  setup.fetcher = async (url, init) => {
+    if (String(url).includes('/v13/deployments/')) {
+      setup.requests.push({ url, init });
+      return response({ nodeVersion: `${otherMajor}.x` });
+    }
+    return fetcher(url, init);
+  };
+  await assert.rejects(
+    deployVercelProduction({ hookUrl, token: 'test-token', commitSha, ...setup }),
+    /ran Node .* but CI verified Node/
+  );
+});
+
+test('fails when the deployment does not report a Node.js version', async () => {
+  const ready = deployment('READY', { aliasAssigned: 1 });
+  const setup = harness([[], [], [ready]]);
+  const fetcher = setup.fetcher;
+  setup.fetcher = async (url, init) => {
+    if (String(url).includes('/v13/deployments/')) {
+      setup.requests.push({ url, init });
+      return response({});
+    }
+    return fetcher(url, init);
+  };
+  await assert.rejects(
+    deployVercelProduction({ hookUrl, token: 'test-token', commitSha, ...setup }),
+    /did not report its Node.js version/
   );
 });
