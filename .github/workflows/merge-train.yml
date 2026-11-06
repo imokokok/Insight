@@ -1,0 +1,39 @@
+name: Merge train
+
+# GitHub's native merge queue requires an organization-owned repository, so this
+# repository uses the next-best mechanism: `strict` branch protection plus this
+# serialized branch updater. See docs/operations/merge-queue.md for the rationale
+# and the migration path.
+on:
+  push:
+    branches: [main]
+  schedule:
+    # Safety net for a queued pull request whose update was skipped or rejected.
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+# Never run two train advances at once: that would update several pull requests
+# onto the same base and recreate the stale-merge problem this replaces.
+concurrency:
+  group: merge-train
+  cancel-in-progress: false
+
+permissions:
+  actions: write
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-next:
+    name: Update the next queued pull request
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 22.23.2
+      - name: Update the oldest behind pull request
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/merge-train.mts
