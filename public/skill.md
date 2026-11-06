@@ -24,6 +24,8 @@ Agent-facing contacts:
 
 This is an advisory INPUT record, not a safety assessment. It does not assert that a configuration is safe or unsafe and does not recommend parameter changes. The response carries `configHash`, `checksHash`, a D1 to D6 check record, `registryPin`, `payloadHash` and an EIP-712 attestation with no expiry, so the holder can keep and verify the record offline later. Within one hour bucket the same configuration yields a byte-identical payload and typed-data hash. $0.50 USDC via x402 v2, or equivalent credits with an API key. Settlement happens only after the record is produced.
 
+The older `POST /api/v1/markets/settlement-evidence/grade` endpoint and the `get_settlement_evidence` MCP tool are retained as legacy historical records of resolved prediction markets. They are not the recommended entry point for configuration evidence and make no safety claim about a live configuration.
+
 ## Reviewed profiles and evidence grading
 
 Every guard verdict is enforced against a reviewed-profile registry (currently 38 profiles: 25 lending, 8 swap, 5 perp, 1 prediction). The enforcement is evidence-graded and fail-closed:

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 import { buildX402DiscoveryManifest } from '../../src/lib/api/x402/discoveryManifest';
@@ -86,6 +87,28 @@ test('request-bound and expiring payment requirements are not misrepresented as 
     !manifest.dynamicPaymentOptions.some((entry) => entry.resourceUrl === multichainUrl),
     'multichain rails are selected from validated input and cannot inherit HyperCore'
   );
+});
+
+test('runtime resources are declared in the template and never duplicated', () => {
+  const template = JSON.parse(
+    readFileSync(
+      new URL('../../src/lib/api/x402/discoveryManifest.template.json', import.meta.url),
+      'utf8'
+    )
+  );
+  const manifest = buildX402DiscoveryManifest(config);
+  const templateUrls = new Set(template.resources.map((entry: { url: string }) => entry.url));
+  const runtimeUrls = [...manifest.resources, ...manifest.requestBoundResources].map(
+    (entry) => entry.url
+  );
+
+  // A smaller runtime list reflects config-driven filtering and the
+  // request-bound split, never a resource silently invented or lost.
+  for (const url of runtimeUrls) {
+    assert.ok(templateUrls.has(url), `${url} must be declared in the static template`);
+  }
+  assert.equal(new Set(runtimeUrls).size, runtimeUrls.length, 'runtime resource URLs are unique');
+  assert.ok(manifest.resources.some((entry) => entry.url.endsWith('/oracle-config/snapshot')));
 });
 
 test('plan-priced resources retain their fixed amounts across route scopes', () => {

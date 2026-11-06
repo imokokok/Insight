@@ -10,8 +10,9 @@ import {
 } from '@/lib/api/handler';
 import { CACHE_PRESETS } from '@/lib/api/utils';
 import { x402ConfigForPaymentScope, X402_PAYMENT_SCOPE } from '@/lib/api/x402/capabilityPayment';
-import { getX402Config } from '@/lib/api/x402/config';
+import { getX402Config, X402_ORACLE_CONFIG_SNAPSHOT_ROUTE } from '@/lib/api/x402/config';
 import { handlePaidPreTradeRequest, hasAuthCredentials, isPaidRequest } from '@/lib/api/x402/guard';
+import { paidRestRouteAmountOverride } from '@/lib/api/x402/paidRouteAmounts';
 import { buildOracleConfigSnapshotPack } from '@/lib/oracleConfigSnapshot/service';
 
 export const maxDuration = 30;
@@ -117,22 +118,27 @@ export const POST = async (
 ): Promise<NextResponse> => {
   const config = x402ConfigForPaymentScope(getX402Config(), X402_PAYMENT_SCOPE.configured);
   if (config && (isPaidRequest(request) || !hasAuthCredentials(request))) {
-    return handlePaidPreTradeRequest(request, config, async (requestId) => {
-      let body: unknown;
-      try {
-        body = await request.json();
-      } catch {
-        return validationError(requestId);
-      }
-      const parsed = SnapshotBodySchema.safeParse(body);
-      if (!parsed.success) {
-        return validationError(
-          requestId,
-          parsed.error.issues.map((issue) => issue.path.join('.'))
-        );
-      }
-      return executeSnapshot(parsed.data, requestId);
-    });
+    return handlePaidPreTradeRequest(
+      request,
+      config,
+      async (requestId) => {
+        let body: unknown;
+        try {
+          body = await request.json();
+        } catch {
+          return validationError(requestId);
+        }
+        const parsed = SnapshotBodySchema.safeParse(body);
+        if (!parsed.success) {
+          return validationError(
+            requestId,
+            parsed.error.issues.map((issue) => issue.path.join('.'))
+          );
+        }
+        return executeSnapshot(parsed.data, requestId);
+      },
+      { amountAtomic: paidRestRouteAmountOverride(X402_ORACLE_CONFIG_SNAPSHOT_ROUTE)! }
+    );
   }
   return legacyPost(request, routeContext);
 };

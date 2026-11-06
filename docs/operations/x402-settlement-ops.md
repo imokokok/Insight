@@ -66,3 +66,11 @@
 | `sensitive` | 不可回读                                      | 不可回读（仅运行时由平台注入明文）         |
 
 注意: 解密必须走**单值端点**；列表端点传 `decrypt=true` 无效。仓库代码中不存在任何 env 解密层 —— `{v:"v2",c,k}` 信封由 Vercel 平台处理。
+
+## 4. 2026-11-06 口径核对（追加，不改写上文历史归档）
+
+- 上文 §1 的 X402_EVM_NETWORKS 五链清单是 2026-10-27 归档快照，不代表当前生产配置。2026-11-06 线上实取：POST /api/v1/oracle-config/snapshot 的 accepts 为 eip155:999（500000）、Solana mainnet（500000）、hyperliquid:mainnet（动态 quote），未见 eip155:8453。
+- 代码侧 src/lib/api/x402/config.ts 的 parseEvmNetworks 与 SUPPORTED_NETWORKS 完整支持 Base。是否接回属 Vercel production 部署侧配置：X402_EVM_NETWORKS 需含 eip155:8453，且 X402_PAY_TO 或 X402_EVM_PAY_TOS[eip155:8453] 必须有收款地址（启动 fail-fast 校验）。本次未擅自改动生产环境变量。
+- 对外口径已改为「以实时 402 accepts[] 为准」：public/.well-known/agent-card.json（v1.4.0）不再硬编码七链广告。
+- /.well-known/x402 的 resources 比 discoveryManifest.template.json 少 1 条，是 buildX402DiscoveryManifest 把 /api/v1/safety/multichain-evm-lending-guard 归入 requestBoundResources，不是丢数据。scripts/tests/x402-discovery-manifest.test.mts 有回归断言。
+- 本次修正：/api/v1/oracle-config/snapshot 的 POST 之前没有把 0.50 美元档的 amountAtomic 传给 handlePaidPreTradeRequest，导致 HyperCore 动态报价回落到 0.02 美元。已按 oracle-watch-window 的写法补上并新增路由测试。
