@@ -4,7 +4,7 @@ import type {
   PreTradeSafetyInput,
   ProtocolSafetyContext,
   ProviderPriceDetail,
-} from './preTradeSafetyService';
+} from './preTradeSafetyContract';
 
 const ACTION_DIRECTION = {
   borrow: 'increase_debt',

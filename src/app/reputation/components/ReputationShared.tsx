@@ -7,18 +7,11 @@ import { getScoreBadge, getScoreColor } from '@/lib/oracles/utils/reputationUtil
 import { cn } from '@/lib/utils';
 import { type OracleProvider } from '@/types/oracle';
 
-const ORACLE_LOGO_MAP: Record<string, string> = {
-  chainlink: '/logos/oracles/chainlink.svg',
-  api3: '/logos/oracles/api3.svg',
-  redstone: '/logos/oracles/redstone.svg',
-  dia: '/logos/oracles/dia.svg',
-  winklink: '/logos/oracles/winklink.svg',
-  supra: '/logos/oracles/supra.svg',
-  twap: '/logos/oracles/twap.svg',
-  reflector: '/logos/oracles/reflector.svg',
-  flare: '/logos/oracles/flare.svg',
-  band: '/logos/oracles/band.svg',
-};
+// Logos follow the public/ convention `/logos/oracles/<provider>.svg`; a
+// provider without an asset renders nothing via the onError handler below.
+function oracleLogoPath(provider: string): string {
+  return `/logos/oracles/${provider}.svg`;
+}
 
 export function OracleLogo({
   provider,
@@ -29,8 +22,7 @@ export function OracleLogo({
   size?: number;
   className?: string;
 }) {
-  const src = ORACLE_LOGO_MAP[provider];
-  if (!src) return null;
+  const src = oracleLogoPath(provider);
   return (
     <Image
       src={src}

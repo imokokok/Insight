@@ -2,17 +2,11 @@ import { NextResponse } from 'next/server';
 
 import { verifyCronSecret } from '@/lib/api/cronAuth';
 import { fetchPriceWithDatabase } from '@/lib/oracles/base/databaseOperations';
-import { API3_MAX_DATA_AGE_SECONDS } from '@/lib/oracles/constants/api3Health';
 import { resolveSupraMonadFeed } from '@/lib/oracles/constants/supraMonad';
 import { getDefaultFactory } from '@/lib/oracles/factory';
-import { api3NetworkService } from '@/lib/oracles/services/api3NetworkService';
-import { chainlinkOnChainService } from '@/lib/oracles/services/chainlinkOnChainService';
 import { feedDiscoveryService } from '@/lib/oracles/services/feedDiscovery';
 import { feedSyncService } from '@/lib/oracles/services/feedSyncService';
-import { getReflectorDataService } from '@/lib/oracles/services/reflectorDataService';
-import { getSupraDataService } from '@/lib/oracles/services/supraDataService';
 import { supraMonadOnChainService } from '@/lib/oracles/services/supraMonadOnChainService';
-import { getWINkLinkRealDataService } from '@/lib/oracles/services/winklinkRealDataService';
 import { invalidateAllFeedsCache } from '@/lib/oracles/utils/dynamicFeedResolver';
 import { resolveOracleFeedBlockchain } from '@/lib/oracles/utils/feedChain';
 import { extractBaseSymbol } from '@/lib/oracles/utils/oracleDataUtils';
@@ -24,6 +18,8 @@ import { ensureTursoPriceSchema } from '@/lib/turso/price/schema';
 import { mapWithConcurrency } from '@/lib/utils/concurrency';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
 import { Blockchain, OracleProvider, ORACLE_PROVIDER_VALUES } from '@/types/oracle';
+
+import { isFreshTimestamp, resolveSharedProbeStrategy } from './feedProbeRegistry';
 
 const logger = createLogger('CronSyncFeeds');
 
@@ -69,51 +65,6 @@ async function invalidateAndRefreshTursoFeedRegistry(): Promise<void> {
   }
 }
 
-function maxFeedAgeMs(feed: OracleFeed | OracleFeedInsert): number {
-  const metadata = (feed.metadata || {}) as Record<string, unknown>;
-  if (feed.provider === OracleProvider.CHAINLINK) {
-    const heartbeat = Number(metadata.heartbeat);
-    return Number.isFinite(heartbeat) && heartbeat > 0
-      ? Math.max(60 * 60 * 1000, heartbeat * 2 * 1000)
-      : 2 * 60 * 60 * 1000;
-  }
-  if (feed.provider === OracleProvider.PYTH) {
-    const configured = Number(metadata.timeDifferenceSeconds);
-    return Number.isFinite(configured) && configured > 0
-      ? Math.max(60 * 1000, configured * 2 * 1000)
-      : 2 * 60 * 60 * 1000;
-  }
-  if (feed.provider === OracleProvider.STORK) {
-    const configured = Number(metadata.maxStalenessSeconds);
-    return Number.isFinite(configured) && configured > 0 ? configured * 1000 : 60 * 60 * 1000;
-  }
-  if (feed.provider === OracleProvider.CHRONICLE) {
-    const configured = Number(metadata.maxStalenessSeconds);
-    return Number.isFinite(configured) && configured > 0 ? configured * 1000 : 30 * 60 * 1000;
-  }
-  if (feed.provider === OracleProvider.API3) return API3_MAX_DATA_AGE_SECONDS * 1000;
-  if (feed.provider === OracleProvider.DIA) return 72 * 60 * 60 * 1000;
-  if (feed.provider === OracleProvider.SUPRA) {
-    const configured = Number(metadata.maxStalenessSeconds);
-    if (Number.isFinite(configured) && configured > 0) return configured * 1000;
-    return feed.category === 'equity' || feed.category === 'commodity'
-      ? 72 * 60 * 60 * 1000
-      : 60 * 60 * 1000;
-  }
-  if (feed.provider === OracleProvider.REDSTONE) return 30 * 60 * 1000;
-  if (feed.provider === OracleProvider.REFLECTOR) return 60 * 60 * 1000;
-  if (feed.provider === OracleProvider.WINKLINK) return 24 * 60 * 60 * 1000;
-  if (feed.provider === OracleProvider.FLARE) return 30 * 60 * 1000;
-  return 24 * 60 * 60 * 1000;
-}
-
-function isFreshTimestamp(feed: OracleFeed | OracleFeedInsert, timestamp: unknown): boolean {
-  if (typeof timestamp !== 'number' || !Number.isFinite(timestamp) || timestamp <= 0) return false;
-  const timestampMs = timestamp < 10_000_000_000 ? timestamp * 1000 : timestamp;
-  const age = Date.now() - timestampMs;
-  return age >= -5 * 60 * 1000 && age <= maxFeedAgeMs(feed);
-}
-
 async function runProbeWithTimeout<T>(
   execute: (signal: AbortSignal) => Promise<T>,
   timeoutMs: number
@@ -154,40 +105,13 @@ export interface FeedSyncResult {
 }
 
 /**
- * RedStone symbols are case-sensitive (e.g. `etrUSD_FUNDAMENTAL` / `CELO/EUR`);
- * the price API returns HTTP 500 when a symbol is uppercased. During
- * discovery these feeds are not yet in the active-feed table, so the shared
- * `fetchPriceWithDatabase` path would reject them at the static
- * `isSymbolSupported` gate (the curated list is all-uppercase) — and even if
- * they passed, the live fetch would still uppercase and 500. Probe directly
- * through the RedStone client with the original-case symbol (mirroring the API3
- * branch above) so newly-discovered mixed-case feeds are verified and upserted.
- *
- * NOTE: RedStone discovery self-verifies from the prices the `provider=redstone`
- * catalog already returns, so most feeds skip this probe entirely (see
- * verifyDiscoveredFeeds' `preverified` short-circuit). This branch only runs for
- * feeds that still need a live probe (e.g. reactivation / reconciliation).
- */
-async function probeRedStoneFeed(
-  feed: OracleFeed | OracleFeedInsert,
-  signal?: AbortSignal
-): Promise<boolean> {
-  try {
-    const provider = OracleProvider.REDSTONE;
-    const chain = resolveOracleFeedBlockchain(feed);
-    const client = getDefaultFactory().getClient(provider);
-    const price = await client.getPrice(feed.symbol, chain, { signal });
-    return (
-      !!price && typeof price.price === 'number' && Number.isFinite(price.price) && price.price > 0
-    );
-  } catch {
-    return false;
-  }
-}
-
-/**
  * Probe-fetch a single feed to verify it can actually return a price.
  * Returns true if the feed successfully returns a valid price.
+ *
+ * Provider-specific probes live in feedProbeRegistry.ts (shared verbatim with
+ * the reactivation probe below); this function only adds the generic
+ * `fetchPriceWithDatabase` tail, which is legal for active feeds (or
+ * discovery candidates about to be upserted) but not for deactivated rows.
  */
 async function probeFeed(
   feed: OracleFeed | OracleFeedInsert,
@@ -201,74 +125,9 @@ async function probeFeed(
     // reject them. chain_id=0 (chain-agnostic) → undefined → default chain.
     const chain = resolveOracleFeedBlockchain(feed);
 
-    if (provider === OracleProvider.REDSTONE) {
-      return probeRedStoneFeed(feed, signal);
-    }
-
-    if (provider === OracleProvider.CHAINLINK && /^0x[0-9a-fA-F]{40}$/.test(feed.address)) {
-      const price = await chainlinkOnChainService.getPrice(
-        feed.symbol,
-        feed.chain_id,
-        signal,
-        feed.address as `0x${string}`
-      );
-      return !!price && price.price > 0 && isFreshTimestamp(feed, price.timestamp);
-    }
-
-    if (provider === OracleProvider.SUPRA && /^\d+$/.test(feed.address)) {
-      const price = await getSupraDataService().fetchLatestPriceByIndex(
-        Number(feed.address),
-        feed.symbol,
-        signal
-      );
-      return price.price > 0 && isFreshTimestamp(feed, price.timestamp);
-    }
-
-    if (provider === OracleProvider.REFLECTOR && feed.address) {
-      const price = await getReflectorDataService().fetchLatestPrice(
-        feed.symbol,
-        signal,
-        feed.address
-      );
-      return !!price && price.price > 0 && isFreshTimestamp(feed, price.timestamp);
-    }
-
-    if (provider === OracleProvider.WINKLINK && feed.address) {
-      const price = await getWINkLinkRealDataService().getPriceFromContract(
-        feed.symbol,
-        undefined,
-        signal,
-        feed.address
-      );
-      return !!price && price.price > 0 && isFreshTimestamp(feed, price.timestamp);
-    }
-
-    // API3 dAPIs are cross-chain and their per-chain activation can only be
-    // confirmed by reading the communal proxy contract. The candidate feed
-    // carries the dAPI name in `address`; read it directly via the network
-    // service (bypassing fetchPriceWithDatabase's active-feed gate, which
-    // would reject dAPIs not yet in the DB) so newly-discovered dAPIs can be
-    // verified before upsert.
-    if (provider === OracleProvider.API3 && feed.address) {
-      const reading = await api3NetworkService.getPrice(
-        feed.symbol,
-        chain ?? Blockchain.ETHEREUM,
-        signal,
-        feed.address
-      );
-      if (
-        typeof reading?.price !== 'number' ||
-        !Number.isFinite(reading.price) ||
-        reading.price <= 0
-      ) {
-        return false;
-      }
-      // API3NetworkService reports dataAge in seconds. Drop stale dAPIs whose
-      // proxy still serves an expired last-written price.
-      if (typeof reading.dataAge === 'number' && reading.dataAge > API3_MAX_DATA_AGE_SECONDS) {
-        return false;
-      }
-      return true;
+    const strategy = resolveSharedProbeStrategy(feed);
+    if (strategy) {
+      return await strategy.probe(feed, chain, signal);
     }
 
     const price = await fetchPriceWithDatabase(provider, feed.symbol, chain, false, true, signal);
@@ -404,53 +263,21 @@ const REACTIVATE_LIMIT = 200;
  * active-feed gate in fetchPriceWithDatabase (which would reject the feed as
  * "unsupported" precisely because it is is_active=false). Returns true if the
  * feed currently returns a valid price, signalling it has recovered.
+ *
+ * Provider-specific probes are shared with `probeFeed` via
+ * feedProbeRegistry.ts; this function adds the reactivation-only DORA
+ * identity probe, per-probe timeouts, and the fail-closed hardcoded tail.
  */
 async function probeInactiveFeed(feed: OracleFeed): Promise<boolean> {
   try {
     const provider = feed.provider as OracleProvider;
     const chain = resolveOracleFeedBlockchain(feed);
 
-    // API3 dAPIs are cross-chain and resolved via the communal proxy contract
-    // using the dAPI name stored in `address`. Probe through the network
-    // service (mirroring probeFeed) so the stale-dataAge guard still applies.
-    if (provider === OracleProvider.API3 && feed.address) {
-      const reading = await runProbeWithTimeout(
-        (signal) =>
-          api3NetworkService.getPrice(
-            feed.symbol,
-            chain ?? Blockchain.ETHEREUM,
-            signal,
-            feed.address
-          ),
-        REACTIVATE_TIMEOUT_MS
-      );
-      if (
-        typeof reading?.price !== 'number' ||
-        !Number.isFinite(reading.price) ||
-        reading.price <= 0
-      ) {
-        return false;
-      }
-      if (typeof reading.dataAge === 'number' && reading.dataAge > API3_MAX_DATA_AGE_SECONDS) {
-        return false;
-      }
-      return true;
-    }
-
-    // RedStone's symbol is the feed identity and is case-sensitive. Probe the
-    // exact stored symbol rather than collapsing ETH/USDC and ETH/USD to ETH.
-    if (provider === OracleProvider.REDSTONE) {
-      return (
-        (await runProbeWithTimeout(
-          (signal) => probeRedStoneFeed(feed, signal),
-          REACTIVATE_TIMEOUT_MS
-        )) ?? false
-      );
-    }
-
     // Curated Monad DORA Push rows are identity-bound to one pair index under
     // the shared S-value contract. They cannot be reactivated by the generic
     // API client without losing that identity; reread the exact Push pair.
+    // Checked before the generic SUPRA index strategy so identity-bound rows
+    // never fall through to a bare index read.
     if (
       provider === OracleProvider.SUPRA &&
       chain === Blockchain.MONAD &&
@@ -465,56 +292,13 @@ async function probeInactiveFeed(feed: OracleFeed): Promise<boolean> {
       return !!reading && isFreshTimestamp(feed, reading.timestamp);
     }
 
-    if (provider === OracleProvider.SUPRA && /^\d+$/.test(feed.address)) {
-      const price = await runProbeWithTimeout(
-        (signal) =>
-          getSupraDataService().fetchLatestPriceByIndex(Number(feed.address), feed.symbol, signal),
-        REACTIVATE_TIMEOUT_MS
-      );
-      return !!price && price.price > 0 && isFreshTimestamp(feed, price.timestamp);
-    }
-
-    if (provider === OracleProvider.REFLECTOR && feed.address) {
-      const price = await runProbeWithTimeout(
-        (signal) => getReflectorDataService().fetchLatestPrice(feed.symbol, signal, feed.address),
-        REACTIVATE_TIMEOUT_MS
-      );
-      return !!price && price.price > 0 && isFreshTimestamp(feed, price.timestamp);
-    }
-
-    if (provider === OracleProvider.WINKLINK && feed.address) {
-      const price = await runProbeWithTimeout(
-        (signal) =>
-          getWINkLinkRealDataService().getPriceFromContract(
-            feed.symbol,
-            undefined,
-            signal,
-            feed.address
-          ),
-        REACTIVATE_TIMEOUT_MS
-      );
-      return !!price && price.price > 0 && isFreshTimestamp(feed, price.timestamp);
-    }
-
-    // Chainlink rows have an address-level identity, so verify that exact
-    // aggregator instead of asking the default client for another feed with
-    // the same base symbol.
-    if (provider === OracleProvider.CHAINLINK && /^0x[0-9a-fA-F]{40}$/.test(feed.address)) {
-      const price = await runProbeWithTimeout(
-        (signal) =>
-          chainlinkOnChainService.getPrice(
-            feed.symbol,
-            feed.chain_id,
-            signal,
-            feed.address as `0x${string}`
-          ),
-        REACTIVATE_TIMEOUT_MS
-      );
+    const strategy = resolveSharedProbeStrategy(feed);
+    if (strategy) {
       return (
-        price !== null &&
-        Number.isFinite(price.price) &&
-        price.price > 0 &&
-        isFreshTimestamp(feed, price.timestamp)
+        (await runProbeWithTimeout(
+          (signal) => strategy.probe(feed, chain, signal),
+          REACTIVATE_TIMEOUT_MS
+        )) ?? false
       );
     }
 

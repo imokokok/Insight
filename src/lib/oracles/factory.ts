@@ -21,6 +21,28 @@ import type { BaseOracleClient } from './base';
 
 const logger = createLogger('OracleClientFactory');
 
+/**
+ * Client constructors keyed by static enum member. Keys must stay static
+ * (never request-derived) — see the CodeQL js/unvalidated-dynamic-method-call
+ * constraint noted in feedDiscovery's dispatcher for the same pattern.
+ */
+const ORACLE_CLIENT_CONSTRUCTORS: Record<OracleProvider, () => BaseOracleClient> = {
+  [OracleProvider.CHAINLINK]: () =>
+    new ChainlinkClient({ useRealData: FEATURE_FLAGS.useRealChainlinkData }),
+  [OracleProvider.PYTH]: () => new PythClient(),
+  [OracleProvider.STORK]: () => new StorkMonadClient(),
+  [OracleProvider.CHRONICLE]: () => new ChronicleMonadClient(),
+  [OracleProvider.API3]: () => new API3Client(),
+  [OracleProvider.REDSTONE]: () => new RedStoneClient(),
+  [OracleProvider.DIA]: () => new DIAClient(),
+  [OracleProvider.WINKLINK]: () => new WINkLinkClient(),
+  [OracleProvider.SUPRA]: () => new SupraClient(),
+  [OracleProvider.TWAP]: () => new TWAPClient(),
+  [OracleProvider.REFLECTOR]: () => new ReflectorClient(),
+  [OracleProvider.FLARE]: () => new FlareClient(),
+  [OracleProvider.BAND]: () => new BandClient(),
+};
+
 class OracleClientFactory {
   private instances = new Map<OracleProvider, BaseOracleClient>();
 
@@ -51,36 +73,11 @@ class OracleClientFactory {
   }
 
   private createClient(provider: OracleProvider): BaseOracleClient {
-    switch (provider) {
-      case OracleProvider.CHAINLINK:
-        return new ChainlinkClient({ useRealData: FEATURE_FLAGS.useRealChainlinkData });
-      case OracleProvider.PYTH:
-        return new PythClient();
-      case OracleProvider.STORK:
-        return new StorkMonadClient();
-      case OracleProvider.CHRONICLE:
-        return new ChronicleMonadClient();
-      case OracleProvider.API3:
-        return new API3Client();
-      case OracleProvider.REDSTONE:
-        return new RedStoneClient();
-      case OracleProvider.DIA:
-        return new DIAClient();
-      case OracleProvider.WINKLINK:
-        return new WINkLinkClient();
-      case OracleProvider.SUPRA:
-        return new SupraClient();
-      case OracleProvider.TWAP:
-        return new TWAPClient();
-      case OracleProvider.REFLECTOR:
-        return new ReflectorClient();
-      case OracleProvider.FLARE:
-        return new FlareClient();
-      case OracleProvider.BAND:
-        return new BandClient();
-      default:
-        throw new ValidationError(`Unknown oracle provider: ${provider}`, { value: provider });
+    const construct = ORACLE_CLIENT_CONSTRUCTORS[provider];
+    if (!construct) {
+      throw new ValidationError(`Unknown oracle provider: ${provider}`, { value: provider });
     }
+    return construct();
   }
 }
 
