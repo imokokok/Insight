@@ -189,9 +189,12 @@ const unique = new Map<string, Deployment>();
 for (const deployment of deployments) unique.set(String(deployment.uid ?? ''), deployment);
 
 const violations: Violation[] = [];
+let scanned = 0;
+
 for (const deployment of unique.values()) {
   const createdAt = Number(deployment.createdAt ?? 0);
   if (createdAt < since.getTime() || createdAt > until.getTime()) continue;
+  scanned += 1;
   const meta = deployment.meta ?? {};
   if (typeof meta.deployHookId === 'string' && meta.deployHookId.length > 0) continue;
 
@@ -236,7 +239,7 @@ for (const violation of violations) {
 }
 
 console.log(
-  `audited ${unique.size} production deployments between ${since.toISOString()} and ${until.toISOString()}; violations=${violations.length} highRisk=${violations.filter((v) => v.highRisk).length} filed=${filed}`
+  `audited ${scanned} production deployments between ${since.toISOString()} and ${until.toISOString()}; violations=${violations.length} highRisk=${violations.filter((v) => v.highRisk).length} filed=${filed}`
 );
 
 if (failOnViolation && violations.length > 0) {
