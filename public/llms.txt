@@ -22,6 +22,38 @@
 - [Base Agent Swap Guard](https://github.com/imokokok/Insight/blob/main/docs/base-agent-swap-guard.md): MCP tool `prepare_base_agent_swap_guard`, C3 / $0.02 through x402. For one Base-mainnet reviewed direct Aerodrome Slipstream WETH→USDC CL100 or PancakeSwap V3 USDC→USDT 0.01% proposal, it returns `ALLOW`, `CAUTION`, or `BLOCK`; only `ALLOW` returns byte-bound unsigned approval and swap calldata for human confirmation. It never signs, routes, relays, or broadcasts a transaction.
 - [Solana Swap Guard lifecycle](https://github.com/imokokok/Insight/blob/main/docs/solana-swap-guard.md): MCP tools `solana_swap_guard` (C3 / $0.02) plus `settle_solana_swap_guard` and `verify_solana_swap_guard_settlement` (C4 / $0.04 each) through x402. For exactly one unsigned Orca Whirlpool USDC/USDT 0.01% swap on Solana mainnet (both directions), `solana_swap_guard` returns `ALLOW`, `CAUTION`, or `BLOCK`; only an `ALLOW` attestation is returned and it is bound to the exact message hash, with no executable payload for CAUTION or BLOCK. After execution, the settlement re-collects on-chain SPL balance deltas and returns a signed SETTLED / REVERTED / UNRECONCILED closure. The tools never sign, submit, relay, or authorize a transaction.
 
+## One-command MCP install and attribution
+
+Any MCP host can connect with no API key and no local checkout:
+
+`npx -y mcp-remote https://www.oracleinsight.xyz/api/mcp --header x-insight-entry-source:mcp`
+
+`initialize`, `tools/list`, and `ping` are free; `tools/call` is priced by
+metering class. Clients may send `x-insight-entry-source` with one bounded,
+non-identifying label: `direct`, `docs`, `bazaar`, `mcp`, `sdk`, `skill`,
+`wallet_mcp`, `sendaifun`, `solana_directory`, or `unknown`. It is used only for
+aggregate conversion analysis and never affects pricing, authorization,
+verification, or settlement. Omitting it is fully supported. HTTP 402 responses
+also carry `x-insight-quickstart`, `x-insight-mcp-install` and
+`x-insight-no-wallet` hints.
+
+## Zero-wallet trial (no crypto needed)
+
+If an agent has no wallet, use the existing credit rail instead of x402:
+
+1. Sign up at https://www.oracleinsight.xyz and verify the email address. A
+   one-time, idempotent grant of 100 credits is issued to the account (about
+   20 C3 pre-trade decisions; 1 credit = $0.004).
+2. Create an API key at https://www.oracleinsight.xyz/settings?tab=api-keys.
+3. Send `X-API-Key: <key>` on REST calls, or set `INSIGHT_API_KEY` in the MCP
+   host's `env` block for the launcher. No wallet, USDC, private key or
+   `@x402/fetch` client is required.
+
+This is a per-account, email-verified, one-time grant — not an anonymous
+free tier and not a recurring allowance. It uses the same metering, quota and
+safety boundary as any paid API key; verdicts are identical. HTTP 402
+responses carry `x-insight-no-wallet` with this hint.
+
 ## Payment flow (x402 v2, exact scheme)
 
 1. GET the endpoint without payment credentials. You receive HTTP 402 with a `PAYMENT-REQUIRED` response header containing the live base64url JSON challenge.

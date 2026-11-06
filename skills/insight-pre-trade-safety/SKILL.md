@@ -27,6 +27,16 @@ Use only the narrow action prompts in
 an agent to assess a proposed action before signing; they never tell an agent
 to execute a transaction because Insight has no transaction authority.
 
+## Optional attribution header
+
+The [`mcp.json`](mcp.json) template sends `x-insight-entry-source: skill`. Any
+HTTP or x402 client may send the same header with one bounded, non-identifying
+label: `direct`, `docs`, `bazaar`, `mcp`, `sdk`, `skill`, `wallet_mcp`,
+`sendaifun`, `solana_directory`, or `unknown`. It is used only for aggregate
+conversion analysis. It never affects pricing, authorization, verification, or
+settlement, and omitting it is fully supported. Never put a wallet address,
+API key, or free-form campaign value in this header.
+
 ## How to call
 
 Plain HTTP:

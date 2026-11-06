@@ -1,0 +1,42 @@
+{
+  "name": "@oracleinsight/mcp",
+  "version": "0.1.0",
+  "description": "One-command MCP launcher for Insight decision-input integrity. Bridges stdio-only MCP hosts to the hosted Insight MCP server with keyless discovery and optional paid tools.",
+  "type": "module",
+  "bin": {
+    "insight-mcp": "bin/insight-mcp.mjs"
+  },
+  "files": [
+    "bin",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  },
+  "dependencies": {
+    "mcp-remote": "^0.16.1"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "ai-agent",
+    "oracle",
+    "risk",
+    "x402",
+    "insight"
+  ],
+  "license": "MIT",
+  "homepage": "https://www.oracleinsight.xyz",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/imokokok/Insight.git",
+    "directory": "mcp-launcher"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

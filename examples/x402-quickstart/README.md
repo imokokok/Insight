@@ -21,6 +21,15 @@ Live docs: https://www.oracleinsight.xyz/docs/x402
 Both need a wallet with a small USDC balance on Base mainnet (a few cents is
 plenty at $0.02 per check).
 
+**No wallet?** The same endpoints accept `X-API-Key` instead of a payment
+signature. Sign up at https://www.oracleinsight.xyz, verify the email address
+(a one-time, idempotent 100-credit grant is issued — about 20 C3 decisions),
+create a key at https://www.oracleinsight.xyz/settings?tab=api-keys, then send
+`X-API-Key: <key>`. For MCP, set `INSIGHT_API_KEY` in the host's `env` block.
+This is the existing credit-wallet rail, not an anonymous or recurring free
+tier; results and the safety boundary are identical. HTTP 402 responses carry
+an `x-insight-no-wallet` hint with the same pointer.
+
 ## MCP tools/call
 
 The same x402 client pays for unauthenticated `tools/call` against the hosted
@@ -50,6 +59,16 @@ When `MPP_MCP_ENABLED=true`, the separate MPP endpoint
 credential, and receipt metadata. The challenge is bound to the canonical tool
 arguments, and failed tool calls do not settle. The full catalog at `/api/mcp`
 continues to support x402 and API keys.
+
+## Attribution and 402 hints (optional)
+
+Each example sends `x-insight-entry-source: docs` (the MCP example uses `mcp`).
+This is a bounded, non-identifying label used only for aggregate conversion
+analysis. It never affects pricing, payment verification, or settlement and may
+be omitted. A bare HTTP 402 also returns `x-insight-quickstart`,
+`x-insight-mcp-install` and `x-insight-no-wallet` response headers with the
+docs URL, a one-command MCP install and the wallet-free credit path, so an
+agent that has never seen x402 has a next step.
 
 ## Verify what you paid for
 

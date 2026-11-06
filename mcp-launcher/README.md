@@ -1,0 +1,106 @@
+# @oracleinsight/mcp
+
+One-command MCP launcher for [Insight](https://www.oracleinsight.xyz). It lets a
+stdio-only MCP host (Claude Desktop, Cursor, Windsurf, ElizaOS, Docker MCP
+Gateway, Smithery) connect to the hosted Insight MCP server without a local
+checkout, a build step, or an API key.
+
+The launcher is a thin wrapper around the published
+[`mcp-remote`](https://www.npmjs.com/package/mcp-remote) bridge. It pins the
+Insight endpoint and the bounded attribution header so agent configs stay one
+line long. It contains no Insight source, no credentials, and no payment logic.
+
+## Install
+
+```json
+{
+  "mcpServers": {
+    "insight": {
+      "command": "npx",
+      "args": ["-y", "--package=@oracleinsight/mcp", "insight-mcp"]
+    }
+  }
+}
+```
+
+Or run it directly:
+
+```bash
+npx -y --package=@oracleinsight/mcp insight-mcp
+```
+
+`initialize`, `tools/list`, and `ping` are free. `tools/call` is paid per call
+via x402 (USDC, no signup) or metered against a credit wallet when
+`INSIGHT_API_KEY` is set. The launcher never sees a private key. An x402 wallet
+is configured in the calling agent runtime, not here.
+
+## No-wallet trial
+
+If the agent has no wallet, use the credit rail. Sign up at
+https://www.oracleinsight.xyz, verify the email address (a one-time,
+idempotent 100-credit grant is issued — about 20 C3 decisions), create a key
+at https://www.oracleinsight.xyz/settings?tab=api-keys, and put it in the MCP
+host config's `env` block:
+
+```json
+{
+  "mcpServers": {
+    "insight": {
+      "command": "npx",
+      "args": ["-y", "--package=@oracleinsight/mcp", "insight-mcp"],
+      "env": { "INSIGHT_API_KEY": "ins_..." }
+    }
+  }
+}
+```
+
+The launcher passes `${INSIGHT_API_KEY}` as a placeholder and `mcp-remote`
+expands it from the child environment, so the key never appears in `argv` or
+in this package. Calls then meter against the credit wallet instead of x402.
+This is a one-time, email-verified, per-account grant — not an anonymous or
+recurring free tier. Verdicts and the safety boundary are identical.
+
+## Environment
+
+| Variable               | Default                                 | Meaning                                                                                            |
+| ---------------------- | --------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `INSIGHT_MCP_URL`      | `https://www.oracleinsight.xyz/api/mcp` | Override the hosted endpoint (self-hosted or staging deployments).                                 |
+| `INSIGHT_API_KEY`      | unset                                   | Optional credit-wallet key. Expanded by `mcp-remote` from the environment, never placed in `argv`. |
+| `INSIGHT_ENTRY_SOURCE` | `mcp`                                   | Optional bounded attribution label (see below).                                                    |
+
+Extra CLI arguments are forwarded to `mcp-remote`, for example
+`--header "X-Custom:value"`.
+
+## Attribution
+
+Every request carries `x-insight-entry-source` with one bounded,
+non-identifying label: `direct`, `docs`, `bazaar`, `mcp`, `sdk`, `skill`,
+`wallet_mcp`, `sendaifun`, `solana_directory`, or `unknown`. It is aggregate
+conversion metadata only. It never affects pricing, authorization, payment
+verification, or settlement, and an unknown value is rejected rather than
+forwarded. Never put a wallet address, API key, or free-form campaign value in
+this header.
+
+## Safety boundary
+
+Insight returns evidence about decision inputs. A `PASS` is not permission to
+trade, and a `BLOCK` is a completed check. Insight does not custody funds,
+sign, broadcast, select a route, or guarantee an outcome.
+
+## Development
+
+```bash
+node --test test/*.test.mjs
+npm pack --dry-run
+```
+
+Publishing requires the maintainer's npm account and is intentionally not
+automated in this repository:
+
+```bash
+npm publish --access public
+```
+
+After publishing, the generated MCP configs in
+`src/app/mcp/components/McpConfigGenerator.tsx` can switch from the explicit
+`mcp-remote` command to `['-y', '--package=@oracleinsight/mcp', 'insight-mcp']`.

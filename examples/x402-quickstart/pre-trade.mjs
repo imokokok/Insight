@@ -31,7 +31,10 @@ const client = new x402Client().register(
 );
 const fetchWithPay = wrapFetchWithPayment(fetch, client);
 
-const res = await fetchWithPay(ENDPOINT);
+// Optional, bounded attribution label. It never affects price or settlement.
+const res = await fetchWithPay(ENDPOINT, {
+  headers: { 'x-insight-entry-source': 'docs' },
+});
 console.log('HTTP', res.status);
 const check = await res.json();
 console.log(JSON.stringify(check, null, 2));

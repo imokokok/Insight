@@ -109,16 +109,53 @@ export function x402AcquisitionSource(
   return passiveAcquisitionSource(request);
 }
 
+/**
+ * Advisory headers returned on a bare 402. Pure and side-effect free so the
+ * onboarding vocabulary is unit-testable without constructing a resource
+ * server. Nothing here changes the payment body, price, accepts[] or the
+ * verify/settle path; these are hints for machine clients only.
+ *
+ * `x-insight-no-wallet` points at the existing one-time signup grant
+ * (`POST /api/billing/signup-grant`, 100 credits after email verification)
+ * plus the `X-API-Key` credit rail. It deliberately does not create an
+ * anonymous free tier: a per-account, verified, idempotent grant is the only
+ * wallet-free entitlement, and plans.ts, quotaMiddleware.ts and
+ * mcp/middleware.ts all state "no recurring free tier".
+ */
+export function x402OnboardingHeaders(): Record<string, string> {
+  return {
+    'x-insight-entry-source-hint': `optional self-attribution header x-insight-entry-source: ${X402_ACQUISITION_SOURCES.join('|')}`,
+    'x-insight-quickstart': 'https://www.oracleinsight.xyz/docs/x402',
+    'x-insight-mcp-install':
+      'npx -y mcp-remote https://www.oracleinsight.xyz/api/mcp --header x-insight-entry-source:mcp',
+    'x-insight-no-wallet':
+      'X-API-Key credit wallet: signup + email verification grants 100 credits (~20 C3 calls), no wallet or USDC needed; https://www.oracleinsight.xyz/docs/x402',
+  };
+}
+
 /** Discovery/listing surfaces known to send human or agent traffic to paid routes. */
 const DISCOVERY_HOST_PATTERN = /(x402scan\.com|bazaar\.|agent402\.tools|x402-list\.com)/i;
 const INSIGHT_DOCS_PATTERN = /oracleinsight\.xyz\/(docs|ai)\b/i;
 const BROWSER_UA_PATTERN = /mozilla\/|chrome\/|safari\/|firefox\/|edg\//i;
 
+// Agent-native surfaces are invisible to the referral-based rules above: a
+// Skill package or an MCP bridge calls paid routes directly with a generic
+// Node user-agent. Keep these patterns deliberately narrow. A miss is a
+// harmless `unknown`, while a false positive would corrupt attribution.
+// `skill` and `wallet_mcp` are intentionally left to the self-declared header
+// in those packages; there is no reliable passive signal for either.
+const SENDAI_SKILL_HOST_PATTERN = /(sendaifun|claude\.ai\/skills|anthropic\.com\/skills)/i;
+const SOLANA_DIRECTORY_HOST_PATTERN = /(awesome-solana|solana-foundation|solana\.com\/developers)/i;
+const MCP_CLIENT_UA_PATTERN = /(@modelcontextprotocol|mcp-remote|mcp\/|claude-code|insight-mcp)/i;
+
 function passiveAcquisitionSource(request: Pick<NextRequest, 'headers'>): X402AcquisitionSource {
   const discovery = `${request.headers.get('referer') ?? ''} ${request.headers.get('origin') ?? ''}`;
   if (INSIGHT_DOCS_PATTERN.test(discovery)) return 'docs';
   if (DISCOVERY_HOST_PATTERN.test(discovery)) return 'bazaar';
+  if (SOLANA_DIRECTORY_HOST_PATTERN.test(discovery)) return 'solana_directory';
+  if (SENDAI_SKILL_HOST_PATTERN.test(discovery)) return 'sendaifun';
   const userAgent = request.headers.get('user-agent') ?? '';
+  if (MCP_CLIENT_UA_PATTERN.test(userAgent)) return 'mcp';
   if (/x402/i.test(userAgent)) return 'sdk';
   if (BROWSER_UA_PATTERN.test(userAgent)) return 'direct';
   return 'unknown';
@@ -977,13 +1014,12 @@ export async function handlePaidPreTradeRequest(
     }
     let response = toNextResponse(result.response);
     if (!hasPaymentSignature) {
-      // Tell machine clients they may self-declare an entry source. The
-      // vocabulary is the same fixed, non-identifying set the settlement
-      // audit accepts; nothing here affects payment behavior.
-      response.headers.set(
-        'x-insight-entry-source-hint',
-        `optional self-attribution header x-insight-entry-source: ${X402_ACQUISITION_SOURCES.join('|')}`
-      );
+      // A bare 402 leaves an agent with no machine-readable next step. These
+      // are advisory headers for SDK/agent clients, not browser-facing UI, and
+      // never touch the x402 payment body or the quote's price/accepts.
+      for (const [name, value] of Object.entries(x402OnboardingHeaders())) {
+        response.headers.set(name, value);
+      }
     }
     if (!hasPaymentSignature && cfg.hypercore) {
       try {

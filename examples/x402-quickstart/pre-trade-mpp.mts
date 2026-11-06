@@ -33,7 +33,10 @@ const mppx = Mppx.create({
   ],
 });
 
-const response = await mppx.fetch(ENDPOINT);
+// Optional, bounded attribution label. It never affects price or settlement.
+const response = await mppx.fetch(ENDPOINT, {
+  headers: { 'x-insight-entry-source': 'docs' },
+});
 const body: unknown = await response.json();
 const parsed = z
   .object({

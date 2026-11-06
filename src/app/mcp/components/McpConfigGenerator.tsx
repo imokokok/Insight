@@ -23,40 +23,42 @@ export function McpConfigGenerator({ defaultApiKey, onApiKeyChange }: McpConfigG
   const apiKey = customApiKey ?? defaultApiKey ?? '';
 
   const cursorConfig = useMemo(() => {
-    const server: Record<string, unknown> = {
-      url: `${baseUrl}/api/mcp`,
-    };
+    const headers: Record<string, string> = { 'x-insight-entry-source': 'mcp' };
     if (apiKey.trim()) {
-      server.headers = { 'X-API-Key': apiKey.trim() };
+      headers['X-API-Key'] = apiKey.trim();
     }
     return {
       mcpServers: {
-        'insight-oracle': server,
+        'insight-oracle': {
+          url: `${baseUrl}/api/mcp`,
+          headers,
+        },
       },
     };
   }, [baseUrl, apiKey]);
 
+  // `mcp-remote` is published and needs no local checkout. Once the branded
+  // @oracleinsight/mcp launcher is published, replacing these two args arrays
+  // with ['-y', '@oracleinsight/mcp'] is the only change required here.
   const claudeDesktopConfig = useMemo(() => {
+    const args = [
+      '-y',
+      'mcp-remote',
+      `${baseUrl}/api/mcp`,
+      '--header',
+      'x-insight-entry-source:mcp',
+    ];
+    const env: Record<string, string> = {};
     if (apiKey.trim()) {
-      return {
-        mcpServers: {
-          'insight-oracle': {
-            command: 'npx',
-            args: ['-y', '@modelcontextprotocol/server-fetch'],
-            env: {
-              API_URL: `${baseUrl}/api/mcp`,
-              API_KEY: apiKey.trim(),
-            },
-          },
-        },
-      };
+      args.push('--header', 'X-API-Key:${INSIGHT_API_KEY}');
+      env.INSIGHT_API_KEY = apiKey.trim();
     }
     return {
       mcpServers: {
         'insight-oracle': {
           command: 'npx',
-          args: ['tsx', 'src/mcp/index.ts'],
-          env: { NODE_ENV: 'production' },
+          args,
+          ...(Object.keys(env).length > 0 ? { env } : {}),
         },
       },
     };

@@ -23,7 +23,12 @@ function readPrivateKey(): `0x${string}` {
 }
 
 const client = new Client({ name: 'insight-mpp-example', version: '1.0.0' });
-await client.connect(new StreamableHTTPClientTransport(new URL(ENDPOINT)));
+// Optional, bounded attribution label. It never affects price or settlement.
+await client.connect(
+  new StreamableHTTPClientTransport(new URL(ENDPOINT), {
+    requestInit: { headers: { 'x-insight-entry-source': 'mcp' } },
+  })
+);
 
 const paidClient = McpClient.wrap(client, {
   methods: [

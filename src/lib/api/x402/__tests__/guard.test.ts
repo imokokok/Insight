@@ -13,7 +13,9 @@ import {
   isPaidRequest,
   paymentAuditFields,
   toNextResponse,
+  X402_ACQUISITION_SOURCES,
   x402AcquisitionSource,
+  x402OnboardingHeaders,
 } from '../guard';
 import { getX402HttpServer } from '../resourceServer';
 
@@ -498,5 +500,95 @@ describe('x402 guard', () => {
         global.fetch = originalFetch;
       }
     });
+  });
+});
+
+describe('x402AcquisitionSource agent-native attribution', () => {
+  it('exposes exactly the ten labels the database CHECK allows', () => {
+    expect(X402_ACQUISITION_SOURCES).toEqual([
+      'direct',
+      'docs',
+      'bazaar',
+      'mcp',
+      'sdk',
+      'skill',
+      'wallet_mcp',
+      'sendaifun',
+      'solana_directory',
+      'unknown',
+    ]);
+  });
+
+  it.each(['skill', 'wallet_mcp', 'sendaifun', 'solana_directory', 'mcp'])(
+    'honors the declared %s label',
+    (label) => {
+      expect(x402AcquisitionSource(makeRequest({ 'x-insight-entry-source': label }))).toBe(label);
+    }
+  );
+
+  it('ignores free-form values and falls back when the header is missing', () => {
+    expect(x402AcquisitionSource(makeRequest({ 'x-insight-entry-source': 'campaign-42' }))).toBe(
+      'unknown'
+    );
+    expect(x402AcquisitionSource(makeRequest())).toBe('unknown');
+  });
+
+  it('maps MCP bridges, Skill directories and Solana directories passively', () => {
+    expect(
+      x402AcquisitionSource(makeRequest({ 'user-agent': '@modelcontextprotocol/sdk/1.0.0' }))
+    ).toBe('mcp');
+    expect(x402AcquisitionSource(makeRequest({ referer: 'https://sendaifun.com/skills' }))).toBe(
+      'sendaifun'
+    );
+    expect(
+      x402AcquisitionSource(
+        makeRequest({ referer: 'https://github.com/solana-foundation/awesome-solana-ai' })
+      )
+    ).toBe('solana_directory');
+  });
+
+  it('keeps a declared label authoritative over passive signals', () => {
+    expect(
+      x402AcquisitionSource(
+        makeRequest({
+          'x-insight-entry-source': 'skill',
+          'user-agent': '@modelcontextprotocol/sdk/1.0.0',
+        })
+      )
+    ).toBe('skill');
+  });
+});
+
+describe('x402OnboardingHeaders 402 hints', () => {
+  const headers = x402OnboardingHeaders();
+
+  it('exposes exactly the four advisory hints', () => {
+    expect(Object.keys(headers).sort()).toEqual([
+      'x-insight-entry-source-hint',
+      'x-insight-mcp-install',
+      'x-insight-no-wallet',
+      'x-insight-quickstart',
+    ]);
+  });
+
+  it('advertises the existing verified signup grant, not an anonymous free tier', () => {
+    const hint = headers['x-insight-no-wallet'];
+    expect(hint).toContain('X-API-Key');
+    expect(hint).toContain('100 credits');
+    expect(hint).toContain('email verification');
+    expect(hint).toContain('https://www.oracleinsight.xyz/docs/x402');
+  });
+
+  it('keeps every hint free of keys, wallets and payment challenges', () => {
+    for (const value of Object.values(headers)) {
+      expect(value).not.toMatch(/ins_[A-Za-z0-9]|0x[a-fA-F0-9]{20,}|PAYMENT-SIGNATURE|accepts/);
+      expect(value).not.toContain('\n');
+    }
+  });
+
+  it('keeps the attribution hint on the same ten-label vocabulary', () => {
+    for (const label of X402_ACQUISITION_SOURCES) {
+      expect(headers['x-insight-entry-source-hint']).toContain(label);
+    }
   });
 });

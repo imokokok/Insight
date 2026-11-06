@@ -12,6 +12,15 @@ ElizaOS plugin for [Insight](https://www.oracleinsight.xyz/) — pre-trade decis
 
 ## Install
 
+This package is prepared for its first npm release but is not published yet.
+Until then, install from a local checkout:
+
+```bash
+npm install /path/to/Insight/integrations/elizaos-plugin-insight
+```
+
+After publishing (see [Publishing](#publishing)):
+
 ```bash
 npm install elizaos-plugin-oracle-insight
 ```
@@ -65,6 +74,13 @@ The handler returns a compact verdict text (`PASS`/`WARN`/`BLOCK` + reason codes
 
 Every paid check returns an EIP-712 attestation (26 signed fields, 600 s validity window) that any third party can verify offline or via `INSIGHT_VERIFY_ATTESTATION`.
 
+## Attribution
+
+Requests from this plugin send `x-insight-entry-source: wallet_mcp`, a bounded,
+non-identifying label used only for aggregate conversion analysis. It never
+affects pricing, authorization, payment verification, or settlement. The label
+is fixed in the client and cannot be set from agent input.
+
 ## Build
 
 ```bash
@@ -73,3 +89,19 @@ npm run build
 ```
 
 The plugin targets `@elizaos/core >= 1.x` (peer dependency) and the x402 v2 spec used by Insight's paid tier.
+
+## Publishing
+
+Publishing is a manual maintainer action, not a CI job:
+
+```bash
+npm run build
+npm pack --dry-run   # expect dist/, README.md, LICENSE and package.json only
+npm publish          # requires the maintainer's npm account
+```
+
+`prepublishOnly` rebuilds `dist` automatically. Before announcing the release,
+confirm the name is available on npm, check that the packed tarball has no
+credentials, and smoke-test `npm install` in a clean directory. The ElizaOS
+plugin directory / marketplace submission is a separate step and needs its own
+maintainer review.

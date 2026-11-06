@@ -31,7 +31,8 @@ async def main():
     register_exact_evm_client(client, EthAccountSigner(account))
 
     async with x402HttpxClient(client) as http:
-        response = await http.get(URL)
+        # Optional, bounded attribution label. It never affects price or settlement.
+        response = await http.get(URL, headers={"x-insight-entry-source": "docs"})
         await response.aread()
         print("HTTP", response.status_code)
         print(json.dumps(json.loads(response.text), indent=2))
