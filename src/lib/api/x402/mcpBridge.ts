@@ -22,6 +22,7 @@ import {
   paymentAuditFields,
   recordX402Settlement,
   x402AcquisitionSource,
+  x402OnboardingHeaders,
   x402ResponseBody,
 } from './guard';
 import { BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME, getMcpX402HttpServer } from './resourceServer';
@@ -166,7 +167,7 @@ export async function handleMcpIndexerQuote(request: Request, cfg: X402Config): 
   // audit signatures that were rejected and all verified/settled payments,
   // but leave an unsigned quote to request logs and edge metrics.
   logUnsignedMcpQuoteSample('indexer quote issued', { requestId, priceAtomic: price });
-  return attachRequestId(toResponse(result.response), requestId);
+  return attachRequestId(attachOnboardingHeaders(toResponse(result.response)), requestId);
 }
 
 /**
@@ -276,6 +277,21 @@ function attachRequestId(response: Response, requestId: string): Response {
   return response;
 }
 
+/**
+ * Attach the same advisory onboarding headers the REST x402 guard emits. The
+ * MCP endpoint is the surface agents actually probe first; without these, a
+ * bare 402 there gives a machine client no install command and no wallet-free
+ * credit path, even though the REST route does. Hints only — the payment body,
+ * price, accepts[] and verify/settle path are untouched. Signed-but-rejected
+ * requests keep the exact x402 lifecycle response shape, as on REST.
+ */
+function attachOnboardingHeaders(response: Response): Response {
+  for (const [name, value] of Object.entries(x402OnboardingHeaders())) {
+    response.headers.set(name, value);
+  }
+  return response;
+}
+
 export interface McpPaidCallInput {
   request: Request;
   cfg: X402Config;
@@ -359,7 +375,11 @@ export async function handleMcpPaidToolCall({
     } else {
       logUnsignedMcpQuoteSample('payment quote issued', { requestId, toolName, priceAtomic });
     }
-    return attachRequestId(toResponse(result.response), requestId);
+    const response = toResponse(result.response);
+    if (!hasPaymentSignature) {
+      attachOnboardingHeaders(response);
+    }
+    return attachRequestId(response, requestId);
   }
 
   if (result.type === 'no-payment-required') {

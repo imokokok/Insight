@@ -145,6 +145,21 @@ interface OracleCheckSummary {
   participantCount: number;
   attestationUid: string | null;
   decisionInputStatus: 'SUFFICIENT' | 'INSUFFICIENT_EVIDENCE' | 'BLOCK' | null;
+  /**
+   * Replayable decision-input evidence for the checked asset, exposed so a
+   * caller can independently recompute why the status was reached.
+   * Null when no decision-input check ran for this asset.
+   */
+  decisionInput: {
+    quoteDeviationBps: number | null;
+    quoteDeviationLimitBps: number | null;
+    quoteAgeSeconds: number | null;
+    quoteAgeLimitSeconds: number | null;
+    chainlinkPriceUsd: number | null;
+    chainlinkDeviationBps: number | null;
+    cexMedianPriceUsd: number | null;
+    cexDeviationBps: number | null;
+  } | null;
 }
 
 interface GuardBinding {
@@ -382,6 +397,19 @@ function oracleSummary(
     participantCount: result.participantCount,
     attestationUid: result.attestation?.uid ?? null,
     decisionInputStatus: result.decisionInputAssessment?.status ?? null,
+    decisionInput: result.decisionInputAssessment
+      ? {
+          quoteDeviationBps: result.decisionInputAssessment.prices.quoteDeviationBps,
+          quoteDeviationLimitBps:
+            result.decisionInputAssessment.policy.maxReferenceDeviationBps ?? null,
+          quoteAgeSeconds: result.decisionInputAssessment.prices.quoteAgeSeconds,
+          quoteAgeLimitSeconds: result.decisionInputAssessment.policy.maxQuoteAgeSeconds ?? null,
+          chainlinkPriceUsd: result.decisionInputAssessment.prices.chainlinkPriceUsd,
+          chainlinkDeviationBps: result.decisionInputAssessment.prices.chainlinkDeviationBps,
+          cexMedianPriceUsd: result.decisionInputAssessment.prices.cexMedianPriceUsd,
+          cexDeviationBps: result.decisionInputAssessment.prices.cexDeviationBps,
+        }
+      : null,
   };
 }
 

@@ -3,12 +3,21 @@
   "name": "io.github.imokokok/insight-oracle",
   "title": "Insight Pre-Trade Safety",
   "description": "Decision-input integrity for onchain AI agents: verify oracle prices before signing a trade.",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "homepage": "https://www.oracleinsight.xyz",
   "remotes": [
     {
       "type": "streamable-http",
       "url": "https://www.oracleinsight.xyz/api/mcp"
+    }
+  ],
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "oracle-insight-mcp",
+      "version": "0.1.1",
+      "transport": { "type": "stdio" },
+      "runtimeHint": "npx"
     }
   ]
 }
