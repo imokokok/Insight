@@ -15,6 +15,9 @@
  *   - `tool_free` — the tool or verification kind is zero-priced by design
  *     (offline verification: signature + digest, no live upstream read). Unlike
  *     the reasons above this is a price decision, not a data-quality outcome.
+ *   - `rejected_without_evidence` — the result claimed `rejected` but did not
+ *     carry all five reproducibility items. An unreproducible refusal is not a
+ *     verdict: it degrades to `unavailable` and is never charged.
  */
 
 export const UPSTREAM_TIMEOUT_CODE = 'UPSTREAM_TIMEOUT';
@@ -23,6 +26,7 @@ export const UPSTREAM_TIMEOUT_CODE = 'UPSTREAM_TIMEOUT';
 export const BILLING_ZERO_REASONS = {
   insufficientData: 'insufficient_data',
   upstreamFailed: 'upstream_failed',
+  rejectedWithoutEvidence: 'rejected_without_evidence',
   timeout: 'timeout',
   toolFree: 'tool_free',
 } as const;
@@ -65,25 +69,171 @@ const NO_SUCCESSFUL_DATA_PATTERN = /\bNo successful (?:prices|results|quotes)\b/
  */
 const PRODUCT_OUTCOME_MARKER_PATTERN = /\[(rejected|unavailable):/;
 
-const JSON_PRODUCT_OUTCOME_PATTERNS = [
-  { outcome: 'rejected', pattern: /"(?:decision|productOutcome)"\s*:\s*"rejected"/ },
-  { outcome: 'unavailable', pattern: /"(?:decision|productOutcome)"\s*:\s*"unavailable"/ },
-] as const;
+const JSON_REJECTED_PATTERN = /"(?:decision|productOutcome)"\s*:\s*"rejected"/;
+const JSON_UNAVAILABLE_PATTERN = /"(?:decision|productOutcome)"\s*:\s*"unavailable"/;
 
 export type StructuredProductOutcome = 'rejected' | 'unavailable';
 
 /**
- * Read the product outcome from the structured result itself, not from
- * whether the handler returned JSON or threw. Result markers come first; a
- * JSON verdict is the second structured spelling.
+ * The five reproducibility items a `rejected` verdict must carry. Product
+ * contract: a refusal missing any item is not reproducible and must degrade to
+ * `unavailable` instead of being sold.
+ */
+export const REJECTED_EVIDENCE_ITEMS = [
+  'reason_code',
+  'input_digest',
+  'triggered_threshold',
+  'data_sources',
+  'risk_ruleset_version',
+] as const;
+
+export type RejectedEvidenceItem = (typeof REJECTED_EVIDENCE_ITEMS)[number];
+
+const REJECTED_EVIDENCE_ALIASES: Readonly<Record<RejectedEvidenceItem, readonly string[]>> = {
+  reason_code: ['reason_code', 'reasonCode'],
+  input_digest: ['input_digest', 'inputDigest'],
+  triggered_threshold: ['triggered_threshold', 'triggeredThreshold'],
+  data_sources: ['data_sources', 'dataSources'],
+  risk_ruleset_version: ['risk_ruleset_version', 'riskRulesetVersion'],
+};
+
+export type ProductOutcomeAssessment = {
+  /** Effective outcome after the evidence-completeness gate. */
+  outcome: StructuredProductOutcome | null;
+  /** Items absent from a claimed rejection; empty for a complete rejection. */
+  missingEvidence: RejectedEvidenceItem[];
+  /** True when a claimed rejection was downgraded to `unavailable`. */
+  downgradedFromRejected: boolean;
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isMeaningfulEvidenceValue(value: unknown): boolean {
+  if (typeof value === 'string') return value.trim().length > 0;
+  if (typeof value === 'number') return Number.isFinite(value);
+  if (typeof value === 'boolean') return true;
+  if (Array.isArray(value)) return value.length > 0 && value.every((item) => item != null);
+  if (isRecord(value)) return Object.keys(value).length > 0;
+  return false;
+}
+
+/** Which of the five reproducibility items are absent or empty. */
+export function missingRejectedEvidenceItems(evidence: unknown): RejectedEvidenceItem[] {
+  if (!isRecord(evidence)) return [...REJECTED_EVIDENCE_ITEMS];
+  return REJECTED_EVIDENCE_ITEMS.filter(
+    (item) =>
+      !REJECTED_EVIDENCE_ALIASES[item].some((key) => isMeaningfulEvidenceValue(evidence[key]))
+  );
+}
+
+function parseJsonRecord(resultText: string): Record<string, unknown> | null {
+  try {
+    const parsed: unknown = JSON.parse(resultText);
+    return isRecord(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function unavailableAssessment(parsed: Record<string, unknown> | null): ProductOutcomeAssessment {
+  const downgrade = parsed?.unavailable;
+  if (
+    isRecord(downgrade) &&
+    downgrade.downgradeReason === BILLING_ZERO_REASONS.rejectedWithoutEvidence
+  ) {
+    const listed = Array.isArray(downgrade.missing)
+      ? downgrade.missing.filter(
+          (item): item is RejectedEvidenceItem =>
+            typeof item === 'string' &&
+            (REJECTED_EVIDENCE_ITEMS as readonly string[]).includes(item)
+        )
+      : [];
+    return {
+      outcome: 'unavailable',
+      missingEvidence: listed.length > 0 ? listed : [...REJECTED_EVIDENCE_ITEMS],
+      downgradedFromRejected: true,
+    };
+  }
+  return { outcome: 'unavailable', missingEvidence: [], downgradedFromRejected: false };
+}
+
+/**
+ * Assess the structured product outcome, applying the rejection-evidence
+ * gate. Both spellings are understood: the adapter marker `[rejected:...]`
+ * (which carries no payload and is therefore always incomplete) and a JSON
+ * verdict carrying `evidence`. A downgraded envelope produced upstream (server
+ * then settlement gate) is recognised so its waiver reason survives the
+ * second entry point.
+ */
+export function assessProductOutcome(resultText: string): ProductOutcomeAssessment {
+  const marker = PRODUCT_OUTCOME_MARKER_PATTERN.exec(resultText);
+  if (marker) {
+    if (marker[1] === 'unavailable') {
+      return { outcome: 'unavailable', missingEvidence: [], downgradedFromRejected: false };
+    }
+    return {
+      outcome: 'unavailable',
+      missingEvidence: [...REJECTED_EVIDENCE_ITEMS],
+      downgradedFromRejected: true,
+    };
+  }
+
+  const parsed = parseJsonRecord(resultText);
+  const declared = parsed?.decision ?? parsed?.productOutcome;
+  if (declared === 'unavailable') {
+    return unavailableAssessment(parsed);
+  }
+  if (declared === 'rejected') {
+    const missingEvidence = missingRejectedEvidenceItems(parsed?.evidence);
+    if (missingEvidence.length > 0) {
+      return { outcome: 'unavailable', missingEvidence, downgradedFromRejected: true };
+    }
+    return { outcome: 'rejected', missingEvidence: [], downgradedFromRejected: false };
+  }
+  // A non-JSON body can still carry a decision marker (for example a transport
+  // error wrapper); without a parseable evidence object it cannot be billable.
+  if (JSON_REJECTED_PATTERN.test(resultText)) {
+    return {
+      outcome: 'unavailable',
+      missingEvidence: [...REJECTED_EVIDENCE_ITEMS],
+      downgradedFromRejected: true,
+    };
+  }
+  if (JSON_UNAVAILABLE_PATTERN.test(resultText)) {
+    return { outcome: 'unavailable', missingEvidence: [], downgradedFromRejected: false };
+  }
+  return { outcome: null, missingEvidence: [], downgradedFromRejected: false };
+}
+
+/**
+ * Read the effective product outcome from the structured result itself.
+ * Incomplete rejections already resolve to `unavailable` here.
  */
 export function structuredProductOutcome(resultText: string): StructuredProductOutcome | null {
-  const marker = PRODUCT_OUTCOME_MARKER_PATTERN.exec(resultText);
-  if (marker) return marker[1] as StructuredProductOutcome;
-  for (const candidate of JSON_PRODUCT_OUTCOME_PATTERNS) {
-    if (candidate.pattern.test(resultText)) return candidate.outcome;
-  }
-  return null;
+  return assessProductOutcome(resultText).outcome;
+}
+
+/**
+ * Build the customer-facing `unavailable` envelope used when a claimed
+ * rejection lacks any of the five reproducibility items. The caller must keep
+ * seeing "no conclusion was formed", never an unreproducible refusal.
+ */
+export function rejectedEvidenceDowngradeEnvelope(
+  missingEvidence: readonly RejectedEvidenceItem[]
+): string {
+  return JSON.stringify({
+    decision: 'unavailable',
+    readiness: 'no-execution-package',
+    chargeable: false,
+    unavailable: {
+      reasonCode: 'INSUFFICIENT_DATA',
+      missing: missingEvidence,
+      downgradedFrom: 'rejected',
+      downgradeReason: BILLING_ZERO_REASONS.rejectedWithoutEvidence,
+    },
+  });
 }
 
 /** True when the evidence itself was graded insufficient to conclude. */

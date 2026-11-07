@@ -94,9 +94,13 @@ headers do not introduce client-controlled cross-request idempotency.
 `X-Credit-Zero-Reason` and the `waiver` row's `credit_ledger.reason` share one
 vocabulary: `insufficient_data` means the evidence grade itself could not
 support a conclusion; `upstream_failed` means every requested batch item failed
-upstream, so no usable row was delivered; `tool_free` means the tool or
-verification kind is zero-priced by design (offline verification); `timeout`,
-`free`, `replay` and `unconfirmed` cover the remaining zero-charge outcomes.
+upstream, so no usable row was delivered; `rejected_without_evidence` means a
+response claimed `rejected` but omitted at least one of the five reproducibility
+items (`reason_code`, `input_digest`, `triggered_threshold`, `data_sources`,
+`risk_ruleset_version`), so the refusal was downgraded to `unavailable` and
+waived; `tool_free` means the tool or verification kind is zero-priced by design
+(offline verification); `timeout`, `free`, `replay` and `unconfirmed` cover the
+remaining zero-charge outcomes.
 Keeping the first two apart lets reconciliation tell "the market had no data"
 from "our upstreams were down", and `tool_free` apart from both lets it tell a
 pricing decision from a data outcome.

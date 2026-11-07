@@ -3,7 +3,13 @@ import { after } from 'next/server';
 import { type HTTPAdapter, type HTTPResponseInstructions } from '@x402/core/server';
 
 import { applyCreditBillingHeaders } from '@/lib/billing/billingHeaders';
-import { structuredProductOutcome } from '@/lib/billing/exemptions';
+import {
+  BILLING_ZERO_REASONS,
+  assessProductOutcome,
+  rejectedEvidenceDowngradeEnvelope,
+  type BillingZeroReason,
+  type RejectedEvidenceItem,
+} from '@/lib/billing/exemptions';
 import { isFreeVerifyCall } from '@/lib/billing/freeVerify';
 import { getMcpToolBillableItems } from '@/lib/billing/metering';
 import {
@@ -204,15 +210,25 @@ export async function handleMcpIndexerQuote(request: Request, cfg: X402Config): 
   return attachRequestId(attachOnboardingHeaders(toResponse(result.response)), requestId);
 }
 
+type McpBusinessAssessment = {
+  response: Response;
+  failed: boolean;
+  downgradedFromRejected: boolean;
+  missingEvidence: readonly RejectedEvidenceItem[];
+};
+
 /**
- * True when the JSON-RPC response represents a failed tool execution
- * (`result.isError` or a JSON-RPC-level `error`). A structured `rejected`
- * outcome is a delivered judgement and must settle even when the transport
- * marks it as an error; a structured `unavailable` outcome never charges.
- * Best-effort: an unparseable body counts as failed — never charge on
- * ambiguity.
+ * Assess the JSON-RPC business response before the settlement decision. A
+ * structured `rejected` outcome with all five reproducibility items is a
+ * delivered judgement and settles even when `isError` is set. A rejection
+ * missing any item is downgraded in the response the customer receives and
+ * never settles. Structured `unavailable` never charges. Best-effort: an
+ * unparseable body counts as failed — never charge on ambiguity.
  */
-async function isMcpToolFailure(response: Response): Promise<boolean> {
+async function assessMcpBusinessResponse(response: Response): Promise<McpBusinessAssessment> {
+  if (response.status < 200 || response.status >= 300) {
+    return { response, failed: true, downgradedFromRejected: false, missingEvidence: [] };
+  }
   try {
     const body = (await response.clone().json()) as {
       error?: unknown;
@@ -221,18 +237,56 @@ async function isMcpToolFailure(response: Response): Promise<boolean> {
         content?: { type?: unknown; text?: unknown }[];
       };
     };
-    if (body?.error != null) return true;
+    if (body?.error != null) {
+      return { response, failed: true, downgradedFromRejected: false, missingEvidence: [] };
+    }
     const resultText = Array.isArray(body?.result?.content)
       ? body.result.content
           .map((block) => (typeof block?.text === 'string' ? block.text : ''))
           .join('\n')
       : '';
-    const productOutcome = structuredProductOutcome(resultText);
-    if (productOutcome === 'rejected') return false;
-    if (productOutcome === 'unavailable') return true;
-    return body?.result?.isError === true;
+    const assessment = assessProductOutcome(resultText);
+    if (!assessment.downgradedFromRejected) {
+      return {
+        response,
+        failed:
+          assessment.outcome === 'unavailable' ||
+          (assessment.outcome !== 'rejected' && body?.result?.isError === true),
+        downgradedFromRejected: false,
+        missingEvidence: [],
+      };
+    }
+
+    const downgraded = {
+      ...body,
+      result: {
+        ...body.result,
+        isError: false,
+        content: [
+          {
+            type: 'text',
+            text: rejectedEvidenceDowngradeEnvelope(assessment.missingEvidence),
+          },
+        ],
+      },
+    };
+    const headers = new Headers(response.headers);
+    // The rewritten body has a different length and no content encoding.
+    headers.delete('content-length');
+    headers.delete('content-encoding');
+    headers.delete('transfer-encoding');
+    return {
+      response: new Response(JSON.stringify(downgraded), {
+        status: response.status,
+        statusText: response.statusText,
+        headers,
+      }),
+      failed: true,
+      downgradedFromRejected: true,
+      missingEvidence: assessment.missingEvidence,
+    };
   } catch {
-    return true;
+    return { response, failed: true, downgradedFromRejected: false, missingEvidence: [] };
   }
 }
 
@@ -465,18 +519,21 @@ function attachX402BillingReceipt(
     items: number;
     status: 'quote' | 'charged' | 'not_charged';
     exemption?: string;
+    zeroReason?: BillingZeroReason;
   }
 ): void {
   applyCreditBillingHeaders(response.headers, {
-    costCredits: input.priceCredits,
+    costCredits: input.zeroReason ? 0 : input.priceCredits,
     balance: null,
     balanceAfter: null,
-    status:
-      input.exemption === 'insufficient_data'
+    status: input.zeroReason
+      ? 'waived'
+      : input.exemption === 'insufficient_data'
         ? 'waived'
         : input.exemption
           ? 'not_charged'
           : input.status,
+    zeroReason: input.zeroReason,
   });
   // The on-chain quote is the authoritative USD amount; keep it exact rather
   // than recomputing from the credits list price.
@@ -640,8 +697,18 @@ async function handleHypercoreMcpCall(input: {
   }
 
   const toolFailed = businessResponse.status < 200 || businessResponse.status >= 300;
-  const jsonRpcFailed = toolFailed ? false : await isMcpToolFailure(businessResponse);
-  if (toolFailed || jsonRpcFailed) {
+  const businessAssessment = await assessMcpBusinessResponse(businessResponse);
+  businessResponse = businessAssessment.response;
+  const jsonRpcFailed = businessAssessment.failed;
+  if (jsonRpcFailed) {
+    if (businessAssessment.downgradedFromRejected) {
+      logger.warn('x402 rejected outcome downgraded to unavailable: incomplete evidence', {
+        requestId,
+        toolName,
+        missingEvidence: businessAssessment.missingEvidence,
+        zeroReason: BILLING_ZERO_REASONS.rejectedWithoutEvidence,
+      });
+    }
     recordX402Settlement({
       requestId,
       status: 'business_failed',
@@ -651,7 +718,11 @@ async function handleHypercoreMcpCall(input: {
       payer: verification.payer,
       surface: 'mcp',
       resource: `mcp:${toolName}`,
-      errorReason: toolFailed ? `handler_failed:${businessResponse.status}` : 'mcp_tool_error',
+      errorReason: businessAssessment.downgradedFromRejected
+        ? BILLING_ZERO_REASONS.rejectedWithoutEvidence
+        : toolFailed
+          ? `handler_failed:${businessResponse.status}`
+          : 'mcp_tool_error',
       acquisitionSource: input.acquisitionSource,
     });
     attachX402BillingReceipt(businessResponse, {
@@ -660,7 +731,10 @@ async function handleHypercoreMcpCall(input: {
       priceAtomic,
       items,
       status: 'not_charged',
-      exemption: 'failed',
+      exemption: businessAssessment.downgradedFromRejected ? undefined : 'failed',
+      zeroReason: businessAssessment.downgradedFromRejected
+        ? BILLING_ZERO_REASONS.rejectedWithoutEvidence
+        : undefined,
     });
     return attachRequestId(businessResponse, requestId);
   }
@@ -947,11 +1021,21 @@ export async function handleMcpPaidToolCall({
   }
 
   const toolFailed = businessResponse.status < 200 || businessResponse.status >= 300;
-  const jsonRpcFailed = toolFailed ? false : await isMcpToolFailure(businessResponse);
+  const businessAssessment = await assessMcpBusinessResponse(businessResponse);
+  businessResponse = businessAssessment.response;
+  const jsonRpcFailed = businessAssessment.failed;
 
-  if (toolFailed || jsonRpcFailed) {
+  if (jsonRpcFailed) {
     // Verified signature but no completed tool result: nothing is charged.
     // Audit as verify-only so the operator can see paid-call failure rates.
+    if (businessAssessment.downgradedFromRejected) {
+      logger.warn('x402 rejected outcome downgraded to unavailable: incomplete evidence', {
+        requestId,
+        toolName,
+        missingEvidence: businessAssessment.missingEvidence,
+        zeroReason: BILLING_ZERO_REASONS.rejectedWithoutEvidence,
+      });
+    }
     recordX402Settlement({
       requestId,
       status: 'business_failed',
@@ -959,7 +1043,11 @@ export async function handleMcpPaidToolCall({
       surface: 'mcp',
       resource: `mcp:${toolName}`,
       responseTimeMs: Date.now() - businessStartedAt,
-      errorReason: toolFailed ? `handler_failed:${businessResponse.status}` : 'mcp_tool_error',
+      errorReason: businessAssessment.downgradedFromRejected
+        ? BILLING_ZERO_REASONS.rejectedWithoutEvidence
+        : toolFailed
+          ? `handler_failed:${businessResponse.status}`
+          : 'mcp_tool_error',
       acquisitionSource,
     });
     logger.info('x402 MCP business failed, settlement skipped', {
@@ -967,6 +1055,7 @@ export async function handleMcpPaidToolCall({
       toolName,
       status: businessResponse.status,
       jsonRpcFailed,
+      downgradedFromRejected: businessAssessment.downgradedFromRejected,
     });
     attachX402BillingReceipt(businessResponse, {
       toolName,
@@ -974,7 +1063,10 @@ export async function handleMcpPaidToolCall({
       priceAtomic,
       items: billableItems,
       status: 'not_charged',
-      exemption: 'failed',
+      exemption: businessAssessment.downgradedFromRejected ? undefined : 'failed',
+      zeroReason: businessAssessment.downgradedFromRejected
+        ? BILLING_ZERO_REASONS.rejectedWithoutEvidence
+        : undefined,
     });
     return attachRequestId(businessResponse, requestId);
   }

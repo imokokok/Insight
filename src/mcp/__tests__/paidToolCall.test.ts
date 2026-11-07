@@ -14,6 +14,7 @@
  */
 
 import { priceAtomicForTool } from '@/lib/api/x402/mcpBridge';
+import { BILLING_ZERO_REASONS } from '@/lib/billing/exemptions';
 
 import { handleMcpHttpRequest } from '../transports/http';
 
@@ -369,7 +370,7 @@ describe('x402 paid MCP tools/call', () => {
     expect(response.headers.get('PAYMENT-RESPONSE')).toBeNull();
   });
 
-  it('settles a structured rejected outcome even when the result is marked isError', async () => {
+  it('settles a structured rejected outcome with complete evidence even when isError', async () => {
     getX402ConfigMock.mockImplementation(() => ({
       ...CFG,
       network: 'eip155:8453' as const,
@@ -404,7 +405,16 @@ describe('x402 paid MCP tools/call', () => {
         content: [
           {
             type: 'text',
-            text: 'Error executing prepare_perp_order: [rejected:invalid_request] slippage exceeded',
+            text: JSON.stringify({
+              decision: 'rejected',
+              evidence: {
+                reasonCode: 'SLIPPAGE_LIMIT_EXCEEDED',
+                inputDigest: 'a'.repeat(64),
+                triggeredThreshold: { ruleId: 'slippage', threshold: 50, observed: 120 },
+                dataSources: [{ sourceId: 'jupiter', value: 'quote' }],
+                riskRulesetVersion: 'v2.1',
+              },
+            }),
           },
         ],
         isError: true,
@@ -422,6 +432,129 @@ describe('x402 paid MCP tools/call', () => {
     expect(response.status).toBe(200);
     expect(processSettlement).toHaveBeenCalledTimes(1);
     expect(response.headers.get('PAYMENT-RESPONSE')).toBe('rejected-receipt');
+  });
+
+  it('downgrades a rejected outcome missing evidence to unavailable without settlement', async () => {
+    getX402ConfigMock.mockImplementation(() => ({
+      ...CFG,
+      network: 'eip155:8453' as const,
+      evmNetworks: ['eip155:8453'] as const,
+      facilitatorUrls: { 'eip155:8453': 'https://base.example' },
+      hypercore: null,
+    }));
+    processHTTPRequest.mockResolvedValue({
+      type: 'payment-verified',
+      cancellationDispatcher: {},
+      paymentPayload: { x402Version: 2 },
+      paymentRequirements: {
+        scheme: 'exact',
+        network: 'eip155:8453',
+        asset: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
+        amount: '20000',
+      },
+    });
+    cannedRpcResponse = {
+      jsonrpc: '2.0',
+      id: 9,
+      result: {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              decision: 'rejected',
+              evidence: {
+                reasonCode: 'SLIPPAGE_LIMIT_EXCEEDED',
+                inputDigest: 'a'.repeat(64),
+                triggeredThreshold: { ruleId: 'slippage', threshold: 50, observed: 120 },
+                dataSources: [{ sourceId: 'jupiter', value: 'quote' }],
+                // riskRulesetVersion intentionally absent.
+              },
+            }),
+          },
+        ],
+        isError: true,
+      },
+    };
+
+    const { response, cleanup } = await handleMcpHttpRequest(
+      mcpPost(toolsCallBody('prepare_perp_order', { venue: 'synthetix-perps-v3-base' }), {
+        'payment-signature': 'b64payload',
+      })
+    );
+    await cleanup();
+
+    expect(response.status).toBe(200);
+    expect(processSettlement).not.toHaveBeenCalled();
+    expect(response.headers.get('PAYMENT-RESPONSE')).toBeNull();
+    expect(response.headers.get('X-Credit-Zero-Reason')).toBe(
+      BILLING_ZERO_REASONS.rejectedWithoutEvidence
+    );
+    const body = (await response.json()) as {
+      result: { isError?: boolean; content: { text: string }[] };
+    };
+    const payload = JSON.parse(body.result.content[0].text);
+    expect(body.result.isError).toBe(false);
+    expect(payload.decision).toBe('unavailable');
+    expect(payload.unavailable.missing).toEqual(['risk_ruleset_version']);
+  });
+
+  it('keeps the waiver reason when the upstream server already downgraded the rejection', async () => {
+    getX402ConfigMock.mockImplementation(() => ({
+      ...CFG,
+      network: 'eip155:8453' as const,
+      evmNetworks: ['eip155:8453'] as const,
+      facilitatorUrls: { 'eip155:8453': 'https://base.example' },
+      hypercore: null,
+    }));
+    processHTTPRequest.mockResolvedValue({
+      type: 'payment-verified',
+      cancellationDispatcher: {},
+      paymentPayload: { x402Version: 2 },
+      paymentRequirements: {
+        scheme: 'exact',
+        network: 'eip155:8453',
+        asset: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
+        amount: '20000',
+      },
+    });
+    // The MCP server rewrites an incomplete rejection before the paid bridge
+    // sees it; the settlement gate must still report the waiver reason.
+    cannedRpcResponse = {
+      jsonrpc: '2.0',
+      id: 9,
+      result: {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              decision: 'unavailable',
+              readiness: 'no-execution-package',
+              chargeable: false,
+              unavailable: {
+                reasonCode: 'INSUFFICIENT_DATA',
+                missing: ['data_sources'],
+                downgradedFrom: 'rejected',
+                downgradeReason: BILLING_ZERO_REASONS.rejectedWithoutEvidence,
+              },
+            }),
+          },
+        ],
+        isError: false,
+      },
+    };
+
+    const { response, cleanup } = await handleMcpHttpRequest(
+      mcpPost(toolsCallBody('prepare_perp_order', { venue: 'synthetix-perps-v3-base' }), {
+        'payment-signature': 'b64payload',
+      })
+    );
+    await cleanup();
+
+    expect(response.status).toBe(200);
+    expect(processSettlement).not.toHaveBeenCalled();
+    expect(response.headers.get('X-Credit-Zero-Reason')).toBe(
+      BILLING_ZERO_REASONS.rejectedWithoutEvidence
+    );
   });
 
   it('does not settle a structured unavailable outcome even when the result is not isError', async () => {
