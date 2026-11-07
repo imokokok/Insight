@@ -136,11 +136,17 @@ delete or rewrite the `NULL` rows to hide the gap.
 
 Per-key spend caps are set with `PATCH /api/user/api-keys/:id`
 (`{"budgetMonthly": <credits> | null}`; also editable in Settings → Billing) and
-enforced inside `precheck_credits`/`consume_credits`. When a call brings the key
-to 80% of its cap, the successful response also carries
-`X-Credit-Budget-Warning: 80`. At 100% the precheck rejects the request with 402
-`reason: "BUDGET_EXCEEDED"` and no credits are debited. Caps are calendar-month
-scoped and do not carry over.
+enforced inside `precheck_credits`/`consume_credits`. The precheck admits a call
+whose projected usage is still within the cap (`used + cost <= budget`) and
+rejects only the call that would exceed it. A call landing exactly on the cap
+(`used + cost == budget`) succeeds, debits credits and carries
+`X-Credit-Budget-Warning: 80`; the next call returns 402
+`reason: "BUDGET_EXCEEDED"` with no debit. The warning header is a threshold
+marker, not a measurement: its value is always the literal `80`, meaning "this
+key has crossed 80% of its cap". Do not turn it into a computed percentage
+(add a separate header if a live percentage is ever needed) and do not change
+the rejection rule to `>=`. Caps are calendar-month scoped and do not carry
+over.
 
 ## Source latency and coverage
 

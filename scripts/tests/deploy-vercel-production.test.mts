@@ -28,13 +28,25 @@ function response(body: unknown, status = 200) {
 
 function harness(
   pages: unknown[][],
-  options: { runtimeNode?: string | null; runtimeHtml?: boolean } = {}
+  options: {
+    runtimeNode?: string | null;
+    runtimeHtml?: boolean;
+    domainCommit?: string | null;
+    initialDomainCommit?: string | null;
+    domainDeploymentId?: string | null;
+  } = {}
 ) {
   let time = 1_000_000;
   let listCalls = 0;
+  let aliasCalls = 0;
   const verifiedMajor = process.versions.node.split('.')[0];
   const runtimeNode =
     options.runtimeNode === undefined ? process.versions.node : options.runtimeNode;
+  const domainCommit = options.domainCommit === undefined ? commitSha : options.domainCommit;
+  const initialDomainCommit =
+    options.initialDomainCommit === undefined ? domainCommit : options.initialDomainCommit;
+  const domainDeploymentId =
+    options.domainDeploymentId === undefined ? 'dpl_test' : options.domainDeploymentId;
   const requests: Array<{ url: URL | string; init?: RequestInit }> = [];
   return {
     requests,
@@ -42,6 +54,23 @@ function harness(
       requests.push({ url, init });
       const endpoint = String(url);
       if (endpoint === hookUrl) return response({ job: { id: 'job-1', createdAt: 1_000_000 } });
+      if (endpoint.includes('/v4/aliases')) {
+        aliasCalls += 1;
+        return response({
+          aliases: domainDeploymentId
+            ? [{ alias: 'www.oracleinsight.xyz', deploymentId: domainDeploymentId }]
+            : [],
+        });
+      }
+      if (endpoint.includes('/v13/deployments/dpl_test')) {
+        const aliasCommit = aliasCalls <= 1 ? initialDomainCommit : domainCommit;
+        return response({
+          uid: 'dpl_test',
+          readyState: 'READY',
+          nodeVersion: `${verifiedMajor}.x`,
+          meta: { githubCommitSha: aliasCommit },
+        });
+      }
       if (endpoint.includes('/v13/deployments/')) {
         return response({ nodeVersion: `${verifiedMajor}.x` });
       }
@@ -120,7 +149,7 @@ test('cancels an obsolete hook build before creating and verifying the current d
     meta: { githubCommitSha: staleSha, githubCommitRef: 'main', deployHookId: 'hook-1' },
   });
   const current = deployment('READY', { aliasAssigned: 1, createdAt: 1_001_000 });
-  const setup = harness([[stale], [], [current]]);
+  const setup = harness([[stale], [], [current]], { initialDomainCommit: staleSha });
   const result = await deployVercelProduction({
     hookUrl,
     token: 'test-token',
@@ -150,7 +179,7 @@ test('waits for an exact-SHA deployment when the accepted deploy hook response t
     createdAt: 1_000_000,
   });
   const ready = deployment('READY', { aliasAssigned: 1, createdAt: 1_000_000 });
-  const setup = harness([[], [], [building], [ready]]);
+  const setup = harness([[], [], [building], [ready]], { initialDomainCommit: staleSha });
   const fetcher = setup.fetcher;
   setup.fetcher = async (url, init) => {
     if (String(url) === hookUrl) {
@@ -195,7 +224,7 @@ test('does not cancel an active build that is not a main-branch deploy hook buil
 });
 
 test('fails when the created deployment reaches a terminal error', async () => {
-  const setup = harness([[], [], [deployment('ERROR')]]);
+  const setup = harness([[], [], [deployment('ERROR')]], { initialDomainCommit: staleSha });
   await assert.rejects(
     deployVercelProduction({ hookUrl, token: 'test-token', commitSha, ...setup }),
     /deployment dpl_test failed: ERROR/
@@ -216,9 +245,13 @@ test('fails when production runs a different Node.js major than CI', async () =>
   const verifiedMajor = process.versions.node.split('.')[0];
   const otherMajor = verifiedMajor === '22' ? '24' : '22';
   setup.fetcher = async (url, init) => {
-    if (String(url).includes('/v13/deployments/')) {
+    if (String(url).includes('/v13/deployments/dpl_test')) {
       setup.requests.push({ url, init });
-      return response({ nodeVersion: `${otherMajor}.x` });
+      return response({
+        uid: 'dpl_test',
+        nodeVersion: `${otherMajor}.x`,
+        meta: { githubCommitSha: commitSha },
+      });
     }
     return fetcher(url, init);
   };
@@ -233,9 +266,9 @@ test('fails when the deployment does not report a Node.js version', async () => 
   const setup = harness([[], [], [ready]]);
   const fetcher = setup.fetcher;
   setup.fetcher = async (url, init) => {
-    if (String(url).includes('/v13/deployments/')) {
+    if (String(url).includes('/v13/deployments/dpl_test')) {
       setup.requests.push({ url, init });
-      return response({});
+      return response({ uid: 'dpl_test', meta: { githubCommitSha: commitSha } });
     }
     return fetcher(url, init);
   };
@@ -297,4 +330,25 @@ test('keeps the release when readiness returns an HTML page instead of JSON', as
   });
   assert.equal(result.runtimeNodeVersion, null);
   assert.equal(result.runtimeNodeDrift, null);
+});
+
+// Regression for the release that never reached users: aliasAssigned is true
+// for the branch alias while the deployment stays STAGED, so the old check
+// accepted it and the smoke probed the previous release on the domain.
+test('rejects a READY deployment that is only STAGED behind the production domain', async () => {
+  const staged = deployment('READY', { aliasAssigned: 1 });
+  const setup = harness([[staged], [staged], [staged]], { domainCommit: staleSha });
+  await assert.rejects(
+    deployVercelProduction({ hookUrl, token: 'test-token', commitSha, ...setup }),
+    /was not ready before the timeout \(www\.oracleinsight\.xyz serves b{40}\)/
+  );
+});
+
+test('fails when the production domain has no deployment alias', async () => {
+  const ready = deployment('READY', { aliasAssigned: 1 });
+  const setup = harness([[ready]], { domainDeploymentId: null });
+  await assert.rejects(
+    deployVercelProduction({ hookUrl, token: 'test-token', commitSha, ...setup }),
+    /serves no commit/
+  );
 });
