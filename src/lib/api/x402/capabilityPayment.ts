@@ -59,6 +59,17 @@ export const X402_PAYMENT_SCOPE = {
 } as const satisfies Record<string, X402PaymentScope>;
 
 /**
+ * EVM rails the unified surface must quote even when they are configured only
+ * through the global `X402_PAY_TO` fallback (no per-network entry in
+ * `X402_EVM_PAY_TOS` or `X402_EVM_NETWORKS`). These are settlement rails, not
+ * a price promise: each network's floor still decides whether a quote appears.
+ */
+const X402_MULTICHAIN_UNIFIED_EVM_NETWORKS: readonly X402NetworkId[] = [
+  `eip155:${CHAIN_ID.BASE}`,
+  `eip155:${CHAIN_ID.BSC}`,
+];
+
+/**
  * Every REST route whose execution semantics are fixed to one chain. Dynamic
  * multichain routes are bound from their validated chainId at the route edge.
  */
@@ -480,14 +491,14 @@ export function x402ConfigForPaymentScope(
 
   if (scope.kind === 'multichain') {
     // Advertise every rail the merchant configured, not just the default
-    // X402_EVM_NETWORKS list. Base/BNB are configured per network for
-    // fixed-scope capabilities, so they only appear via evmPayTos; unioning
-    // both sources keeps those rails visible without re-pricing anything.
-    // Per-network floors are still applied by getX402PaymentOptions.
+    // X402_EVM_NETWORKS list. Base/BNB may be configured only through the
+    // global X402_PAY_TO fallback, so they are unioned explicitly; per-network
+    // floors are still applied by getX402PaymentOptions.
     const networks = evmEnabled(cfg)
       ? Array.from(
           new Set<X402NetworkId>([
             ...((cfg.evmNetworks ?? []) as X402NetworkId[]),
+            ...X402_MULTICHAIN_UNIFIED_EVM_NETWORKS,
             ...(Object.keys(cfg.evmPayTos ?? {}) as X402NetworkId[]),
           ])
         ).filter((network) => payToForEvmNetwork(cfg, network) !== '')

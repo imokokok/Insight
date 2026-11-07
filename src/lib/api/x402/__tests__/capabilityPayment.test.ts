@@ -92,11 +92,11 @@ describe('x402 capability payment bindings', () => {
   });
 
   it('quotes Base and BNB for chain-neutral unified tools, never below the BNB floor', () => {
+    // Production configures Base/BNB with the global X402_PAY_TO fallback and
+    // no per-network X402_EVM_PAY_TOS entries; the multichain scope must still
+    // advertise both rails.
     const cfg = parseX402Config({
       ...EVM_ENV,
-      X402_EVM_PAY_TOS:
-        'eip155:8453=0xAbC0000000000000000000000000000000000002,' +
-        'eip155:56=0xAbC0000000000000000000000000000000000003',
       X402_SOLANA_ENABLED: 'true',
       X402_SOLANA_NETWORK: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
       X402_SOLANA_PAY_TO: 'seFkxFkXEY9JGEpCyPfCWTuPZG9WK6ucf95zvKCfsRX',
