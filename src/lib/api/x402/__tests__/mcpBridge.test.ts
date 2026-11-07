@@ -5,6 +5,7 @@ import { recordX402Settlement } from '../guard';
 import {
   handleMcpIndexerQuote,
   handleMcpPaidToolCall,
+  priceAtomicForTool,
   toResponse,
   type McpPaidCallInput,
 } from '../mcpBridge';
@@ -672,6 +673,22 @@ describe('unsigned MCP 402 onboarding hints', () => {
     expect(res.headers.get('x-insight-quickstart')).toBe('https://www.oracleinsight.xyz/docs/x402');
     expect(res.headers.get('x-insight-entry-source-hint')).toContain('x-insight-entry-source');
     expect(res.headers.get('X-Request-Id')).toMatch(/^req_/);
+  });
+
+  it('advertises every configured rail on the bare GET indexer quote', async () => {
+    await handleMcpIndexerQuote(new Request('http://x/api/mcp'), cfg);
+
+    const [quoteConfig, price, toolName] = mockedServerFactory.mock.calls[0] as [
+      X402Config,
+      string,
+      string,
+    ];
+    expect(price).toBe(priceAtomicForTool('check_trade_safety'));
+    expect(toolName).toBe('check_trade_safety');
+    // The bare GET carries no arguments, so the quote must not be narrowed to
+    // the argv-derived single-chain scope of `check_trade_safety`.
+    expect(quoteConfig.evmNetworks?.slice().sort()).toEqual(['eip155:56', 'eip155:8453']);
+    expect(quoteConfig.solana).toBeUndefined();
   });
 
   it('advertises the launcher on an unsigned POST tools/call quote', async () => {

@@ -16,6 +16,7 @@ import { createLogger } from '@/lib/utils/logger';
 import {
   x402ConfigForPaymentScope,
   x402PaymentScopeForMcpTool,
+  X402_PAYMENT_SCOPE,
   type X402PaymentScope,
 } from './capabilityPayment';
 import {
@@ -172,7 +173,12 @@ export function priceAtomicForTool(toolName: string, args?: unknown): string {
 export async function handleMcpIndexerQuote(request: Request, cfg: X402Config): Promise<Response> {
   const requestId = newRequestId();
   const price = priceAtomicForTool(MCP_INDEXER_QUOTE_TOOL);
-  const httpServer = await getMcpX402HttpServer(cfg, price, MCP_INDEXER_QUOTE_TOOL);
+  // The directory's bare GET is the x402 Bazaar shelf, not a tools/call for
+  // `check_trade_safety`: with no arguments there is no per-chain scope to
+  // derive, so the quote advertises every configured rail the price clears.
+  // Per-network floors still drop rails that cannot settle this amount.
+  const quoteConfig = x402ConfigForPaymentScope(cfg, X402_PAYMENT_SCOPE.multichain) ?? cfg;
+  const httpServer = await getMcpX402HttpServer(quoteConfig, price, MCP_INDEXER_QUOTE_TOOL);
   const result = await httpServer.processHTTPRequest({
     adapter: new PlainRequestAdapter(request),
     path: X402_MCP_ROUTE,
