@@ -10,7 +10,9 @@
  *     awaited after a successful result. RPC failures preserve availability
  *     with confirmed:false; callers must not treat that as a confirmed debit.
  *     The RPC re-checks balance/budget atomically; reusing its metering_key
- *     prevents duplicate charges. A new HTTP request receives a new key.
+ *     prevents duplicate charges. Callers pass a deterministic request key
+ *     (see requestIdempotency.ts), so a retry of the same logical request is
+ *     at most one debit across instances.
  *   - topUpCredits: credits a wallet (subscription grant, manual top-up,
  *     refund). Idempotent on metering_key.
  *   - getWalletBalance: read a user's current balance (settings UI).
@@ -41,9 +43,10 @@ export interface CreditCharge {
   cost?: number;
 }
 
-/** Random per-request metering key. Fresh per call, so concurrent requests
- *  never collide, while the DB UNIQUE constraint makes a duplicate retry a
- *  no-op rather than a double-charge. */
+/** Fallback metering key. Only used when a caller has no deterministic
+ *  request key (e.g. internal/tooling calls); the HTTP paths always pass one,
+ *  so a retry of the same logical request is a no-op rather than a double
+ *  charge via the ledger UNIQUE constraint. */
 export function makeMeteringKey(prefix: string): string {
   return `${prefix}:${crypto.randomUUID()}`;
 }

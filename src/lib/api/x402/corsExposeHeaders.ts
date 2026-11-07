@@ -15,6 +15,8 @@
  * API route.
  */
 
+import { CREDIT_BILLING_HEADER_NAMES } from '@/lib/billing/billingHeaders';
+
 /** Advisory header names emitted by `x402OnboardingHeaders()` on a bare 402. */
 export const X402_ONBOARDING_HEADER_NAMES = [
   'x-insight-entry-source-hint',
@@ -40,6 +42,7 @@ const BASE_CORS_EXPOSE_HEADERS = [
   'WWW-Authenticate',
   'Payment-Receipt',
   'Payment-Settlement-Status',
+  ...CREDIT_BILLING_HEADER_NAMES,
 ] as const;
 
 /**

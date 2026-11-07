@@ -30,7 +30,15 @@ describe('consumeMcpQuota', () => {
       'agent_begin_trade'
     );
 
-    expect(result).toEqual({ allowed: false, reason: 'INSUFFICIENT_CREDITS' });
+    expect(result).toEqual(
+      expect.objectContaining({
+        allowed: false,
+        reason: 'INSUFFICIENT_CREDITS',
+        cost: 40,
+        charged: 0,
+        source: 'credits',
+      })
+    );
     expect(mockedConsumeCredits).toHaveBeenCalledWith(
       'key-1',
       40,

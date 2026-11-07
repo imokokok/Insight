@@ -1,4 +1,5 @@
 import { assertX402PaymentScopeDeclaredForMcpTool } from '@/lib/api/x402/capabilityPayment';
+import { isUpstreamTimeoutError, UPSTREAM_TIMEOUT_CODE } from '@/lib/billing/exemptions';
 import { createLogger } from '@/lib/utils/logger';
 
 import {
@@ -613,8 +614,12 @@ function toolError(name: string, error: unknown): McpToolCallResult {
     category: error instanceof Error && error.name === `ZodError` ? `validation` : `execution`,
   });
 
+  // Timeouts are an upstream/chain availability condition, not a delivered
+  // result. Surface a stable machine-readable code so a caller can retry
+  // deliberately instead of parsing free-form error text.
+  const code = isUpstreamTimeoutError(error) ? `${UPSTREAM_TIMEOUT_CODE}: ` : '';
   return {
-    content: [{ type: `text`, text: `Error executing ${name}: ${message}` }],
+    content: [{ type: `text`, text: `${code}Error executing ${name}: ${message}` }],
     isError: true,
   };
 }

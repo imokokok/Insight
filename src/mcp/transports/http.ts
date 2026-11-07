@@ -10,6 +10,11 @@ import { getMppConfig } from '@/lib/api/mpp/config';
 import { getX402Config } from '@/lib/api/x402/config';
 import { corsExposeHeaders } from '@/lib/api/x402/corsExposeHeaders';
 import { handleMcpIndexerQuote, handleMcpPaidToolCall } from '@/lib/api/x402/mcpBridge';
+import {
+  applyCreditBillingHeaders,
+  type CreditBillingHeaderInput,
+} from '@/lib/billing/billingHeaders';
+import { resolveClientIdempotencyKey } from '@/lib/billing/requestIdempotency';
 import { createLogger } from '@/lib/utils/logger';
 
 import packageJson from '../../../package.json';
@@ -748,8 +753,11 @@ export async function handleMcpHttpRequest(
     enableJsonResponse: true,
   });
 
+  const billingReceipt: CreditBillingHeaderInput = {};
   const server = await createMcpServer(authResult.auth, {
     mppPaymentEnabled: Boolean(mppConfig?.mcpEnabled),
+    billingReceipt,
+    idempotencyKey: resolveClientIdempotencyKey(request.headers),
   });
 
   server.onclose = async () => {
@@ -785,6 +793,9 @@ export async function handleMcpHttpRequest(
       String(Math.floor(new Date(quota.resetAt).getTime() / 1000))
     );
   }
+
+  // Per-request billing receipt (cost, balance, ledger receipt).
+  applyCreditBillingHeaders(merged.headers, billingReceipt);
 
   withCors(merged);
 

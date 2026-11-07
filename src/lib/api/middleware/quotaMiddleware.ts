@@ -1,7 +1,13 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
+import { applyCreditBillingHeaders } from '@/lib/billing/billingHeaders';
 import { makeMeteringKey, precheckCredits } from '@/lib/billing/creditWallet';
-import { CREDIT_EXHAUSTED_RETRY_AFTER_SECONDS } from '@/lib/billing/metering';
+import {
+  BATCH_UNIT_CREDITS,
+  CREDIT_EXHAUSTED_RETRY_AFTER_SECONDS,
+  getRestBillableItems,
+  REST_BATCH_METERED_PATHS,
+} from '@/lib/billing/metering';
 import { PLANS, normalizePlan } from '@/lib/billing/plans';
 import { getEndpointCreditCost } from '@/lib/billing/productPricing';
 import { createLogger } from '@/lib/utils/logger';
@@ -20,6 +26,8 @@ interface QuotaContext {
   apiKeyId?: string;
   userId?: string;
   plan?: string;
+  /** Deterministic ledger key for this logical request (see requestIdempotency). */
+  idempotencyMeteringKey?: string;
 }
 
 export interface QuotaInfo {
@@ -31,6 +39,10 @@ export interface QuotaInfo {
    *  credit cost. Surfaced by the handler as X-Credit-* headers. */
   creditBalance?: number;
   creditCost?: number;
+  /** Unit (per-item) price, for batch endpoints where cost = unit × items. */
+  creditUnitCost?: number;
+  /** Number of billable items in this request (1 outside batch endpoints). */
+  billableItems?: number;
   /** The charge to commit AFTER the handler succeeds. The handler fires
    *  consumeCredits only on a 2xx response, so a request that fails in the
    *  handler is not metered. */
@@ -52,9 +64,9 @@ type QuotaMiddlewareResult =
  *
  * There is no recurring free tier and no plan-based feature gating: "can this
  * call proceed?" is answered solely by the wallet balance covering the credit
- * cost. The only free credits are the one-time 100-credit signup trial grant
- * (a wallet top-up, see POST /api/billing/signup-grant). The only bypass is
- * Enterprise (unlimited), which skips metering.
+ * cost. The only free credits are the monthly 400-credit allowance (a wallet
+ * top-up, see POST /api/billing/signup-grant and the monthly grant cron). The
+ * only bypass is Enterprise (unlimited), which skips metering.
  *
  * Runs in sequence with rateLimitMiddleware — a request must pass rate limit
  * AND credit precheck to succeed.
@@ -64,6 +76,18 @@ export function createQuotaMiddleware(
   context?: QuotaContext
 ) {
   const { enabled = true } = options;
+
+  /** Batch endpoints bill per requested item; everything else is one item. */
+  const resolveBillableItems = async (request: NextRequest): Promise<number> => {
+    const path = request.nextUrl.pathname;
+    if (!REST_BATCH_METERED_PATHS.has(path) || request.method !== 'POST') return 1;
+    try {
+      return getRestBillableItems(path, await request.clone().json());
+    } catch {
+      // Let the handler produce its 400; a malformed body is never billed.
+      return 1;
+    }
+  };
 
   return async (request: NextRequest): Promise<QuotaMiddlewareResult> => {
     if (!enabled) {
@@ -94,7 +118,13 @@ export function createQuotaMiddleware(
     }
 
     // ----- Credit-metered cost (per-call class or one-call product price) --
-    const cost = getEndpointCreditCost(request.nextUrl.pathname);
+    // Batch endpoints are priced per item at the C1 rate (2 credits); the
+    // handler later settles only the items that actually succeeded.
+    const unitCost = REST_BATCH_METERED_PATHS.has(request.nextUrl.pathname)
+      ? BATCH_UNIT_CREDITS
+      : getEndpointCreditCost(request.nextUrl.pathname);
+    const billableItems = await resolveBillableItems(request);
+    const cost = unitCost * billableItems;
     const precheck = await precheckCredits(context.apiKeyId, cost);
 
     if (!precheck.ok) {
@@ -104,6 +134,7 @@ export function createQuotaMiddleware(
         plan,
         path: request.nextUrl.pathname,
         cost,
+        billableItems,
         reason,
       });
 
@@ -130,10 +161,14 @@ export function createQuotaMiddleware(
         { status: 402 }
       );
 
-      response.headers.set('X-Credit-Cost', String(cost));
-      response.headers.set('X-Credit-Balance', String(precheck.balance ?? 0));
       response.headers.set('X-Credit-Denied', reason);
       response.headers.set('Retry-After', String(CREDIT_EXHAUSTED_RETRY_AFTER_SECONDS));
+      applyCreditBillingHeaders(response.headers, {
+        costCredits: cost,
+        balance: precheck.balance ?? 0,
+        balanceAfter: precheck.balance ?? 0,
+        status: 'not_charged',
+      });
 
       return { success: false, response };
     }
@@ -152,11 +187,15 @@ export function createQuotaMiddleware(
         used: 0,
         creditBalance: precheck.balance,
         creditCost: cost,
+        creditUnitCost: unitCost,
+        billableItems,
         pendingCharge: {
           apiKeyId: context.apiKeyId,
-          meteringKey: context.requestId
-            ? `rest:${context.apiKeyId}:${context.requestId}`
-            : makeMeteringKey(`rest:${context.apiKeyId}`),
+          meteringKey:
+            context.idempotencyMeteringKey ??
+            (context.requestId
+              ? `rest:${context.apiKeyId}:${context.requestId}`
+              : makeMeteringKey(`rest:${context.apiKeyId}`)),
           cost,
         },
       },

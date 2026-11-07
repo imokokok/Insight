@@ -116,9 +116,11 @@ describe('POST /api/billing/signup-grant', () => {
 
     expect(response.status).toBe(200);
     expect(body.data).toEqual({ granted: false, balance: 400 });
-    // topUpCredits is still called — idempotent server-side, same key.
+    // topUpCredits is still called — idempotent server-side, same one-time key.
     expect(mockTopUpCredits).toHaveBeenCalledWith(
-      expect.objectContaining({ meteringKey: 'signup:user_1' })
+      expect.objectContaining({
+        meteringKey: 'signup:user_1',
+      })
     );
   });
 

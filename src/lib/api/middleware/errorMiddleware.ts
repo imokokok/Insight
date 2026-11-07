@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { isJsonRecord } from '@/lib/api/client/responseValidation';
+import { isUpstreamTimeoutError, UPSTREAM_TIMEOUT_CODE } from '@/lib/billing/exemptions';
 import { errorToResponse, isAppError, classifyByStringMatching } from '@/lib/errors';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -68,23 +69,45 @@ export function createErrorMiddleware(options: ErrorMiddlewareOptions = {}) {
     }
 
     if (error instanceof Error) {
+      // No usable conclusion: explicit, non-retryable code instead of a
+      // generic 500. These requests are never billed.
+      if (/INSUFFICIENT_DATA/.test(error.message)) {
+        return NextResponse.json(
+          ApiResponseBuilder.error(
+            'INSUFFICIENT_DATA',
+            'Insufficient data to produce a usable conclusion',
+            { retryable: false, requestId }
+          ),
+          { status: 422 }
+        );
+      }
+
       const stringResult = classifyByStringMatching(error);
       const isNetworkError =
         stringResult?.errorType === 'network' || stringResult?.errorType === 'timeout';
+      const isTimeout = stringResult?.errorType === 'timeout' || isUpstreamTimeoutError(error);
 
       const isProduction = process.env.NODE_ENV === 'production';
-      const clientMessage = isProduction ? 'Internal server error' : error.message;
+      const clientMessage = isProduction
+        ? isTimeout
+          ? 'Upstream service timed out'
+          : 'Internal server error'
+        : error.message;
 
-      const response = ApiResponseBuilder.error('INTERNAL_ERROR', clientMessage, {
-        retryable: isNetworkError,
-        requestId,
-      });
+      const response = ApiResponseBuilder.error(
+        isTimeout ? UPSTREAM_TIMEOUT_CODE : 'INTERNAL_ERROR',
+        clientMessage,
+        {
+          retryable: isNetworkError || isTimeout,
+          requestId,
+        }
+      );
 
       if (includeStackTrace && !isProduction) {
         response.error.details = { ...response.error.details, stack: error.stack };
       }
 
-      return NextResponse.json(response, { status: 500 });
+      return NextResponse.json(response, { status: isTimeout ? 504 : 500 });
     }
 
     return NextResponse.json(

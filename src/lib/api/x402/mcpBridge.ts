@@ -2,9 +2,11 @@ import { after } from 'next/server';
 
 import { type HTTPAdapter, type HTTPResponseInstructions } from '@x402/core/server';
 
+import { applyCreditBillingHeaders } from '@/lib/billing/billingHeaders';
 import { isFreeVerifyCall } from '@/lib/billing/freeVerify';
-import { getToolCreditCost } from '@/lib/billing/metering';
+import { getMcpToolBillableItems } from '@/lib/billing/metering';
 import {
+  getMcpToolCreditCostForCall,
   isEntitlementCoveredMcpTool,
   PRODUCT_MCP_TOOL_USD_PRICES,
 } from '@/lib/billing/productPricing';
@@ -26,6 +28,12 @@ import {
   x402OnboardingHeaders,
   x402ResponseBody,
 } from './guard';
+import {
+  coreUsdAmountFromAtomic,
+  createHypercoreFacilitatorClient,
+  hypercorePayloadFromHeader,
+  type HypercoreX402Config,
+} from './hypercore';
 import { BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME, getMcpX402HttpServer } from './resourceServer';
 
 const logger = createLogger('x402-mcp-bridge');
@@ -131,7 +139,11 @@ export function priceAtomicForTool(toolName: string, args?: unknown): string {
     // value the REST begin route charges — never a per-call class price.
     return usdToAtomicUnits(productUsd);
   }
-  const microUsd = Math.round(getToolCreditCost(toolName) * X402_CREDIT_USD * 1_000_000);
+  // Batch tools charge per requested item, so the quote must scale with the
+  // item count carried in the arguments. Non-batch tools are one item.
+  const microUsd = Math.round(
+    getMcpToolCreditCostForCall(toolName, args) * X402_CREDIT_USD * 1_000_000
+  );
   return String(Math.max(1, microUsd));
 }
 
@@ -294,6 +306,297 @@ function attachOnboardingHeaders(response: Response): Response {
   return response;
 }
 
+function encodePaymentHeader(value: unknown): string {
+  return Buffer.from(JSON.stringify(value), 'utf8').toString('base64');
+}
+
+/** Canonical `X-Credit-*` receipt for an x402-paid MCP call. */
+function attachX402BillingReceipt(
+  response: Response,
+  input: {
+    toolName: string;
+    priceCredits: number;
+    priceAtomic: string;
+    items: number;
+    status: 'quote' | 'charged' | 'not_charged';
+    exemption?: string;
+  }
+): void {
+  applyCreditBillingHeaders(response.headers, {
+    costCredits: input.priceCredits,
+    balance: null,
+    balanceAfter: null,
+    status:
+      input.exemption === 'insufficient_data'
+        ? 'waived'
+        : input.exemption
+          ? 'not_charged'
+          : input.status,
+  });
+  // The on-chain quote is the authoritative USD amount; keep it exact rather
+  // than recomputing from the credits list price.
+  response.headers.set('X-Credit-Price-USD', atomicUnitsToUsdc(input.priceAtomic));
+}
+
+/**
+ * HyperCore Core-USDC lifecycle for MCP calls. Core `usdSend` is not an
+ * ERC-20 transfer, so it cannot ride the stock exact-scheme x402 server; this
+ * mirrors the REST guard's quote → verify → business → settle ordering with
+ * plain Request/Response and the `mcp` audit surface.
+ */
+async function handleHypercoreMcpCall(input: {
+  request: Request;
+  config: HypercoreX402Config;
+  toolName: string;
+  priceAtomic: string;
+  priceCredits: number;
+  items: number;
+  requestId: string;
+  acquisitionSource: ReturnType<typeof x402AcquisitionSource>;
+  runBusiness: () => Promise<Response>;
+}): Promise<Response> {
+  const { request, config, toolName, priceAtomic, priceCredits, items, requestId } = input;
+  const client = createHypercoreFacilitatorClient(config);
+  const paymentPayload = hypercorePayloadFromHeader(
+    request.headers.get('payment-signature'),
+    config
+  );
+
+  // No HyperCore payment attached: issue the canonical 402 quote. This is the
+  // path that used to fail with X402_PAYMENT_RAIL_UNAVAILABLE.
+  if (!paymentPayload) {
+    try {
+      const requirement = await client.quote(request.url, coreUsdAmountFromAtomic(priceAtomic));
+      const body = {
+        x402Version: 2,
+        error: 'Payment required',
+        resource: {
+          url: request.url,
+          mimeType: 'application/json',
+          serviceName: 'Insight Oracle',
+        },
+        accepts: [requirement],
+      };
+      const response = new Response(JSON.stringify(body), {
+        status: 402,
+        headers: {
+          'content-type': 'application/json',
+          'payment-required': encodePaymentHeader(body),
+          'cache-control': 'no-store',
+        },
+      });
+      attachOnboardingHeaders(response);
+      attachX402BillingReceipt(response, {
+        toolName,
+        priceCredits,
+        priceAtomic,
+        items,
+        status: 'quote',
+      });
+      logUnsignedMcpQuoteSample('payment quote issued', { requestId, toolName, priceAtomic });
+      return attachRequestId(response, requestId);
+    } catch (error) {
+      logger.warn('HyperCore facilitator quote unavailable for MCP call', {
+        requestId,
+        toolName,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return attachRequestId(unavailablePaymentScopeResponse(toolName, null), requestId);
+    }
+  }
+
+  const startedAt = Date.now();
+  let verification: { isValid: boolean; payer?: string; invalidReason?: string };
+  try {
+    verification = await client.verify(paymentPayload);
+  } catch (error) {
+    logger.warn('HyperCore facilitator verification unavailable', {
+      requestId,
+      toolName,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return attachRequestId(
+      new Response(JSON.stringify({ error: 'HYPERCORE_FACILITATOR_UNAVAILABLE', requestId }), {
+        status: 503,
+        headers: { 'cache-control': 'no-store', 'content-type': 'application/json' },
+      }),
+      requestId
+    );
+  }
+
+  if (!verification.isValid) {
+    recordX402Settlement({
+      requestId,
+      status: 'payment_rejected',
+      network: config.network,
+      surface: 'mcp',
+      resource: `mcp:${toolName}`,
+      responseTimeMs: Date.now() - startedAt,
+      errorReason: verification.invalidReason ?? 'facilitator_rejected_payment',
+      acquisitionSource: input.acquisitionSource,
+    });
+    const body = {
+      x402Version: 2,
+      error: 'Payment verification failed',
+      resource: { url: request.url, mimeType: 'application/json', serviceName: 'Insight Oracle' },
+      accepts: [await client.quote(request.url, coreUsdAmountFromAtomic(priceAtomic))],
+    };
+    const response = new Response(JSON.stringify(body), {
+      status: 402,
+      headers: {
+        'content-type': 'application/json',
+        'payment-required': encodePaymentHeader(body),
+        'cache-control': 'no-store',
+      },
+    });
+    attachX402BillingReceipt(response, {
+      toolName,
+      priceCredits,
+      priceAtomic,
+      items,
+      status: 'not_charged',
+      exemption: 'payment_rejected',
+    });
+    return attachRequestId(response, requestId);
+  }
+
+  const amountUsdc = coreUsdAmountFromAtomic(priceAtomic);
+  recordX402Settlement({
+    requestId,
+    status: 'payment_verified',
+    network: config.network,
+    asset: 'USDC',
+    amountUsdc,
+    payer: verification.payer,
+    surface: 'mcp',
+    resource: `mcp:${toolName}`,
+    responseTimeMs: Date.now() - startedAt,
+    acquisitionSource: input.acquisitionSource,
+  });
+
+  const businessStartedAt = Date.now();
+  let businessResponse: Response;
+  try {
+    businessResponse = await input.runBusiness();
+  } catch (error) {
+    recordX402Settlement({
+      requestId,
+      status: 'business_failed',
+      network: config.network,
+      asset: 'USDC',
+      amountUsdc,
+      payer: verification.payer,
+      surface: 'mcp',
+      resource: `mcp:${toolName}`,
+      errorReason: `handler_error:${error instanceof Error ? error.name : 'unknown'}`,
+      acquisitionSource: input.acquisitionSource,
+    });
+    throw error;
+  }
+
+  const toolFailed = businessResponse.status < 200 || businessResponse.status >= 300;
+  const jsonRpcFailed = toolFailed ? false : await isMcpToolFailure(businessResponse);
+  if (toolFailed || jsonRpcFailed) {
+    recordX402Settlement({
+      requestId,
+      status: 'business_failed',
+      network: config.network,
+      asset: 'USDC',
+      amountUsdc,
+      payer: verification.payer,
+      surface: 'mcp',
+      resource: `mcp:${toolName}`,
+      errorReason: toolFailed ? `handler_failed:${businessResponse.status}` : 'mcp_tool_error',
+      acquisitionSource: input.acquisitionSource,
+    });
+    attachX402BillingReceipt(businessResponse, {
+      toolName,
+      priceCredits,
+      priceAtomic,
+      items,
+      status: 'not_charged',
+      exemption: 'failed',
+    });
+    return attachRequestId(businessResponse, requestId);
+  }
+
+  let settlement: Awaited<ReturnType<typeof client.settle>>;
+  try {
+    settlement = await client.settle(paymentPayload);
+  } catch (error) {
+    logger.warn('HyperCore facilitator settlement unavailable', {
+      requestId,
+      toolName,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    businessResponse.headers.set(
+      'payment-response',
+      encodePaymentHeader({
+        success: false,
+        network: config.network,
+        errorReason: 'settlement_pending',
+      })
+    );
+    attachX402BillingReceipt(businessResponse, {
+      toolName,
+      priceCredits,
+      priceAtomic,
+      items,
+      status: 'not_charged',
+      exemption: 'settlement_pending',
+    });
+    return attachRequestId(businessResponse, requestId);
+  }
+
+  businessResponse.headers.set('payment-response', encodePaymentHeader(settlement));
+  if (settlement.success) {
+    recordX402Settlement({
+      requestId,
+      status: 'settled',
+      network: config.network,
+      asset: 'USDC',
+      amountUsdc,
+      payer: settlement.payer ?? verification.payer,
+      txHash: settlement.transaction,
+      surface: 'mcp',
+      resource: `mcp:${toolName}`,
+      responseTimeMs: Date.now() - businessStartedAt,
+      verdict: `mcp:${toolName}`,
+      acquisitionSource: input.acquisitionSource,
+    });
+    attachX402BillingReceipt(businessResponse, {
+      toolName,
+      priceCredits,
+      priceAtomic,
+      items,
+      status: 'charged',
+    });
+  } else {
+    recordX402Settlement({
+      requestId,
+      status: 'settlement_failed',
+      network: config.network,
+      asset: 'USDC',
+      amountUsdc,
+      payer: settlement.payer ?? verification.payer,
+      surface: 'mcp',
+      resource: `mcp:${toolName}`,
+      responseTimeMs: Date.now() - businessStartedAt,
+      errorReason: settlement.errorReason ?? 'settlement_pending',
+      acquisitionSource: input.acquisitionSource,
+    });
+    attachX402BillingReceipt(businessResponse, {
+      toolName,
+      priceCredits,
+      priceAtomic,
+      items,
+      status: 'not_charged',
+      exemption: 'settlement_failed',
+    });
+  }
+  return attachRequestId(businessResponse, requestId);
+}
+
 export interface McpPaidCallInput {
   request: Request;
   cfg: X402Config;
@@ -346,11 +649,33 @@ export async function handleMcpPaidToolCall({
     return attachRequestId(await runBusiness(), requestId);
   }
   const priceAtomic = priceAtomicForTool(toolName, args);
+  const priceCredits = getMcpToolCreditCostForCall(toolName, args);
+  const billableItems = getMcpToolBillableItems(toolName, args);
   const paymentScope = x402PaymentScopeForMcpTool(toolName, args);
   const paymentConfig = paymentScope ? x402ConfigForPaymentScope(cfg, paymentScope) : null;
   if (!paymentConfig) {
     return attachRequestId(unavailablePaymentScopeResponse(toolName, paymentScope), requestId);
   }
+
+  // HyperCore Core-USDC has its own verify/settle lifecycle; it must never be
+  // routed through the stock EVM x402 server.
+  if (paymentScope?.kind === 'hypercore') {
+    if (!cfg.hypercore) {
+      return attachRequestId(unavailablePaymentScopeResponse(toolName, paymentScope), requestId);
+    }
+    return handleHypercoreMcpCall({
+      request,
+      config: cfg.hypercore,
+      toolName,
+      priceAtomic,
+      priceCredits,
+      items: billableItems,
+      requestId,
+      acquisitionSource: x402AcquisitionSource(request),
+      runBusiness,
+    });
+  }
+
   const isBaseAgentSwapGuard = toolName === BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME;
   let httpServer: Awaited<ReturnType<typeof getMcpX402HttpServer>>;
   try {
@@ -404,6 +729,14 @@ export async function handleMcpPaidToolCall({
     if (!hasPaymentSignature) {
       attachOnboardingHeaders(response);
     }
+    attachX402BillingReceipt(response, {
+      toolName,
+      priceCredits,
+      priceAtomic,
+      items: billableItems,
+      status: hasPaymentSignature ? 'not_charged' : 'quote',
+      exemption: hasPaymentSignature ? 'payment_rejected' : undefined,
+    });
     return attachRequestId(response, requestId);
   }
 
@@ -470,6 +803,14 @@ export async function handleMcpPaidToolCall({
       toolName,
       status: businessResponse.status,
       jsonRpcFailed,
+    });
+    attachX402BillingReceipt(businessResponse, {
+      toolName,
+      priceCredits,
+      priceAtomic,
+      items: billableItems,
+      status: 'not_charged',
+      exemption: 'failed',
     });
     return attachRequestId(businessResponse, requestId);
   }
@@ -551,6 +892,24 @@ export async function handleMcpPaidToolCall({
       requestId,
       toolName,
       errorReason: settle.errorReason,
+    });
+    attachX402BillingReceipt(businessResponse, {
+      toolName,
+      priceCredits,
+      priceAtomic,
+      items: billableItems,
+      status: 'not_charged',
+      exemption: 'settlement_failed',
+    });
+  }
+
+  if (settle.success) {
+    attachX402BillingReceipt(businessResponse, {
+      toolName,
+      priceCredits,
+      priceAtomic,
+      items: billableItems,
+      status: 'charged',
     });
   }
 

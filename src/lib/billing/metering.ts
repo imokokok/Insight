@@ -225,3 +225,104 @@ export function getToolCreditCost(toolName: string): number {
   }
   return CREDIT_COST.C1;
 }
+
+/** Maximum items a single batch call may bill; mirrors the request schemas. */
+const MAX_BILLABLE_ITEMS = 50;
+
+function arrayLength(value: unknown): number {
+  return Array.isArray(value) ? value.length : 0;
+}
+
+function clampItems(count: number): number {
+  return Math.min(MAX_BILLABLE_ITEMS, Math.max(1, count));
+}
+
+/**
+ * Billable item count for one MCP tool call. Batch tools charge per requested
+ * item instead of a flat per-call price; every other tool is one item. A
+ * structurally invalid request still prechecks as one item — the tool handler
+ * rejects it before any charge is applied.
+ */
+export function getMcpToolBillableItems(toolName: string, args?: unknown): number {
+  if (args === null || typeof args !== 'object') return 1;
+  const record = args as Record<string, unknown>;
+
+  if (toolName === 'get_price_analytics' && record.mode === 'batch') {
+    const count = arrayLength(record.assets);
+    return count > 0 ? clampItems(count) : 1;
+  }
+
+  if (toolName === 'get_oracle_prices_batch') {
+    const count = arrayLength(record.queries);
+    return count > 0 ? clampItems(count) : 1;
+  }
+
+  return 1;
+}
+
+/** REST paths billed per requested item rather than per call. */
+export const REST_BATCH_METERED_PATHS: ReadonlySet<string> = new Set(['/api/v1/prices/batch']);
+
+/**
+ * Billable item count for a REST request. Only batch paths scale; all other
+ * endpoints are one item, matching their per-call class price.
+ */
+export function getRestBillableItems(path: string, body?: unknown): number {
+  if (!REST_BATCH_METERED_PATHS.has(path)) return 1;
+  if (body === null || typeof body !== 'object') return 1;
+  const queries = (body as Record<string, unknown>).queries;
+  return Array.isArray(queries) && queries.length > 0 ? clampItems(queries.length) : 1;
+}
+
+/** True when this tool call is a batch call priced per requested item. */
+export function isMcpBatchCall(toolName: string, args?: unknown): boolean {
+  if (toolName === 'get_oracle_prices_batch') return true;
+  if (toolName === 'get_price_analytics') {
+    return (
+      args !== null &&
+      typeof args === 'object' &&
+      (args as Record<string, unknown>).mode === 'batch'
+    );
+  }
+  return false;
+}
+
+/**
+ * Count the successful items a batch tool actually returned. Both batch tools
+ * render one `- ` line per successful item under `**Successful:**` and put
+ * failures under `**Failures:**`. Returns null for non-batch calls or an
+ * unrecognized payload, in which case the caller keeps the requested count.
+ */
+export function countMcpBatchSuccessItems(
+  toolName: string,
+  args: unknown,
+  resultText: string
+): number | null {
+  if (!isMcpBatchCall(toolName, args)) return null;
+  const marker = '**Successful:**';
+  const markerIndex = resultText.indexOf(marker);
+  if (markerIndex === -1) return null;
+  const successSection = resultText.slice(markerIndex + marker.length).split('**Failures:**')[0];
+  const successes = successSection.split('\n').filter((line) => /^-\s/.test(line.trim())).length;
+  // Unlike clampItems, 0 is meaningful here: every item failed → bill nothing.
+  return Math.min(MAX_BILLABLE_ITEMS, successes);
+}
+
+/**
+ * Batch billing unit: the C1 price (2 credits) per successful item. The old
+ * flat C2 charge made a 500-item batch cost the same as one call; the review
+ * fixed that arbitrage at the C1 per-item rate.
+ */
+export const BATCH_UNIT_CREDITS = 2;
+
+/**
+ * Credits for a batch call: per successful item, with the batch class price
+ * (one item) as the per-request floor. A partial success bills only the items
+ * that returned usable data; zero successful items bills nothing. Because the
+ * batch class price is never below the single-call C1 price, forcing callers
+ * to split a batch into one-item requests cannot undercut the floor.
+ */
+export function batchChargeCredits(unitCost: number, successfulItems: number): number {
+  if (successfulItems <= 0) return 0;
+  return unitCost * Math.max(1, successfulItems);
+}
