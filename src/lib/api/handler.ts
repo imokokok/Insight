@@ -47,6 +47,7 @@ import { checkPreAuthBurstLimit } from './middleware/preAuthBurstLimiter';
 import { extractClientIp, rateLimitKeyGenerator } from './middleware/rateLimitMiddleware';
 import { rejectOversizedRequest } from './requestLimits';
 import { ApiResponseBuilder } from './response';
+import { withRouteDeadline } from './routeDeadline';
 
 import type { ApiSuccessResponse } from './response/ApiResponse';
 
@@ -1085,9 +1086,9 @@ export function createApiHandler<
         apiContext.quotaInfo = quotaResult.quotaInfo;
       }
 
-      // Raw payloads / plain envelopes are normalized into NextResponse here;
-      // ready-made Response instances pass through untouched.
-      let response = normalizeHandlerResult(await handler(request, apiContext));
+      // Normalize raw payloads / plain envelopes; ready-made Responses pass
+      // through. Each invocation has its own 25 s timer, never a global one.
+      let response = normalizeHandlerResult(await withRouteDeadline(handler(request, apiContext)));
 
       // Route-level response helpers may opt into public caching for market
       // data. On an authenticated route the HTTP response itself is never
@@ -1263,14 +1264,15 @@ export function createApiHandler<
           null,
           errorExemption,
           undefined,
-          receiptKey
+          receiptKey ?? apiContext.quotaInfo?.pendingCharge?.meteringKey ?? null
         );
         if (timeout) errorResponse.headers.set('X-Credit-Status', 'not_charged');
       };
 
       await maybeRecordErrorWaiver({
         keyId: apiContext.auth?.apiKey?.keyId,
-        receiptKey,
+        // A route deadline rejects before the success path derives receiptKey.
+        receiptKey: receiptKey ?? apiContext.quotaInfo?.pendingCharge?.meteringKey ?? null,
         path: request.nextUrl.pathname,
         exemption: errorExemption,
       });

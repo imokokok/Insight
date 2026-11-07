@@ -185,3 +185,39 @@ For a failure: inspect the artifact and request time, separate liveness from
 readiness, inspect the owning platform's logs, and follow the existing operations
 runbook. Frontend crashes and platform-wide 5xx still require the existing Sentry
 and hosting dashboards; public HTTP checks do not replace them.
+
+## Route-level request deadline
+
+Every REST route invocation runs under its own 25-second wall-clock budget
+(`ROUTE_DEADLINE_MS`). Each request creates and clears its own timer, so a slow
+route cannot shorten or consume another route's budget; there is no process- or
+deployment-wide deadline. The budget covers the route handler's work after
+authentication, rate limiting and quota prechecks, not the middleware itself.
+
+When the budget expires the response is HTTP `504` with
+`error.code = "ROUTE_DEADLINE_EXCEEDED"`,
+`error.details = { scope: "route", deadlineMs: 25000 }` and
+`error.retryable = true`. The call is not charged: the response carries
+`X-Credit-Status: not_charged` and `X-Credit-Zero-Reason: timeout`, and one
+`waiver` ledger row is written with `reason = "timeout"`.
+
+`ROUTE_DEADLINE_EXCEEDED` is deliberately not folded into `UPSTREAM_TIMEOUT`.
+Both are `504`, but the attributable party differs: one is an upstream that
+timed out, the other is this service abandoning the request. Merging them would
+permanently bias upstream health statistics, which are the evidence used to
+decide whether a data source should be replaced. Our own refusals stay distinct:
+`402` credit exhaustion, `429` rate limit and `503` settlement unavailable.
+
+The deadline bounds the response, not the upstream call. Upstream work continues
+after the deadline and its result is discarded; no `AbortSignal` is propagated
+through the data adapters yet, so sockets and subrequests are not released
+early. This is a known gap: the guarantee is "an answer within 25 seconds", not
+"upstream work stops at 25 seconds". A success that arrives after the deadline is
+never billed: the charge commits only after the awaited handler result, and the
+deadline path has already returned, so a late result adds no debit, no second
+waiver row and no second usage row.
+
+MCP does not share this deadline. The MCP transport and its tool handlers are
+bounded by per-upstream timeouts and the hosting platform's function duration;
+this repository does not impose a 25-second route-level budget on MCP. Do not
+read the REST number as a product-wide guarantee.
