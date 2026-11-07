@@ -151,12 +151,137 @@ describe('handleMcpPaidToolCall settlement gating', () => {
     const body = (await res.json()) as {
       error: string;
       accepts: unknown[];
-      extensions: Record<string, { retryable: boolean }>;
+      extensions: Record<
+        string,
+        {
+          retryable: boolean;
+          excluded: Array<Record<string, unknown>>;
+        }
+      >;
     };
     expect(body.error).toBe('no_eligible_chain');
     expect(body.accepts).toEqual([]);
     expect(body.extensions['insight.chain-policy'].retryable).toBe(false);
+    expect(body.extensions['insight.chain-policy'].excluded).toEqual([
+      {
+        scope: 'the merchant-configured x402 payment rail',
+        reason: 'floor_excluded',
+        floorAtomic: '20000',
+        priceAtomic: '2000',
+      },
+    ]);
     expect(res.headers.get('PAYMENT-REQUIRED')).toBeTruthy();
+  });
+
+  it('reports floor_excluded for a HyperEVM call below the network floor', async () => {
+    const flooredCfg = {
+      ...cfg,
+      enabled: true,
+      evmEnabled: true,
+      network: 'eip155:999',
+      evmNetworks: ['eip155:999'],
+      amountAtomic: '2000',
+      payTo: '0xAbC0000000000000000000000000000000000001',
+      facilitatorUrl: 'https://hyperevm.example',
+      networkMinAmountAtomic: { 'eip155:999': '30000' },
+    } as X402Config;
+
+    const res = await handleMcpPaidToolCall({
+      request: new Request('http://x/api/mcp', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'tools/call',
+          params: {
+            name: 'check_trade_safety',
+            arguments: { chain_id: 999, action: 'swap', asset: 'USDC' },
+          },
+        }),
+      }),
+      cfg: flooredCfg,
+      toolName: 'check_trade_safety',
+      runBusiness: async () =>
+        jsonRpcResult({ content: [{ type: 'text', text: 'must not execute' }] }),
+    });
+
+    expect(res.status).toBe(402);
+    const body = (await res.json()) as {
+      error: string;
+      accepts: unknown[];
+      extensions: Record<string, { excluded: Array<Record<string, unknown>> }>;
+    };
+    expect(body.error).toBe('no_eligible_chain');
+    expect(body.accepts).toEqual([]);
+    expect(body.extensions['insight.chain-policy'].excluded).toEqual([
+      {
+        scope: 'HyperEVM',
+        reason: 'floor_excluded',
+        floorAtomic: '30000',
+        priceAtomic: '20000',
+      },
+    ]);
+  });
+
+  it('reports floor_excluded for a Solana call below the Solana floor', async () => {
+    const solanaNetwork = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+    const flooredCfg = {
+      ...cfg,
+      enabled: true,
+      evmEnabled: true,
+      network: 'eip155:8453',
+      evmNetworks: ['eip155:8453'],
+      amountAtomic: '2000',
+      payTo: '0xAbC0000000000000000000000000000000000001',
+      facilitatorUrl: 'https://base.example',
+      solana: {
+        network: solanaNetwork,
+        payTo: 'So11111111111111111111111111111111111111112',
+        usdcMint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        amountAtomic: '2000',
+        priceUsd: 0.002,
+        rpcUrl: null,
+      },
+      networkMinAmountAtomic: { [solanaNetwork]: '30000' },
+    } as X402Config;
+
+    const res = await handleMcpPaidToolCall({
+      request: new Request('http://x/api/mcp', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'tools/call',
+          params: {
+            name: 'check_trade_safety',
+            arguments: { chain_id: 'solana', action: 'swap', asset: 'USDC' },
+          },
+        }),
+      }),
+      cfg: flooredCfg,
+      toolName: 'check_trade_safety',
+      runBusiness: async () =>
+        jsonRpcResult({ content: [{ type: 'text', text: 'must not execute' }] }),
+    });
+
+    expect(res.status).toBe(402);
+    const body = (await res.json()) as {
+      error: string;
+      accepts: unknown[];
+      extensions: Record<string, { excluded: Array<Record<string, unknown>> }>;
+    };
+    expect(body.error).toBe('no_eligible_chain');
+    expect(body.accepts).toEqual([]);
+    expect(body.extensions['insight.chain-policy'].excluded).toEqual([
+      {
+        scope: 'Solana',
+        reason: 'floor_excluded',
+        floorAtomic: '30000',
+        priceAtomic: '20000',
+      },
+    ]);
   });
 
   function guardCallRequest(profileId: string): Request {
@@ -283,10 +408,16 @@ describe('handleMcpPaidToolCall settlement gating', () => {
     );
 
     expect(response.status).toBe(402);
-    await expect(response.json()).resolves.toMatchObject({
-      error: 'no_eligible_chain',
-      accepts: [],
-    });
+    const body = (await response.json()) as {
+      error: string;
+      accepts: unknown[];
+      extensions: Record<string, { excluded: Array<Record<string, unknown>> }>;
+    };
+    expect(body.error).toBe('no_eligible_chain');
+    expect(body.accepts).toEqual([]);
+    expect(body.extensions['insight.chain-policy'].excluded).toEqual([
+      { scope: 'Solana', reason: 'payment_scope_not_configured' },
+    ]);
     expect(mockedServerFactory).not.toHaveBeenCalled();
     expect(fakeServer.processSettlement).not.toHaveBeenCalled();
   });
