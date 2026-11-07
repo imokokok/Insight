@@ -138,16 +138,21 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
         const cached = getCachedMcpResult(requestKey);
         if (cached) {
           if (receipt) {
-            const replayBalance = (await precheckCredits(auth.apiKey.keyId, 0)).balance;
+            const replayPrecheck = await precheckCredits(auth.apiKey.keyId, 0);
             Object.assign(receipt, {
               // A replay debits nothing: report 0, not the original price.
               costCredits: 0,
-              balance: replayBalance ?? null,
-              balanceAfter: replayBalance ?? null,
+              balance: replayPrecheck.balance ?? null,
+              balanceAfter: replayPrecheck.balance ?? null,
               status: 'replayed',
               zeroReason: 'replay',
               receipt: cached.receipt ?? cached.rest?.receipt ?? null,
             });
+            // Advisory only: a replay still shows whether the key sits at
+            // >=80% of its cap. Omitted when there is no cap.
+            if (replayPrecheck.budgetWarning === true) {
+              Object.assign(receipt, { budgetWarning: true });
+            }
           }
           const replayedIsError = (cached.result as { isError?: boolean } | null)?.isError === true;
           recordMcpToolUsage(auth, name, replayedIsError ? 500 : 200, Date.now() - startTime);
@@ -219,6 +224,14 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
               ],
               isError: true,
             };
+          }
+
+          // Advisory spend-cap signal: the precheck already projected this
+          // call's cost into `used`. Persisted on the receipt so the HTTP
+          // transport emits the same `X-Credit-Budget-Warning` REST does.
+          // No cap configured (undefined) → no header, never an empty value.
+          if (receipt && creditCheck.budgetWarning === true) {
+            Object.assign(receipt, { budgetWarning: true });
           }
         }
 
