@@ -165,7 +165,16 @@ export async function precheckMcpToolQuota(
   auth: McpAuthContext,
   toolName: string,
   args?: unknown
-): Promise<{ allowed: boolean; reason?: string; balance?: number }> {
+): Promise<{
+  allowed: boolean;
+  reason?: string;
+  balance?: number;
+  /** True when this call brings the key to >=80% of its monthly spend cap.
+   *  False below the threshold and for keys with no cap at all; the receipt
+   *  only carries `true`, so the transport never emits an empty
+   *  `X-Credit-Budget-Warning`. */
+  budgetWarning?: boolean;
+}> {
   if (auth.type !== 'apikey') {
     return { allowed: true };
   }
@@ -193,7 +202,14 @@ export async function precheckMcpToolQuota(
     };
   }
 
-  return { allowed: true, balance: precheck.balance };
+  return {
+    allowed: true,
+    balance: precheck.balance,
+    // The precheck RPC has already projected this call's cost into `used`
+    // (budget_warning = used + cost >= 80% of budget). Pass it through so the
+    // MCP receipt can surface the same advisory header REST does.
+    budgetWarning: precheck.budgetWarning === true,
+  };
 }
 
 /** How this MCP call was settled. `credits` = wallet debit, `free` = priced
