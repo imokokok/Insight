@@ -107,6 +107,17 @@ to 80% of its cap, the successful response also carries
 `reason: "BUDGET_EXCEEDED"` and no credits are debited. Caps are calendar-month
 scoped and do not carry over.
 
+The RPC field contract is pinned by `scripts/tests/billing-migration-contract.test.mjs`.
+`precheck_credits` documents seven fields across branches (`ok`, `reason`,
+`balance`, `cost`, `budget`, `used`, `budget_warning`): a successful call omits
+`reason` and returns six, while a rejection returns four (`ok`, `reason`,
+`balance`, `cost`). `consume_credits` likewise documents seven across branches
+(`ok`, `reason`, `balance`, `cost`, `budget`, `used`, `idempotent`) and returns
+three on the plain success path. Neither RPC returns `confirmed`; the
+`{ok: true, confirmed: false}` shape is the application-layer fail-open result
+after an RPC failure, not a database field. The charge decision is `ok` plus
+`X-Credit-Status`.
+
 ## Source latency and coverage
 
 Coverage probes expose per-provider `fetchDurationMs` and `freshnessShortfall`.
