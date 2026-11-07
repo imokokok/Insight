@@ -10,10 +10,10 @@
  * derives its numbers from {@link creditPricePaths} / {@link callPriceRange}
  * below, so the pricing page cannot drift from what the middleware charges.
  *
- * Model (2026-09): Codex-style paid platform.
+ * Model (2026-11): Codex-style paid platform.
  *   - NO recurring free tier. API access requires either an active
  *     subscription or a positive credit-wallet balance.
- *   - New users get ONE non-refreshing trial grant (100 cr) after email
+ *   - New users get ONE non-refreshing trial grant (400 cr) after email
  *     verification so they can sample the API before paying — see
  *     POST /api/billing/signup-grant. It never refreshes and never re-issues.
  *   - ALL features are open to any paying user — there is no Tier 2/3 feature
@@ -34,22 +34,17 @@
  * cadence: polling faster than 15 minutes yields no fresher snapshot data, so
  * clients should cache on their side.
  *
- * Pricing model (2026-10, C2 halved in the 2026-11-03 pricing review):
- *   - x402 remains the public per-call list price: C1 $0.002, C2 $0.004,
- *     C3 $0.02, C4 $0.04 (1 credit = $0.004).
- *   - The annual commitment carries the discount. Measured against the x402
- *     list price, annual plans land 12.5%–19.8% below and monthly plans
- *     4.6%–12.5% below. Monthly-only volume pricing is therefore shallow
- *     (Developer → Scale, a 16.7x volume step, is only ~9% cheaper per call).
- *   - Prepaid packs are NOT a volume discount. Per call they sit within ~1%–8%
- *     of the x402 list price (Starter is within 1%). Their value is settlement
- *     batching: one invoice instead of a per-call on-chain x402 payment. Do not
- *     advertise them as cheaper — advertise them as fewer settlements.
- *   - Developer 229 USDC/mo : 60K credits, entry production workload
- *   - Team 1,099 USDC/mo    : 300K credits, multi-agent workload
- *   - Scale 3,499 USDC/mo   : 1M credits, high-volume production workload
- *   - Yearly = 11x monthly for 12 monthly credit grants (one month included)
- *   - Packs: Starter 99 / 25K, Builder 389 / 100K, Agent 1,849 / 500K
+ * Pricing model (2026-11-07 audit v2.1; 1 credit = $0.001):
+ *   - x402 list price = API-key list price: C1 $0.002, C2 $0.004, C3 $0.02,
+ *     C4 $0.04, watch window $0.50, position lifecycle $0.55.
+ *   - Subscriptions are real discounts against credit face value, not face
+ *     value itself. Face value = credits × $0.001 ($25.00 / $120.00 / $500.00):
+ *     Starter $19/mo (−24.0%), Team $79/mo (−34.2%), Scale $299/mo (−40.2%).
+ *   - Yearly = 10× monthly for 12 monthly credit grants:
+ *     $190 / $790 / $2,990 (−36.7% / −45.1% / −50.2% vs face value).
+ *   - Prepaid packs are NOT a volume discount; their value is settlement
+ *     batching (one invoice instead of a per-call on-chain x402 payment).
+ *   - Packs: Starter $99 / 100K, Builder $389 / 400K, Agent $1,849 / 2M credits.
  *
  * Payments are processed via NOWPayments (crypto only). Prices are denominated
  * in USDC at 1:1 with USD; the payer may settle in any NOWPayments-supported

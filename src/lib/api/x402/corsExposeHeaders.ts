@@ -31,11 +31,7 @@ export type X402OnboardingHeaderName = (typeof X402_ONBOARDING_HEADER_NAMES)[num
 const BASE_CORS_EXPOSE_HEADERS = [
   'X-Request-Id',
   'Server-Timing',
-  'X-Credit-Cost',
-  'X-Credit-Balance',
-  'X-Credit-Balance-After',
-  'X-Credit-Status',
-  'X-Credit-Receipt',
+  'X-UVD-Purchase',
   'Retry-After',
   'PAYMENT-REQUIRED',
   'PAYMENT-RESPONSE',

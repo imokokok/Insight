@@ -100,7 +100,7 @@ describe('HyperCore MCP payment rail', () => {
     expect(body.accepts[0].network).toBe('hyperliquid:mainnet');
   });
 
-  it('returns the explicit rail error when HyperCore config is absent', async () => {
+  it('returns 402 no_eligible_chain when HyperCore config is absent', async () => {
     const cfg = { ...hypercoreConfig(), hypercore: null } as unknown as X402Config;
     const response = await handleMcpPaidToolCall({
       request: paidRequest(),
@@ -108,8 +108,9 @@ describe('HyperCore MCP payment rail', () => {
       toolName: 'verify_evidence',
       runBusiness: async () => new Response('{}', { status: 200 }),
     });
-    expect(response.status).toBe(503);
-    const body = (await response.json()) as { error?: string };
-    expect(body.error).toBe('X402_PAYMENT_RAIL_UNAVAILABLE');
+    expect(response.status).toBe(402);
+    const body = (await response.json()) as { error?: string; accepts?: unknown[] };
+    expect(body.error).toBe('no_eligible_chain');
+    expect(body.accepts).toEqual([]);
   });
 });

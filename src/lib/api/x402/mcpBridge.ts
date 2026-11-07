@@ -21,9 +21,11 @@ import {
 import { type X402Config, usdToAtomicUnits, X402_CREDIT_USD, X402_MCP_ROUTE } from './config';
 import {
   atomicUnitsToUsdc,
+  attachX402ReceiptHeader,
   logBazaarExtensionStatus,
   paymentAuditFields,
   recordX402Settlement,
+  UVD_PURCHASE_HEADER,
   x402AcquisitionSource,
   x402OnboardingHeaders,
   x402ResponseBody,
@@ -240,6 +242,44 @@ async function extractMcpToolArguments(request: Request): Promise<unknown> {
   }
 }
 
+/**
+ * No payment rail can cover this tool/data-chain combination. Per the pricing
+ * audit (v2.1 §2.4) "chain not supported" must be a 402 with an empty
+ * `accepts[]`, never a 5xx: 5xx is reserved for genuine service failures.
+ */
+function noEligibleChainResponse(
+  toolName: string,
+  scope: X402PaymentScope | null,
+  priceAtomic: string
+): Response {
+  const body = {
+    x402Version: 2,
+    error: 'no_eligible_chain',
+    accepts: [],
+    extensions: {
+      'insight.chain-policy': {
+        tool: toolName,
+        priceAtomic,
+        declinedScope: scope?.label ?? null,
+        eligible: [],
+        excluded: scope
+          ? [{ scope: scope.label, reason: 'payment_scope_not_configured' }]
+          : [{ scope: 'unknown', reason: 'no_declared_payment_scope' }],
+        retryable: false,
+      },
+    },
+  };
+  return new Response(JSON.stringify(body), {
+    status: 402,
+    headers: {
+      'Cache-Control': 'no-store',
+      'Content-Type': 'application/json',
+      'PAYMENT-REQUIRED': encodePaymentHeader(body),
+    },
+  });
+}
+
+/** Genuine facilitator initialisation failure: 503 is correct here. */
 function unavailablePaymentScopeResponse(
   toolName: string,
   scope: X402PaymentScope | null
@@ -550,6 +590,9 @@ async function handleHypercoreMcpCall(input: {
 
   businessResponse.headers.set('payment-response', encodePaymentHeader(settlement));
   if (settlement.success) {
+    // HyperCore settlement has no facilitator purchase id; the on-chain tx hash
+    // is the reconcilable receipt.
+    attachX402ReceiptHeader(businessResponse, settlement.transaction);
     recordX402Settlement({
       requestId,
       status: 'settled',
@@ -654,14 +697,20 @@ export async function handleMcpPaidToolCall({
   const paymentScope = x402PaymentScopeForMcpTool(toolName, args);
   const paymentConfig = paymentScope ? x402ConfigForPaymentScope(cfg, paymentScope) : null;
   if (!paymentConfig) {
-    return attachRequestId(unavailablePaymentScopeResponse(toolName, paymentScope), requestId);
+    return attachRequestId(
+      noEligibleChainResponse(toolName, paymentScope, priceAtomic),
+      requestId
+    );
   }
 
   // HyperCore Core-USDC has its own verify/settle lifecycle; it must never be
   // routed through the stock EVM x402 server.
   if (paymentScope?.kind === 'hypercore') {
     if (!cfg.hypercore) {
-      return attachRequestId(unavailablePaymentScopeResponse(toolName, paymentScope), requestId);
+      return attachRequestId(
+        noEligibleChainResponse(toolName, paymentScope, priceAtomic),
+        requestId
+      );
     }
     return handleHypercoreMcpCall({
       request,
@@ -837,6 +886,7 @@ export async function handleMcpPaidToolCall({
   logBazaarExtensionStatus(requestId, settle.headers);
 
   if (settle.success) {
+    attachX402ReceiptHeader(businessResponse, businessResponse.headers.get(UVD_PURCHASE_HEADER));
     const atomic = settle.amount ?? result.paymentRequirements.amount;
     const requirementAudit = paymentAuditFields(result.paymentRequirements);
     const amountUsdc = requirementAudit.amountUsdc ?? atomicUnitsToUsdc(String(atomic));

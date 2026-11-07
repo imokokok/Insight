@@ -240,7 +240,7 @@ describe('handleMcpPaidToolCall settlement gating', () => {
     );
   });
 
-  it('fails closed when a chain-native MCP rail is not configured', async () => {
+  it('returns 402 no_eligible_chain when a chain-native MCP rail is not configured', async () => {
     const response = await handleMcpPaidToolCall(
       input(
         async () => jsonRpcResult({ content: [{ type: 'text', text: 'must not execute' }] }),
@@ -249,9 +249,10 @@ describe('handleMcpPaidToolCall settlement gating', () => {
       )
     );
 
-    expect(response.status).toBe(503);
+    expect(response.status).toBe(402);
     await expect(response.json()).resolves.toMatchObject({
-      error: 'X402_PAYMENT_RAIL_UNAVAILABLE',
+      error: 'no_eligible_chain',
+      accepts: [],
     });
     expect(mockedServerFactory).not.toHaveBeenCalled();
     expect(fakeServer.processSettlement).not.toHaveBeenCalled();
@@ -261,11 +262,7 @@ describe('handleMcpPaidToolCall settlement gating', () => {
     mockedServerFactory.mockRejectedValueOnce(new Error('facilitator unavailable'));
 
     const response = await handleMcpPaidToolCall(
-      input(
-        async () => jsonRpcResult({ content: [{ type: 'text', text: 'must not execute' }] }),
-        undefined,
-        'prepare_base_agent_swap_guard'
-      )
+      input(async () => jsonRpcResult({ content: [{ type: 'text', text: 'must not execute' }] }))
     );
 
     expect(response.status).toBe(503);

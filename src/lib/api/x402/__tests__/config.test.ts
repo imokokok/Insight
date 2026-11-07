@@ -555,6 +555,42 @@ describe('per-network minimum quote', () => {
     expect(getX402PaymentOptions(cfg, '20000')).toHaveLength(1);
   });
 
+  it('applies the same floor to the Solana rail instead of silently skipping it', () => {
+    const solanaEnv = {
+      ...BASE_ENV,
+      X402_SOLANA_ENABLED: 'true',
+      X402_SOLANA_PAY_TO: 'seFkxFkXEY9JGEpCyPfCWTuPZG9WK6ucf95zvKCfsRX',
+    } as NodeJS.ProcessEnv;
+    const floored = parseX402Config({
+      ...solanaEnv,
+      X402_NETWORK_MIN_AMOUNT: `${SOLANA_DEVNET_CAIP2}=100000`,
+    });
+    expect(
+      getX402PaymentOptions(floored).filter((option) => option.family === 'svm')
+    ).toHaveLength(0);
+
+    const under = parseX402Config({
+      ...solanaEnv,
+      X402_NETWORK_MIN_AMOUNT: `${SOLANA_DEVNET_CAIP2}=900`,
+    });
+    expect(getX402PaymentOptions(under, '4000').some((option) => option.family === 'svm')).toBe(
+      true
+    );
+  });
+
+  it('never lists BNB C1: the hard 4000 micro floor keeps C1 off shelf', () => {
+    const cfg = parseX402Config({
+      ...BASE_ENV,
+      X402_EVM_NETWORKS: 'eip155:56',
+    });
+    expect(cfg.networkMinAmountAtomic).toBeUndefined();
+    // 2000 micro-USDC = C1 at $0.002, below the BNB 50% margin floor.
+    expect(getX402PaymentOptions(cfg, '2000')).toEqual([]);
+    expect(getX402PaymentOptions(cfg, '4000').map((option) => option.network)).toEqual([
+      'eip155:56',
+    ]);
+  });
+
   it('accepts a JSON object and rejects malformed values', () => {
     const cfg = parseX402Config({
       ...BASE_ENV,

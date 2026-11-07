@@ -59,13 +59,13 @@ type QuotaMiddlewareResult =
  * Every API-key request is priced by getEndpointCreditCost(path) — a per-call
  * metering class, or the full product price for a product-purchase endpoint —
  * and must clear a credit-wallet precheck before the handler runs; the
- * authoritative charge is consumed fire-and-forget via consumeCredits only
- * after a 2xx response.
+ * authoritative charge is consumed via consumeCredits only after a 2xx
+ * response, and its result is written into the synchronous X-Credit-* receipt.
  *
  * There is no recurring free tier and no plan-based feature gating: "can this
  * call proceed?" is answered solely by the wallet balance covering the credit
- * cost. The only free credits are the monthly 400-credit allowance (a wallet
- * top-up, see POST /api/billing/signup-grant and the monthly grant cron). The
+ * cost. The only free credits are the one-time 400-credit signup grant (a
+ * wallet top-up from POST /api/billing/signup-grant; it never resets). The
  * only bypass is Enterprise (unlimited), which skips metering.
  *
  * Runs in sequence with rateLimitMiddleware — a request must pass rate limit

@@ -119,12 +119,23 @@ export function x402AcquisitionSource(
  * `x-insight-mcp-install` points at the published `oracle-insight-mcp`
  * launcher, which pins the hosted endpoint and the `mcp` attribution label.
  * `x-insight-no-wallet` points at the existing one-time signup grant
- * (`POST /api/billing/signup-grant`, 100 credits after email verification)
+ * (`POST /api/billing/signup-grant`, 400 credits after email verification)
  * plus the `X-API-Key` credit rail. It deliberately does not create an
  * anonymous free tier: a per-account, verified, idempotent grant is the only
  * wallet-free entitlement, and plans.ts, quotaMiddleware.ts and
  * mcp/middleware.ts all state "no recurring free tier".
  */
+/** UVD facilitator settlement receipt/purchase id header. */
+export const UVD_PURCHASE_HEADER = 'X-UVD-Purchase';
+
+/** Re-expose a settlement receipt id under the canonical `X-Credit-Receipt`. */
+export function attachX402ReceiptHeader(
+  response: Response,
+  receiptId: string | null | undefined
+): void {
+  if (receiptId) response.headers.set('X-Credit-Receipt', receiptId);
+}
+
 export function x402OnboardingHeaders(): Record<string, string> {
   // The explicit key type makes a missing or renamed hint a compile error:
   // every emitted name must also appear in the shared CORS expose list.
@@ -133,7 +144,7 @@ export function x402OnboardingHeaders(): Record<string, string> {
     'x-insight-quickstart': 'https://www.oracleinsight.xyz/docs/x402',
     'x-insight-mcp-install': 'npx -y --package=oracle-insight-mcp insight-mcp',
     'x-insight-no-wallet':
-      'X-API-Key credit wallet: signup + email verification grants 100 credits (~20 C3 calls), no wallet or USDC needed; https://www.oracleinsight.xyz/docs/x402',
+      'X-API-Key credit wallet: signup + email verification grants 400 credits (one-time, no monthly reset), no wallet or USDC needed; https://www.oracleinsight.xyz/docs/x402',
   };
   // Iterate the shared name list, not the object's own keys: the same list is
   // what CORS exposes, so an added hint can never become unreadable in a browser.
@@ -1134,6 +1145,12 @@ export async function handlePaidPreTradeRequest(
   logBazaarExtensionStatus(requestId, settle.headers);
 
   if (settle.success) {
+    // UVD returns a purchase/receipt id on settlement. Copying settle.headers
+    // already lands it on the response; also mirror it into the canonical
+    // receipt header so buyers have one documented place to reconcile gas and
+    // sponsorship after the fact.
+    attachX402ReceiptHeader(businessResponse, businessResponse.headers.get(UVD_PURCHASE_HEADER));
+
     // The CDP v2 settle response omits `amount`, and the exact scheme always
     // settles the issued requirements, so the configured atomic amount is the
     // deterministic charge. Verdict is lifted from the business body
