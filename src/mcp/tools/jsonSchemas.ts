@@ -397,6 +397,16 @@ export const BasePerpGuardExactJsonSchema = z
   })
   .strict();
 
+/** Wire schema for the BNB Smart Chain Aster perp pre-trade gate. */
+export const BnbPerpGuardJsonSchema = z.object({
+  protocolId: z.enum(['aster-perps-bnb-mainnet']),
+  action: z.enum(['open_long', 'open_short']),
+  assetSymbol: z.string().regex(/^[A-Za-z][A-Za-z0-9.-]{0,15}$/),
+  marginAssetSymbol: z.literal('USDT'),
+  sizeUsd: z.number().positive().max(1_000_000_000_000),
+  marginValueUsd: z.number().positive().max(1_000_000_000_000),
+});
+
 /** Wire schema for the Hyperliquid perp pre-trade gate. */
 export const HyperliquidPerpGuardJsonSchema = z.object({
   protocolId: z.enum(['hyperliquid-perps-mainnet']),
@@ -994,7 +1004,9 @@ export const PositionLifecycleGuardJsonSchema = z.object({
   family: z
     .enum([
       'base_perp',
+      'bnb_perp',
       'hyperliquid_perp',
+      'solana_perp',
       'base_lending',
       'monad_lending',
       'multichain_evm_lending',

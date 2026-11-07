@@ -3,6 +3,7 @@ import {
   routeIssueExecutionReceipt,
   routeMarketQuote,
   routeOracleHealth,
+  routePreparePerpOrder,
   routePrepareSwap,
   routePriceAnalytics,
   routeSearchRegistry,
@@ -27,6 +28,24 @@ import { defineTool, jsonSchema } from './tool';
 import type { McpToolDefinition } from '../types';
 
 /** 11 core tools: price truth, safety gates and the verifiable execution loop. */
+/**
+ * `z.toJSONSchema` lifts a discriminated union to `anyOf` without a root
+ * `type`, which MCP clients and our surface test both expect to be an object.
+ * Keep the per-venue `anyOf` constraints and hoist each branch's properties so
+ * the advertised schema still lists every field a caller may send.
+ */
+const preparePerpOrderJsonSchema = (() => {
+  const schema = jsonSchema(PreparePerpOrderInputSchema) as unknown as {
+    anyOf?: Array<{ properties?: Record<string, unknown> }>;
+    [key: string]: unknown;
+  };
+  const properties = Object.assign(
+    {},
+    ...(schema.anyOf ?? []).map((branch) => branch.properties ?? {})
+  );
+  return { ...schema, type: 'object' as const, properties };
+})();
+
 export const CORE_MCP_TOOLS: McpToolDefinition[] = [
   defineTool({
     name: 'get_oracle_price',
@@ -121,28 +140,10 @@ export const CORE_MCP_TOOLS: McpToolDefinition[] = [
   defineTool({
     name: 'prepare_perp_order',
     description:
-      'Prepare an unsigned Hyperliquid BTC/ETH/HYPE perpetual IOC order envelope for local wallet signing. Use it when an agent has decided on market, side, size and limit price and needs reviewed lot/tick, impact and mark-oracle checks. Do not use it to create a nonce, sign, or submit an order. Returns the short-expiry unsigned exchange envelope and the validated bounds when every gate passes.',
+      'Prepare an unsigned perpetual order for one reviewed venue, without signing or submitting it. Venue decides the artifact shape: hyperliquid returns an unsigned exchange order envelope (HyperCore); synthetix-perps-v3-base returns EVM calldata for commitOrder whose acceptablePrice is derived from Insight cross-oracle consensus, not the Synthetix mark price; aster-perps-bnb-mainnet returns a canonical centralized REST order payload (not calldata, and it proves payload binding rather than on-chain execution); solana_drift returns a Borsh instruction payload that the caller must complete with the Drift SDK. The reviewed guard runs inside each adapter, so the result carries the risk verdict reference. Use it when an agent has decided on venue, market, side and size. Do not use it to create a nonce, sign, or submit an order. Returns the venue-specific unsigned artifact plus its declared artifact kind, caller requirements and the guard verdict reference; it never returns a uniformly described executable trade package.',
     parameters: PreparePerpOrderInputSchema,
-    inputSchema: jsonSchema(PreparePerpOrderInputSchema),
-    handler: async (args, context) =>
-      callLegacy(
-        'prepare_hyperliquid_perp_order',
-        {
-          market: args.market,
-          side: args.side,
-          size: args.size,
-          limitPrice: args.limit_price,
-          reduceOnly: args.reduce_only,
-          clientOrderId: args.client_order_id,
-          maxNotionalUsd: args.max_notional_usd,
-          maxPriceImpactBps: args.max_price_impact_bps,
-          maxMarkOracleDeviationBps: args.max_mark_oracle_deviation_bps,
-          requireFullFill: args.require_full_fill,
-          expiresAfterSeconds: args.expires_after_seconds,
-          builderFee: args.builder_fee,
-        },
-        context
-      ),
+    inputSchema: preparePerpOrderJsonSchema,
+    handler: routePreparePerpOrder,
   }),
   defineTool({
     name: 'issue_execution_receipt',

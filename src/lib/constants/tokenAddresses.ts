@@ -42,9 +42,24 @@ export type EvmChainId = (typeof CHAIN_ID)[keyof typeof CHAIN_ID];
 export const TOKEN_ADDRESS = {
   /** Base mainnet USDC (Circle canonical deployment). */
   BASE_USDC: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+  /** HyperEVM mainnet USDC (Circle native deployment). */
+  HYPEREVM_USDC: '0xb88339CB7199b77E23DB6E890353E22632Ba630f',
+  /** HyperEVM wrapped HYPE predeploy. */
+  HYPEREVM_WHYPE: '0x5555555555555555555555555555555555555555',
   /** Solana mainnet USDC mint (Circle canonical). */
   SOLANA_USDC_MINT: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
 } as const;
+
+/**
+ * HyperEVM ERC-20 identities for CAIP-19 resolution.
+ *
+ * HYPE itself is native on chain 999 and resolves through SLIP-44 2457; these
+ * are only the ERC-20 forms needed when a trade leg names a wrapped token.
+ */
+export const HYPEREVM_CAIP19_TOKEN_ADDRESSES: Record<string, Record<number, string>> = {
+  USDC: { [CHAIN_ID.HYPEREVM]: TOKEN_ADDRESS.HYPEREVM_USDC },
+  WHYPE: { [CHAIN_ID.HYPEREVM]: TOKEN_ADDRESS.HYPEREVM_WHYPE },
+};
 
 /** Base mainnet USDC, checksummed. */
 export const BASE_USDC_ADDRESS = TOKEN_ADDRESS.BASE_USDC;

@@ -42,6 +42,7 @@ describe('resolveCaip19 — native gas tokens (slip44)', () => {
     ['MATIC', 137, 'eip155:137/slip44:966'],
     ['POL', 137, 'eip155:137/slip44:966'],
     ['AVAX', 43114, 'eip155:43114/slip44:9005'],
+    ['HYPE', 999, 'eip155:999/slip44:2457'],
   ])('resolveCaip19(%s, %i) → %s', (symbol, chainId, expected) => {
     const asset = resolveCaip19(symbol, chainId);
     expect(asset).not.toBeNull();
@@ -57,6 +58,18 @@ describe('resolveCaip19 — native gas tokens (slip44)', () => {
     const asset = resolveCaip19('ETH', 56);
     // Either resolves to a registered ERC-20 or null — never slip44:60.
     expect(asset?.namespace).not.toBe('slip44');
+  });
+});
+
+describe('resolveCaip19 — HyperEVM token identities', () => {
+  it.each([
+    ['USDC', 'eip155:999/erc20:0xb88339CB7199b77E23DB6E890353E22632Ba630f'],
+    ['WHYPE', 'eip155:999/erc20:0x5555555555555555555555555555555555555555'],
+  ])('resolveCaip19(%s, 999) → %s', (symbol, expected) => {
+    const asset = resolveCaip19(symbol, 999);
+    expect(asset).not.toBeNull();
+    expect(asset!.id).toBe(expected);
+    expect(asset!.namespace).toBe('erc20');
   });
 });
 

@@ -69,7 +69,7 @@ export type BasePerpGuardAction = z.infer<typeof BasePerpGuardActionSchema>;
  * trackingCode, referrer. Layout verified against the published
  * PerpsMarketProxy ABI in @synthetixio/v3-contracts.
  */
-const COMMIT_ORDER_ABI = [
+export const COMMIT_ORDER_ABI = [
   {
     type: 'function',
     name: 'commitOrder',

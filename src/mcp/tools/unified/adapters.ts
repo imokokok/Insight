@@ -1,5 +1,20 @@
 import { type z } from 'zod';
 
+import { x402PaymentScopeForMcpTool } from '@/lib/api/x402/capabilityPayment';
+import { CHAIN_ID } from '@/lib/constants/tokenAddresses';
+import {
+  isReviewedPancakeSwapV3ProfileId,
+  reviewedPancakeSwapV3Profile,
+  type ReviewedPancakeSwapV3ProfileId,
+} from '@/lib/dex/pancakeSwapV3';
+import { prepareSolanaDriftPerpOrder } from '@/lib/dex/solanaDriftPerpOrder';
+import {
+  prepareBasePerpOrderEnvelope,
+  type BasePerpOrderEnvelopeRequest,
+} from '@/lib/perps/basePerpOrderEnvelope';
+import { prepareBnbPerpOrderEnvelope } from '@/lib/perps/bnbPerpOrderEnvelope';
+import { BNB_PERP_GUARD_ASTER_PROTOCOL_ID } from '@/lib/perps/bnbPerpGuard';
+import { PerpOrderAdapterError } from '@/lib/perps/perpOrderEnvelope';
 import { STABLECOINS } from '@/lib/stablecoins/config';
 import { WRAPPED_ASSETS } from '@/lib/wrapped-assets/config';
 
@@ -10,6 +25,7 @@ import {
   type GetOracleHealthInputSchema,
   type GetPriceAnalyticsInputSchema,
   type IssueExecutionReceiptInputSchema,
+  type PreparePerpOrderInputSchema,
   type PrepareSwapInputSchema,
   type SearchOracleRegistryInputSchema,
   type VerifyEvidenceInputSchema,
@@ -23,6 +39,7 @@ type OracleHealthArgs = z.infer<typeof GetOracleHealthInputSchema>;
 type RegistryArgs = z.infer<typeof SearchOracleRegistryInputSchema>;
 type MarketQuoteArgs = z.infer<typeof GetMarketQuoteInputSchema>;
 type PrepareSwapArgs = z.infer<typeof PrepareSwapInputSchema>;
+type PreparePerpOrderArgs = z.infer<typeof PreparePerpOrderInputSchema>;
 type VerifyEvidenceArgs = z.infer<typeof VerifyEvidenceInputSchema>;
 
 const MONAD_LENDING_PROTOCOLS = new Set(['aave-v3-monad', 'morpho-blue-monad', 'euler-v2-monad']);
@@ -87,12 +104,12 @@ function buildLendingGuard(args: CheckTradeSafetyArgs, chainId: number) {
   };
 }
 
-function buildPerpGuard(args: CheckTradeSafetyArgs) {
+function buildPerpGuard(args: CheckTradeSafetyArgs, marginAssetSymbol = 'USDC') {
   return {
     protocolId: args.protocol_id,
     action: args.side ?? 'open_long',
     assetSymbol: requireValue(args.asset, 'asset', 'for perp actions'),
-    marginAssetSymbol: 'USDC',
+    marginAssetSymbol,
     sizeUsd: requireValue(args.amount_usd, 'amount_usd', 'for perp actions'),
     marginValueUsd: requireValue(args.margin_value_usd, 'margin_value_usd', 'for perp actions'),
   };
@@ -213,6 +230,36 @@ export async function routeCheckTradeSafety(
   }
 
   if (isEvmChain(chain) && (args.action === 'open_perp' || args.action === 'close_perp')) {
+    if (chain === CHAIN_ID.HYPEREVM) {
+      throw new Error(
+        '[unavailable:ecosystem_absent] check_trade_safety: HyperEVM (chain 999) has no perpetual execution surface in its ecosystem; Hyperliquid perpetuals execute on HyperCore, so pass chain_id "hyperliquid". No Base guard is substituted.'
+      );
+    }
+    if (chain === CHAIN_ID.BSC) {
+      if (args.margin_asset && args.margin_asset !== 'USDT') {
+        throw new Error(
+          'check_trade_safety: the reviewed BNB perp venue (Aster) accepts USDT margin only; pass margin_asset "USDT".'
+        );
+      }
+      if (exactTransaction) {
+        throw new Error(
+          'check_trade_safety: the BNB perp guard is assessment-only and does not bind an exact transaction; omit "transaction" or use venue=hyperliquid for exact-order binding.'
+        );
+      }
+      return callLegacy(
+        'bnb_perp_guard',
+        guard ?? {
+          ...buildPerpGuard(args, 'USDT'),
+          protocolId: args.protocol_id ?? BNB_PERP_GUARD_ASTER_PROTOCOL_ID,
+        },
+        context
+      );
+    }
+    if (chain !== CHAIN_ID.BASE) {
+      throw new Error(
+        `[unavailable:not_integrated] check_trade_safety: chain ${chain} has no wired perpetual guard on this MCP surface; refusing to fall back to the Base Synthetix guard.`
+      );
+    }
     const perpGuard = guard ?? {
       ...buildPerpGuard(args),
       protocolId: args.protocol_id ?? 'synthetix-perps-v3-base',
@@ -224,6 +271,15 @@ export async function routeCheckTradeSafety(
           context
         )
       : callLegacy('base_perp_guard', perpGuard, context);
+  }
+
+  if (
+    chain === CHAIN_ID.HYPEREVM &&
+    (args.action === 'swap' || args.action === 'vault_deposit' || isLendingAction(args.action))
+  ) {
+    throw new Error(
+      '[unavailable:ecosystem_absent] check_trade_safety: HyperEVM (chain 999) has no DEX or lending execution venue in its ecosystem: it is a data-plane chain (Chainlink USD feeds only). No Base venue guard is substituted.'
+    );
   }
 
   if (isEvmChain(chain) && isLendingAction(args.action)) {
@@ -531,6 +587,43 @@ export async function routeSearchRegistry(
   }
 }
 
+const DEFAULT_PANCAKE_QUOTE_PROFILE = {
+  base_pancakeswap_v3: 'base-pancakeswap-v3-usdc-usdt-100',
+  bnb_pancakeswap_v3: 'bnb-pancakeswap-v3-usdt-usdc-100',
+} as const satisfies Record<string, ReviewedPancakeSwapV3ProfileId>;
+
+/**
+ * PancakeSwap quotes are served from a reviewed profile, and the profile — not
+ * the venue label — decides the data chain. Resolve the id first, then prove
+ * that the settlement realm the caller will be charged in is the same chain the
+ * quote describes. A mismatch is refused instead of returning Base data for a
+ * BNB payment (or the reverse).
+ */
+function resolvePancakeProfile(
+  toolName: 'get_market_quote' | 'prepare_swap',
+  venue: 'base_pancakeswap_v3' | 'bnb_pancakeswap_v3',
+  requested?: string
+): ReviewedPancakeSwapV3ProfileId {
+  const profileId = requested ?? DEFAULT_PANCAKE_QUOTE_PROFILE[venue];
+  if (!isReviewedPancakeSwapV3ProfileId(profileId)) {
+    throw new Error(
+      `${toolName}: "${profileId}" is not a reviewed PancakeSwap V3 profile id.`
+    );
+  }
+  const dataChainId = reviewedPancakeSwapV3Profile(profileId).chainId;
+  const scope = x402PaymentScopeForMcpTool(toolName, {
+    venue,
+    profile_id: profileId,
+  });
+  if (scope === null || scope.kind !== 'evm' || scope.network !== `eip155:${dataChainId}`) {
+    const settlement = scope === null ? 'no declared settlement realm' : scope.label;
+    throw new Error(
+      `${toolName}: profile "${profileId}" serves data on eip155:${dataChainId}, but venue "${venue}" settles in ${settlement}; refusing to serve a chain the caller is not paying on.`
+    );
+  }
+  return profileId;
+}
+
 export async function routeMarketQuote(
   args: MarketQuoteArgs,
   context?: McpToolCallContext
@@ -539,7 +632,10 @@ export async function routeMarketQuote(
     case 'base_aerodrome':
       return callLegacy('get_aerodrome_slipstream_market', {}, context);
     case 'base_pancakeswap_v3':
-      return callLegacy('get_pancake_swap_v3_market', {}, context);
+    case 'bnb_pancakeswap_v3': {
+      const profileId = resolvePancakeProfile('get_market_quote', args.venue, args.profile_id);
+      return callLegacy('get_pancakeswap_v3_market', { profileId }, context);
+    }
     case 'base_quickswap_v2':
       return callLegacy('get_quickswap_v2_market', {}, context);
     case 'base_venue_identity':
@@ -553,7 +649,9 @@ export async function routeMarketQuote(
     case 'hyperliquid_perp':
       return callLegacy('get_hyperliquid_perp_market', { market: args.market }, context);
     default:
-      return callLegacy('get_base_dex_market', {}, context);
+      throw new Error(
+        `[unavailable:not_integrated] get_market_quote venue ${String(args.venue)} has no wired quote adapter; refusing to fall back to the Base market.`
+      );
   }
 }
 
@@ -636,10 +734,13 @@ export async function routePrepareSwap(
         context
       );
     case 'base_pancakeswap_v3':
+    case 'bnb_pancakeswap_v3': {
+      const profileId = resolvePancakeProfile('prepare_swap', args.venue, args.profile_id);
       return callLegacy(
         'prepare_pancakeswap_v3_swap',
         {
           ...common,
+          profileId,
           recipient: requireValue(args.recipient, 'recipient', 'for this venue'),
           deadlineUnixSeconds: requireValue(
             args.deadline_unix_seconds,
@@ -650,7 +751,12 @@ export async function routePrepareSwap(
         },
         context
       );
-    default:
+    }
+    case 'solana_jupiter':
+      throw new Error(
+        '[unavailable:in_progress] prepare_swap venue solana_jupiter: the Jupiter transaction adapter is delivered, but the Solana swap guard is still being built on another lane; refusing to return an unguarded versioned transaction. No Orca pool-level verdict is substituted.'
+      );
+    case 'base_aerodrome_slipstream':
       return callLegacy(
         'prepare_aerodrome_slipstream_swap',
         {
@@ -665,6 +771,174 @@ export async function routePrepareSwap(
         },
         context
       );
+  }
+}
+
+function describeWireFailure(
+  outcome: 'rejected' | 'unavailable',
+  reason: 'invalid_request' | 'market_not_found' | 'upstream_unavailable' | 'unsupported',
+  toolName: string,
+  venue: string,
+  error: unknown
+): Error {
+  const detail = error instanceof Error ? error.message : String(error);
+  return new Error(`[${outcome}:${reason}] ${toolName} venue ${venue}: ${detail}`);
+}
+
+function mapPerpAdapterFailure(toolName: string, venue: string, error: unknown): Error {
+  const code =
+    error instanceof PerpOrderAdapterError
+      ? error.code
+      : typeof (error as { code?: unknown })?.code === 'string'
+        ? (error as { code: string }).code
+        : null;
+  if (code === 'INVALID_INPUT' || code === 'SLIPPAGE_EXCEEDED') {
+    return describeWireFailure('rejected', 'invalid_request', toolName, venue, error);
+  }
+  if (code === 'UNSUPPORTED_MARKET' || code === 'MARKET_NOT_FOUND' || code === 'UNSUPPORTED') {
+    return describeWireFailure('unavailable', 'market_not_found', toolName, venue, error);
+  }
+  if (code === 'UPSTREAM_UNAVAILABLE') {
+    return describeWireFailure('unavailable', 'upstream_unavailable', toolName, venue, error);
+  }
+  return describeWireFailure('rejected', 'invalid_request', toolName, venue, error);
+}
+
+function formatUnsignedArtifact(input: {
+  venue: string;
+  artifactKind: string;
+  artifactLabel: string;
+  requires: string[];
+  envelope: unknown;
+}): string {
+  return JSON.stringify(
+    {
+      venue: input.venue,
+      artifact_kind: input.artifactKind,
+      artifact_label: input.artifactLabel,
+      requires: input.requires,
+      envelope: input.envelope,
+    },
+    null,
+    2
+  );
+}
+
+export async function routePreparePerpOrder(
+  args: PreparePerpOrderArgs,
+  context?: McpToolCallContext
+): Promise<string> {
+  switch (args.venue) {
+    case 'hyperliquid':
+      return callLegacy(
+        'prepare_hyperliquid_perp_order',
+        {
+          market: args.market,
+          side: args.side,
+          size: args.size,
+          limitPrice: args.limit_price,
+          reduceOnly: args.reduce_only,
+          clientOrderId: args.client_order_id,
+          maxNotionalUsd: args.max_notional_usd,
+          maxPriceImpactBps: args.max_price_impact_bps,
+          maxMarkOracleDeviationBps: args.max_mark_oracle_deviation_bps,
+          requireFullFill: args.require_full_fill,
+          expiresAfterSeconds: args.expires_after_seconds,
+          builderFee: args.builder_fee,
+        },
+        context
+      );
+    case 'synthetix-perps-v3-base': {
+      const request: BasePerpOrderEnvelopeRequest = {
+        chain: 'eip155:8453',
+        market: args.market,
+        side: args.side === 'buy' ? 'long' : 'short',
+        quantity: args.quantity,
+        leverage: args.leverage,
+        maxSlippageBps: args.max_slippage_bps,
+        orderType: args.order_type,
+        limitPrice: args.limit_price,
+        accountId: args.account_id,
+        accountOwner: args.account_owner,
+        settlementStrategyId: 0,
+        validForSeconds: args.valid_for_seconds,
+      };
+      try {
+        const envelope = await prepareBasePerpOrderEnvelope(request);
+        return formatUnsignedArtifact({
+          venue: args.venue,
+          artifactKind: 'evm-calldata',
+          artifactLabel:
+            'EVM calldata for the Synthetix Perps V3 commitOrder call; the caller signs it in a local wallet. This is not a signed, broadcast, or on-chain-confirmed order.',
+          requires: [
+            'Local wallet signing of unsignedTransaction; the caller controls nonce and broadcast.',
+            'Margins already deposited into the declared Synthetix account; the envelope does not move collateral.',
+            'Reference price is Insight cross-oracle consensus, not the Synthetix mark price; acceptablePrice is derived from that consensus quote plus slippage.',
+          ],
+          envelope,
+        });
+      } catch (error) {
+        throw mapPerpAdapterFailure('prepare_perp_order', args.venue, error);
+      }
+    }
+    case 'aster-perps-bnb-mainnet': {
+      try {
+        const envelope = await prepareBnbPerpOrderEnvelope({
+          chain: 'eip155:56',
+          market: args.market,
+          side: args.side === 'buy' ? 'long' : 'short',
+          quantity: args.quantity,
+          leverage: args.leverage,
+          maxSlippageBps: args.max_slippage_bps,
+          orderType: args.order_type,
+          limitPrice: args.limit_price,
+          clientOrderId: args.client_order_id,
+          validForSeconds: args.valid_for_seconds,
+        });
+        return formatUnsignedArtifact({
+          venue: args.venue,
+          artifactKind: 'venue-rest-order-payload',
+          artifactLabel:
+            'Aster centralized REST order payload (JSON body), not EVM calldata and not an on-chain transaction. It proves binding to the exact order payload, not on-chain execution.',
+          requires: [
+            'User-held Aster venue credentials in the user-controlled client; Insight never creates credentials or signs for the venue.',
+            'Caller submits the canonical payload to the Aster REST endpoint; Insight does not submit it.',
+            'Reference price is the Aster venue mark price; acceptablePrice is derived from that price plus slippage.',
+          ],
+          envelope,
+        });
+      } catch (error) {
+        throw mapPerpAdapterFailure('prepare_perp_order', args.venue, error);
+      }
+    }
+    case 'solana_drift': {
+      try {
+        const envelope = await prepareSolanaDriftPerpOrder({
+          assetSymbol: args.market,
+          action: args.side === 'buy' ? 'open_long' : 'open_short',
+          sizeUsd: args.size_usd,
+          marginValueUsd: args.margin_value_usd,
+          sizeBase: args.size_base,
+          authority: args.wallet,
+          userIndex: args.user_index,
+          expiresAfterSeconds: args.expires_after_seconds,
+        });
+        return formatUnsignedArtifact({
+          venue: args.venue,
+          artifactKind: 'solana-instruction-payload',
+          artifactLabel:
+            'Drift v2 Borsh place-perp-order instruction payload. It is not a ready-to-sign transaction: the caller must complete remaining accounts and compose the instruction with the Drift SDK.',
+          requires: [
+            'The caller completes remaining Drift accounts and composes the instruction with the Drift SDK before signing.',
+            'Local wallet signing by the declared authority; Insight does not sign or submit.',
+            'The reviewed Solana perp guard runs inside the adapter; its verdict reference is carried in the envelope.',
+          ],
+          envelope,
+        });
+      } catch (error) {
+        throw mapPerpAdapterFailure('prepare_perp_order', args.venue, error);
+      }
+    }
   }
 }
 

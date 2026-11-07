@@ -150,6 +150,7 @@ export const GetMarketQuoteInputSchema = z.object({
       'base_uniswap_v3',
       'base_aerodrome',
       'base_pancakeswap_v3',
+      'bnb_pancakeswap_v3',
       'base_quickswap_v2',
       'base_venue_identity',
       'monad_uniswap_v3',
@@ -158,7 +159,13 @@ export const GetMarketQuoteInputSchema = z.object({
       'hyperliquid_perp',
     ])
     .describe('Reviewed venue to quote'),
-  profile_id: z.string().min(1).optional().describe('Reviewed pool/profile id'),
+  profile_id: z
+    .string()
+    .min(1)
+    .optional()
+    .describe(
+      'Reviewed pool/profile id. PancakeSwap V3: base-pancakeswap-v3-usdc-usdt-100, bnb-pancakeswap-v3-usdt-usdc-100, bnb-pancakeswap-v3-usdt-wbnb-100'
+    ),
   market: z.enum(['BTC', 'ETH', 'HYPE']).optional().describe('Hyperliquid perp market'),
   venues: z.array(z.string()).min(1).optional().describe('Base venue ids to inspect'),
 });
@@ -267,8 +274,10 @@ export const PrepareSwapInputSchema = z.object({
     .enum([
       'base_aerodrome_slipstream',
       'base_pancakeswap_v3',
+      'bnb_pancakeswap_v3',
       'base_agent_swap',
       'solana_loopscale_vault',
+      'solana_jupiter',
     ])
     .describe('Reviewed execution venue'),
   direction: z.enum(['token0-to-token1', 'token1-to-token0']).optional(),
@@ -286,6 +295,16 @@ export const PrepareSwapInputSchema = z.object({
   wallet: z.string().min(1).optional(),
   vault: z.string().min(1).optional(),
   asset_mint: z.string().min(1).optional(),
+  input_mint: z
+    .string()
+    .regex(/^[1-9A-HJ-NP-Za-km-z]{32,44}$/)
+    .optional()
+    .describe('Solana base58 mint sold; required for venue=solana_jupiter'),
+  output_mint: z
+    .string()
+    .regex(/^[1-9A-HJ-NP-Za-km-z]{32,44}$/)
+    .optional()
+    .describe('Solana base58 mint bought; required for venue=solana_jupiter'),
   collateral_symbol: z.string().min(1).optional(),
   loan_symbol: z.string().min(1).optional(),
   collateral_value_usd: z.number().finite().positive().optional(),
@@ -293,9 +312,9 @@ export const PrepareSwapInputSchema = z.object({
   min_lp_amount: z.string().min(1).optional(),
 });
 
-/** 9. Prepare an unsigned perp order. */
-export const PreparePerpOrderInputSchema = z.object({
-  venue: z.literal('hyperliquid').describe('Only reviewed perp venue'),
+/** 9. Prepare an unsigned perp order (venue-specific unsigned artifacts). */
+const HyperliquidPerpOrderInputSchema = z.object({
+  venue: z.literal('hyperliquid').describe('HyperCore perpetual venue'),
   market: z.enum(['BTC', 'ETH', 'HYPE']),
   side: z.enum(['buy', 'sell']),
   size: z.string().min(1).describe('Exact base size decimal string'),
@@ -309,6 +328,53 @@ export const PreparePerpOrderInputSchema = z.object({
   expires_after_seconds: z.number().int().min(5).max(120).optional(),
   builder_fee: Snapshot.optional(),
 });
+
+const BasePerpOrderInputSchema = z.object({
+  venue: z.literal('synthetix-perps-v3-base'),
+  market: z.enum(['BTC', 'ETH', 'SOL', 'XRP', 'DOGE', 'PEPE']),
+  side: z.enum(['buy', 'sell']).describe('buy maps to open_long, sell to open_short'),
+  quantity: z.string().min(1).describe('Exact base-asset quantity decimal string'),
+  leverage: z.number().finite().positive().max(100),
+  max_slippage_bps: z.number().int().min(0).max(10_000),
+  order_type: z.enum(['market', 'limit']).optional(),
+  limit_price: z.string().min(1).optional(),
+  account_id: z.union([z.string().regex(/^[1-9][0-9]*$/), z.number().int().positive().safe()]),
+  account_owner: z.string().regex(/^0x[0-9a-fA-F]{40}$/),
+  settlement_strategy_id: z.literal(0).optional(),
+  valid_for_seconds: z.number().int().min(5).max(120).optional(),
+});
+
+const BnbPerpOrderInputSchema = z.object({
+  venue: z.literal('aster-perps-bnb-mainnet'),
+  market: z.enum(['BTC', 'ETH']),
+  side: z.enum(['buy', 'sell']).describe('buy maps to open_long, sell to open_short'),
+  quantity: z.string().min(1).describe('Exact base-asset quantity decimal string'),
+  leverage: z.number().finite().positive().max(100),
+  max_slippage_bps: z.number().int().min(0).max(10_000),
+  order_type: z.enum(['market', 'limit']).optional(),
+  limit_price: z.string().min(1).optional(),
+  client_order_id: z.string().regex(/^[A-Za-z0-9_-]{1,36}$/),
+  valid_for_seconds: z.number().int().min(5).max(120).optional(),
+});
+
+const SolanaDriftPerpOrderInputSchema = z.object({
+  venue: z.literal('solana_drift'),
+  market: z.enum(['SOL', 'BTC', 'ETH']),
+  side: z.enum(['buy', 'sell']).describe('buy maps to open_long, sell to open_short'),
+  size_usd: z.number().finite().positive(),
+  margin_value_usd: z.number().finite().positive(),
+  size_base: z.string().min(1).optional(),
+  wallet: z.string().regex(/^[1-9A-HJ-NP-Za-km-z]{32,44}$/).describe('Drift order authority / fee payer'),
+  user_index: z.number().int().min(0).max(0xffff).optional(),
+  expires_after_seconds: z.number().int().min(1).max(300).optional(),
+});
+
+export const PreparePerpOrderInputSchema = z.discriminatedUnion('venue', [
+  HyperliquidPerpOrderInputSchema,
+  BasePerpOrderInputSchema,
+  BnbPerpOrderInputSchema,
+  SolanaDriftPerpOrderInputSchema,
+]);
 
 /** 10. Issue a receipt or settle an executed trade. */
 export const IssueExecutionReceiptInputSchema = z.object({
@@ -374,7 +440,9 @@ export const PositionLifecycleStepInputSchema = z.object({
   family: z
     .enum([
       'base_perp',
+      'bnb_perp',
       'hyperliquid_perp',
+      'solana_perp',
       'base_lending',
       'monad_lending',
       'multichain_evm_lending',

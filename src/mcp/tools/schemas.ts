@@ -903,7 +903,9 @@ export const PositionLifecycleGuardInputSchema = z.object({
   family: z
     .enum([
       'base_perp',
+      'bnb_perp',
       'hyperliquid_perp',
+      'solana_perp',
       'base_lending',
       'monad_lending',
       'multichain_evm_lending',

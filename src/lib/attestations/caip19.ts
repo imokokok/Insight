@@ -31,7 +31,8 @@
  *   would conflate asset identity with evidence source — exactly the conflation
  *   Raul's spec forbids. Instead, real token contract addresses come from
  *   canonical hardcoded registries:
- *     - EVM:   `TWAP_TOKEN_ADDRESSES` / `ETHEREUM_TOKEN_ADDRESSES`
+ *     - EVM:   `TWAP_TOKEN_ADDRESSES` / `ETHEREUM_TOKEN_ADDRESSES` /
+ *              `HYPEREVM_CAIP19_TOKEN_ADDRESSES`
  *     - Solana: `SOLANA_SPL_TOKEN_ADDRESSES`
  *   These addresses are canonical and immutable per (symbol, chain), which is
  *   what CAIP-19 requires.
@@ -44,6 +45,7 @@
 
 import { getAddress } from 'viem';
 
+import { HYPEREVM_CAIP19_TOKEN_ADDRESSES } from '@/lib/constants/tokenAddresses';
 import { TWAP_TOKEN_ADDRESSES } from '@/lib/oracles/constants/twapConstants';
 
 // ---------------------------------------------------------------------------
@@ -56,7 +58,7 @@ import { TWAP_TOKEN_ADDRESSES } from '@/lib/oracles/constants/twapConstants';
  *
  * A native asset is only resolvable on chains where it IS the gas token. ETH is
  * native on Ethereum L1 + the canonical ETH-gas L2s; BNB on BSC; POL/MATIC on
- * Polygon; AVAX on Avalanche. On any other chain these symbols resolve to their
+ * Polygon; AVAX on Avalanche; HYPE on HyperEVM. On any other chain these resolve to their
  * wrapped/bridged ERC-20 (if registered) — never a wrong slip44.
  */
 const NATIVE_ASSETS: Record<string, Record<number, number>> = {
@@ -81,6 +83,9 @@ const NATIVE_ASSETS: Record<string, Record<number, number>> = {
   },
   AVAX: {
     43114: 9005, // Avalanche C-Chain
+  },
+  HYPE: {
+    999: 2457, // Hyperliquid HyperEVM (gas token)
   },
 };
 
@@ -249,7 +254,9 @@ export function resolveCaip19(symbol: string, chainId: number): Caip19Asset | nu
   }
 
   // 2. ERC-20 in the canonical token registry?
-  const tokenAddress = TWAP_TOKEN_ADDRESSES[resolvedSymbol]?.[chainId];
+  const tokenAddress =
+    TWAP_TOKEN_ADDRESSES[resolvedSymbol]?.[chainId] ??
+    HYPEREVM_CAIP19_TOKEN_ADDRESSES[resolvedSymbol]?.[chainId];
   if (tokenAddress) {
     return {
       id: buildErc20Id(chainId, tokenAddress),
