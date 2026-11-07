@@ -1,4 +1,4 @@
--- 0125: Ledger semantics (source/reason/request_id/meta) + pending settlement
+-- 0126: Ledger semantics (source/reason/request_id/meta) + pending settlement
 -- reconciliation.
 --
 -- Authoritative pricing review 2026-11-07 v2.1, §1.1 row 10 and §8:
