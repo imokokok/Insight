@@ -1,0 +1,18 @@
+{
+  "schema": "insight.x402-stale-admissibility-status/v1",
+  "caseId": "fresh-unsafe",
+  "authority": "fixture-authority/stale-admissibility-v1",
+  "synthetic": true,
+  "observedAt": 1700000020,
+  "state": "UNSAFE",
+  "statement": "The synthetic fixture authority marks this otherwise fresh claim unsafe for a new action.",
+  "appliesTo": {
+    "subjectHash": "0xb9814413842aadab1b69118cfa3cf14989d360315afc34909145322e66c82240",
+    "claimHash": "0xa14512608e23c7361228cdf33c9fe70c23efdd1bfa4198cd610369b8e35d730d"
+  },
+  "observedSettlement": {
+    "state": "OBSERVED",
+    "reference": "fixture://fresh-unsafe/synthetic-settlement-observation",
+    "synthetic": true
+  }
+}
