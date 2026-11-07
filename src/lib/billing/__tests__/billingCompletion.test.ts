@@ -3,7 +3,11 @@
  * no-usable-data / timeout exemptions.
  */
 
-import { isNoUsableDataResult, isUpstreamTimeoutError } from '../exemptions';
+import {
+  isAllItemsFailedResult,
+  isInsufficientDataResult,
+  isUpstreamTimeoutError,
+} from '../exemptions';
 import {
   batchChargeCredits,
   countMcpBatchSuccessItems,
@@ -65,11 +69,17 @@ describe('batch per-item billing', () => {
     expect(getRestBillableItems('/api/v1/prices/batch', {})).toBe(1);
   });
 
+  it('clamps requested items to the public 20-query batch cap', () => {
+    const queries = Array.from({ length: 25 }, () => ({ symbol: 'ETH' }));
+    expect(getMcpToolBillableItems('get_oracle_prices_batch', { queries })).toBe(20);
+    expect(getRestBillableItems('/api/v1/prices/batch', { queries })).toBe(20);
+  });
+
   it('charges the per-item price with a one-item floor and zero for no successes', () => {
     expect(batchChargeCredits(2, 0)).toBe(0);
     expect(batchChargeCredits(2, 1)).toBe(2);
     expect(batchChargeCredits(2, 3)).toBe(6);
-    expect(batchChargeCredits(2, 50)).toBe(100);
+    expect(batchChargeCredits(2, 20)).toBe(40);
   });
 
   it('counts only successful items in a formatted batch result', () => {
@@ -179,12 +189,19 @@ describe('request idempotency', () => {
 });
 
 describe('billing exemptions', () => {
-  it('treats insufficient-data evidence and empty batches as unusable data', () => {
-    expect(isNoUsableDataResult('Evidence grade: INSUFFICIENT_DATA (freshness stale)')).toBe(true);
-    expect(isNoUsableDataResult('**Batch price results (3 queries)**\nNo successful prices.')).toBe(
+  it('keeps insufficient evidence separate from an all-failed upstream batch', () => {
+    expect(isInsufficientDataResult('Evidence grade: INSUFFICIENT_DATA (freshness stale)')).toBe(
       true
     );
-    expect(isNoUsableDataResult('Price: $2,500.12')).toBe(false);
+    expect(
+      isInsufficientDataResult('**Batch price results (3 queries)**\nNo successful prices.')
+    ).toBe(false);
+    expect(
+      isAllItemsFailedResult('**Batch price results (3 queries)**\nNo successful prices.')
+    ).toBe(true);
+    expect(isAllItemsFailedResult('Evidence grade: INSUFFICIENT_DATA')).toBe(false);
+    expect(isInsufficientDataResult('Price: $2,500.12')).toBe(false);
+    expect(isAllItemsFailedResult('Price: $2,500.12')).toBe(false);
   });
 
   it('detects upstream and chain timeouts by code or wording', () => {

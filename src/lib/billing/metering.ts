@@ -226,8 +226,13 @@ export function getToolCreditCost(toolName: string): number {
   return CREDIT_COST.C1;
 }
 
-/** Maximum items a single batch call may bill; mirrors the request schemas. */
-const MAX_BILLABLE_ITEMS = 50;
+/**
+ * Maximum items a single batch call may bill. The public request schemas are
+ * the contract and cap a batch at 20 queries (`BatchPriceJsonSchema`,
+ * `batchPriceService`, the MCP batch tool); billing uses the same number so a
+ * caller can never be charged for more items than the API accepts.
+ */
+const MAX_BILLABLE_ITEMS = 20;
 
 function arrayLength(value: unknown): number {
   return Array.isArray(value) ? value.length : 0;
