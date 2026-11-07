@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { readdir, readFile } from 'node:fs/promises';
 import { PGlite } from '@electric-sql/pglite';
 
 // 0126 rebuilt several credit functions from a schema snapshot. It silently
@@ -168,5 +168,24 @@ test('the final billing migration chain keeps every function signature and retur
     }
   } finally {
     await db.close();
+  }
+});
+
+test('no migration after the chain redefines the contract behind its back', async () => {
+  const dir = new URL('../../supabase/migrations/', import.meta.url);
+  const last = CHAIN[CHAIN.length - 1];
+  const later = (await readdir(dir)).filter((file) => file.endsWith('.sql') && file > last).sort();
+
+  for (const file of later) {
+    const sql = await readFile(new URL(file, dir), 'utf8');
+    for (const name of Object.keys(CONTRACT)) {
+      const redefines = new RegExp(`CREATE OR REPLACE FUNCTION "public"\\."${name}"`);
+      assert.equal(redefines.test(sql), false, `${file} redefines ${name}; add it to CHAIN`);
+    }
+    assert.equal(
+      /ALTER TABLE "public"\."credit_ledger"/.test(sql),
+      false,
+      `${file} alters credit_ledger; add it to CHAIN`
+    );
   }
 });
