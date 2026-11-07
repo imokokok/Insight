@@ -136,8 +136,8 @@ export default function PricingPage() {
                 One evidence layer. Four operating scales.
               </h2>
               <p className="mt-4 max-w-2xl text-lg leading-relaxed text-slate-600">
-                Developer, Team, and Scale include monthly credits and defined rate limits.
-                Enterprise adds unlimited calls, custom service levels, and dedicated support.
+                Starter and the Usage Pack tiers are usage allowances: monthly credits and a fixed
+                request rate. Enterprise removes the monthly cap under a separate agreement.
               </p>
             </div>
           </div>

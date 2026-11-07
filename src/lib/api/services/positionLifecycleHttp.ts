@@ -15,6 +15,8 @@ import { z } from 'zod';
 
 import { ApiResponseBuilder } from '@/lib/api/handler';
 import { PositionLifecycleError } from '@/lib/api/services/positionLifecycleService';
+import { ProductLimitError } from '@/lib/api/services/productLimits';
+import { productLimitErrorResponse } from '@/lib/api/services/productLimitsHttp';
 import { CACHE_PRESETS } from '@/lib/api/utils';
 
 function bearerToken(request: Request): string {
@@ -36,6 +38,9 @@ export function requireBearerToken(request: Request): string {
  * monitored-window routes.
  */
 export function lifecycleErrorResponse(error: unknown, requestId?: string): NextResponse | null {
+  if (error instanceof ProductLimitError) {
+    return productLimitErrorResponse(error, requestId);
+  }
   if (error instanceof z.ZodError) {
     return NextResponse.json(
       ApiResponseBuilder.error(

@@ -160,7 +160,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'What happens if I run out of quota / credits?',
-    a: 'Every API key is credit-metered: each call costs credits by metering class (C1–C4). Credits come from your wallet — a monthly allowance with a Developer, Team, or Scale subscription, or prepaid top-up packs from Settings → Billing. When the wallet balance (or a key’s monthly credit budget) can’t cover the next call, requests return HTTP 402 with CREDIT_EXHAUSTED and the response includes your balance and a top-up link.',
+    a: 'Every API key is credit-metered: each call costs credits by metering class (C1–C4). Credits come from your wallet — a monthly allowance with a Starter or Usage Pack subscription, or prepaid top-up packs from Settings → Billing. When the wallet balance (or a key’s monthly credit budget) can’t cover the next call, requests return HTTP 402 with CREDIT_EXHAUSTED and the response includes your balance and a top-up link.',
   },
   {
     q: 'Can I get a refund?',
@@ -168,11 +168,11 @@ const FAQ_ITEMS = [
   },
   {
     q: 'Is commercial use allowed?',
-    a: 'Yes. Every paid plan (Developer, Team, Scale, Enterprise) includes commercial use rights. You can use the API in production applications, SaaS products, and internal tools. Attribution is appreciated but not required.',
+    a: 'Yes. Every paid plan (Starter, Usage Pack, Enterprise) includes commercial use rights. You can use the API in production applications, SaaS products, and internal tools. Attribution is appreciated but not required.',
   },
   {
     q: 'What are the rate limits?',
-    a: 'Developer: 60 req/min, Team: 300 req/min, Scale: 1,200 req/min, Enterprise: custom. These are sized to the 15-minute data cadence while allowing production traffic bursts. Rate limit headers (X-RateLimit-*) are included in every response so you can implement client-side backoff.',
+    a: 'Starter: 120 req/min, Usage Pack 120K: 400 req/min, Usage Pack 500K: 1,200 req/min, Enterprise: no limit. These are sized to the 15-minute data cadence while allowing production traffic bursts. Rate limit headers (X-RateLimit-*) are included in every response so you can implement client-side backoff.',
   },
   {
     q: 'Do you offer a free trial?',

@@ -17,6 +17,7 @@ const CHAIN = [
   '0126_credit_ledger_semantics.sql',
   '0127_restore_budget_warning.sql',
   '0128_waiver_comment.sql',
+  '0129_product_24h_concurrency_caps.sql',
 ];
 
 const CONTRACT = {
@@ -74,7 +75,9 @@ async function boot(migrations) {
     CREATE SCHEMA auth; CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql AS $$ SELECT NULL::uuid $$;
     CREATE TABLE auth.users(id uuid PRIMARY KEY);
     CREATE TABLE public.api_keys(id uuid PRIMARY KEY, user_id uuid REFERENCES auth.users(id), plan text);
-    CREATE TABLE public.subscriptions(id uuid PRIMARY KEY, user_id uuid, plan text, interval text, status text, current_period_end timestamptz);`);
+    CREATE TABLE public.subscriptions(id uuid PRIMARY KEY, user_id uuid, plan text, interval text, status text, current_period_end timestamptz);
+    CREATE TABLE public.oracle_watch_windows(id uuid PRIMARY KEY, api_key_id uuid, status text, expires_at timestamptz);
+    CREATE TABLE public.position_lifecycles(id uuid PRIMARY KEY, api_key_id uuid, status text, expires_at timestamptz);`);
   for (const migration of migrations) {
     await db.exec(
       await readFile(new URL(`../../supabase/migrations/${migration}`, import.meta.url), 'utf8')
@@ -206,5 +209,91 @@ test('no migration after the chain redefines the contract behind its back', asyn
       false,
       `${file} alters credit_ledger; add it to CHAIN`
     );
+  }
+});
+
+test('0129 caps match the service constants and fire only on INSERT', async () => {
+  const codeLimits = await readFile(
+    new URL('../../src/lib/api/services/productLimits.ts', import.meta.url),
+    'utf8'
+  );
+  const codeCap = (name) => {
+    const match = codeLimits.match(new RegExp(`${name}:\\s*(\\d+)`));
+    assert.ok(match, `productLimits.ts: missing ${name}`);
+    return Number(match[1]);
+  };
+  const limits = {
+    enforce_product_window_cap: codeCap('maxOpenWindowsPerKey'),
+    enforce_product_lifecycle_cap: codeCap('maxOpenLifecyclesPerKey'),
+  };
+
+  const db = await boot(CHAIN);
+  try {
+    const { rows } = await db.query(`
+      SELECT t.tgname, t.tgtype, pg_get_triggerdef(t.oid) AS def, p.prosrc
+        FROM pg_trigger t
+        JOIN pg_proc p ON p.oid = t.tgfoid
+       WHERE t.tgrelid IN ('public.oracle_watch_windows'::regclass, 'public.position_lifecycles'::regclass)
+         AND NOT t.tgisinternal
+       ORDER BY t.tgname`);
+
+    assert.equal(rows.length, 2, 'expected exactly the two product-cap triggers');
+    for (const [name, cap] of Object.entries(limits)) {
+      const trigger = rows.find((row) => row.tgname === name);
+      assert.ok(trigger, `missing trigger ${name}`);
+      // tgtype bits: 1 = ROW, 2 = BEFORE, 4 = INSERT, 8 = DELETE, 16 = UPDATE, 32 = TRUNCATE.
+      assert.equal(trigger.tgtype & 1, 1, `${name}: must be FOR EACH ROW`);
+      assert.equal(trigger.tgtype & 2, 2, `${name}: must be BEFORE`);
+      assert.equal(trigger.tgtype & 4, 4, `${name}: must fire on INSERT`);
+      assert.equal(trigger.tgtype & (8 | 16 | 32), 0, `${name}: must not fire on UPDATE/DELETE/TRUNCATE`);
+      assert.match(trigger.def, /BEFORE INSERT ON public\./, `${name}: unexpected trigger definition`);
+      assert.match(trigger.prosrc, /pg_advisory_xact_lock\(/, `${name}: missing advisory lock`);
+      assert.match(trigger.prosrc, /hashtextextended\(/, `${name}: lock key must be per API key`);
+      assert.match(trigger.prosrc, /product_concurrency_limit/, `${name}: refusal prefix changed`);
+      assert.match(trigger.prosrc, /ERRCODE = 'check_violation'/, `${name}: error code changed`);
+      assert.match(
+        trigger.prosrc,
+        new RegExp(`active_count >= ${cap}\\b`),
+        `${name}: cap drifted from productLimits.ts (${cap})`
+      );
+    }
+
+    const key = '11111111-1111-4111-8111-111111111111';
+    const insertWindow = (apiKeyId) =>
+      db.query(
+        `INSERT INTO public.oracle_watch_windows(id, api_key_id, status, expires_at)
+         VALUES (gen_random_uuid(), $1, 'active', now() + interval '24 hours')`,
+        [apiKeyId]
+      );
+
+    // Expired rows do not occupy a slot, even while status stays 'active'.
+    for (let i = 0; i < 10; i++) {
+      await db.query(
+        `INSERT INTO public.oracle_watch_windows(id, api_key_id, status, expires_at)
+         VALUES (gen_random_uuid(), $1, 'active', now() - interval '1 hour')`,
+        [key]
+      );
+    }
+
+    // Five is the promise: five concurrent windows are accepted, the sixth is refused.
+    for (let i = 0; i < limits.enforce_product_window_cap; i++) await insertWindow(key);
+    await assert.rejects(insertWindow(key), /product_concurrency_limit: open_windows limit 5/);
+
+    // Keyless x402 buyers are pre-paid per window and carry no key-level inventory.
+    for (let i = 0; i < 10; i++) await insertWindow(null);
+
+    const insertLifecycle = (apiKeyId) =>
+      db.query(
+        `INSERT INTO public.position_lifecycles(id, api_key_id, status, expires_at)
+         VALUES (gen_random_uuid(), $1, 'active', now() + interval '24 hours')`,
+        [apiKeyId]
+      );
+    for (let i = 0; i < limits.enforce_product_lifecycle_cap; i++) await insertLifecycle(key);
+    await assert.rejects(
+      insertLifecycle(key),
+      /product_concurrency_limit: open_lifecycles limit 3/
+    );
+  } finally {
+    await db.close();
   }
 });

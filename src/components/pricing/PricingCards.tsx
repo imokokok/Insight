@@ -226,7 +226,7 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
                 <span>{isEnterprise ? 'API calls' : 'credits / month'}</span>
                 <small>
                   {isEnterprise
-                    ? 'Dedicated limits'
+                    ? 'No rate limit'
                     : `${plan.rateLimit.toLocaleString('en-US')} requests / minute`}
                 </small>
                 {!isEnterprise && (

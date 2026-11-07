@@ -6,6 +6,8 @@ import {
   OracleWatchWindowError,
   pollOracleWatchWindow,
 } from '@/lib/api/services/oracleWatchWindowService';
+import { ProductLimitError } from '@/lib/api/services/productLimits';
+import { productLimitErrorResponse } from '@/lib/api/services/productLimitsHttp';
 import { CACHE_PRESETS } from '@/lib/api/utils';
 
 /**
@@ -80,6 +82,7 @@ export const GET = async (
       { headers: { 'Cache-Control': CACHE_PRESETS.noStore } }
     );
   } catch (error) {
+    if (error instanceof ProductLimitError) return productLimitErrorResponse(error, requestId);
     if (error instanceof OracleWatchWindowError) return errorResponse(error, requestId);
     throw error;
   }
