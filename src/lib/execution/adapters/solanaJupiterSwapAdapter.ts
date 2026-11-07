@@ -85,7 +85,14 @@ export const solanaJupiterSwapAdapter: ExecutionAdapter<
               kind: 'solana-message',
               network: native.network,
               transactionBase64: transaction.base64,
-              messageHash: digest,
+              // sha256 over the exact unsigned transaction bytes. It binds the
+              // byte content only, not message-segment consistency, and it is
+              // not signature-verifiable.
+              transactionHash: digest,
+              // Jupiter returns opaque versioned bytes and the shared layer has
+              // no message parser, so the real message hash is explicitly
+              // unavailable rather than approximated.
+              messageHash: null,
             },
       native,
     });

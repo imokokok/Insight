@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+
 import { keccak256, stringToHex } from 'viem';
 
 import {
@@ -40,6 +42,7 @@ import {
   type SolanaPerpGuardExactInput,
   type SolanaPerpGuardExactResult,
 } from '@/lib/perps/solanaPerpGuard';
+
 import { canonicalJsonString } from '@/lib/utils/canonicalJson';
 
 import { estimateVenueNativeFee, noVenueFeeCommercialTerms } from '../commerce';
@@ -64,6 +67,10 @@ function keccakIntent(value: unknown) {
     algorithm: 'keccak256' as const,
     digest: keccak256(stringToHex(canonicalJsonString(value))),
   };
+}
+
+function sha256OfTransactionBase64(value: string): `0x${string}` {
+  return `0x${createHash('sha256').update(Buffer.from(value, 'base64')).digest('hex')}`;
 }
 
 function evmPrepared<Native extends EvmExactInput>(
@@ -146,6 +153,7 @@ export const solanaLendingAdapter: ExecutionAdapter<
       native.verdict === 'ALLOW' ? 'READY' : native.verdict === 'CAUTION' ? 'CAUTION' : 'BLOCK';
     const messageHash =
       native.exactAction?.messageHash ?? solanaLendingMessageHash(request.transaction);
+    const transactionBase64 = serializeUnsignedSolanaLendingTransaction(request.transaction);
     return createPreparedExecution({
       schema: 'insight.prepared-execution.v1',
       adapterId: this.id,
@@ -172,7 +180,8 @@ export const solanaLendingAdapter: ExecutionAdapter<
           : {
               kind: 'solana-message',
               network: native.chainRef,
-              transactionBase64: serializeUnsignedSolanaLendingTransaction(request.transaction),
+              transactionBase64,
+              transactionHash: sha256OfTransactionBase64(transactionBase64),
               messageHash,
             },
       native,
@@ -191,6 +200,7 @@ export const solanaSwapAdapter: ExecutionAdapter<SolanaSwapGuardExactInput, Sola
         native.verdict === 'ALLOW' ? 'READY' : native.verdict === 'CAUTION' ? 'CAUTION' : 'BLOCK';
       const messageHash =
         native.exactAction?.messageHash ?? solanaLendingMessageHash(request.transaction);
+      const transactionBase64 = serializeUnsignedSolanaLendingTransaction(request.transaction);
       return createPreparedExecution({
         schema: 'insight.prepared-execution.v1',
         adapterId: this.id,
@@ -199,7 +209,7 @@ export const solanaSwapAdapter: ExecutionAdapter<SolanaSwapGuardExactInput, Sola
         intent: { algorithm: 'sha256', digest: messageHash },
         observedAt: native.evaluatedAt,
         expiresAt: null,
-      validityAnchor: null,
+        validityAnchor: null,
         evidence: [
           {
             kind: 'protocol-simulation',
@@ -217,7 +227,8 @@ export const solanaSwapAdapter: ExecutionAdapter<SolanaSwapGuardExactInput, Sola
             : {
                 kind: 'solana-message',
                 network: native.chainRef,
-                transactionBase64: serializeUnsignedSolanaLendingTransaction(request.transaction),
+                transactionBase64,
+                transactionHash: sha256OfTransactionBase64(transactionBase64),
                 messageHash,
               },
         native,
@@ -238,6 +249,7 @@ export const solanaPerpAdapter: ExecutionAdapter<
       native.verdict === 'ALLOW' ? 'READY' : native.verdict === 'CAUTION' ? 'CAUTION' : 'BLOCK';
     const messageHash =
       native.exactAction?.messageHash ?? solanaLendingMessageHash(request.transaction);
+    const transactionBase64 = serializeUnsignedSolanaLendingTransaction(request.transaction);
     return createPreparedExecution({
       schema: 'insight.prepared-execution.v1',
       adapterId: this.id,
@@ -262,7 +274,8 @@ export const solanaPerpAdapter: ExecutionAdapter<
           : {
               kind: 'solana-message',
               network: native.chainRef,
-              transactionBase64: serializeUnsignedSolanaLendingTransaction(request.transaction),
+              transactionBase64,
+              transactionHash: sha256OfTransactionBase64(transactionBase64),
               messageHash,
             },
       native,
