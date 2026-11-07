@@ -133,7 +133,7 @@ export function x402OnboardingHeaders(): Record<string, string> {
     'x-insight-quickstart': 'https://www.oracleinsight.xyz/docs/x402',
     'x-insight-mcp-install': 'npx -y --package=oracle-insight-mcp insight-mcp',
     'x-insight-no-wallet':
-      'X-API-Key credit wallet: signup + email verification grants a one-time 400 credits (~20 C3 calls, never resets), no wallet or USDC needed; https://www.oracleinsight.xyz/docs/x402',
+      'X-API-Key credit wallet: signup + email verification grants 400 credits once (~20 C3 calls, never resets), no wallet or USDC needed; https://www.oracleinsight.xyz/docs/x402',
   };
   // Iterate the shared name list, not the object's own keys: the same list is
   // what CORS exposes, so an added hint can never become unreadable in a browser.
