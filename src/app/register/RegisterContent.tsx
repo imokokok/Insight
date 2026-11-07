@@ -125,7 +125,7 @@ export default function RegisterContent() {
           <div className="mb-4 flex items-start gap-2 border-l-2 border-amber-500 bg-amber-50 p-3">
             <Coins className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
             <p className="text-sm text-amber-800">
-              {`API access is credit-metered. New users get 100 free trial credits after email verification — enough to sample the endpoints. After that, subscribe (Developer from $${PLANS.developer.priceMonthly}/mo — 60,000 credits) or top up a prepaid pack from $${CREDIT_PACKS.starter.priceUsd} in `}
+              {`API access is credit-metered. New users get 400 free trial credits after email verification — enough to sample the endpoints. After that, subscribe (${PLANS.developer.name} from $${PLANS.developer.priceMonthly}/mo — ${PLANS.developer.monthlyQuota.toLocaleString()} credits) or top up a prepaid pack from $${CREDIT_PACKS.starter.priceUsd} in `}
               <Link href="/settings?tab=billing" className="font-semibold underline">
                 Settings → Billing
               </Link>{' '}

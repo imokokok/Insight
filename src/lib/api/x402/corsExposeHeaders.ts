@@ -34,6 +34,7 @@ const BASE_CORS_EXPOSE_HEADERS = [
   'X-Credit-Balance-After',
   'X-Credit-Status',
   'X-Credit-Receipt',
+  'X-Credit-Budget-Warning',
   'Retry-After',
   'PAYMENT-REQUIRED',
   'PAYMENT-RESPONSE',

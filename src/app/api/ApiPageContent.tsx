@@ -176,7 +176,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'Do you offer a free trial?',
-    a: `New users get 100 free trial credits after email verification — enough for five complete Guard workflows. There is no recurring free tier; once the trial is used, you can start with a $${CREDIT_PACKS.starter.priceUsd} prepaid Starter Pack (pay-as-you-go) or a Developer subscription from $${PLANS.developer.priceMonthly}/mo, which includes 60,000 credits. The website itself stays free to browse.`,
+    a: `New users get 400 free trial credits after email verification — enough for five complete Guard workflows. There is no recurring free tier; once the trial is used, you can start with a $${CREDIT_PACKS.starter.priceUsd} prepaid Starter Pack (pay-as-you-go) or a ${PLANS.developer.name} subscription from $${PLANS.developer.priceMonthly}/mo, which includes ${PLANS.developer.monthlyQuota.toLocaleString()} credits. The website itself stays free to browse.`,
   },
   {
     q: 'Is the data verified on-chain?',
@@ -487,7 +487,7 @@ function PricingSectionBlock() {
             <p className="editorial-index">03 — Select capacity</p>
             <h2>One wallet. Every endpoint.</h2>
             <p>
-              Start with 100 trial credits after email verification. Add a monthly allowance or top
+              Start with 400 trial credits after email verification. Add a monthly allowance or top
               up when your workload grows; every paid path uses the same C1–C4 meter.
             </p>
             <Link href="/pricing" className="api-capacity-link">
@@ -496,7 +496,7 @@ function PricingSectionBlock() {
           </div>
           <div className="api-capacity-facts">
             <div>
-              <span>Developer subscription</span>
+              <span>{PLANS.developer.name} subscription</span>
               <strong>{PLANS.developer.priceMonthly} USDC</strong>
               <small>/ month · {PLANS.developer.monthlyQuota.toLocaleString()} credits</small>
             </div>

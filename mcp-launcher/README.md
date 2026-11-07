@@ -38,7 +38,7 @@ is configured in the calling agent runtime, not here.
 
 If the agent has no wallet, use the credit rail. Sign up at
 https://www.oracleinsight.xyz, verify the email address (a one-time,
-idempotent 100-credit grant is issued — about 20 C3 decisions), create a key
+idempotent 400-credit grant is issued — about 20 C3 decisions), create a key
 at https://www.oracleinsight.xyz/settings?tab=api-keys, and put it in the MCP
 host config's `env` block:
 

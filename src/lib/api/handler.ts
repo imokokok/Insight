@@ -683,6 +683,11 @@ export function createApiHandler<
         if (apiContext.quotaInfo.creditBalance !== undefined) {
           response.headers.set('X-Credit-Balance', String(apiContext.quotaInfo.creditBalance));
         }
+        if (apiContext.quotaInfo.creditBudgetWarning) {
+          // Advisory: this key has reached 80% of its monthly spend cap.
+          // precheck_credits still hard-stops the call at 100%.
+          response.headers.set('X-Credit-Budget-Warning', '80');
+        }
       }
 
       if (corsHeaders) {
