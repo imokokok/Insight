@@ -53,7 +53,7 @@ export interface CreditCharge {
 export interface CreditChargeContext {
   /** Ledger `source` (signup | x402 | subscription | wallet). */
   source?: string;
-  /** Ledger `reason` (billed SKU or batch/timeout/insufficient_data outcome). */
+  /** Ledger `reason` (billed SKU or batch outcome: prices.batch | batch_partial | insufficient_data | upstream_failed | timeout). */
   reason?: string;
   /** Client-visible request/receipt id. */
   requestId?: string;
@@ -262,7 +262,7 @@ export async function settlePendingCredits(): Promise<{
 
 /**
  * Append a 0-delta `waiver` ledger row for a zero-charge outcome
- * (insufficient_data / timeout / no usable data), so the bill itself proves
+ * (insufficient_data / upstream_failed / timeout), so the bill itself proves
  * the request was free. The row uses a `waive:`-prefixed metering key and
  * `kind='waiver'`, so it can never be mistaken for a usage debit and never
  * blocks a later real charge for the same logical request.
@@ -277,7 +277,7 @@ export async function recordWaivedCredit(params: {
   ref?: string;
   /** Ledger `source`; defaults to `free` (no money moved). */
   source?: string;
-  /** Zero reason: insufficient_data | timeout | no_data. */
+  /** Zero reason: insufficient_data | upstream_failed | timeout. */
   reason: string;
   requestId?: string;
   meta?: Record<string, unknown>;
