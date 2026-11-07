@@ -838,6 +838,7 @@ const PERP_ARTIFACT_SPEC: Record<PerpOrderVenue, PerpArtifactSpec> = {
       'Local wallet signing of the unsigned transaction; the caller controls nonce and broadcast.',
       'Margins already deposited into the declared Synthetix account; the envelope does not move collateral.',
       'Reference price is Insight cross-oracle consensus, not the Synthetix mark price; acceptablePrice is derived from that consensus plus slippage.',
+      'Quote window is not an on-chain execution deadline: commitOrder calldata carries no expiry field, so a transaction submitted after validForSeconds is not rejected on-chain. Insight does not cover that case.',
     ],
   },
   'aster-perps-bnb-mainnet': {
@@ -888,6 +889,20 @@ function renderPerpArtifact(
       artifact_label: spec.label,
       requires,
       validity_anchor: prepared.validityAnchor,
+      execution_binding:
+        payload === null
+          ? null
+          : {
+              proves_onchain_execution: false,
+              ...(payload.kind === 'venue-rest-order'
+                ? {
+                    transport: payload.transport,
+                    binding_surface: payload.bindingSurface,
+                    payload_hash: payload.payloadHash,
+                    signing: payload.signing,
+                  }
+                : {}),
+            },
       envelope: prepared.native,
     },
     null,

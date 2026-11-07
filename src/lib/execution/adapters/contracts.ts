@@ -63,10 +63,23 @@ export type PreparedExecutionPayload =
       approval?: { token: string; spender: string; amountRaw: string; data: `0x${string}` };
     }
   | {
+      /**
+       * A complete, unsigned Solana transaction.
+       *
+       * `transactionHash` is sha256 over the exact bytes in `transactionBase64`.
+       * It binds byte content only: it does **not** prove that the message
+       * segment is consistent with a separately quoted intent, and it must
+       * **not** be used to verify signatures.
+       *
+       * `messageHash` is the digest of the unsigned message bytes a signature
+       * commits to. It is `null` when the adapter cannot derive the message
+       * segment (today: the Jupiter adapter, which has no message parser).
+       */
       kind: 'solana-message';
       network: string;
       transactionBase64: string;
-      messageHash: `0x${string}`;
+      transactionHash: `0x${string}`;
+      messageHash: `0x${string}` | null;
     }
   | {
       kind: 'venue-action';
