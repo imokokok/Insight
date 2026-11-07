@@ -8,6 +8,7 @@ import {
 
 import type { MppMcpCallHandler } from '@/lib/api/mpp/mcp';
 import type { CreditBillingHeaderInput } from '@/lib/billing/billingHeaders';
+import { getMcpToolCreditCharge } from '@/lib/billing/channelCostPolicy';
 import { makeMeteringKey, precheckCredits, recordWaivedCredit } from '@/lib/billing/creditWallet';
 import {
   BILLING_ZERO_REASONS,
@@ -18,7 +19,6 @@ import {
 } from '@/lib/billing/exemptions';
 import { isFreeVerifyCall } from '@/lib/billing/freeVerify';
 import { countMcpBatchSuccessItems, getMcpToolBillableItems } from '@/lib/billing/metering';
-import { getMcpToolCreditCostForCall } from '@/lib/billing/productPricing';
 import {
   getCachedMcpResult,
   idempotencyMeteringKey,
@@ -136,7 +136,7 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
       logger.info(`MCP tool called: ${name}`, { args });
 
       const receipt = options.billingReceipt;
-      const listPrice = getMcpToolCreditCostForCall(name, args);
+      const listPrice = getMcpToolCreditCharge(name, args);
 
       // Request-level idempotency only applies to metered API-key calls. A
       // replay inside the 10-minute window is served from the process cache
@@ -233,7 +233,12 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
             recordMcpToolUsage(auth, name, 402, Date.now() - startTime);
             return {
               content: [
-                { type: 'text' as const, text: `Insufficient credits: ${creditCheck.reason}` },
+                {
+                  type: 'text' as const,
+                  text: creditCheck.channelBlocked
+                    ? `x402 only: ${creditCheck.reason}`
+                    : `Insufficient credits: ${creditCheck.reason}`,
+                },
               ],
               isError: true,
             };
