@@ -106,4 +106,14 @@ export const CHAINLINK_RPC_CONFIG: Record<number, ChainlinkRPCConfig> = {
     chainId: 143,
     name: 'Monad',
   },
+  999: {
+    // HyperEVM mainnet. The public endpoint is the only reviewed RPC and is
+    // limited to 100 requests/minute/IP, so price reads must stay behind the
+    // Chainlink price cache (30s), the cross-process metadata cache and the
+    // in-flight read coalescing in chainlinkOnChainService.getPrice. Do not add
+    // a per-request uncached probe here without a matching budget.
+    endpoints: ['https://rpc.hyperliquid.xyz/evm'],
+    chainId: 999,
+    name: 'HyperEVM',
+  },
 };

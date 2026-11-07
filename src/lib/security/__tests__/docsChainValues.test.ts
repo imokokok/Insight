@@ -87,10 +87,11 @@ describe('docs chain values', () => {
   });
 
   it('can go red: the extractor finds an unshipped chain name', () => {
-    expect(extractChainValues('{"symbol":"BTC","chain":"hyperevm"}')).toEqual(['hyperevm']);
+    expect(extractChainValues('{"symbol":"BTC","chain":"notachain"}')).toEqual(['notachain']);
     expect(extractChainValues("chain: 'base'")).toEqual(['base']);
     expect(extractChainValues('?chain=monad')).toEqual(['monad']);
-    expect(sanitizeChain('hyperevm')).toBe('');
+    expect(sanitizeChain('notachain')).toBe('');
+    expect(sanitizeChain('hyperevm')).toBe('hyperevm');
     expect(sanitizeChain('base')).toBe('base');
   });
 });

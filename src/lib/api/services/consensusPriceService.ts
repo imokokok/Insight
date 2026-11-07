@@ -6,6 +6,7 @@ import {
 } from '@/lib/analytics/consensusPrice';
 import { InternalError, UnsupportedSymbolError } from '@/lib/errors';
 import { fetchPriceWithDatabase } from '@/lib/oracles/base/databaseOperations';
+import { getFeedHeartbeatFromCatalog } from '@/lib/oracles/constants/chainlinkCatalogLoader';
 import { BLOCKCHAIN_TO_CHAIN_ID } from '@/lib/oracles/constants/chainMapping';
 import { getDefaultFactory } from '@/lib/oracles/factory';
 import { resolveOracleAgeSeconds } from '@/lib/oracles/oracleAge';
@@ -53,6 +54,8 @@ export interface ConsensusProviderPrice {
   fetchDurationMs?: number;
   timestampProvenance?: 'provider_age' | 'provider_timestamp' | 'unknown';
   dataAgeSeconds: number | null;
+  /** Per-feed staleness bound used for this observation (seconds). */
+  staleAgeThresholdSeconds: number | null;
   /**
    * Canonical feed identifier from the provider response. This is distinct
    * from `source` (a human-readable provenance label) and is carried into
@@ -314,6 +317,14 @@ function calculateDataAgeSeconds(priceData: PriceData): number | null {
 // and crossChainComparison compute age from oracle.timestamp directly, so they
 // never relied on the broken clock and need no update.
 
+function resolveStaleAgeThreshold(provider: OracleProvider, priceData: PriceData): number | null {
+  if (provider !== OracleProvider.CHAINLINK || !priceData.chain) return null;
+  const chainId = BLOCKCHAIN_TO_CHAIN_ID[priceData.chain];
+  if (!chainId) return null;
+  const heartbeatSeconds = getFeedHeartbeatFromCatalog(priceData.symbol, chainId);
+  return heartbeatSeconds ? Math.max(300, heartbeatSeconds * 2) : null;
+}
+
 function buildProviderPrice(
   result: FetchProviderPriceResult,
   consensusPrice: number,
@@ -324,15 +335,19 @@ function buildProviderPrice(
   const priceData = result.priceData;
   const price = priceData?.price ?? 0;
   const dataAgeSeconds = priceData ? calculateDataAgeSeconds(priceData) : null;
+  const staleAgeThresholdSeconds = priceData
+    ? resolveStaleAgeThreshold(result.provider, priceData)
+    : null;
   const deviationPct =
     price > 0 && consensusPrice > 0 ? ((price - consensusPrice) / consensusPrice) * 100 : null;
 
   // Consensus-aware effective staleness: old oracle-true age AND the price
   // diverges from the fresh consensus (>2%). A stale timestamp with a price in
-  // consensus (API3-style timestamp anomaly) is NOT flagged stale.
+  // consensus (API3-style timestamp anomaly) is NOT flagged stale. Chainlink
+  // feeds use their own heartbeat so a 24h-heartbeat feed is not misread.
   const isStale =
     dataAgeSeconds !== null &&
-    dataAgeSeconds >= FRESHNESS_STALE_AGE_SECONDS &&
+    dataAgeSeconds >= (staleAgeThresholdSeconds ?? FRESHNESS_STALE_AGE_SECONDS) &&
     price > 0 &&
     consensusPrice > 0 &&
     Math.abs(price - consensusPrice) / consensusPrice > FRESHNESS_STALE_DIVERGENCE_PCT / 100;
@@ -355,6 +370,7 @@ function buildProviderPrice(
           ? 'provider_age'
           : 'provider_timestamp',
     dataAgeSeconds,
+    staleAgeThresholdSeconds,
     feedId: priceData?.feedId ?? priceData?.priceId ?? priceData?.verification?.feedHash,
     source: priceData?.source,
     verification: priceData?.verification,
@@ -380,8 +396,9 @@ function pickRecommendedProvider(
       const deviationScore =
         p.deviationPct === null ? 0 : Math.max(0, 1 - Math.abs(p.deviationPct) / 1); // 1% deviation = 0
       const reputationScore = (p.reputationScore ?? 75) / 100;
+      const freshnessWindow = p.staleAgeThresholdSeconds ?? 600;
       const freshnessScore =
-        p.dataAgeSeconds === null ? 0.8 : Math.max(0, 1 - p.dataAgeSeconds / 600);
+        p.dataAgeSeconds === null ? 0.8 : Math.max(0, 1 - p.dataAgeSeconds / freshnessWindow);
       const confidenceScore = p.confidence ?? 0.75;
       const score =
         deviationScore * 0.35 +
@@ -476,6 +493,7 @@ export async function getConsensusPrice(
       timestamp: r.priceData.timestamp,
       ingestionTimestamp: r.priceData.ingestionTimestamp,
       dataAgeSeconds: calculateDataAgeSeconds(r.priceData) ?? undefined,
+      staleAgeThresholdSeconds: resolveStaleAgeThreshold(r.provider, r.priceData) ?? undefined,
       confidence: r.priceData.confidence ?? 0.8,
       confidenceInterval: r.priceData.confidenceInterval,
     }));

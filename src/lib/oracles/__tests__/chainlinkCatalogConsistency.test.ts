@@ -42,6 +42,7 @@ describe('chainlink catalog consistency', () => {
       Blockchain.BNB_CHAIN, // 56
       Blockchain.POLYGON, // 137
       Blockchain.MONAD, // 143
+      Blockchain.HYPEREVM, // 999
       Blockchain.BASE, // 8453
       Blockchain.ARBITRUM, // 42161
       Blockchain.AVALANCHE, // 43114
@@ -55,6 +56,6 @@ describe('chainlink catalog consistency', () => {
   });
 
   it('catalog version is stamped so resyncs are auditable', () => {
-    expect(CHAINLINK_CATALOG_VERSION).toBe('2026-10-19');
+    expect(CHAINLINK_CATALOG_VERSION).toBe('2026-11-08');
   });
 });

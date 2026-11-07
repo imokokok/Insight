@@ -49,6 +49,7 @@ export const ORACLE_SUPPORTED_CHAINS: Record<OracleProvider, readonly Blockchain
     Blockchain.BASE,
     Blockchain.SOLANA,
     Blockchain.MONAD,
+    Blockchain.HYPEREVM,
   ],
   [OracleProvider.PYTH]: [Blockchain.MONAD, Blockchain.SOLANA],
   [OracleProvider.STORK]: [Blockchain.MONAD],

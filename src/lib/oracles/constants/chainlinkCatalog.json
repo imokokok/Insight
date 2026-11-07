@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-19",
-  "source": "https://docs.chain.link/data-feeds/price-feeds/addresses (Monad via reference-data-directory feeds-monad-mainnet.json)",
+  "version": "2026-11-08",
+  "source": "https://docs.chain.link/data-feeds/price-feeds/addresses (Monad via reference-data-directory feeds-monad-mainnet.json; HyperEVM via feeds-hyperliquid-mainnet.json, standard USD proxies only)",
   "networks": {
     "1": [
       {
@@ -8232,6 +8232,151 @@
         "heartbeat": 3600,
         "path": "xrp-usd",
         "feedCategory": "low",
+        "feedType": "Crypto"
+      }
+    ],
+    "999": [
+      {
+        "base": "BTC",
+        "quote": "USD",
+        "proxyAddress": "0x71A2017296De30F4597B36FBD90b7e8Ec6E97A82",
+        "decimals": 8,
+        "category": "crypto",
+        "heartbeat": 86400,
+        "path": "btc-usd",
+        "feedCategory": "low",
+        "feedType": "Crypto"
+      },
+      {
+        "base": "ETH",
+        "quote": "USD",
+        "proxyAddress": "0x017151e74fB3a393673B5B5149F53578c0Fa55B0",
+        "decimals": 8,
+        "category": "crypto",
+        "heartbeat": 86400,
+        "path": "eth-usd",
+        "feedCategory": "low",
+        "feedType": "Crypto"
+      },
+      {
+        "base": "HYPE",
+        "quote": "USD",
+        "proxyAddress": "0xa5a72eF19F82A579431186402425593a559ed352",
+        "decimals": 8,
+        "category": "crypto",
+        "heartbeat": 86400,
+        "path": "hype-usd",
+        "feedCategory": "low",
+        "feedType": "Crypto"
+      },
+      {
+        "base": "KHYPE",
+        "quote": "USD",
+        "proxyAddress": "0xC66B2fbDE3879b6Dd9E7a5c6359037CE773D9bcc",
+        "decimals": 18,
+        "category": "crypto",
+        "heartbeat": 86400,
+        "path": "khype-usd",
+        "feedCategory": "medium",
+        "feedType": "Crypto"
+      },
+      {
+        "base": "SOL",
+        "quote": "USD",
+        "proxyAddress": "0x20935EE640be2F556E6f45F7C9092364C464224D",
+        "decimals": 8,
+        "category": "crypto",
+        "heartbeat": 86400,
+        "path": "sol-usd",
+        "feedCategory": "low",
+        "feedType": "Crypto"
+      },
+      {
+        "base": "SUSDE",
+        "quote": "USD",
+        "proxyAddress": "0xff8d73F413f0093a14190A987883B5101d7855Dd",
+        "decimals": 8,
+        "category": "crypto",
+        "heartbeat": 86400,
+        "path": "susde-usd",
+        "feedCategory": "low",
+        "feedType": "Crypto"
+      },
+      {
+        "base": "THBILL",
+        "quote": "USD",
+        "proxyAddress": "0x7B1bf1044C381aA77b2f06Dc93fABe009cEdd6bD",
+        "decimals": 8,
+        "category": "crypto",
+        "heartbeat": 86400,
+        "path": "thbill-usd",
+        "feedCategory": "new",
+        "feedType": "Crypto"
+      },
+      {
+        "base": "UBTC",
+        "quote": "USD",
+        "proxyAddress": "0xd7752D8831a209F5177de52b3b32b5098A7B56b8",
+        "decimals": 8,
+        "category": "crypto",
+        "heartbeat": 86400,
+        "path": "ubtc-usd",
+        "feedCategory": "new",
+        "feedType": "Crypto"
+      },
+      {
+        "base": "UETH",
+        "quote": "USD",
+        "proxyAddress": "0x54EdE484Bb0E589F5eE13e04c84f46eb787c9C6a",
+        "decimals": 8,
+        "category": "crypto",
+        "heartbeat": 86400,
+        "path": "ueth-usd",
+        "feedCategory": "new",
+        "feedType": "Crypto"
+      },
+      {
+        "base": "USDC",
+        "quote": "USD",
+        "proxyAddress": "0xA0Adc43ce7AfE3EE7d7eac3C994E178D0620223B",
+        "decimals": 8,
+        "category": "stablecoin",
+        "heartbeat": 86400,
+        "path": "usdc-usd",
+        "feedCategory": "low",
+        "feedType": "Crypto"
+      },
+      {
+        "base": "USDE",
+        "quote": "USD",
+        "proxyAddress": "0x4a3b26809f17fD22ba4c345e4C15d2d89bDa83ee",
+        "decimals": 8,
+        "category": "crypto",
+        "heartbeat": 86400,
+        "path": "usde-usd",
+        "feedCategory": "low",
+        "feedType": "Crypto"
+      },
+      {
+        "base": "USDT",
+        "quote": "USD",
+        "proxyAddress": "0x9114446540B4f8E0E310041981f7c1Be6181Ed07",
+        "decimals": 8,
+        "category": "stablecoin",
+        "heartbeat": 86400,
+        "path": "usdt-usd",
+        "feedCategory": "low",
+        "feedType": "Crypto"
+      },
+      {
+        "base": "XAUT",
+        "quote": "USD",
+        "proxyAddress": "0x8908213aaFCaD07d928288e6DF1635720fe3F456",
+        "decimals": 8,
+        "category": "crypto",
+        "heartbeat": 86400,
+        "path": "xaut-usd",
+        "feedCategory": "new",
         "feedType": "Crypto"
       }
     ]

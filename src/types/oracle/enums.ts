@@ -57,6 +57,7 @@ export enum Blockchain {
   SUPRA_CHAIN = 'supra-chain',
   BANDCHAIN = 'bandchain',
   MONAD = 'monad',
+  HYPEREVM = 'hyperevm',
 }
 
 export const ORACLE_PROVIDER_VALUES: readonly OracleProvider[] = Object.values(OracleProvider);

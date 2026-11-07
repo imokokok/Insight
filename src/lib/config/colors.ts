@@ -125,6 +125,7 @@ export const chainColors = {
   supra: '#3B82F6',
   bandchain: '#4520E6',
   monad: '#836EF9',
+  hyperevm: '#97FCE4',
 } as const;
 
 export const chartColors = {

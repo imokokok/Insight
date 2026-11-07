@@ -96,6 +96,18 @@ const chainlinkSymbols = [
   'ANKR',
   'PAXG',
   'QNT',
+  // HyperEVM mainnet (chainId 999) Standard Proxy USD feeds — verified
+  // 2026-11-08 against feeds-hyperliquid-mainnet.json and live eth_call.
+  // HYPE/KHYPE/SUSDE/THBILL/UBTC/UETH/XAUT/USDE are only listed here once a
+  // real feed exists; long-tail assets remain unsupported on 999.
+  'HYPE',
+  'KHYPE',
+  'USDE',
+  'SUSDE',
+  'THBILL',
+  'UBTC',
+  'UETH',
+  'XAUT',
   // Forex (verified on Ethereum Mainnet)
   'EUR',
   'GBP',
