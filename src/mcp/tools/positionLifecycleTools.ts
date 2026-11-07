@@ -21,6 +21,7 @@ import {
   runBundledGuard,
   beginPositionLifecycle,
 } from '@/lib/api/services/positionLifecycleService';
+import { ProductLimitError, productLimitMessage } from '@/lib/api/services/productLimits';
 
 import {
   PositionLifecycleBeginInputSchema,
@@ -56,29 +57,34 @@ export const positionLifecycleBeginTool: McpToolDefinition<
     'Purchase a 24h Position Lifecycle Bundle for one position subject (optionally scoped to one chain): ONE product price covers an embedded Oracle Watch monitored window, 4 bundled guard assessments across base_perp, hyperliquid_perp, base_lending, monad_lending, multichain_evm_lending, or solana_lending, and 1 attested execution receipt. This tool charges the full bundle price once — it does not itself assess anything. The response includes a one-time lifecycle token shown exactly once; keep it, every bundled call authenticates with it (the embedded watch window accepts the SAME token).',
   parameters: PositionLifecycleBeginInputSchema,
   handler: async (args, context) => {
-    const { lifecycle, windowId, lifecycleToken, usage } = await beginPositionLifecycle({
-      symbol: args.symbol,
-      chain: args.chain ?? null,
-      paymentMethod: paymentMethodFor(context),
-      apiKeyId: context?.apiKeyId ?? null,
-    });
+    try {
+      const { lifecycle, windowId, lifecycleToken, usage } = await beginPositionLifecycle({
+        symbol: args.symbol,
+        chain: args.chain ?? null,
+        paymentMethod: paymentMethodFor(context),
+        apiKeyId: context?.apiKeyId ?? null,
+      });
 
-    return [
-      `**Position lifecycle opened: ${lifecycle.symbol}${lifecycle.chain ? ` on ${lifecycle.chain}` : ''}**`,
-      `- Lifecycle: ${lifecycle.lifecycleId} (status ${lifecycle.status})`,
-      `- Coverage: ${lifecycle.openedAt} → ${lifecycle.expiresAt}`,
-      `- Guard budget: ${lifecycle.guardUsed}/${lifecycle.guardBudget} used; receipt: ${lifecycle.receiptState}`,
-      `- Embedded watch window: ${windowId} (poll with oracle_watch_window_poll using the SAME lifecycle token)`,
-      `- Payment: ${lifecycle.paymentMethod}`,
-      '',
-      '**Lifecycle token (shown exactly once — store it now):**',
-      `\`${lifecycleToken}\``,
-      '',
-      'Bundled calls (all authenticate with this token):',
-      `- position_lifecycle_guard { lifecycleId, lifecycleToken, family, params${usage.guard.budget ? '' : ''} } — budget ${usage.guard.budget}`,
-      `- position_lifecycle_receipt { lifecycleId, lifecycleToken, receipt } — budget ${usage.receipt.budget}`,
-      `- position_lifecycle_close { lifecycleId, lifecycleToken } — idempotent summary`,
-    ].join('\n');
+      return [
+        `**Position lifecycle opened: ${lifecycle.symbol}${lifecycle.chain ? ` on ${lifecycle.chain}` : ''}**`,
+        `- Lifecycle: ${lifecycle.lifecycleId} (status ${lifecycle.status})`,
+        `- Coverage: ${lifecycle.openedAt} → ${lifecycle.expiresAt}`,
+        `- Guard budget: ${lifecycle.guardUsed}/${lifecycle.guardBudget} used; receipt: ${lifecycle.receiptState}`,
+        `- Embedded watch window: ${windowId} (poll with oracle_watch_window_poll using the SAME lifecycle token)`,
+        `- Payment: ${lifecycle.paymentMethod}`,
+        '',
+        '**Lifecycle token (shown exactly once — store it now):**',
+        `\`${lifecycleToken}\``,
+        '',
+        'Bundled calls (all authenticate with this token):',
+        `- position_lifecycle_guard { lifecycleId, lifecycleToken, family, params${usage.guard.budget ? '' : ''} } — budget ${usage.guard.budget}`,
+        `- position_lifecycle_receipt { lifecycleId, lifecycleToken, receipt } — budget ${usage.receipt.budget}`,
+        `- position_lifecycle_close { lifecycleId, lifecycleToken } — idempotent summary`,
+      ].join('\n');
+    } catch (error) {
+      if (error instanceof ProductLimitError) throw new Error(productLimitMessage(error));
+      throw error;
+    }
   },
 };
 

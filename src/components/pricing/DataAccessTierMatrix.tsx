@@ -23,7 +23,7 @@ import { CREDIT_PACKS, PLANS } from '@/lib/billing/plans';
  *     priced per call (C1–C4) from the same wallet.
  *
  * The authoritative per-call pricing lives in src/lib/billing/metering.ts;
- * plan definitions (Developer/Team/Scale/Enterprise) live in src/lib/billing/plans.ts.
+ * plan definitions (Starter / Usage Pack / Enterprise) live in src/lib/billing/plans.ts.
  */
 
 // --- Metering classes surfaced as the pricing ladder -------------------------
@@ -245,9 +245,9 @@ export function DataAccessTierMatrix({ className = '' }: { className?: string })
             ))}
           </div>
           <p className="px-5 py-3 text-xs text-slate-400 border-t border-slate-100">
-            Credits come from your wallet — a monthly allowance with Developer, Team, or Scale, or
-            prepaid top-up packs. When the balance can&apos;t cover the next call, it returns HTTP
-            402 with a top-up link. Enterprise is unlimited.
+            Credits come from your wallet — a monthly allowance with Starter or a Usage Pack plan,
+            or prepaid top-up packs. When the balance can&apos;t cover the next call, it returns
+            HTTP 402 with a top-up link. Enterprise is unlimited.
           </p>
         </div>
 

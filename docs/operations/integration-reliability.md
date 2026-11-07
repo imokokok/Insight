@@ -94,15 +94,47 @@ headers do not introduce client-controlled cross-request idempotency.
 `X-Credit-Zero-Reason` and the `waiver` row's `credit_ledger.reason` share one
 vocabulary: `insufficient_data` means the evidence grade itself could not
 support a conclusion; `upstream_failed` means every requested batch item failed
-upstream, so no usable row was delivered; `timeout`, `free`, `replay` and
-`unconfirmed` cover the remaining zero-charge outcomes. Keeping the first two
-apart lets reconciliation tell "the market had no data" from "our upstreams
-were down".
+upstream, so no usable row was delivered; `tool_free` means the tool or
+verification kind is zero-priced by design (offline verification); `timeout`,
+`free`, `replay` and `unconfirmed` cover the remaining zero-charge outcomes.
+Keeping the first two apart lets reconciliation tell "the market had no data"
+from "our upstreams were down", and `tool_free` apart from both lets it tell a
+pricing decision from a data outcome.
 
 An all-failed batch is a deterministic terminal outcome, so its replay cache
 entry keeps the original `zeroReason: upstream_failed` for audit. The replayed
 response itself reports `X-Credit-Zero-Reason: replay` at zero cost: the cache
 preserves `upstream_failed`, while the header says the request was replayed.
+
+### Application rollback across 0126
+
+Migration `0126` replaced `consume_credits(uuid,numeric,text,text)` with an
+eight-argument version and `top_up_credits(uuid,numeric,text,text,text)` with a
+nine-argument version. The new trailing parameters (`source`, `reason`,
+`request_id`, `meta`) all carry SQL `DEFAULT`s, so an older build's four-argument
+charge and five-argument top-up still resolve and settle normally. The earlier
+"do not roll back to a build before #479" constraint is withdrawn: rollback is
+allowed, provided the response structure is verified after the rolled-back build
+starts serving.
+
+Verification means one charge and one top-up against a test key:
+
+- `consume_credits` with four arguments must still return `{ok: true, cost,
+balance}`;
+- `top_up_credits` with five arguments must still return the new balance as a
+  bare numeric.
+
+This was measured against the `0126`→`0128` chain in embedded PostgreSQL: five-argument `top_up_credits` returned `100.00`; four-argument `consume_credits` returned `{"ok":true,"cost":5,"balance":95}`.
+
+The cost of rolling back is traceability, not correctness. A pre-`0126` build
+cannot supply the new arguments, so every ledger row it writes records
+`source`, `reason`, `request_id` and `meta` as `NULL`. Credits are still debited
+and topped up correctly, but those rows cannot be attributed to a funding
+bucket (`free`, `subscription`/entitlement, or `wallet`), and the `request_id`
+link back to `X-Credit-Receipt` is lost. Any source bucketing or per-bucket
+reconciliation that depends on those columns will show a gap for the rollback
+window. Record the window's start and end and reconcile it manually; do not
+delete or rewrite the `NULL` rows to hide the gap.
 
 Per-key spend caps are set with `PATCH /api/user/api-keys/:id`
 (`{"budgetMonthly": <credits> | null}`; also editable in Settings → Billing) and
@@ -153,3 +185,39 @@ For a failure: inspect the artifact and request time, separate liveness from
 readiness, inspect the owning platform's logs, and follow the existing operations
 runbook. Frontend crashes and platform-wide 5xx still require the existing Sentry
 and hosting dashboards; public HTTP checks do not replace them.
+
+## Route-level request deadline
+
+Every REST route invocation runs under its own 25-second wall-clock budget
+(`ROUTE_DEADLINE_MS`). Each request creates and clears its own timer, so a slow
+route cannot shorten or consume another route's budget; there is no process- or
+deployment-wide deadline. The budget covers the route handler's work after
+authentication, rate limiting and quota prechecks, not the middleware itself.
+
+When the budget expires the response is HTTP `504` with
+`error.code = "ROUTE_DEADLINE_EXCEEDED"`,
+`error.details = { scope: "route", deadlineMs: 25000 }` and
+`error.retryable = true`. The call is not charged: the response carries
+`X-Credit-Status: not_charged` and `X-Credit-Zero-Reason: timeout`, and one
+`waiver` ledger row is written with `reason = "timeout"`.
+
+`ROUTE_DEADLINE_EXCEEDED` is deliberately not folded into `UPSTREAM_TIMEOUT`.
+Both are `504`, but the attributable party differs: one is an upstream that
+timed out, the other is this service abandoning the request. Merging them would
+permanently bias upstream health statistics, which are the evidence used to
+decide whether a data source should be replaced. Our own refusals stay distinct:
+`402` credit exhaustion, `429` rate limit and `503` settlement unavailable.
+
+The deadline bounds the response, not the upstream call. Upstream work continues
+after the deadline and its result is discarded; no `AbortSignal` is propagated
+through the data adapters yet, so sockets and subrequests are not released
+early. This is a known gap: the guarantee is "an answer within 25 seconds", not
+"upstream work stops at 25 seconds". A success that arrives after the deadline is
+never billed: the charge commits only after the awaited handler result, and the
+deadline path has already returned, so a late result adds no debit, no second
+waiver row and no second usage row.
+
+MCP does not share this deadline. The MCP transport and its tool handlers are
+bounded by per-upstream timeouts and the hosting platform's function duration;
+this repository does not impose a 25-second route-level budget on MCP. Do not
+read the REST number as a product-wide guarantee.

@@ -9,6 +9,8 @@ import {
   V1_STANDARD_MIDDLEWARES,
 } from '@/lib/api/handler';
 import { beginPositionLifecycle } from '@/lib/api/services/positionLifecycleService';
+import { ProductLimitError } from '@/lib/api/services/productLimits';
+import { productLimitErrorResponse } from '@/lib/api/services/productLimitsHttp';
 import { CACHE_PRESETS } from '@/lib/api/utils';
 import { getX402Config, usdToAtomicUnits } from '@/lib/api/x402/config';
 import { handlePaidPreTradeRequest, hasAuthCredentials, isPaidRequest } from '@/lib/api/x402/guard';
@@ -38,28 +40,35 @@ async function executeBegin(
   apiKeyId: string | null,
   requestId: string
 ): Promise<NextResponse> {
-  const { lifecycle, windowId, lifecycleToken, usage } = await beginPositionLifecycle({
-    symbol: body.symbol,
-    chain: body.chain ?? null,
-    paymentMethod,
-    apiKeyId,
-  });
+  try {
+    const { lifecycle, windowId, lifecycleToken, usage } = await beginPositionLifecycle({
+      symbol: body.symbol,
+      chain: body.chain ?? null,
+      paymentMethod,
+      apiKeyId,
+    });
 
-  return NextResponse.json(
-    ApiResponseBuilder.success(
-      {
-        product: POSITION_LIFECYCLE_PLAN.id,
-        lifecycle,
-        windowId,
-        // Shown exactly once — only the SHA-256 hash is stored server-side.
-        // The same token authenticates watch polling on the embedded window.
-        lifecycleToken,
-        usage,
-      },
-      { requestId, meta: { product: 'position_lifecycle', lifecycleId: lifecycle.lifecycleId } }
-    ),
-    { headers: { 'Cache-Control': CACHE_PRESETS.noStore } }
-  );
+    return NextResponse.json(
+      ApiResponseBuilder.success(
+        {
+          product: POSITION_LIFECYCLE_PLAN.id,
+          lifecycle,
+          windowId,
+          // Shown exactly once — only the SHA-256 hash is stored server-side.
+          // The same token authenticates watch polling on the embedded window.
+          lifecycleToken,
+          usage,
+        },
+        { requestId, meta: { product: 'position_lifecycle', lifecycleId: lifecycle.lifecycleId } }
+      ),
+      { headers: { 'Cache-Control': CACHE_PRESETS.noStore } }
+    );
+  } catch (error) {
+    // Both inventory caps are checked before either row is written; in the
+    // x402 path a non-2xx business response skips settlement.
+    if (error instanceof ProductLimitError) return productLimitErrorResponse(error, requestId);
+    throw error;
+  }
 }
 
 const legacyPost = createApiHandler(
