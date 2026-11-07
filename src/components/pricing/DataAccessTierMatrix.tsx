@@ -253,7 +253,7 @@ export function DataAccessTierMatrix({ className = '' }: { className?: string })
 
         {/* Footnote */}
         <p className="text-xs text-slate-400 text-center mt-8 max-w-2xl mx-auto">
-          {`New users get 100 free trial credits after email verification. API access starts at a $${PLANS.developer.priceMonthly} Developer subscription (60,000 credits/mo) or a $${CREDIT_PACKS.starter.priceUsd} prepaid Starter pack. The website remains free to browse.`}
+          {`New users get 400 free trial credits after email verification. API access starts at a $${PLANS.developer.priceMonthly} ${PLANS.developer.name} subscription (${PLANS.developer.monthlyQuota.toLocaleString()} credits/mo) or a $${CREDIT_PACKS.starter.priceUsd} prepaid Starter pack. The website remains free to browse.`}
         </p>
       </div>
     </section>

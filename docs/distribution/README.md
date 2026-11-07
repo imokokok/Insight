@@ -49,7 +49,7 @@ complete.
 ## First paid call without a wallet
 
 P3 is implemented as discovery, not billing. The repository already issues a
-one-time, email-verified, idempotent 100-credit signup grant
+one-time, email-verified, idempotent 400-credit signup grant
 (`src/app/api/billing/signup-grant/route.ts`) and meters `X-API-Key` calls
 against the credit wallet. The 402 response now carries `x-insight-no-wallet`,
 and `llms.txt`, `skill.md`, the x402 quickstart, the `/docs/x402` page and the

@@ -119,8 +119,8 @@ export function x402AcquisitionSource(
  * `x-insight-mcp-install` points at the published `oracle-insight-mcp`
  * launcher, which pins the hosted endpoint and the `mcp` attribution label.
  * `x-insight-no-wallet` points at the existing one-time signup grant
- * (`POST /api/billing/signup-grant`, 100 credits after email verification)
- * plus the `X-API-Key` credit rail. It deliberately does not create an
+ * (`POST /api/billing/signup-grant`, 400 credits after email verification,
+ * never resets) plus the `X-API-Key` credit rail. It deliberately does not create an
  * anonymous free tier: a per-account, verified, idempotent grant is the only
  * wallet-free entitlement, and plans.ts, quotaMiddleware.ts and
  * mcp/middleware.ts all state "no recurring free tier".
@@ -133,7 +133,7 @@ export function x402OnboardingHeaders(): Record<string, string> {
     'x-insight-quickstart': 'https://www.oracleinsight.xyz/docs/x402',
     'x-insight-mcp-install': 'npx -y --package=oracle-insight-mcp insight-mcp',
     'x-insight-no-wallet':
-      'X-API-Key credit wallet: signup + email verification grants 100 credits (~20 C3 calls), no wallet or USDC needed; https://www.oracleinsight.xyz/docs/x402',
+      'X-API-Key credit wallet: signup + email verification grants a one-time 400 credits (~20 C3 calls, never resets), no wallet or USDC needed; https://www.oracleinsight.xyz/docs/x402',
   };
   // Iterate the shared name list, not the object's own keys: the same list is
   // what CORS exposes, so an added hint can never become unreadable in a browser.

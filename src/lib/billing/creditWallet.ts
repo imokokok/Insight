@@ -28,6 +28,9 @@ export interface CreditPrecheck {
   cost?: number;
   budget?: number;
   used?: number;
+  /** True when this call brings the key to >=80% of its monthly spend cap.
+   *  The cap itself is a hard stop; the warning is advisory. */
+  budgetWarning?: boolean;
 }
 
 export interface CreditCharge {

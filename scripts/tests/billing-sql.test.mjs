@@ -12,7 +12,11 @@ test('actual billing SQL debits, rejects, replays and restores without duplicate
       CREATE TABLE auth.users(id uuid PRIMARY KEY);
       CREATE TABLE public.api_keys(id uuid PRIMARY KEY, user_id uuid REFERENCES auth.users(id), plan text);
       CREATE TABLE public.subscriptions(user_id uuid,plan text,status text,current_period_end timestamptz);`);
-    for (const migration of ['0039_credit_wallet.sql', '0042_consume_credits_row_lock.sql']) {
+    for (const migration of [
+      '0039_credit_wallet.sql',
+      '0042_consume_credits_row_lock.sql',
+      '0125_precheck_budget_warning.sql',
+    ]) {
       await db.exec(
         await readFile(new URL(`../../supabase/migrations/${migration}`, import.meta.url), 'utf8')
       );
@@ -34,6 +38,30 @@ test('actual billing SQL debits, rejects, replays and restores without duplicate
       ).rows[0].result;
     assert.equal((await charge('call-1')).balance, 15);
     assert.equal((await charge('call-1')).idempotent, true);
+    const precheck = async (cost) =>
+      (await db.query('SELECT precheck_credits($1,$2) AS result', [key, cost])).rows[0].result;
+
+    // Spend cap: the same read-only gate that blocks at 100% warns at 80%.
+    await db.query('UPDATE api_keys SET budget_monthly=100 WHERE id=$1', [key]);
+    const quarterUsed = await precheck(5);
+    assert.equal(quarterUsed.ok, true);
+    assert.equal(Number(quarterUsed.used), 5);
+    assert.equal(Number(quarterUsed.budget), 100);
+    assert.equal(quarterUsed.budget_warning, false);
+
+    await db.query('UPDATE api_keys SET budget_monthly=8 WHERE id=$1', [key]);
+    assert.equal((await precheck(1)).budget_warning, false); // 6 of 8 credits (75%)
+    assert.equal((await precheck(2)).budget_warning, true); // 7 of 8 credits (87.5%)
+    const capped = await precheck(4);
+    assert.equal(capped.ok, false);
+    assert.equal(capped.reason, 'BUDGET_EXCEEDED');
+    assert.equal(Number(capped.used), 5);
+    assert.equal(
+      Number((await db.query('SELECT balance FROM credit_wallet')).rows[0].balance),
+      15,
+      'a rejected precheck must not debit the wallet'
+    );
+
     await db.query('UPDATE api_keys SET budget_monthly=5 WHERE id=$1', [key]);
     assert.equal((await charge('budget-rejected')).reason, 'BUDGET_EXCEEDED');
     await db.query('UPDATE api_keys SET budget_monthly=NULL WHERE id=$1', [key]);

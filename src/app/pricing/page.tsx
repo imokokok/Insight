@@ -22,9 +22,9 @@ const METERING_LADDER_LABEL = `${METERING_CLASS_ORDER[0]}–${
 
 const BILLING_FACTS = [
   {
-    value: '100',
+    value: '400',
     label: 'Trial credits',
-    detail: 'One grant after email verification',
+    detail: 'One-time grant after email verification, never resets',
   },
   {
     value: METERING_LADDER_LABEL,
@@ -83,7 +83,7 @@ export default function PricingPage() {
                 href="/register?redirect=/pricing"
                 className="inline-flex items-center gap-2 border border-slate-950 bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition-colors hover:border-blue-700 hover:bg-blue-700"
               >
-                Start with 100 credits
+                Start with 400 credits
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link

@@ -574,7 +574,7 @@ describe('x402OnboardingHeaders 402 hints', () => {
   it('advertises the existing verified signup grant, not an anonymous free tier', () => {
     const hint = headers['x-insight-no-wallet'];
     expect(hint).toContain('X-API-Key');
-    expect(hint).toContain('100 credits');
+    expect(hint).toContain('400 credits');
     expect(hint).toContain('email verification');
     expect(hint).toContain('https://www.oracleinsight.xyz/docs/x402');
   });

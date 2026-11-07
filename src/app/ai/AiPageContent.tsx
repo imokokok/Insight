@@ -614,7 +614,7 @@ when the verdict turns DANGER.`}
 
       <PricingCtaSection
         title="AI Agent Pricing"
-        subtitle={`MCP and safety-check calls share the same credit meter and billing as the REST API. New users get 100 free trial credits after email verification — Developer from ${PLANS.developer.priceMonthly} USDC/mo (60,000 credits) or pay-as-you-go top-up packs.`}
+        subtitle={`MCP and safety-check calls share the same credit meter and billing as the REST API. New users get 400 free trial credits after email verification — ${PLANS.developer.name} from ${PLANS.developer.priceMonthly} USDC/mo (${PLANS.developer.monthlyQuota.toLocaleString()} credits) or pay-as-you-go top-up packs.`}
         buttonText="View Pricing"
       />
     </div>

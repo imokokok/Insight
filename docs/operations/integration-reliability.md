@@ -91,6 +91,14 @@ the debit committed. Look up the receipt in `credit_ledger.metering_key` before
 manual reconciliation. HTTP retries remain separate billable requests; these
 headers do not introduce client-controlled cross-request idempotency.
 
+Per-key spend caps are set with `PATCH /api/user/api-keys/:id`
+(`{"budgetMonthly": <credits> | null}`; also editable in Settings → Billing) and
+enforced inside `precheck_credits`/`consume_credits`. When a call brings the key
+to 80% of its cap, the successful response also carries
+`X-Credit-Budget-Warning: 80`. At 100% the precheck rejects the request with 402
+`reason: "BUDGET_EXCEEDED"` and no credits are debited. Caps are calendar-month
+scoped and do not carry over.
+
 ## Source latency and coverage
 
 Coverage probes expose per-provider `fetchDurationMs` and `freshnessShortfall`.

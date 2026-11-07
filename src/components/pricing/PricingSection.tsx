@@ -6,8 +6,8 @@ import { PricingCards } from './PricingCards';
 
 export function PricingSection() {
   // Annual is the default because it is the only cadence that carries a real
-  // discount: measured against the x402 list price, annual plans land
-  // 12.5%–19.8% below while monthly plans manage only 4.6%–12.5%.
+  // discount: yearly is 10× monthly against 12 monthly grants, so annual plans
+  // land 36.7%–50.2% below credit face value vs 24.0%–40.2% for monthly.
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('yearly');
 
   return (
