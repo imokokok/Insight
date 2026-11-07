@@ -16,6 +16,7 @@ const CHAIN = [
   '0125_precheck_budget_warning.sql',
   '0126_credit_ledger_semantics.sql',
   '0127_restore_budget_warning.sql',
+  '0128_waiver_comment.sql',
 ];
 
 const CONTRACT = {
@@ -166,6 +167,24 @@ test('the final billing migration chain keeps every function signature and retur
     for (const column of LEDGER_COLUMNS) {
       assert.ok(present.has(column), `credit_ledger: missing column ${column}`);
     }
+  } finally {
+    await db.close();
+  }
+});
+
+test('record_waived_credit documents the current zero-charge vocabulary', async () => {
+  const db = await boot(CHAIN);
+  try {
+    const { rows } = await db.query(
+      `SELECT obj_description(
+          'public.record_waived_credit(uuid,text,text,text,text,text,jsonb)'::regprocedure,
+          'pg_proc'
+        ) AS comment`
+    );
+    const comment = rows[0].comment;
+    assert.ok(comment, 'record_waived_credit has no comment');
+    assert.match(comment, /upstream_failed/, `missing upstream_failed: ${comment}`);
+    assert.equal(/no[_-]data/i.test(comment), false, `retired no_data wording: ${comment}`);
   } finally {
     await db.close();
   }
