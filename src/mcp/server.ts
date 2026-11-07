@@ -15,6 +15,7 @@ import {
   isAllItemsFailedResult,
   isInsufficientDataResult,
   isUpstreamTimeoutError,
+  structuredProductOutcome,
   type BillingZeroReason,
 } from '@/lib/billing/exemptions';
 import { isFreeVerifyCall } from '@/lib/billing/freeVerify';
@@ -89,6 +90,46 @@ export interface McpServerOptions {
    * `X-Credit-*` headers from it after the response is produced.
    */
   billingReceipt?: CreditBillingHeaderInput;
+}
+
+type ZeroBillingDecision = {
+  status: 'waived' | 'not_charged';
+  zeroReason?: BillingZeroReason;
+  cacheZero: boolean;
+};
+
+/**
+ * Decide the zero-charge branch from the structured product outcome. Returns
+ * `null` when the call is billable — including a `rejected` verdict delivered
+ * with `isError: true`. Structured `unavailable` always wins over other
+ * markers: if no conclusion was formed, nothing is sold and nothing is billed.
+ */
+function resolveZeroBilling(
+  result: { isError?: boolean },
+  resultText: string
+): ZeroBillingDecision | null {
+  const productOutcome = structuredProductOutcome(resultText);
+  const unavailable = productOutcome === 'unavailable';
+  if (!unavailable && (productOutcome === 'rejected' || !result.isError)) return null;
+
+  if (isInsufficientDataResult(resultText)) {
+    return {
+      status: 'waived',
+      zeroReason: BILLING_ZERO_REASONS.insufficientData,
+      cacheZero: true,
+    };
+  }
+  if (unavailable) {
+    return {
+      status: 'waived',
+      zeroReason: BILLING_ZERO_REASONS.upstreamFailed,
+      cacheZero: false,
+    };
+  }
+  if (isUpstreamTimeoutError(resultText)) {
+    return { status: 'waived', zeroReason: BILLING_ZERO_REASONS.timeout, cacheZero: false };
+  }
+  return { status: 'not_charged', cacheZero: false };
 }
 
 export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions = {}): Server {
@@ -259,31 +300,34 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
 
         if (auth) {
           const resultText = result.content.map((block) => block.text).join('\n');
+          // The product outcome is read from the structured result, not from
+          // whether the handler returned or threw. A rejected trade is a
+          // formed, delivered judgement and stays billable even when the MCP
+          // transport marks it `isError`; only `unavailable` is exempt.
+          const rejected = structuredProductOutcome(resultText) === 'rejected';
+          const zeroBilling = resolveZeroBilling(result, resultText);
 
           // Only consume credits when the tool actually delivered usable data.
           // Protocol overhead (initialize/tools/list/ping), execution failures,
           // upstream/chain timeouts, and results with no usable conclusion
-          // (`insufficient_data` / `upstream_failed`) are NOT metered —
-          // mirroring the REST API which only charges delivered data.
-          if (result.isError) {
-            const insufficient = isInsufficientDataResult(resultText);
-            const timedOut = !insufficient && isUpstreamTimeoutError(resultText);
+          // (`insufficient_data` / `upstream_failed` / `unavailable`) are NOT
+          // metered — mirroring the REST API which only charges delivered data.
+          if (zeroBilling) {
             if (receipt) {
               Object.assign(receipt, {
                 costCredits: 0,
-                status: insufficient ? 'waived' : 'not_charged',
-                zeroReason: insufficient
-                  ? BILLING_ZERO_REASONS.insufficientData
-                  : timedOut
-                    ? BILLING_ZERO_REASONS.timeout
-                    : undefined,
+                status: zeroBilling.status,
+                zeroReason: zeroBilling.zeroReason,
               });
             }
-            if (insufficient) {
-              await recordWaiver(BILLING_ZERO_REASONS.insufficientData);
+            if (zeroBilling.zeroReason) {
+              await recordWaiver(zeroBilling.zeroReason);
+            }
+            if (zeroBilling.cacheZero) {
               cacheZeroOutcome(result, BILLING_ZERO_REASONS.insufficientData);
-            } else if (timedOut) await recordWaiver(BILLING_ZERO_REASONS.timeout);
-          } else if (isInsufficientDataResult(resultText)) {
+              logger.info(`MCP tool returned no usable data; not billed: ${name}`);
+            }
+          } else if (!rejected && isInsufficientDataResult(resultText)) {
             if (receipt) {
               Object.assign(receipt, {
                 costCredits: 0,
@@ -294,7 +338,7 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
             await recordWaiver(BILLING_ZERO_REASONS.insufficientData);
             cacheZeroOutcome(result, BILLING_ZERO_REASONS.insufficientData);
             logger.info(`MCP tool returned no usable data; not billed: ${name}`);
-          } else if (isAllItemsFailedResult(resultText)) {
+          } else if (!rejected && isAllItemsFailedResult(resultText)) {
             if (receipt) {
               Object.assign(receipt, {
                 costCredits: 0,

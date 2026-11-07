@@ -3,6 +3,7 @@ import { after } from 'next/server';
 import { type HTTPAdapter, type HTTPResponseInstructions } from '@x402/core/server';
 
 import { applyCreditBillingHeaders } from '@/lib/billing/billingHeaders';
+import { structuredProductOutcome } from '@/lib/billing/exemptions';
 import { isFreeVerifyCall } from '@/lib/billing/freeVerify';
 import { getMcpToolBillableItems } from '@/lib/billing/metering';
 import {
@@ -205,16 +206,30 @@ export async function handleMcpIndexerQuote(request: Request, cfg: X402Config): 
 
 /**
  * True when the JSON-RPC response represents a failed tool execution
- * (`result.isError` or a JSON-RPC-level `error`). Best-effort: an
- * unparseable body counts as failed — never charge on ambiguity.
+ * (`result.isError` or a JSON-RPC-level `error`). A structured `rejected`
+ * outcome is a delivered judgement and must settle even when the transport
+ * marks it as an error; a structured `unavailable` outcome never charges.
+ * Best-effort: an unparseable body counts as failed — never charge on
+ * ambiguity.
  */
 async function isMcpToolFailure(response: Response): Promise<boolean> {
   try {
     const body = (await response.clone().json()) as {
       error?: unknown;
-      result?: { isError?: unknown };
+      result?: {
+        isError?: unknown;
+        content?: { type?: unknown; text?: unknown }[];
+      };
     };
     if (body?.error != null) return true;
+    const resultText = Array.isArray(body?.result?.content)
+      ? body.result.content
+          .map((block) => (typeof block?.text === 'string' ? block.text : ''))
+          .join('\n')
+      : '';
+    const productOutcome = structuredProductOutcome(resultText);
+    if (productOutcome === 'rejected') return false;
+    if (productOutcome === 'unavailable') return true;
     return body?.result?.isError === true;
   } catch {
     return true;

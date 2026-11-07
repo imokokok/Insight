@@ -119,12 +119,12 @@ function mcpPost(body: unknown, headers: Record<string, string> = {}): Request {
   });
 }
 
-function toolsCallBody(name = 'get_symbols') {
+function toolsCallBody(name = 'get_symbols', args: Record<string, unknown> = {}) {
   return {
     jsonrpc: '2.0',
     id: 9,
     method: 'tools/call',
-    params: { name, arguments: {} },
+    params: { name, arguments: args },
   };
 }
 
@@ -361,6 +361,100 @@ describe('x402 paid MCP tools/call', () => {
 
     const { response, cleanup } = await handleMcpHttpRequest(
       mcpPost(toolsCallBody(), { 'payment-signature': 'b64payload' })
+    );
+    await cleanup();
+
+    expect(response.status).toBe(200);
+    expect(processSettlement).not.toHaveBeenCalled();
+    expect(response.headers.get('PAYMENT-RESPONSE')).toBeNull();
+  });
+
+  it('settles a structured rejected outcome even when the result is marked isError', async () => {
+    getX402ConfigMock.mockImplementation(() => ({
+      ...CFG,
+      network: 'eip155:8453' as const,
+      evmNetworks: ['eip155:8453'] as const,
+      facilitatorUrls: { 'eip155:8453': 'https://base.example' },
+      hypercore: null,
+    }));
+    processHTTPRequest.mockResolvedValue({
+      type: 'payment-verified',
+      cancellationDispatcher: {},
+      paymentPayload: { x402Version: 2 },
+      paymentRequirements: {
+        scheme: 'exact',
+        network: 'eip155:8453',
+        asset: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
+        amount: '20000',
+      },
+    });
+    processSettlement.mockResolvedValue({
+      success: true,
+      transaction: `0x${'e'.repeat(64)}`,
+      payer: `0x${'f'.repeat(40)}`,
+      amount: '20000',
+      network: 'eip155:8453',
+      headers: { 'PAYMENT-RESPONSE': 'rejected-receipt' },
+      requirements: {},
+    });
+    cannedRpcResponse = {
+      jsonrpc: '2.0',
+      id: 9,
+      result: {
+        content: [
+          {
+            type: 'text',
+            text: 'Error executing prepare_perp_order: [rejected:invalid_request] slippage exceeded',
+          },
+        ],
+        isError: true,
+      },
+    };
+
+    const { response, cleanup } = await handleMcpHttpRequest(
+      mcpPost(toolsCallBody('prepare_perp_order', { venue: 'synthetix-perps-v3-base' }), {
+        'payment-signature': 'b64payload',
+      })
+    );
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await cleanup();
+
+    expect(response.status).toBe(200);
+    expect(processSettlement).toHaveBeenCalledTimes(1);
+    expect(response.headers.get('PAYMENT-RESPONSE')).toBe('rejected-receipt');
+  });
+
+  it('does not settle a structured unavailable outcome even when the result is not isError', async () => {
+    getX402ConfigMock.mockImplementation(() => ({
+      ...CFG,
+      network: 'eip155:8453' as const,
+      evmNetworks: ['eip155:8453'] as const,
+      facilitatorUrls: { 'eip155:8453': 'https://base.example' },
+      hypercore: null,
+    }));
+    processHTTPRequest.mockResolvedValue({
+      type: 'payment-verified',
+      cancellationDispatcher: {},
+      paymentPayload: { x402Version: 2 },
+      paymentRequirements: {
+        scheme: 'exact',
+        network: 'eip155:8453',
+        asset: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
+        amount: '20000',
+      },
+    });
+    cannedRpcResponse = {
+      jsonrpc: '2.0',
+      id: 9,
+      result: {
+        content: [{ type: 'text', text: '{"decision":"unavailable","chargeable":false}' }],
+      },
+    };
+
+    const { response, cleanup } = await handleMcpHttpRequest(
+      mcpPost(toolsCallBody('prepare_perp_order', { venue: 'synthetix-perps-v3-base' }), {
+        'payment-signature': 'b64payload',
+      })
     );
     await cleanup();
 

@@ -58,6 +58,34 @@ const INSUFFICIENT_DATA_PATTERN = /\bINSUFFICIENT_DATA\b/;
 /** Batch tools say exactly this when every requested item failed. */
 const NO_SUCCESSFUL_DATA_PATTERN = /\bNo successful (?:prices|results|quotes)\b/i;
 
+/**
+ * Structured product outcome carried by a tool result. `rejected` is a formed
+ * judgement and therefore billable even when the transport marks the result as
+ * an error; `unavailable` means no judgement was formed and is never billed.
+ */
+const PRODUCT_OUTCOME_MARKER_PATTERN = /\[(rejected|unavailable):/;
+
+const JSON_PRODUCT_OUTCOME_PATTERNS = [
+  { outcome: 'rejected', pattern: /"(?:decision|productOutcome)"\s*:\s*"rejected"/ },
+  { outcome: 'unavailable', pattern: /"(?:decision|productOutcome)"\s*:\s*"unavailable"/ },
+] as const;
+
+export type StructuredProductOutcome = 'rejected' | 'unavailable';
+
+/**
+ * Read the product outcome from the structured result itself, not from
+ * whether the handler returned JSON or threw. Result markers come first; a
+ * JSON verdict is the second structured spelling.
+ */
+export function structuredProductOutcome(resultText: string): StructuredProductOutcome | null {
+  const marker = PRODUCT_OUTCOME_MARKER_PATTERN.exec(resultText);
+  if (marker) return marker[1] as StructuredProductOutcome;
+  for (const candidate of JSON_PRODUCT_OUTCOME_PATTERNS) {
+    if (candidate.pattern.test(resultText)) return candidate.outcome;
+  }
+  return null;
+}
+
 /** True when the evidence itself was graded insufficient to conclude. */
 export function isInsufficientDataResult(resultText: string): boolean {
   return INSUFFICIENT_DATA_PATTERN.test(resultText);
