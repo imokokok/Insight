@@ -126,6 +126,39 @@ describe('handleMcpPaidToolCall settlement gating', () => {
     expect(res.headers.get('PAYMENT-RESPONSE')).toBe('c2V0dGxlZA==');
   });
 
+  it('answers 402 no_eligible_chain without building a server when the floor excludes every rail', async () => {
+    const flooredCfg = {
+      ...cfg,
+      enabled: true,
+      evmEnabled: true,
+      network: 'eip155:8453',
+      evmNetworks: ['eip155:8453'],
+      amountAtomic: '2000',
+      payTo: '0xAbC0000000000000000000000000000000000001',
+      facilitatorUrl: 'https://base.example',
+      networkMinAmountAtomic: { 'eip155:8453': '20000' },
+    } as X402Config;
+
+    const res = await handleMcpPaidToolCall({
+      request: new Request('http://x/api/mcp', { method: 'POST' }),
+      cfg: flooredCfg,
+      toolName: 'get_symbols',
+      runBusiness: async () => jsonRpcResult({ content: [{ type: 'text', text: 'ok' }] }),
+    });
+
+    expect(res.status).toBe(402);
+    expect(mockedServerFactory).not.toHaveBeenCalled();
+    const body = (await res.json()) as {
+      error: string;
+      accepts: unknown[];
+      extensions: Record<string, { retryable: boolean }>;
+    };
+    expect(body.error).toBe('no_eligible_chain');
+    expect(body.accepts).toEqual([]);
+    expect(body.extensions['insight.chain-policy'].retryable).toBe(false);
+    expect(res.headers.get('PAYMENT-REQUIRED')).toBeTruthy();
+  });
+
   function guardCallRequest(profileId: string): Request {
     return new Request('http://x/api/mcp', {
       method: 'POST',

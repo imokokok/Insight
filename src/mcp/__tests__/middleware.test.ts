@@ -43,7 +43,8 @@ describe('consumeMcpQuota', () => {
       'key-1',
       40,
       'metering-key',
-      '/mcp/tools/agent_begin_trade'
+      '/mcp/tools/agent_begin_trade',
+      expect.objectContaining({ source: 'wallet', reason: 'agent_begin_trade' })
     );
   });
 });

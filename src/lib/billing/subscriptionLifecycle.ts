@@ -262,6 +262,8 @@ export async function handlePaymentConfirmed(
         meteringKey: `topup:${invoiceId ?? paymentId}`,
         kind: 'topup',
         ref: invoiceId ?? undefined,
+        source: 'wallet',
+        reason: 'pack_topup',
       });
 
       if (newBalance === null) {
@@ -418,6 +420,8 @@ export async function handlePaymentConfirmed(
       meteringKey: grantKey,
       kind: 'grant',
       ref: `${sub.plan} first-cycle allowance`,
+      source: 'subscription',
+      reason: 'monthly_grant',
     });
     if (newBalance === null) {
       throw new Error(`Failed to grant first-cycle credits for subscription ${sub.id}`);
@@ -518,6 +522,8 @@ export async function handlePaymentRefunded(
         meteringKey: `refund:${purchase.id}:${purchase.user_id}`,
         kind: 'refund',
         ref: `refund of ${configuredCredits} credit top-up`,
+        source: 'wallet',
+        reason: 'refund',
       });
       if (newBalance === null) {
         throw new Error(`Failed to debit refunded credit purchase ${purchase.id}`);

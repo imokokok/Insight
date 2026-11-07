@@ -18,7 +18,13 @@ import {
   x402PaymentScopeForMcpTool,
   type X402PaymentScope,
 } from './capabilityPayment';
-import { type X402Config, usdToAtomicUnits, X402_CREDIT_USD, X402_MCP_ROUTE } from './config';
+import {
+  getX402PaymentOptions,
+  type X402Config,
+  usdToAtomicUnits,
+  X402_CREDIT_USD,
+  X402_MCP_ROUTE,
+} from './config';
 import {
   atomicUnitsToUsdc,
   attachX402ReceiptHeader,
@@ -723,6 +729,13 @@ export async function handleMcpPaidToolCall({
       acquisitionSource: x402AcquisitionSource(request),
       runBusiness,
     });
+  }
+
+  // No network can serve this amount (e.g. every eligible chain is below
+  // `X402_NETWORK_MIN_AMOUNT`). Answer 402 + accepts:[] before the SDK builds
+  // a scheme set, so an excluded chain can never surface as a 5xx.
+  if (getX402PaymentOptions(paymentConfig, priceAtomic).length === 0) {
+    return attachRequestId(noEligibleChainResponse(toolName, paymentScope, priceAtomic), requestId);
   }
 
   const isBaseAgentSwapGuard = toolName === BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME;

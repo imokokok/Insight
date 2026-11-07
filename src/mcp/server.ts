@@ -10,7 +10,10 @@ import type { MppMcpCallHandler } from '@/lib/api/mpp/mcp';
 import type { CreditBillingHeaderInput } from '@/lib/billing/billingHeaders';
 import { precheckCredits } from '@/lib/billing/creditWallet';
 import { isNoUsableDataResult } from '@/lib/billing/exemptions';
-import { countMcpBatchSuccessItems } from '@/lib/billing/metering';
+import {
+  countMcpBatchSuccessItems,
+  getMcpToolBillableItems,
+} from '@/lib/billing/metering';
 import { getMcpToolCreditCostForCall } from '@/lib/billing/productPricing';
 import {
   getCachedMcpResult,
@@ -190,9 +193,20 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
               }
               logger.info(`MCP batch returned no usable items; not billed: ${name}`);
             } else {
+              const requestedItems = getMcpToolBillableItems(name, args);
               const charge = await consumeMcpQuota(auth, name, args, {
                 meteringKey: requestKey !== null ? idempotencyMeteringKey(requestKey) : undefined,
                 billableItems: successfulItems ?? undefined,
+                reason:
+                  successfulItems !== null
+                    ? successfulItems < requestedItems
+                      ? 'batch_partial'
+                      : 'prices.batch'
+                    : name,
+                meta:
+                  successfulItems !== null
+                    ? { requested: requestedItems, charged: successfulItems }
+                    : undefined,
               });
               if (!charge.allowed) {
                 if (receipt) {
@@ -240,6 +254,26 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
                   status,
                   receipt: charge.receipt ?? null,
                 });
+              }
+
+              // C4 fail-closed (§1.1 row 9 / §8.3): do not return the data
+              // when a 40-credit debit could not be confirmed. A pending
+              // settlement row has already been queued by consumeCredits.
+              if (charge.confirmed === false && charge.cost >= 40) {
+                logger.error('MCP C4 debit unconfirmed — withholding result', new Error('C4_SETTLEMENT_UNCONFIRMED'), {
+                  apiKeyId: auth.type === 'apikey' ? auth.apiKey.keyId : null,
+                  cost: charge.cost,
+                });
+                recordMcpToolUsage(auth, name, 503, Date.now() - startTime);
+                return {
+                  content: [
+                    {
+                      type: 'text' as const,
+                      text: 'CREDIT_SETTLEMENT_UNAVAILABLE: the credit ledger is temporarily unavailable. Retry shortly; this call was not charged.',
+                    },
+                  ],
+                  isError: true,
+                };
               }
 
               // Cache only confirmed, billable successes. A replay of a free,

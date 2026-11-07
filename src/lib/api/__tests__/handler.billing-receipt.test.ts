@@ -73,7 +73,13 @@ describe('REST billing receipt boundary', () => {
     expect(response.status).toBe(200);
     const receipt = response.headers.get('X-Credit-Receipt');
     expect(receipt).toBeTruthy();
-    expect(consumeCredits).toHaveBeenCalledWith('key-fixture', 5, receipt, '/api/v1/coverage');
+    expect(consumeCredits).toHaveBeenCalledWith(
+      'key-fixture',
+      5,
+      receipt,
+      '/api/v1/coverage',
+      expect.objectContaining({ source: 'wallet', reason: '/api/v1/coverage' })
+    );
     expect(response.headers.get('X-Credit-Status')).toBe(status);
     expect(response.headers.get('X-Credit-Balance')).toBe('20');
     expect(response.headers.get('X-Credit-Balance-After')).toBe('15');

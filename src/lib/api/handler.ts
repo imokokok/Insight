@@ -7,6 +7,7 @@ import { applyCreditBillingHeaders } from '@/lib/billing/billingHeaders';
 import { consumeCredits, precheckCredits } from '@/lib/billing/creditWallet';
 import { isUpstreamTimeoutError } from '@/lib/billing/exemptions';
 import {
+  BATCH_UNIT_CREDITS,
   batchChargeCredits,
   CREDIT_EXHAUSTED_RETRY_AFTER_SECONDS,
   REST_BATCH_METERED_PATHS,
@@ -147,6 +148,36 @@ async function readBodyForFingerprint(request: NextRequest): Promise<string> {
  * available; some NextResponse polyfills (notably under jsdom) do not expose
  * it, so fall back to consuming and rebuilding an equivalent response.
  */
+/**
+ * REST batch responses echo the billing unit so a caller can verify
+ * `X-Credit-Cost = 2 × itemsCharged` and `itemsCharged` == non-error rows
+ * without trusting the headers alone (pricing review §7.2).
+ */
+async function attachBatchBillingEcho(
+  response: NextResponse,
+  input: {
+    itemsRequested: number;
+    itemsCharged: number;
+    unitCredits: number;
+    costCredits: number;
+    status: string;
+  }
+): Promise<NextResponse> {
+  try {
+    const snapshot = await snapshotResponseForCache(response);
+    const parsed = JSON.parse(snapshot.body) as Record<string, unknown> | null;
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return response;
+    parsed.billing = input;
+    return new NextResponse(snapshot.body ? JSON.stringify(parsed) : snapshot.body, {
+      status: response.status,
+      headers: response.headers,
+    });
+  } catch {
+    // The echo is an observability guarantee, not a reason to fail the request.
+    return response;
+  }
+}
+
 async function snapshotResponseForCache(
   response: NextResponse
 ): Promise<{ body: string; response: NextResponse }> {
@@ -846,11 +877,26 @@ export function createApiHandler<
         }
 
         if (chargedCost > 0) {
+          const isBatch = REST_BATCH_METERED_PATHS.has(request.nextUrl.pathname);
+          const requestedItems = apiContext.quotaInfo?.billableItems ?? 1;
+          const chargeReason = exemption
+            ? 'insufficient_data'
+            : isBatch
+              ? chargedItems < requestedItems
+                ? 'batch_partial'
+                : 'prices.batch'
+              : request.nextUrl.pathname;
           const charge = await consumeCredits(
             pendingCharge.apiKeyId,
             chargedCost,
             pendingCharge.meteringKey,
-            request.nextUrl.pathname
+            request.nextUrl.pathname,
+            {
+              source: 'wallet',
+              reason: chargeReason,
+              requestId: pendingCharge.meteringKey,
+              meta: isBatch ? { requested: requestedItems, charged: chargedItems } : undefined,
+            }
           );
           chargeOutcome = charge;
 
@@ -885,8 +931,55 @@ export function createApiHandler<
             if (corsHeaders) applyCorsHeaders(deniedResponse, corsHeaders);
             return deniedResponse;
           }
+
+          // C4 (40 credits and above) is fail-closed: if we could not confirm
+          // the debit, do not deliver the data while a pending settlement is
+          // queued (§1.1 row 9 / §8.3). C1–C3 stay available and are marked
+          // degraded; the pending ledger guarantees they are still collected.
+          if (charge.confirmed === false && chargedCost >= 40) {
+            logger.error('C4 debit unconfirmed — withholding response', new Error('C4_SETTLEMENT_UNCONFIRMED'), {
+              apiKeyId: pendingCharge.apiKeyId,
+              cost: chargedCost,
+              meteringKey: pendingCharge.meteringKey,
+            });
+            const unavailable = NextResponse.json(
+              ApiResponseBuilder.error(
+                'CREDIT_SETTLEMENT_UNAVAILABLE',
+                'The credit ledger is temporarily unavailable. Retry shortly; this call was not charged.',
+                { retryable: true, details: { cost: chargedCost } }
+              ),
+              { status: 503 }
+            );
+            unavailable.headers.set('Retry-After', '30');
+            applyRestBillingReceipt(unavailable, apiContext.quotaInfo, charge);
+            applyDiagnosticHeaders(unavailable, apiContext.requestId, startTime);
+            if (corsHeaders) applyCorsHeaders(unavailable, corsHeaders);
+            return unavailable;
+          }
         } else {
           response.headers.set('X-Credit-Status', 'not_charged');
+        }
+
+        if (
+          REST_BATCH_METERED_PATHS.has(request.nextUrl.pathname) &&
+          response.status >= 200 &&
+          response.status < 300
+        ) {
+          const requestedItems = apiContext.quotaInfo?.billableItems ?? 1;
+          response = await attachBatchBillingEcho(response, {
+            itemsRequested: requestedItems,
+            itemsCharged: chargedItems,
+            unitCredits: BATCH_UNIT_CREDITS,
+            costCredits: chargedCost,
+            status:
+              chargedCost === 0
+                ? exemption === 'insufficient_data'
+                  ? 'waived'
+                  : 'not_charged'
+                : chargedItems < requestedItems
+                  ? 'batch_partial'
+                  : 'charged',
+          });
         }
 
         // Cache only a confirmed, positively-priced successful result. Failures,

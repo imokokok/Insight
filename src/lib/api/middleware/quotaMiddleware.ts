@@ -127,6 +127,28 @@ export function createQuotaMiddleware(
     const cost = unitCost * billableItems;
     const precheck = await precheckCredits(context.apiKeyId, cost);
 
+    // Spend-cap early warning (pricing audit §1.1 row 12): 80% of a per-key
+    // monthly budget is logged so it can be alerted on before the key 402s.
+    // Tolerates the pre-0125 RPC shape: when budget/used are absent (no
+    // budget set, or migration not yet applied) this is simply skipped.
+    const budget = precheck.budget;
+    const used = precheck.used;
+    if (
+      precheck.ok &&
+      typeof budget === 'number' &&
+      budget > 0 &&
+      typeof used === 'number' &&
+      used >= budget * 0.8
+    ) {
+      logger.warn('API key spend cap at or above 80%', {
+        apiKeyId: context.apiKeyId,
+        plan,
+        used,
+        budget,
+        percent: Math.round((used / budget) * 100),
+      });
+    }
+
     if (!precheck.ok) {
       const reason = precheck.reason ?? 'INSUFFICIENT_CREDITS';
       logger.warn('Credit precheck rejected request', {

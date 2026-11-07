@@ -6,6 +6,7 @@ import {
   X402_PAYMENT_SCOPE,
 } from '../capabilityPayment';
 import {
+  getX402PaymentOptions,
   parseX402Config,
   SOLANA_DEVNET_CAIP2,
   X402_BASE_LENDING_GUARD_ROUTE,
@@ -382,6 +383,52 @@ describe('x402 SVM resource-server registration', () => {
       toolName: BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME,
       transport: 'streamable-http',
     });
+  });
+
+  it('registers the scheme for every advertised amount when a floor excludes the default price', async () => {
+    // Regression for the `X402_NETWORK_MIN_AMOUNT=eip155:999=10000` outage:
+    // the default route amount (2000 micro-USDC) is below the floor, while the
+    // MCP tool price (20000) is above it. Registering schemes from the default
+    // amount alone left eip155:999 unregistered and the SDK threw
+    // `RouteConfigurationError: No scheme implementation registered for exact`.
+    const fetchMock = jest.fn(async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url !== 'https://facilitator.example/supported') {
+        throw new Error(`unexpected fetch: ${url}`);
+      }
+      return Response.json({
+        kinds: [{ x402Version: 2, scheme: 'exact', network: 'eip155:999' }],
+        extensions: [],
+        signers: {},
+      });
+    });
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    const cfg = parseX402Config({
+      X402_ENABLED: 'true',
+      X402_PAY_TO: EVM_PAY_TO,
+      X402_PRICE_USD: '0.002',
+      X402_EVM_NETWORKS: 'eip155:999',
+      X402_FACILITATOR_URL: 'https://facilitator.example',
+      X402_NETWORK_MIN_AMOUNT: 'eip155:999=10000',
+    });
+    expect(getX402PaymentOptions(cfg)).toEqual([]);
+
+    const server = await buildX402HttpServer(cfg, undefined, { mcpAmountAtomic: '20000' });
+    const result = await server.processHTTPRequest({
+      adapter: new McpTestRequestAdapter(),
+      path: '/api/mcp',
+      method: 'POST',
+    });
+
+    expect(result.type).toBe('payment-error');
+    if (result.type !== 'payment-error') throw new Error('expected a payment quote');
+    const quote = JSON.parse(
+      Buffer.from(result.response.headers['PAYMENT-REQUIRED'] ?? '', 'base64url').toString('utf8')
+    ) as { accepts: Array<Record<string, unknown>> };
+    expect(quote.accepts).toEqual([
+      expect.objectContaining({ network: 'eip155:999', amount: '20000', scheme: 'exact' }),
+    ]);
   });
 
   it('refreshes a facilitator-advertised blockhash for every Solana quote', async () => {

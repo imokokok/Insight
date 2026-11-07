@@ -578,6 +578,28 @@ describe('per-network minimum quote', () => {
     );
   });
 
+  it('applies the documented Base/HyperEVM/Solana floors (1800/1100/900) when enabled', () => {
+    const cfg = parseX402Config({
+      ...BASE_ENV,
+      X402_EVM_NETWORKS: 'eip155:8453,eip155:999',
+      X402_SOLANA_ENABLED: 'true',
+      X402_SOLANA_PAY_TO: 'seFkxFkXEY9JGEpCyPfCWTuPZG9WK6ucf95zvKCfsRX',
+      X402_NETWORK_MIN_AMOUNT: `eip155:8453=1800,eip155:999=1100,${SOLANA_DEVNET_CAIP2}=900`,
+    });
+    // Each chain drops out exactly at its own threshold; Solana is filtered
+    // too, not silently skipped.
+    expect(getX402PaymentOptions(cfg, '800')).toEqual([]);
+    expect(getX402PaymentOptions(cfg, '1100').map((option) => option.network)).toEqual([
+      'eip155:999',
+      SOLANA_DEVNET_CAIP2,
+    ]);
+    expect(getX402PaymentOptions(cfg, '1800').map((option) => option.network)).toEqual([
+      'eip155:8453',
+      'eip155:999',
+      SOLANA_DEVNET_CAIP2,
+    ]);
+  });
+
   it('never lists BNB C1: the hard 4000 micro floor keeps C1 off shelf', () => {
     const cfg = parseX402Config({
       ...BASE_ENV,

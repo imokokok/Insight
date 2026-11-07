@@ -71,6 +71,8 @@ export const POST = createApiHandler(
       meteringKey,
       kind: 'grant',
       ref: 'signup',
+      source: 'signup',
+      reason: 'signup_grant',
     });
 
     if (balance === null) {

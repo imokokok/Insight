@@ -768,13 +768,40 @@ export interface X402ServerDeps {
  * a rate-limited or down facilitator cannot stall `initialize()` on cold
  * instances for ~90s (production incident INT-07, 2026-10-16).
  */
+/**
+ * Every amount the server will actually advertise: the configured per-call
+ * amount, the MCP tool amount, and every paid-REST price override.
+ *
+ * Scheme registration MUST use this union. Registering from the default
+ * amount alone made the registered network set diverge from the network set
+ * of a higher-priced route once `X402_NETWORK_MIN_AMOUNT` filtered networks
+ * differently per amount; the SDK then threw
+ * `RouteConfigurationError: No scheme implementation registered for exact on
+ * eip155:999` and `GET /api/mcp` returned 500.
+ */
+function advertisedPaymentOptions(
+  cfg: X402Config,
+  mcpAmountAtomic?: string
+): ReturnType<typeof getX402PaymentOptions> {
+  const amounts = new Set<string>([cfg.amountAtomic]);
+  if (mcpAmountAtomic) amounts.add(mcpAmountAtomic);
+  for (const amount of [
+    paidRestRouteAmountOverride(X402_ORACLE_WATCH_WINDOW_ROUTE),
+    paidRestRouteAmountOverride(X402_POSITION_LIFECYCLE_ROUTE),
+    paidRestRouteAmountOverride(X402_ORACLE_CONFIG_SNAPSHOT_ROUTE),
+  ]) {
+    if (amount) amounts.add(amount);
+  }
+  return [...amounts].flatMap((amount) => getX402PaymentOptions(cfg, amount));
+}
+
 function buildFacilitatorClients(
   cfg: X402Config,
-  deps?: Partial<X402ServerDeps>
+  deps?: Partial<X402ServerDeps>,
+  options: ReturnType<typeof getX402PaymentOptions> = getX402PaymentOptions(cfg)
 ): FacilitatorClient[] {
   const timeoutMs = deps?.facilitatorTimeoutMs ?? cfg.facilitatorTimeoutMs;
   const urls = new Set<string>();
-  const options = getX402PaymentOptions(cfg);
   if (deps?.facilitatorUrl) {
     // Test hook: force every network onto one facilitator.
     urls.add(deps.facilitatorUrl);
@@ -825,10 +852,10 @@ export async function buildX402HttpServer(
   deps?: Partial<X402ServerDeps>,
   options?: { mcpAmountAtomic?: string; mcpDiscoveryToolName?: string }
 ): Promise<x402HTTPResourceServer> {
-  const facilitators = buildFacilitatorClients(cfg, deps);
+  const paymentOptions = advertisedPaymentOptions(cfg, options?.mcpAmountAtomic);
+  const facilitators = buildFacilitatorClients(cfg, deps, paymentOptions);
 
   const server = new x402ResourceServer(facilitators);
-  const paymentOptions = getX402PaymentOptions(cfg);
   if (paymentOptions.some((option) => option.family === 'evm')) {
     const networks = new Set(
       paymentOptions.filter((option) => option.family === 'evm').map((option) => option.network)

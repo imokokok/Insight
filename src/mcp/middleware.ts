@@ -230,7 +230,14 @@ export async function consumeMcpQuota(
   auth: McpAuthContext,
   toolName: string,
   args?: unknown,
-  options?: { meteringKey?: string; billableItems?: number }
+  options?: {
+    meteringKey?: string;
+    billableItems?: number;
+    /** Ledger reason override (prices.batch / batch_partial / insufficient_data / timeout). */
+    reason?: string;
+    /** Per-charge detail written to `credit_ledger.meta`. */
+    meta?: Record<string, unknown>;
+  }
 ): Promise<McpConsumeOutcome> {
   const requestedItems = getMcpToolBillableItems(toolName, args);
   const requestedCost = getMcpToolCreditCostForCall(toolName, args);
@@ -294,7 +301,13 @@ export async function consumeMcpQuota(
     auth.apiKey.keyId,
     cost,
     meteringKey,
-    `/mcp/tools/${toolName}`
+    `/mcp/tools/${toolName}`,
+    {
+      source: 'wallet',
+      reason: options?.reason ?? toolName,
+      requestId: meteringKey,
+      meta: options?.meta,
+    }
   );
   if (!charge.ok) {
     logger.warn('MCP authoritative credit consume rejected', {

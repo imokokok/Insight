@@ -30,17 +30,32 @@ export interface CreditPrecheck {
   cost?: number;
   budget?: number;
   used?: number;
+  /** The RPC failed and the gate was opened for availability. The charge is
+   *  still authoritative; a degraded precheck is never a free pass. */
+  degraded?: boolean;
 }
 
 export interface CreditCharge {
   ok: boolean;
   /** False when the RPC outcome is unknown; ok:true is the availability policy,
-   * not evidence that a debit was durably recorded. */
+   * not evidence that a debit was durably recorded. A pending settlement row
+   * is written so the billing cron can reconcile it. */
   confirmed?: boolean;
   reason?: 'KEY_NOT_FOUND' | 'BUDGET_EXCEEDED' | 'INSUFFICIENT_CREDITS';
   idempotent?: boolean;
   balance?: number;
   cost?: number;
+}
+
+export interface CreditChargeContext {
+  /** Ledger `source` (signup | x402 | subscription | wallet). */
+  source?: string;
+  /** Ledger `reason` (billed SKU or batch/timeout/insufficient_data outcome). */
+  reason?: string;
+  /** Client-visible request/receipt id. */
+  requestId?: string;
+  /** Per-charge detail, e.g. { requested, charged } for batches. */
+  meta?: Record<string, unknown>;
 }
 
 /** Fallback metering key. Only used when a caller has no deterministic
@@ -65,14 +80,16 @@ export async function precheckCredits(keyId: string, cost: number): Promise<Cred
       p_cost: cost,
     });
     if (error) {
-      logger.warn('precheck_credits RPC error', { keyId, cost, error: error.message });
-      // Fail open on transient DB errors — do not block the request.
-      return { ok: true };
+      // Availability is preserved, but mark the gate degraded so callers do
+      // not render it as a healthy balance check and so the spend-cap
+      // threshold is skipped (we do not know `used`).
+      logger.warn('precheck_credits RPC error (degraded)', { keyId, cost, error: error.message });
+      return { ok: true, degraded: true };
     }
     return (data ?? { ok: true }) as CreditPrecheck;
   } catch (error) {
-    logger.warn('precheck_credits failed', { keyId, cost, error: normalizeError(error) });
-    return { ok: true };
+    logger.warn('precheck_credits failed (degraded)', { keyId, cost, error: normalizeError(error) });
+    return { ok: true, degraded: true };
   }
 }
 
@@ -88,7 +105,8 @@ export async function consumeCredits(
   keyId: string,
   cost: number,
   meteringKey: string,
-  ref?: string
+  ref?: string,
+  context: CreditChargeContext = {}
 ): Promise<CreditCharge> {
   const client = createServiceRoleClient();
   try {
@@ -97,16 +115,111 @@ export async function consumeCredits(
       p_cost: cost,
       p_metering_key: meteringKey,
       p_ref: ref ?? null,
+      p_source: context.source ?? null,
+      p_reason: context.reason ?? null,
+      p_request_id: context.requestId ?? null,
+      p_meta: context.meta ?? null,
     });
     if (error) {
-      logger.warn('consume_credits RPC error', { keyId, cost, error: error.message });
+      logger.error('consume_credits RPC error — recording pending settlement', new Error(error.message), {
+        keyId,
+        cost,
+        meteringKey,
+        error: error.message,
+      });
+      await recordPendingSettlement(keyId, cost, meteringKey, ref, context, error.message);
       return { ok: true, confirmed: false };
     }
-    if (!data || typeof data.ok !== 'boolean') return { ok: true, confirmed: false };
+    if (!data || typeof data.ok !== 'boolean') {
+      logger.error(
+        'consume_credits returned an unexpected payload — recording pending settlement',
+        new Error('UNEXPECTED_CONSUME_PAYLOAD'),
+        { keyId, cost, meteringKey }
+      );
+      await recordPendingSettlement(keyId, cost, meteringKey, ref, context, 'unexpected_payload');
+      return { ok: true, confirmed: false };
+    }
     return { ...data, confirmed: true } as CreditCharge;
   } catch (error) {
-    logger.warn('consume_credits failed', { keyId, cost, error: normalizeError(error) });
+    const message = normalizeError(error).message;
+    logger.error('consume_credits failed — recording pending settlement', new Error(message), {
+      keyId,
+      cost,
+      meteringKey,
+    });
+    await recordPendingSettlement(keyId, cost, meteringKey, ref, context, message);
     return { ok: true, confirmed: false };
+  }
+}
+
+/**
+ * Write the charge to the reconciliation ledger when the authoritative RPC
+ * failed. Best effort by design: if this also fails we at least emit a
+ * (alertable) error log, but we never silently treat the request as free.
+ */
+async function recordPendingSettlement(
+  keyId: string,
+  cost: number,
+  meteringKey: string,
+  ref: string | undefined,
+  context: CreditChargeContext,
+  errorMessage: string
+): Promise<void> {
+  try {
+    const client = createServiceRoleClient();
+    const { error } = await client.rpc('record_pending_settlement', {
+      p_key_id: keyId,
+      p_cost: cost,
+      p_metering_key: meteringKey,
+      p_ref: ref ?? null,
+      p_source: context.source ?? null,
+      p_reason: context.reason ?? null,
+      p_request_id: context.requestId ?? null,
+      p_meta: context.meta ?? null,
+      p_error: errorMessage,
+    });
+    if (error) {
+      logger.error(
+        'record_pending_settlement RPC error — charge unrecorded',
+        new Error(error.message),
+        { keyId, cost, meteringKey }
+      );
+    }
+  } catch (error) {
+    logger.error('record_pending_settlement failed — charge unrecorded', normalizeError(error), {
+      keyId,
+      cost,
+      meteringKey,
+    });
+  }
+}
+
+/**
+ * Replay charges that could not be written when the request ran. Idempotent
+ * on the original metering key, so a row already settled is a no-op.
+ * Called by the billing cron; results are logged for reconciliation.
+ */
+export async function settlePendingCredits(): Promise<{
+  settled: number;
+  abandoned: number;
+  pending: number;
+} | null> {
+  const client = createServiceRoleClient();
+  try {
+    const { data, error } = await client.rpc('settle_pending_credits', { p_limit: 50 });
+    if (error) {
+      logger.error('settle_pending_credits RPC error', new Error(error.message));
+      return null;
+    }
+    const result = (data ?? {}) as { settled?: number; abandoned?: number; pending?: number };
+    return {
+      settled: Number(result.settled ?? 0),
+      abandoned: Number(result.abandoned ?? 0),
+      pending: Number(result.pending ?? 0),
+    };
+  } catch (error) {
+    logger.error('settle_pending_credits failed', normalizeError(error));
+    return null;
   }
 }
 
@@ -121,6 +234,12 @@ export async function topUpCredits(params: {
   meteringKey: string;
   kind: 'topup' | 'grant' | 'refund';
   ref?: string;
+  /** Ledger `source` (signup | x402 | subscription | wallet). */
+  source?: string;
+  /** Ledger `reason` (e.g. signup_grant, monthly_grant, pack_topup). */
+  reason?: string;
+  requestId?: string;
+  meta?: Record<string, unknown>;
 }): Promise<number | null> {
   const client = createServiceRoleClient();
   try {
@@ -130,6 +249,10 @@ export async function topUpCredits(params: {
       p_metering_key: params.meteringKey,
       p_kind: params.kind,
       p_ref: params.ref ?? null,
+      p_source: params.source ?? null,
+      p_reason: params.reason ?? null,
+      p_request_id: params.requestId ?? null,
+      p_meta: params.meta ?? null,
     });
     if (error) {
       logger.warn('top_up_credits RPC error', {
