@@ -11,8 +11,9 @@
  *     bucket, so even a replay served by another serverless instance (cold
  *     cache) cannot be charged twice.
  *
- * Failures are never cached: only results the server is willing to bill for
- * (or deliberately serve for free) enter the cache.
+ * Transient failures are never cached: only results the server is willing to
+ * bill for, plus deterministic terminal zero-charge outcomes such as an
+ * all-failed batch, enter the cache.
  */
 
 import { createHash } from 'node:crypto';
@@ -39,6 +40,11 @@ interface CachedRequestResult {
   billableItems: number;
   /** Ledger metering key of the original debit (for X-Credit-Receipt on replay). */
   receipt?: string | null;
+  /**
+   * Zero-charge reason of the original outcome, preserved for audit
+   * (`upstream_failed` for an all-failed batch). A replay reports `replay`.
+   */
+  zeroReason?: string;
   result: unknown;
   /** REST-only: the serialized response a replay must return verbatim. */
   rest?: {

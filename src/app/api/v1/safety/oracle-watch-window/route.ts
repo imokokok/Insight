@@ -9,6 +9,8 @@ import {
   V1_STANDARD_MIDDLEWARES,
 } from '@/lib/api/handler';
 import { beginOracleWatchWindow } from '@/lib/api/services/oracleWatchWindowService';
+import { ProductLimitError } from '@/lib/api/services/productLimits';
+import { productLimitErrorResponse } from '@/lib/api/services/productLimitsHttp';
 import { CACHE_PRESETS } from '@/lib/api/utils';
 import { getX402Config, usdToAtomicUnits } from '@/lib/api/x402/config';
 import { handlePaidPreTradeRequest, hasAuthCredentials, isPaidRequest } from '@/lib/api/x402/guard';
@@ -38,32 +40,39 @@ async function executeBegin(
   apiKeyId: string | null,
   requestId: string
 ): Promise<NextResponse> {
-  const { window, windowToken } = await beginOracleWatchWindow({
-    symbol: body.symbol,
-    chain: body.chain ?? null,
-    paymentMethod,
-    apiKeyId,
-  });
+  try {
+    const { window, windowToken } = await beginOracleWatchWindow({
+      symbol: body.symbol,
+      chain: body.chain ?? null,
+      paymentMethod,
+      apiKeyId,
+    });
 
-  const base = `/api/v1/safety/oracle-watch-window/${window.windowId}`;
-  return NextResponse.json(
-    ApiResponseBuilder.success(
-      {
-        product: ORACLE_WATCH_WINDOW_PLAN.id,
-        window,
-        // Shown exactly once — only the SHA-256 hash is stored server-side.
-        windowToken,
-        usage: {
-          poll: { method: 'GET', url: base, authorization: 'Bearer <windowToken>' },
-          close: { method: 'POST', url: base, authorization: 'Bearer <windowToken>' },
-          pollCap: ORACLE_WATCH_WINDOW_PLAN.pollCap,
-          minPollIntervalSeconds: ORACLE_WATCH_WINDOW_PLAN.minPollIntervalSeconds,
+    const base = `/api/v1/safety/oracle-watch-window/${window.windowId}`;
+    return NextResponse.json(
+      ApiResponseBuilder.success(
+        {
+          product: ORACLE_WATCH_WINDOW_PLAN.id,
+          window,
+          // Shown exactly once — only the SHA-256 hash is stored server-side.
+          windowToken,
+          usage: {
+            poll: { method: 'GET', url: base, authorization: 'Bearer <windowToken>' },
+            close: { method: 'POST', url: base, authorization: 'Bearer <windowToken>' },
+            pollCap: ORACLE_WATCH_WINDOW_PLAN.pollCap,
+            minPollIntervalSeconds: ORACLE_WATCH_WINDOW_PLAN.minPollIntervalSeconds,
+          },
         },
-      },
-      { requestId, meta: { product: 'oracle_watch_window', windowId: window.windowId } }
-    ),
-    { headers: { 'Cache-Control': CACHE_PRESETS.noStore } }
-  );
+        { requestId, meta: { product: 'oracle_watch_window', windowId: window.windowId } }
+      ),
+      { headers: { 'Cache-Control': CACHE_PRESETS.noStore } }
+    );
+  } catch (error) {
+    // Raised before any inventory is written. In the x402 path a non-2xx
+    // business response skips settlement, so the buyer is not charged.
+    if (error instanceof ProductLimitError) return productLimitErrorResponse(error, requestId);
+    throw error;
+  }
 }
 
 const legacyPost = createApiHandler(

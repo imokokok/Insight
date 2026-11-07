@@ -1,8 +1,13 @@
 import { NextResponse } from 'next/server';
 
 import { consumeCredits, precheckCredits, recordWaivedCredit } from '@/lib/billing/creditWallet';
-import { clearMcpRequestCache } from '@/lib/billing/requestIdempotency';
+import {
+  clearMcpRequestCache,
+  getCachedMcpResult,
+  restRequestFingerprint,
+} from '@/lib/billing/requestIdempotency';
 
+import { logApiKeyUsage } from '../apiKey';
 import { createApiHandler } from '../handler';
 import { createAuthMiddleware, createErrorMiddleware, createQuotaMiddleware } from '../middleware';
 
@@ -82,7 +87,7 @@ describe('REST billing receipt boundary', () => {
       5,
       receipt,
       '/api/v1/coverage',
-      expect.objectContaining({ source: 'wallet', reason: '/api/v1/coverage' })
+      expect.objectContaining({ reason: '/api/v1/coverage' })
     );
     expect(response.headers.get('X-Credit-Status')).toBe(status);
     expect(response.headers.get('X-Credit-Balance')).toBe('20');
@@ -164,7 +169,6 @@ describe('REST billing receipt boundary', () => {
       expect.any(String),
       '/api/v1/prices/batch',
       expect.objectContaining({
-        source: 'wallet',
         reason: 'batch_partial',
         meta: { requested: 3, charged: 2 },
       })
@@ -196,12 +200,12 @@ describe('REST billing receipt boundary', () => {
     expect(recordWaivedCredit).toHaveBeenCalledWith(
       expect.objectContaining({
         keyId: 'key-fixture',
-        reason: 'insufficient_data',
+        reason: 'upstream_failed',
       })
     );
     expect(response.headers.get('X-Credit-Cost')).toBe('0');
     expect(response.headers.get('X-Credit-Status')).toBe('waived');
-    expect(response.headers.get('X-Credit-Zero-Reason')).toBe('insufficient_data');
+    expect(response.headers.get('X-Credit-Zero-Reason')).toBe('upstream_failed');
     expect((await response.json()).billing).toEqual({
       itemsRequested: 3,
       itemsCharged: 0,
@@ -209,6 +213,81 @@ describe('REST billing receipt boundary', () => {
       costCredits: 0,
       status: 'waived',
     });
+  });
+
+  function batchRequest(key: string) {
+    return {
+      method: 'POST',
+      nextUrl: new URL('https://example.test/api/v1/prices/batch'),
+      headers: new Headers({ 'Idempotency-Key': key }),
+    } as never;
+  }
+
+  it('caches an all-failed batch with its original zero reason and replays it free', async () => {
+    const route = batchRoute({ data: [{ error: 'timeout' }, { error: 'no data' }] });
+
+    const first = await route(batchRequest('fail-a'), { params: Promise.resolve({}) });
+    expect(first.headers.get('X-Credit-Status')).toBe('waived');
+    expect(first.headers.get('X-Credit-Zero-Reason')).toBe('upstream_failed');
+    expect(recordWaivedCredit).toHaveBeenCalledTimes(1);
+
+    // The cache entry preserves the original terminal reason; only a replay
+    // reports `replay`.
+    const cached = getCachedMcpResult(
+      restRequestFingerprint({
+        identity: 'key-fixture',
+        method: 'POST',
+        path: '/api/v1/prices/batch',
+        search: '',
+        bodyText: '',
+        clientKey: 'fail-a',
+      })
+    );
+    expect(cached?.zeroReason).toBe('upstream_failed');
+    expect(cached?.priceCredits).toBe(0);
+
+    const replay = await route(batchRequest('fail-a'), { params: Promise.resolve({}) });
+    expect(consumeCredits).not.toHaveBeenCalled();
+    expect(recordWaivedCredit).toHaveBeenCalledTimes(1);
+    expect(replay.status).toBe(200);
+    expect(replay.headers.get('X-Credit-Status')).toBe('replayed');
+    expect(replay.headers.get('X-Credit-Cost')).toBe('0');
+    expect(replay.headers.get('X-Credit-Zero-Reason')).toBe('replay');
+    const body = await replay.json();
+    expect(body.data).toEqual([{ error: 'timeout' }, { error: 'no data' }]);
+    expect(body.billing.status).toBe('waived');
+  });
+
+  it('keeps the all-failed entry separate from a priced request', async () => {
+    (consumeCredits as jest.Mock).mockResolvedValue({
+      ok: true,
+      confirmed: true,
+      balance: 14,
+    });
+    const failed = batchRoute({ data: [{ error: 'upstream down' }] });
+    const priced = batchRoute({
+      data: [{ error: null }, { error: null }, { error: null }],
+    });
+
+    await failed(batchRequest('fail-b'), { params: Promise.resolve({}) });
+    expect(consumeCredits).not.toHaveBeenCalled();
+
+    await priced(batchRequest('paid-b'), { params: Promise.resolve({}) });
+    expect(consumeCredits).toHaveBeenCalledTimes(1);
+    expect(consumeCredits).toHaveBeenCalledWith(
+      'key-fixture',
+      6,
+      expect.any(String),
+      '/api/v1/prices/batch',
+      expect.objectContaining({ reason: 'prices.batch' })
+    );
+
+    // Replaying either key cannot cross over to the other entry.
+    await failed(batchRequest('fail-b'), { params: Promise.resolve({}) });
+    const replayPriced = await priced(batchRequest('paid-b'), { params: Promise.resolve({}) });
+    expect(consumeCredits).toHaveBeenCalledTimes(1);
+    expect(replayPriced.headers.get('X-Credit-Status')).toBe('replayed');
+    expect(replayPriced.headers.get('X-Credit-Zero-Reason')).toBe('replay');
   });
 
   it('treats different client idempotency keys as different logical requests', async () => {
@@ -297,5 +376,72 @@ describe('REST billing receipt boundary', () => {
     expect(consumeCredits).not.toHaveBeenCalled();
     expect(response.headers.get('X-Credit-Status')).toBe('not_charged');
     expect(response.headers.get('X-Credit-Cost')).toBe('0');
+  });
+
+  it('waives and never bills a success that arrives after the 25 s route deadline', async () => {
+    jest.useFakeTimers();
+    try {
+      (consumeCredits as jest.Mock).mockClear();
+      (recordWaivedCredit as jest.Mock).mockClear();
+      (logApiKeyUsage as jest.Mock).mockClear();
+
+      // Exercise the real error middleware so the 504 body contract is
+      // asserted end to end rather than through the default 500 stub.
+      const actualMiddleware = jest.requireActual('../middleware') as {
+        createErrorMiddleware: typeof createErrorMiddleware;
+      };
+      (createErrorMiddleware as jest.Mock).mockImplementation(() =>
+        actualMiddleware.createErrorMiddleware({ logErrors: false })
+      );
+
+      let resolveLate: ((response: NextResponse) => void) | undefined;
+      const late = new Promise<NextResponse>((resolve) => {
+        resolveLate = resolve;
+      });
+
+      const route = createApiHandler(() => late, {
+        middlewares: { auth: { required: true, requireApiKey: true }, quota: true, cors: true },
+      });
+
+      const pending = route(
+        {
+          method: 'GET',
+          nextUrl: new URL('https://example.test/api/v1/coverage'),
+          headers: new Headers(),
+        } as never,
+        { params: Promise.resolve({}) }
+      );
+
+      await jest.advanceTimersByTimeAsync(25_000);
+      const response = await pending;
+      const body = await response.json();
+
+      expect(response.status).toBe(504);
+      expect(body.error.code).toBe('ROUTE_DEADLINE_EXCEEDED');
+      expect(body.error.retryable).toBe(true);
+      expect(body.error.details).toMatchObject({ scope: 'route', deadlineMs: 25_000 });
+      expect(response.headers.get('X-Credit-Status')).toBe('not_charged');
+      expect(response.headers.get('X-Credit-Zero-Reason')).toBe('timeout');
+      expect(recordWaivedCredit).toHaveBeenCalledTimes(1);
+      expect(recordWaivedCredit).toHaveBeenCalledWith(
+        expect.objectContaining({ keyId: 'key-fixture', reason: 'timeout' })
+      );
+      expect(consumeCredits).not.toHaveBeenCalled();
+
+      // The abandoned upstream now answers successfully. The response is
+      // already committed as a 504, so this late result must not add a debit,
+      // a second waiver row or a second usage row.
+      await jest.advanceTimersByTimeAsync(0);
+      const usageRowsAfterDeadline = (logApiKeyUsage as jest.Mock).mock.calls.length;
+      resolveLate?.(NextResponse.json({ result: 'late' }, { status: 200 }));
+      await jest.advanceTimersByTimeAsync(10_000);
+      await Promise.resolve();
+
+      expect(consumeCredits).not.toHaveBeenCalled();
+      expect(recordWaivedCredit).toHaveBeenCalledTimes(1);
+      expect((logApiKeyUsage as jest.Mock).mock.calls.length).toBe(usageRowsAfterDeadline);
+    } finally {
+      jest.useRealTimers();
+    }
   });
 });

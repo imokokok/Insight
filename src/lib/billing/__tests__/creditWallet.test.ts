@@ -69,7 +69,6 @@ it('queues a pending settlement instead of silently giving the call away', async
   rpc.mockResolvedValueOnce({ data: { ok: true }, error: null });
 
   const outcome = await consumeCredits('key', 5, 'request-db-down', '/api/v1/coverage', {
-    source: 'wallet',
     reason: '/api/v1/coverage',
   });
 
@@ -122,4 +121,121 @@ it('uses unambiguous random identifiers for distinct logical calls', () => {
   const keys = new Set(Array.from({ length: 100 }, () => makeMeteringKey('rest:key')));
   expect(keys.size).toBe(100);
   for (const key of keys) expect(key).toMatch(/^rest:key:[0-9a-f-]{36}$/);
+});
+
+/**
+ * Minimal chainable stand-in for a Supabase query builder. Each table returns
+ * one fixed result; `maybeSingle` and awaiting the builder resolve it.
+ */
+function tableBuilder(result: unknown) {
+  const chain = {
+    select: () => chain,
+    eq: () => chain,
+    gt: () => chain,
+    in: () => chain,
+    order: () => chain,
+    maybeSingle: async () => ({ data: result, error: null }),
+    then: (resolve: (value: unknown) => void, reject: (reason: unknown) => void) =>
+      Promise.resolve({ data: result, error: null }).then(resolve, reject),
+  };
+  return chain;
+}
+
+function clientWithLedger(input: {
+  balance: number | string;
+  lots: Array<{ id: number; delta: number; source: string | null }>;
+  rpc: jest.Mock;
+}) {
+  return {
+    rpc: input.rpc,
+    from: (table: string) => {
+      if (table === 'api_keys') return tableBuilder({ user_id: 'user-1' });
+      if (table === 'credit_wallet') return tableBuilder({ balance: input.balance });
+      if (table === 'credit_ledger') return tableBuilder(input.lots);
+      return tableBuilder(null);
+    },
+  };
+}
+
+it('attributes a charge to the oldest unexhausted lot and records the split', async () => {
+  const rpc = jest
+    .fn()
+    .mockResolvedValue({ data: { ok: true, balance: 120, cost: 30 }, error: null });
+  jest.mocked(createServiceRoleClient).mockReturnValue(
+    clientWithLedger({
+      balance: 120,
+      lots: [
+        { id: 10, delta: 100, source: 'signup' },
+        { id: 11, delta: 50, source: 'subscription' },
+      ],
+      rpc,
+    }) as never
+  );
+
+  // Granted 150, balance 120 → 30 already consumed out of the first lot.
+  await consumeCredits('key', 30, 'request-fifo', '/api/v1/prices', { reason: 'prices' });
+
+  expect(rpc).toHaveBeenCalledWith(
+    'consume_credits',
+    expect.objectContaining({
+      p_source: 'free',
+      p_meta: { allocations: [{ lotId: 10, source: 'free', amount: 30 }] },
+    })
+  );
+});
+
+it('splits across lots and reports the largest share as the row source', async () => {
+  const rpc = jest
+    .fn()
+    .mockResolvedValue({ data: { ok: true, balance: 60, cost: 25 }, error: null });
+  jest.mocked(createServiceRoleClient).mockReturnValue(
+    clientWithLedger({
+      balance: 60,
+      lots: [
+        { id: 10, delta: 100, source: 'signup' },
+        { id: 11, delta: 50, source: 'subscription' },
+      ],
+      rpc,
+    }) as never
+  );
+
+  // Granted 150, balance 60 → 90 consumed. Lot 10 has 10 left, so this
+  // 25-credit charge takes 10 from the signup lot and 15 from the plan lot.
+  await consumeCredits('key', 25, 'request-split', '/api/v1/prices', { reason: 'prices' });
+
+  expect(rpc).toHaveBeenCalledWith(
+    'consume_credits',
+    expect.objectContaining({
+      p_source: 'subscription',
+      p_meta: {
+        allocations: [
+          { lotId: 10, source: 'free', amount: 10 },
+          { lotId: 11, source: 'subscription', amount: 15 },
+        ],
+      },
+    })
+  );
+});
+
+it('leaves the source null when the funding lots predate source tracking', async () => {
+  const rpc = jest
+    .fn()
+    .mockResolvedValue({ data: { ok: true, balance: 80, cost: 20 }, error: null });
+  jest.mocked(createServiceRoleClient).mockReturnValue(
+    clientWithLedger({
+      balance: 100,
+      lots: [{ id: 9, delta: 120, source: null }],
+      rpc,
+    }) as never
+  );
+
+  await consumeCredits('key', 20, 'request-legacy', '/api/v1/prices', { reason: 'prices' });
+
+  expect(rpc).toHaveBeenCalledWith(
+    'consume_credits',
+    expect.objectContaining({
+      p_source: null,
+      p_meta: { allocations: [{ lotId: 9, source: null, amount: 20 }] },
+    })
+  );
 });

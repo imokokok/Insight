@@ -90,10 +90,10 @@ describe('HyperCore MCP payment rail', () => {
     });
 
     expect(response.status).toBe(402);
-    expect(mockQuote).toHaveBeenCalledWith('https://www.oracleinsight.xyz/api/mcp', '0.004');
+    expect(mockQuote).toHaveBeenCalledWith('https://www.oracleinsight.xyz/api/mcp', '0.04');
     expect(response.headers.get('X-Credit-Status')).toBe('quote');
-    expect(response.headers.get('X-Credit-Cost')).toBe('4');
-    expect(response.headers.get('X-Credit-Price-USD')).toBe('0.004');
+    expect(response.headers.get('X-Credit-Cost')).toBe('40');
+    expect(response.headers.get('X-Credit-Price-USD')).toBe('0.04');
     expect(response.headers.get('payment-required')).toBeTruthy();
 
     const body = (await response.json()) as { accepts: Array<{ network: string }> };

@@ -8,6 +8,7 @@ import {
 
 import type { MppMcpCallHandler } from '@/lib/api/mpp/mcp';
 import type { CreditBillingHeaderInput } from '@/lib/billing/billingHeaders';
+import { getMcpToolCreditCharge } from '@/lib/billing/channelCostPolicy';
 import { makeMeteringKey, precheckCredits, recordWaivedCredit } from '@/lib/billing/creditWallet';
 import {
   BILLING_ZERO_REASONS,
@@ -16,8 +17,8 @@ import {
   isUpstreamTimeoutError,
   type BillingZeroReason,
 } from '@/lib/billing/exemptions';
+import { isFreeVerifyCall } from '@/lib/billing/freeVerify';
 import { countMcpBatchSuccessItems, getMcpToolBillableItems } from '@/lib/billing/metering';
-import { getMcpToolCreditCostForCall } from '@/lib/billing/productPricing';
 import {
   getCachedMcpResult,
   idempotencyMeteringKey,
@@ -58,6 +59,20 @@ function resolveMcpChargeReceipt(charge: McpConsumeOutcome): {
     return { status: 'replayed', zeroReason: 'replay' };
   }
   return charge.charged > 0 ? { status: 'charged' } : { status: 'not_charged' };
+}
+
+/**
+ * Persist the advisory spend-cap flag on the receipt. Shared by the fresh-call
+ * and replay paths; kept out of the tool handler so its branching stays within
+ * the complexity budget.
+ */
+function markBudgetWarning(
+  receipt: CreditBillingHeaderInput | undefined,
+  budgetWarning: boolean | undefined
+): void {
+  if (receipt && budgetWarning === true) {
+    Object.assign(receipt, { budgetWarning: true });
+  }
 }
 
 export interface McpServerOptions {
@@ -121,7 +136,7 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
       logger.info(`MCP tool called: ${name}`, { args });
 
       const receipt = options.billingReceipt;
-      const listPrice = getMcpToolCreditCostForCall(name, args);
+      const listPrice = getMcpToolCreditCharge(name, args);
 
       // Request-level idempotency only applies to metered API-key calls. A
       // replay inside the 10-minute window is served from the process cache
@@ -138,18 +153,22 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
         const cached = getCachedMcpResult(requestKey);
         if (cached) {
           if (receipt) {
-            const replayBalance = (await precheckCredits(auth.apiKey.keyId, 0)).balance;
+            const replayPrecheck = await precheckCredits(auth.apiKey.keyId, 0);
             Object.assign(receipt, {
               // A replay debits nothing: report 0, not the original price.
               costCredits: 0,
-              balance: replayBalance ?? null,
-              balanceAfter: replayBalance ?? null,
+              balance: replayPrecheck.balance ?? null,
+              balanceAfter: replayPrecheck.balance ?? null,
               status: 'replayed',
               zeroReason: 'replay',
               receipt: cached.receipt ?? cached.rest?.receipt ?? null,
             });
+            // Advisory only: a replay still shows whether the key sits at
+            // >=80% of its cap. Omitted when there is no cap.
+            markBudgetWarning(receipt, replayPrecheck.budgetWarning);
           }
-          recordMcpToolUsage(auth, name, 200, Date.now() - startTime);
+          const replayedIsError = (cached.result as { isError?: boolean } | null)?.isError === true;
+          recordMcpToolUsage(auth, name, replayedIsError ? 500 : 200, Date.now() - startTime);
           logger.info(`MCP tool replayed from idempotency cache: ${name}`);
           return cached.result as {
             content: Array<{ type: 'text'; text: string }>;
@@ -178,6 +197,21 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
         });
       };
 
+      /**
+       * Cache a deterministic terminal zero-charge outcome (never a timeout).
+       * Shares the success-result cache and TTL; the entry keeps the original
+       * `zeroReason`, while a replay reports `replay`.
+       */
+      const cacheZeroOutcome = (outcome: unknown, reason: BillingZeroReason) => {
+        if (requestKey === null) return;
+        setCachedMcpResult(requestKey, {
+          priceCredits: 0,
+          billableItems: 0,
+          zeroReason: reason,
+          result: outcome,
+        });
+      };
+
       const runBusiness = async () => {
         if (receipt) {
           Object.assign(receipt, { costCredits: listPrice, status: 'quote' });
@@ -199,11 +233,22 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
             recordMcpToolUsage(auth, name, 402, Date.now() - startTime);
             return {
               content: [
-                { type: 'text' as const, text: `Insufficient credits: ${creditCheck.reason}` },
+                {
+                  type: 'text' as const,
+                  text: creditCheck.channelBlocked
+                    ? `x402 only: ${creditCheck.reason}`
+                    : `Insufficient credits: ${creditCheck.reason}`,
+                },
               ],
               isError: true,
             };
           }
+
+          // Advisory spend-cap signal: the precheck already projected this
+          // call's cost into `used`. Persisted on the receipt so the HTTP
+          // transport emits the same `X-Credit-Budget-Warning` REST does.
+          // No cap configured (undefined) → no header, never an empty value.
+          markBudgetWarning(receipt, creditCheck.budgetWarning);
         }
 
         const result = await executeTool(name, args, {
@@ -234,8 +279,10 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
                     : undefined,
               });
             }
-            if (insufficient) await recordWaiver(BILLING_ZERO_REASONS.insufficientData);
-            else if (timedOut) await recordWaiver(BILLING_ZERO_REASONS.timeout);
+            if (insufficient) {
+              await recordWaiver(BILLING_ZERO_REASONS.insufficientData);
+              cacheZeroOutcome(result, BILLING_ZERO_REASONS.insufficientData);
+            } else if (timedOut) await recordWaiver(BILLING_ZERO_REASONS.timeout);
           } else if (isInsufficientDataResult(resultText)) {
             if (receipt) {
               Object.assign(receipt, {
@@ -245,6 +292,7 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
               });
             }
             await recordWaiver(BILLING_ZERO_REASONS.insufficientData);
+            cacheZeroOutcome(result, BILLING_ZERO_REASONS.insufficientData);
             logger.info(`MCP tool returned no usable data; not billed: ${name}`);
           } else if (isAllItemsFailedResult(resultText)) {
             if (receipt) {
@@ -255,7 +303,21 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
               });
             }
             await recordWaiver(BILLING_ZERO_REASONS.upstreamFailed);
+            cacheZeroOutcome(result, BILLING_ZERO_REASONS.upstreamFailed);
             logger.info(`MCP batch failed upstream for every item; not billed: ${name}`);
+          } else if (isFreeVerifyCall(name, args)) {
+            // Offline verification is zero-priced by design. Record a waiver
+            // row so the bill proves the call was free because of the price
+            // rule, not because the data was unusable.
+            if (receipt) {
+              Object.assign(receipt, {
+                costCredits: 0,
+                status: 'waived',
+                zeroReason: BILLING_ZERO_REASONS.toolFree,
+              });
+            }
+            await recordWaiver(BILLING_ZERO_REASONS.toolFree);
+            logger.info(`MCP offline verification is zero-priced; not billed: ${name}`);
           } else {
             // Batch tools can partially succeed. Bill only the items that
             // actually returned usable data; all-failed batches delivered no
@@ -270,6 +332,7 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
                 });
               }
               await recordWaiver(BILLING_ZERO_REASONS.upstreamFailed);
+              cacheZeroOutcome(result, BILLING_ZERO_REASONS.upstreamFailed);
               logger.info(`MCP batch returned no usable items; not billed: ${name}`);
             } else {
               const requestedItems = getMcpToolBillableItems(name, args);

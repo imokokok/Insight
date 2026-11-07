@@ -12,6 +12,7 @@ import type { NextRequest } from 'next/server';
 
 import { ApiResponseBuilder, createApiHandler } from '@/lib/api/handler';
 import { beginOracleWatchWindow } from '@/lib/api/services/oracleWatchWindowService';
+import { ProductLimitError } from '@/lib/api/services/productLimits';
 import { getX402Config, usdToAtomicUnits } from '@/lib/api/x402/config';
 import { handlePaidPreTradeRequest, hasAuthCredentials, isPaidRequest } from '@/lib/api/x402/guard';
 
@@ -59,6 +60,20 @@ jest.mock('@/lib/api/x402/guard', () => ({
 jest.mock('@/lib/api/services/oracleWatchWindowService', () => ({
   beginOracleWatchWindow: jest.fn(),
 }));
+jest.mock('@/lib/api/services/productLimits', () => {
+  class ProductLimitError extends Error {
+    constructor(
+      readonly scope: string,
+      readonly limit: number,
+      readonly current: number,
+      readonly retryAfterSeconds: number | null,
+      readonly retryAfterBasis: string
+    ) {
+      super(`Product limit reached: ${scope}`);
+    }
+  }
+  return { ProductLimitError, productLimitMessage: jest.fn() };
+});
 
 const mockLegacyPost = (createApiHandler as jest.Mock).mock.results[0]?.value as jest.Mock;
 const mockGetX402Config = getX402Config as jest.Mock;
@@ -180,6 +195,35 @@ describe('oracle-watch-window begin route', () => {
 
     expect(mockBegin).not.toHaveBeenCalled();
     expect(response.status).toBe(400);
+  });
+
+  it('returns 429 without Retry-After when the key is at its open-window cap', async () => {
+    mockBegin.mockRejectedValue(new ProductLimitError('open_windows', 5, 5, null, 'recheck'));
+    await POST(makeRequest(), routeContext());
+    const runBusiness = mockHandleX402.mock.calls[0][2] as (requestId: string) => Promise<Response>;
+
+    const response = await runBusiness('req_window_cap');
+
+    expect(response.status).toBe(429);
+    // A concurrency slot does not free on a clock, so any Retry-After would be
+    // a false promise and invite a retry storm.
+    expect(response.headers.get('Retry-After')).toBeNull();
+    const body = JSON.parse(response.body as string) as {
+      code: string;
+      details: { retryable: boolean; details: Record<string, unknown> };
+    };
+    expect(body.code).toBe('PRODUCT_CONCURRENCY_LIMIT');
+    expect(body.details).toMatchObject({
+      retryable: true,
+      details: {
+        scope: 'open_windows',
+        limit: 5,
+        current: 5,
+      },
+    });
+    expect(body.details.details).not.toHaveProperty('retryAfterSeconds');
+    expect(body.details.details).not.toHaveProperty('retryAfterBasis');
+    expect(String(body.details.details.hint)).toContain('24h expiry');
   });
 
   it('sends an API-key caller to the legacy credit-metered handler, never to x402', async () => {

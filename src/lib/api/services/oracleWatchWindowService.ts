@@ -30,6 +30,13 @@ import type { Blockchain } from '@/types/oracle';
 
 import { recordOracleWatchCheck } from './oracleWatchAudit';
 import { getOracleWatchSignal } from './oracleWatchService';
+import {
+  assertOpenWindowSlot,
+  consumePollRate,
+  isConcurrencyTriggerError,
+  ProductLimitError,
+  PRODUCT_24H_LIMITS,
+} from './productLimits';
 
 import type { OracleWatchResult } from './oracleWatchService';
 
@@ -39,6 +46,12 @@ const WINDOW_DURATION_MS = ORACLE_WATCH_WINDOW_PLAN.durationHours * 60 * 60 * 10
 
 /** Bearer prefix on the raw window token. Cosmetic; stripped before hashing. */
 const TOKEN_PREFIX = 'oww_';
+
+/** A lifecycle hands out one token for itself and its embedded window. */
+const LIFECYCLE_TOKEN_PREFIX = 'plc_';
+
+/** Prefixes accepted when authenticating against a window token hash. */
+const ACCEPTED_TOKEN_PREFIXES = [TOKEN_PREFIX, LIFECYCLE_TOKEN_PREFIX];
 
 /** A raw window token is 32 random bytes, hex-encoded. */
 const RAW_TOKEN_HEX_LENGTH = 64;
@@ -124,7 +137,8 @@ export class OracleWatchWindowError extends Error {
 
 /** SHA-256 hex of a raw token — the only token form ever persisted. */
 function hashToken(presented: string): string | null {
-  const raw = presented.startsWith(TOKEN_PREFIX) ? presented.slice(TOKEN_PREFIX.length) : presented;
+  const prefix = ACCEPTED_TOKEN_PREFIXES.find((candidate) => presented.startsWith(candidate));
+  const raw = prefix ? presented.slice(prefix.length) : presented;
   if (!new RegExp(`^[0-9a-f]{${RAW_TOKEN_HEX_LENGTH}}$`).test(raw)) return null;
   return createHash('sha256').update(raw, 'utf8').digest('hex');
 }
@@ -148,6 +162,7 @@ interface WindowRow {
   closed_at: string | null;
   poll_count: number;
   last_poll_at: string | null;
+  api_key_id: string | null;
 }
 
 function toView(row: WindowRow): OracleWatchWindowView {
@@ -171,6 +186,8 @@ function toView(row: WindowRow): OracleWatchWindowView {
  * throws so the caller never returns a windowId without durable storage.
  */
 export async function beginOracleWatchWindow(input: BeginWindowInput): Promise<BeginWindowResult> {
+  await assertOpenWindowSlot(input.apiKeyId);
+
   const rawToken = randomBytes(RAW_TOKEN_HEX_LENGTH / 2).toString('hex');
   const tokenHash = createHash('sha256').update(rawToken, 'utf8').digest('hex');
   const expiresAt = new Date(Date.now() + WINDOW_DURATION_MS).toISOString();
@@ -190,11 +207,20 @@ export async function beginOracleWatchWindow(input: BeginWindowInput): Promise<B
       api_key_id: input.apiKeyId ?? null,
     })
     .select(
-      'id, symbol, chain, status, payment_method, token_hash, created_at, expires_at, closed_at, poll_count, last_poll_at'
+      'id, symbol, chain, status, payment_method, token_hash, created_at, expires_at, closed_at, poll_count, last_poll_at, api_key_id'
     )
     .single();
 
   if (error || !data) {
+    if (isConcurrencyTriggerError(error?.message)) {
+      throw new ProductLimitError(
+        'open_windows',
+        PRODUCT_24H_LIMITS.maxOpenWindowsPerKey,
+        PRODUCT_24H_LIMITS.maxOpenWindowsPerKey,
+        null,
+        'recheck'
+      );
+    }
     logger.error(
       'Monitored window insert failed',
       new Error(error?.message ?? 'unknown supabase error'),
@@ -226,7 +252,7 @@ async function loadWindow(
   const { data, error } = await client
     .from('oracle_watch_windows')
     .select(
-      'id, symbol, chain, status, payment_method, token_hash, created_at, expires_at, closed_at, poll_count, last_poll_at'
+      'id, symbol, chain, status, payment_method, token_hash, created_at, expires_at, closed_at, poll_count, last_poll_at, api_key_id'
     )
     .eq('id', windowId)
     .maybeSingle();
@@ -278,6 +304,10 @@ export async function pollOracleWatchWindow(
       );
     }
   }
+
+  // Per-key poll rate, checked after the token/interval guards so a rejected
+  // poll does not consume budget. Keyless windows are bounded by their token.
+  await consumePollRate(row.api_key_id ? `key:${row.api_key_id}` : `window:${row.id}`);
 
   const { data: updated, error: updateError } = await client
     .from('oracle_watch_windows')

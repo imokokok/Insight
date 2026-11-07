@@ -39,6 +39,13 @@ import {
   isLifecycleGuardFamily,
   POSITION_LIFECYCLE_GUARD_REGISTRY,
 } from './positionLifecycleGuards';
+import {
+  assertOpenLifecycleSlot,
+  assertOpenWindowSlot,
+  isConcurrencyTriggerError,
+  ProductLimitError,
+  PRODUCT_24H_LIMITS,
+} from './productLimits';
 
 import type { WindowSummary } from './oracleWatchWindowService';
 
@@ -233,6 +240,11 @@ export interface PositionLifecycleDependencies {
 export async function beginPositionLifecycle(
   input: BeginLifecycleInput
 ): Promise<BeginLifecycleResult> {
+  // A lifecycle embeds a window, so both inventory caps apply before any row
+  // is written. The DB trigger (migration 0122) re-checks them atomically.
+  await assertOpenWindowSlot(input.apiKeyId);
+  await assertOpenLifecycleSlot(input.apiKeyId);
+
   const rawToken = randomBytes(RAW_TOKEN_HEX_LENGTH / 2).toString('hex');
   const tokenHash = createHash('sha256').update(rawToken, 'utf8').digest('hex');
   const expiresAt = new Date(Date.now() + LIFECYCLE_DURATION_MS).toISOString();
@@ -256,6 +268,15 @@ export async function beginPositionLifecycle(
     .single();
 
   if (windowError || !window) {
+    if (isConcurrencyTriggerError(windowError?.message)) {
+      throw new ProductLimitError(
+        'open_windows',
+        PRODUCT_24H_LIMITS.maxOpenWindowsPerKey,
+        PRODUCT_24H_LIMITS.maxOpenWindowsPerKey,
+        null,
+        'recheck'
+      );
+    }
     logger.error(
       'Embedded watch window insert failed',
       new Error(windowError?.message ?? 'unknown supabase error'),
@@ -290,6 +311,15 @@ export async function beginPositionLifecycle(
       { symbol: input.symbol, chain, windowId }
     );
     await client.from('oracle_watch_windows').delete().eq('id', windowId);
+    if (isConcurrencyTriggerError(error?.message)) {
+      throw new ProductLimitError(
+        'open_lifecycles',
+        PRODUCT_24H_LIMITS.maxOpenLifecyclesPerKey,
+        PRODUCT_24H_LIMITS.maxOpenLifecyclesPerKey,
+        null,
+        'recheck'
+      );
+    }
     throw new Error('Position lifecycle persistence failed', { cause: error });
   }
 
@@ -549,6 +579,8 @@ export async function issueBundledReceipt(
  * already-closed lifecycle re-reads and re-returns the same summary rather
  * than erroring, so a lost response is recoverable. Closing an expired
  * lifecycle is also allowed — the summary is the record of what it covered.
+ * The embedded window is closed first, so a failure cannot leave a closed
+ * lifecycle whose window still occupies a paid concurrency slot.
  */
 export async function closePositionLifecycle(
   lifecycleId: string,
@@ -557,6 +589,8 @@ export async function closePositionLifecycle(
   const client = createServiceRoleClient();
   const row = await loadLifecycle(client, lifecycleId, presentedToken);
   const expired = Date.parse(row.expires_at) <= Date.now();
+
+  const watch = await closeOracleWatchWindow(row.window_id, presentedToken);
 
   let closedAt = row.closed_at;
   if (row.status === 'active') {
@@ -571,8 +605,6 @@ export async function closePositionLifecycle(
       throw new Error('Position lifecycle close failed', { cause: error });
     }
   }
-
-  const watch = await closeOracleWatchWindow(row.window_id, presentedToken);
 
   logger.info('Position lifecycle closed', {
     lifecycleId: row.id,

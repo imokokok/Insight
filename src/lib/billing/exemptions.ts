@@ -12,6 +12,9 @@
  *     answer. Kept separate so a ledger cannot confuse "no data" with "all
  *     upstreams down".
  *   - `timeout` — upstream/chain deadline (`UPSTREAM_TIMEOUT`), also unbilled.
+ *   - `tool_free` — the tool or verification kind is zero-priced by design
+ *     (offline verification: signature + digest, no live upstream read). Unlike
+ *     the reasons above this is a price decision, not a data-quality outcome.
  */
 
 export const UPSTREAM_TIMEOUT_CODE = 'UPSTREAM_TIMEOUT';
@@ -21,9 +24,33 @@ export const BILLING_ZERO_REASONS = {
   insufficientData: 'insufficient_data',
   upstreamFailed: 'upstream_failed',
   timeout: 'timeout',
+  toolFree: 'tool_free',
 } as const;
 
 export type BillingZeroReason = (typeof BILLING_ZERO_REASONS)[keyof typeof BILLING_ZERO_REASONS];
+
+/**
+ * Zero-charge reasons that describe a deterministic terminal outcome. A retry
+ * of the same logical request may be served from the replay cache for these;
+ * `timeout` and transient failures must always be re-attempted.
+ */
+const DETERMINISTIC_ZERO_REASONS: readonly BillingZeroReason[] = [
+  BILLING_ZERO_REASONS.insufficientData,
+  BILLING_ZERO_REASONS.upstreamFailed,
+];
+
+export function isDeterministicZeroReason(reason: string | undefined): reason is BillingZeroReason {
+  return reason !== undefined && DETERMINISTIC_ZERO_REASONS.includes(reason as BillingZeroReason);
+}
+
+/**
+ * Classify a REST batch by its usable-row count. Zero usable rows means every
+ * requested item failed upstream; an uninspectable body returns `undefined`
+ * (the caller keeps the normal charge).
+ */
+export function classifyBatchZeroReason(usableRows: number | null): BillingZeroReason | undefined {
+  return usableRows === 0 ? BILLING_ZERO_REASONS.upstreamFailed : undefined;
+}
 
 /** Signals an evidence/verdict explicitly graded as insufficient to conclude. */
 const INSUFFICIENT_DATA_PATTERN = /\bINSUFFICIENT_DATA\b/;

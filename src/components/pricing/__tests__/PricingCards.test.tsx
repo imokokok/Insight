@@ -55,7 +55,11 @@ describe('PricingCards', () => {
     render(<PricingCards billingCycle="monthly" />);
 
     expect(screen.getAllByText(/^Everything in .+, plus$/).map((node) => node.textContent)).toEqual(
-      ['Everything in Starter, plus', 'Everything in Team, plus', 'Everything in Scale, plus']
+      [
+        'Everything in Starter, plus',
+        'Everything in Usage Pack 120K, plus',
+        'Everything in Usage Pack 500K, plus',
+      ]
     );
   });
 

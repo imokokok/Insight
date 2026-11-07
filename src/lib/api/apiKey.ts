@@ -218,8 +218,9 @@ export async function createApiKeyForUser(
   const client = createServiceRoleClient();
 
   const plan: Plan = normalizePlan(options.plan);
-  // Default rate_limit comes from the plan config (Developer=30, Team=60,
-  // Enterprise unlimited). Explicit overrides (e.g. admin tooling) still win.
+  // Default rate_limit comes from the plan config (Developer=60,
+  // Usage Pack 300K=300, Usage Pack 1M=1,200, Enterprise unlimited). Explicit
+  // overrides (e.g. admin tooling) still win.
   const rateLimit = options.rateLimit ?? PLANS[plan].rateLimit;
 
   const { data, error } = await client

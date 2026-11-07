@@ -9,6 +9,7 @@
 
 import { createHash } from 'node:crypto';
 
+import { rateLimitStore } from '@/lib/api/middleware/rateLimitStore';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 
 import { recordOracleWatchCheck } from '../oracleWatchAudit';
@@ -87,21 +88,31 @@ function signal(overrides: Partial<OracleWatchResult> = {}): OracleWatchResult {
  */
 function builder(config: {
   value?: unknown;
+  count?: number;
   dbError?: { message: string } | null;
   onMethod?: (method: string, args: unknown[]) => void;
 }) {
-  const response = () => ({ data: config.value ?? null, error: config.dbError ?? null });
+  const response = () => ({
+    data: config.value ?? null,
+    count: config.count ?? null,
+    error: config.dbError ?? null,
+  });
   const b: Record<string, unknown> = {
     insert: (...args: unknown[]) => (config.onMethod?.('insert', args), b),
     select: (...args: unknown[]) => (config.onMethod?.('select', args), b),
     update: (...args: unknown[]) => (config.onMethod?.('update', args), b),
     eq: (...args: unknown[]) => (config.onMethod?.('eq', args), b),
     lt: (...args: unknown[]) => (config.onMethod?.('lt', args), b),
+    gt: (...args: unknown[]) => (config.onMethod?.('gt', args), b),
     order: (...args: unknown[]) => (config.onMethod?.('order', args), b),
     single: () => Promise.resolve(response()),
     maybeSingle: () => Promise.resolve(response()),
     then: (
-      resolve: (value: { data: unknown; error: { message: string } | null }) => unknown,
+      resolve: (value: {
+        data: unknown;
+        count: number | null;
+        error: { message: string } | null;
+      }) => unknown,
       reject: (reason?: unknown) => unknown
     ) => Promise.resolve(response()).then(resolve, reject),
   };
@@ -135,6 +146,7 @@ beforeEach(() => {
   mockCreateClient.mockReset();
   mockGetSignal.mockReset().mockResolvedValue(signal());
   mockRecordCheck.mockReset().mockResolvedValue(undefined);
+  rateLimitStore.clear?.();
   jest.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-11-03T06:00:00.000Z'));
 });
 
@@ -143,9 +155,33 @@ afterEach(() => {
 });
 
 describe('beginOracleWatchWindow', () => {
+  it('maps the DB concurrency trigger onto a ProductLimitError', async () => {
+    queueFrom([
+      builder({ count: 0 }),
+      builder({
+        dbError: { message: 'product_concurrency_limit: open_windows limit 5 reached' },
+      }),
+    ]);
+
+    await expect(
+      beginOracleWatchWindow({
+        symbol: 'ETH',
+        chain: 'arbitrum',
+        paymentMethod: 'credits',
+        apiKeyId: 'key-1',
+      })
+    ).rejects.toMatchObject({
+      name: 'ProductLimitError',
+      scope: 'open_windows',
+      limit: 5,
+      retryAfterBasis: 'recheck',
+    });
+  });
+
   it('persists only the token hash and returns the raw token exactly once', async () => {
     let captured: Record<string, unknown> | null = null;
     queueFrom([
+      builder({ count: 0 }), // open windows for this key
       builder({
         value: { ...ROW, token_hash: 'stored-hash' },
         onMethod: (method, args) => {
@@ -355,6 +391,15 @@ describe('closeOracleWatchWindow', () => {
     await expect(closeOracleWatchWindow(ROW.id, `oww_${RAW_TOKEN}`)).rejects.toThrow(
       'Monitored window close failed'
     );
+  });
+
+  it('accepts the lifecycle token for its embedded window', async () => {
+    queueFrom([builder({ value: ROW }), builder({}), builder({ value: [] })]);
+
+    // A lifecycle bundles this window and hands out one `plc_` token for it.
+    const summary = await closeOracleWatchWindow(ROW.id, `plc_${RAW_TOKEN}`);
+
+    expect(summary.status).toBe('closed');
   });
 
   it('rejects an invalid token', async () => {

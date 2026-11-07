@@ -18,6 +18,7 @@ import {
   pollOracleWatchWindow,
   beginOracleWatchWindow,
 } from '@/lib/api/services/oracleWatchWindowService';
+import { ProductLimitError, productLimitMessage } from '@/lib/api/services/productLimits';
 
 import { OracleWatchWindowBeginInputSchema, OracleWatchWindowTokenInputSchema } from './schemas';
 
@@ -48,29 +49,34 @@ export const oracleWatchWindowBeginTool: McpToolDefinition<
 > = {
   name: 'oracle_watch_window_begin',
   description:
-    'Purchase a 24h Oracle Watch monitored window for one asset (optionally scoped to one chain): ONE product price covers continuous halt/proceed manipulation-signal coverage, then poll the current signal inside the window at no per-call charge via oracle_watch_window_poll (budget: 300 polls, minimum 30s apart). This tool charges the full window product price once — it does not itself issue a signal. The response includes a one-time window token shown exactly once; keep it, every in-window call authenticates with it.',
+    'Purchase a 24h Oracle Watch monitored window for one asset (optionally scoped to one chain): ONE product price covers continuous halt/proceed manipulation-signal coverage, then poll the current signal inside the window at no per-call charge via oracle_watch_window_poll (budget: 300 polls, minimum 30s apart, 10 polls per rolling minute per API key; at most 5 open windows per API key). This tool charges the full window product price once — it does not itself issue a signal. The response includes a one-time window token shown exactly once; keep it, every in-window call authenticates with it.',
   parameters: OracleWatchWindowBeginInputSchema,
   handler: async (args, context) => {
-    const { window, windowToken } = await beginOracleWatchWindow({
-      symbol: args.symbol,
-      chain: args.chain ?? null,
-      paymentMethod: paymentMethodFor(context),
-      apiKeyId: context?.apiKeyId ?? null,
-    });
+    try {
+      const { window, windowToken } = await beginOracleWatchWindow({
+        symbol: args.symbol,
+        chain: args.chain ?? null,
+        paymentMethod: paymentMethodFor(context),
+        apiKeyId: context?.apiKeyId ?? null,
+      });
 
-    return [
-      `**Oracle Watch monitored window opened: ${window.symbol}${window.chain ? ` on ${window.chain}` : ''}**`,
-      `- Window: ${window.windowId} (status ${window.status})`,
-      `- Coverage: ${window.openedAt} → ${window.expiresAt}`,
-      `- Poll budget: ${window.pollCount}/${window.pollCap} used, minimum 30s between polls`,
-      `- Payment: ${window.paymentMethod}`,
-      '',
-      '**Window token (shown exactly once — store it now):**',
-      `\`${windowToken}\``,
-      '',
-      `Poll with oracle_watch_window_poll { windowId: "${window.windowId}", windowToken: <token> }.`,
-      `Close early (idempotent) with oracle_watch_window_close for the per-window summary.`,
-    ].join('\n');
+      return [
+        `**Oracle Watch monitored window opened: ${window.symbol}${window.chain ? ` on ${window.chain}` : ''}**`,
+        `- Window: ${window.windowId} (status ${window.status})`,
+        `- Coverage: ${window.openedAt} → ${window.expiresAt}`,
+        `- Poll budget: ${window.pollCount}/${window.pollCap} used, minimum 30s between polls`,
+        `- Payment: ${window.paymentMethod}`,
+        '',
+        '**Window token (shown exactly once — store it now):**',
+        `\`${windowToken}\``,
+        '',
+        `Poll with oracle_watch_window_poll { windowId: "${window.windowId}", windowToken: <token> }.`,
+        `Close early (idempotent) with oracle_watch_window_close for the per-window summary.`,
+      ].join('\n');
+    } catch (error) {
+      if (error instanceof ProductLimitError) throw new Error(productLimitMessage(error));
+      throw error;
+    }
   },
 };
 
@@ -79,7 +85,7 @@ export const oracleWatchWindowPollTool: McpToolDefinition<
 > = {
   name: 'oracle_watch_window_poll',
   description:
-    'Issue one current Oracle Watch halt/proceed signal inside an open monitored window purchased with oracle_watch_window_begin. Covered by the window purchase — no per-call charge — but counted against the window poll budget (300 per 24h, minimum 30s apart). Authenticates with the one-time window token from the purchase; without it the call fails closed.',
+    'Issue one current Oracle Watch halt/proceed signal inside an open monitored window purchased with oracle_watch_window_begin. Covered by the window purchase — no per-call charge — but counted against the window poll budget (300 per 24h, minimum 30s apart) and the per-key rate of 10 polls per rolling minute. Authenticates with the one-time window token from the purchase; without it the call fails closed.',
   parameters: OracleWatchWindowTokenInputSchema,
   handler: async (args) => {
     try {
@@ -102,6 +108,7 @@ export const oracleWatchWindowPollTool: McpToolDefinition<
         '```',
       ].join('\n');
     } catch (error) {
+      if (error instanceof ProductLimitError) throw new Error(productLimitMessage(error));
       if (error instanceof OracleWatchWindowError) throw new Error(windowFailureMessage(error));
       throw error;
     }

@@ -19,9 +19,12 @@
  *   - ALL features are open to any paying user — there is no Tier 2/3 feature
  *     gating. The only gate is the wallet: a call is allowed iff the balance
  *     covers its credit cost (see metering.ts).
- *   - Subscriptions are Developer / Team / Scale (credit allowance + rate
- *     limit differ, features are identical). Enterprise is contact-sales
- *     unlimited.
+ *   - Subscriptions are Starter and two Usage Pack tiers (display names
+ *     "Usage Pack 120K" / "Usage Pack 500K"; internal plan keys stay `team` and
+ *     `scale`). Enterprise is contact-sales unlimited.
+ *   - Self-serve plans sell capacity only. No seat, SSO, RBAC, uptime or
+ *     support commitment is included, so none may be listed as a feature —
+ *     see the externalCopyClaims test, which fails if such a claim returns.
  *   - Credits can be topped up on demand via CREDIT_PACKS, no subscription
  *     required (pure pay-as-you-go).
  *   - The public website (prices, protocols, rankings) stays free to browse;
@@ -46,8 +49,8 @@
  *     batching: one invoice instead of a per-call on-chain x402 payment. Do not
  *     advertise them as cheaper — advertise them as fewer settlements.
  *   - Starter $19/mo : 25K credits, entry production workload
- *   - Team $79/mo    : 120K credits, multi-agent workload
- *   - Scale $299/mo  : 500K credits, high-volume production workload
+ *   - Usage Pack 120K $79/mo : 120K credits, multi-agent workload
+ *   - Usage Pack 500K $299/mo : 500K credits, high-volume production workload
  *   - Packs: Starter 99 / 100K, Builder 389 / 400K, Agent 1,849 / 2M
  *
  * Payments are processed via NOWPayments (crypto only). Prices are denominated
@@ -72,11 +75,11 @@ export const PLANS = {
       'Full platform access — every endpoint & MCP tool',
       'Historical 15-minute snapshots (90-day archive)',
       'Protocol risk parameters & position stress tests',
-      'Email support (48h SLA)',
+      'Credits can be topped up at any time',
     ],
   },
   team: {
-    name: 'Team',
+    name: 'Usage Pack 120K',
     rateLimit: 400, // requests per minute
     monthlyQuota: 120_000, // credits included per billing cycle with a subscription
     priceMonthly: 79,
@@ -85,15 +88,12 @@ export const PLANS = {
       '120,000 credits / month included',
       '400 requests / minute',
       '10 API keys',
-      '5 team seats',
       'Full platform access — every endpoint & MCP tool',
-      'Batch query priority queue',
-      '99.5% uptime SLA',
-      'Slack support (24h SLA)',
+      'Credits can be topped up at any time',
     ],
   },
   scale: {
-    name: 'Scale',
+    name: 'Usage Pack 500K',
     rateLimit: 1_200, // requests per minute
     monthlyQuota: 500_000, // credits included per billing cycle with a subscription
     priceMonthly: 299,
@@ -102,11 +102,8 @@ export const PLANS = {
       '500,000 credits / month included',
       '1,200 requests / minute',
       '50 API keys',
-      '20 team seats',
       'Full platform access — every endpoint & MCP tool',
-      'Highest-priority batch queue',
-      '99.9% uptime SLA',
-      'Dedicated support channel (4h SLA)',
+      'Credits can be topped up at any time',
     ],
   },
   enterprise: {
@@ -117,11 +114,8 @@ export const PLANS = {
     priceYearly: null,
     features: [
       'Unlimited API calls',
-      'Dedicated rate limits',
-      'Custom endpoints & SLAs',
-      '99.9% uptime SLA',
-      'Dedicated support engineer',
-      'On-call escalation',
+      'Full platform access — every endpoint & MCP tool',
+      'Contact sales for volume terms',
     ],
   },
 } as const;

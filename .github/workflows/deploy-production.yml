@@ -129,6 +129,16 @@ jobs:
 
           node scripts/deploy-vercel-production.mts
 
+      # The live smoke below probes the public domain, so it can only prove the
+      # release if the domain actually serves it. A READY (even STAGED) deployment
+      # with aliasAssigned=true is not enough: assert the domain's commit first.
+      - name: Assert the production domain serves the released commit
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_TEAM_ID: ${{ vars.VERCEL_TEAM_ID }}
+          VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+        run: node scripts/assert-production-domain-commit.mts
+
       # A READY deployment only proves the build succeeded. Probe the live
       # pay-per-call challenge paths so a regression that still builds (e.g. the
       # Next 16.4 homepage-artifact incident) cannot reach users silently.

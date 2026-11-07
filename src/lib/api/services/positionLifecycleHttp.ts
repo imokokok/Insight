@@ -14,7 +14,10 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { ApiResponseBuilder } from '@/lib/api/handler';
+import { OracleWatchWindowError } from '@/lib/api/services/oracleWatchWindowService';
 import { PositionLifecycleError } from '@/lib/api/services/positionLifecycleService';
+import { ProductLimitError } from '@/lib/api/services/productLimits';
+import { productLimitErrorResponse } from '@/lib/api/services/productLimitsHttp';
 import { CACHE_PRESETS } from '@/lib/api/utils';
 
 function bearerToken(request: Request): string {
@@ -36,6 +39,42 @@ export function requireBearerToken(request: Request): string {
  * monitored-window routes.
  */
 export function lifecycleErrorResponse(error: unknown, requestId?: string): NextResponse | null {
+  if (error instanceof ProductLimitError) {
+    return productLimitErrorResponse(error, requestId);
+  }
+  // The embedded window authenticates with the lifecycle token. If it rejects
+  // that token, this is still a client error, never an unmapped 500.
+  if (error instanceof OracleWatchWindowError) {
+    const status =
+      error.code === 'INVALID_TOKEN'
+        ? 401
+        : error.code === 'NOT_FOUND'
+          ? 404
+          : error.code === 'WINDOW_CLOSED' || error.code === 'WINDOW_EXPIRED'
+            ? 410
+            : 429;
+
+    const messages: Record<OracleWatchWindowError['code'], string> = {
+      NOT_FOUND: 'The embedded monitored window no longer exists.',
+      INVALID_TOKEN: 'Invalid or missing lifecycle token for the embedded window.',
+      WINDOW_CLOSED: 'The embedded monitored window was closed without a close summary.',
+      WINDOW_EXPIRED: 'The embedded monitored window has expired.',
+      POLL_CAP_REACHED: 'The embedded monitored window has exhausted its poll budget.',
+      POLL_TOO_SOON: 'Polling too soon for the embedded monitored window.',
+    };
+
+    const response = NextResponse.json(
+      ApiResponseBuilder.error(error.code, messages[error.code], {
+        requestId,
+        details: { code: error.code, retryable: status === 429 },
+      }),
+      { status, headers: { 'Cache-Control': CACHE_PRESETS.noStore } }
+    );
+    if (error.code === 'POLL_TOO_SOON' && error.retryAfterSeconds) {
+      response.headers.set('Retry-After', String(error.retryAfterSeconds));
+    }
+    return response;
+  }
   if (error instanceof z.ZodError) {
     return NextResponse.json(
       ApiResponseBuilder.error(

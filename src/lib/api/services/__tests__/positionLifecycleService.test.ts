@@ -51,10 +51,15 @@ const mockRecordReceipt = jest.mocked(
  */
 function builder(config: {
   value?: unknown;
+  count?: number;
   dbError?: { message: string } | null;
   onMethod?: (method: string, args: unknown[]) => void;
 }) {
-  const response = () => ({ data: config.value ?? null, error: config.dbError ?? null });
+  const response = () => ({
+    data: config.value ?? null,
+    count: config.count ?? null,
+    error: config.dbError ?? null,
+  });
   const b: Record<string, unknown> = {
     insert: (...args: unknown[]) => (config.onMethod?.('insert', args), b),
     select: (...args: unknown[]) => (config.onMethod?.('select', args), b),
@@ -62,11 +67,16 @@ function builder(config: {
     delete: (...args: unknown[]) => (config.onMethod?.('delete', args), b),
     eq: (...args: unknown[]) => (config.onMethod?.('eq', args), b),
     lt: (...args: unknown[]) => (config.onMethod?.('lt', args), b),
+    gt: (...args: unknown[]) => (config.onMethod?.('gt', args), b),
     order: (...args: unknown[]) => (config.onMethod?.('order', args), b),
     single: () => Promise.resolve(response()),
     maybeSingle: () => Promise.resolve(response()),
     then: (
-      resolve: (value: { data: unknown; error: { message: string } | null }) => unknown,
+      resolve: (value: {
+        data: unknown;
+        count: number | null;
+        error: { message: string } | null;
+      }) => unknown,
       reject: (reason?: unknown) => unknown
     ) => Promise.resolve(response()).then(resolve, reject),
   };
@@ -125,6 +135,8 @@ describe('beginPositionLifecycle', () => {
     let windowInsert: Record<string, unknown> | null = null;
     let lifecycleInsert: Record<string, unknown> | null = null;
     queueFrom([
+      builder({ count: 0 }), // open windows for this key
+      builder({ count: 0 }), // open lifecycles for this key
       builder({
         value: { id: WINDOW_ID },
         onMethod: (method, args) => {
@@ -159,6 +171,33 @@ describe('beginPositionLifecycle', () => {
     expect(result.usage.guard.budget).toBe(4);
     // Watch polls reuse the existing window routes with the SAME token.
     expect(result.usage.watch.poll.url).toBe(`/api/v1/safety/oracle-watch-window/${WINDOW_ID}`);
+  });
+
+  it('refuses a 4th open lifecycle before writing either row', async () => {
+    const from = queueFrom([
+      builder({ count: 0 }), // open windows for this key
+      builder({ count: 3 }), // open lifecycles for this key
+    ]);
+
+    await expect(
+      beginPositionLifecycle({ symbol: 'ETH', paymentMethod: 'credits', apiKeyId: 'key-1' })
+    ).rejects.toMatchObject({
+      name: 'ProductLimitError',
+      scope: 'open_lifecycles',
+      limit: 3,
+      retryAfterBasis: 'recheck',
+    });
+    // Only the two count queries ran; nothing was inserted.
+    expect(from).toHaveBeenCalledTimes(2);
+  });
+
+  it('refuses a 6th open window before checking the lifecycle cap', async () => {
+    const from = queueFrom([builder({ count: 5 })]);
+
+    await expect(
+      beginPositionLifecycle({ symbol: 'ETH', paymentMethod: 'credits', apiKeyId: 'key-1' })
+    ).rejects.toMatchObject({ scope: 'open_windows', limit: 5 });
+    expect(from).toHaveBeenCalledTimes(1);
   });
 
   it('removes the embedded window when the lifecycle insert fails (no orphan paid window)', async () => {
@@ -402,6 +441,51 @@ describe('closePositionLifecycle', () => {
 
     expect(summary.status).toBe('closed');
     expect(summary.closedAt).toBe('2026-11-03T05:00:00.000Z');
+  });
+
+  it('closes the embedded window before marking the lifecycle closed', async () => {
+    const order: string[] = [];
+    const windows = [{ id: WINDOW_ID, status: 'active' }];
+    queueFrom([
+      builder({ value: ROW }),
+      builder({
+        value: { id: LIFECYCLE_ID },
+        onMethod: (method) => {
+          if (method === 'update') order.push('lifecycle-update');
+        },
+      }),
+    ]);
+    mockCloseWindow.mockImplementation(async () => {
+      order.push('window-close');
+      windows[0].status = 'closed';
+      return { windowId: WINDOW_ID, status: 'closed', haltCount: 0 };
+    });
+
+    await closePositionLifecycle(LIFECYCLE_ID, tokenOf(RAW_TOKEN));
+
+    expect(order).toEqual(['window-close', 'lifecycle-update']);
+    // After a successful close the key has no active window left holding a slot.
+    expect(windows.filter((w) => w.status === 'active')).toHaveLength(0);
+  });
+
+  it('leaves the lifecycle open when the embedded window cannot be closed', async () => {
+    const lifecycleUpdates: unknown[] = [];
+    queueFrom([
+      builder({
+        value: ROW,
+        onMethod: (method, args) => {
+          if (method === 'update') lifecycleUpdates.push(args);
+        },
+      }),
+    ]);
+    mockCloseWindow.mockRejectedValue(new Error('window close failed'));
+
+    await expect(closePositionLifecycle(LIFECYCLE_ID, tokenOf(RAW_TOKEN))).rejects.toThrow(
+      'window close failed'
+    );
+
+    // The lifecycle must not be marked closed while its window still holds a slot.
+    expect(lifecycleUpdates).toHaveLength(0);
   });
 });
 

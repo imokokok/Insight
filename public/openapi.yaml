@@ -56,8 +56,8 @@ info:
     | Plan | Monthly / annual price | Rate Limit | Included credits/mo | Credit Packs (pay-as-you-go) |
     |------|-----------------------|-----------|---------------------|------------------------------|
     | **Starter** | $19/mo / $190/yr | 120 req/min | 25,000 | Starter 100k / $99 |
-    | **Team** | $79/mo / $790/yr | 400 req/min | 120,000 | Builder 400k / $389 |
-    | **Scale** | $299/mo / $2,990/yr | 1,200 req/min | 500,000 | Agent 2M / $1,849 |
+    | **Usage Pack 120K** | $79/mo / $790/yr | 400 req/min | 120,000 | Builder 400k / $389 |
+    | **Usage Pack 500K** | $299/mo / $2,990/yr | 1,200 req/min | 500,000 | Agent 2M / $1,849 |
     | **Enterprise** | Contact us | Unlimited | Unlimited | Available on every paid path |
 
     Endpoints marked with 🔒 are **credit-metered** (charged per call from the
@@ -82,7 +82,7 @@ info:
     | `X-RateLimit-Limit` | Maximum requests allowed in the window |
     | `X-RateLimit-Remaining` | Requests remaining in current window |
     | `X-RateLimit-Reset` | Unix timestamp when the window resets |
-    | `Retry-After` | Seconds until you can retry (only on 429) |
+    | `Retry-After` | Seconds until you can retry. Only on rate-limit 429s; product concurrency refusals (open window/lifecycle caps) carry no `Retry-After`, because a slot frees only when one is closed or expires |
 
     **Quota / Credit Headers:**
 
@@ -2640,7 +2640,12 @@ paths:
         returns a one-time window token (shown exactly once; only its SHA-256
         hash is stored) used to poll and close the window. In-window signal
         polls are token-authenticated and never charged per call, bounded by
-        the plan's poll cap and minimum poll interval. Assessment and evidence
+        the plan's poll cap (300 per window) and minimum poll interval (30s).
+        Per API key, at most 5 windows may be open at once and polls are capped
+        at 10 per rolling minute; exceeding either returns 429 (concurrency
+        refusals carry no Retry-After — close a window; poll-rate refusals carry
+        Retry-After until the minute resets). Keyless x402 buyers are bounded
+        per window instead. Assessment and evidence
         only — no custody, no execution authority. API-key access (charged as
         one product-priced credit debit) or x402 payment is accepted.
       security:
@@ -2666,6 +2671,11 @@ paths:
           { description: Window opened, with the one-time window token and poll/close usage hints. }
         '400': { $ref: '#/components/responses/ValidationError' }
         '402': { $ref: '#/components/responses/CreditExhausted' }
+        '429':
+          description: >-
+            This API key already holds 5 open monitored windows. No Retry-After
+            header: a slot frees only when a window is closed or its 24h term
+            expires. The body carries scope, limit, current and a hint.
 
   /safety/oracle-watch-window/{windowId}:
     get:
@@ -2689,7 +2699,11 @@ paths:
         '401': { description: Invalid or missing window token. }
         '404': { description: Monitored window not found. }
         '410': { description: Window closed or expired. }
-        '429': { description: Poll cap exhausted or polling before the minimum interval. }
+        '429':
+          description: >-
+            Poll cap exhausted, polling before the minimum interval, or the
+            per-key limit of 10 polls per rolling minute. Only the rolling-minute
+            refusal carries Retry-After (seconds until the counter resets).
     post:
       operationId: closeOracleWatchWindow
       tags: [Safety]
@@ -2723,6 +2737,11 @@ paths:
         token), 4 bundled guard assessments across any position-guard family,
         and 1 attested execution receipt. The purchase returns a one-time
         lifecycle token (shown exactly once; only its SHA-256 hash is stored).
+        Per API key, at most 3 lifecycles and 5 monitored windows may be open
+        at once (the embedded window counts toward the window cap); polls on the
+        embedded window are capped at 10 per rolling minute. Exceeding a cap
+        returns 429; the response body names the scope, limit and current count,
+        and concurrency refusals carry no Retry-After (close one to free a slot).
         Assessment and evidence only — no custody, no execution authority.
         API-key access (charged as one product-priced credit debit) or x402
         payment is accepted.
@@ -2754,6 +2773,11 @@ paths:
           }
         '400': { $ref: '#/components/responses/ValidationError' }
         '402': { $ref: '#/components/responses/CreditExhausted' }
+        '429':
+          description: >-
+            This API key already holds 3 open lifecycles (or 5 open windows).
+            No Retry-After header: close one to free a slot. The body carries
+            scope, limit, current and a hint.
 
   /safety/position-lifecycle/{lifecycleId}:
     post:

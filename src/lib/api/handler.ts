@@ -5,7 +5,12 @@ import { type ZodSchema } from 'zod';
 import { corsExposeHeaders } from '@/lib/api/x402/corsExposeHeaders';
 import { applyCreditBillingHeaders } from '@/lib/billing/billingHeaders';
 import { consumeCredits, precheckCredits, recordWaivedCredit } from '@/lib/billing/creditWallet';
-import { isUpstreamTimeoutError } from '@/lib/billing/exemptions';
+import {
+  BILLING_ZERO_REASONS,
+  classifyBatchZeroReason,
+  isDeterministicZeroReason,
+  isUpstreamTimeoutError,
+} from '@/lib/billing/exemptions';
 import {
   BATCH_UNIT_CREDITS,
   batchChargeCredits,
@@ -42,6 +47,7 @@ import { checkPreAuthBurstLimit } from './middleware/preAuthBurstLimiter';
 import { extractClientIp, rateLimitKeyGenerator } from './middleware/rateLimitMiddleware';
 import { rejectOversizedRequest } from './requestLimits';
 import { ApiResponseBuilder } from './response';
+import { withRouteDeadline } from './routeDeadline';
 
 import type { ApiSuccessResponse } from './response/ApiResponse';
 
@@ -148,18 +154,17 @@ function applyRestBillingReceipt(
     : quotaInfo.creditUnitCost !== undefined
       ? quotaInfo.creditUnitCost * items
       : quotaInfo.creditCost;
-  const status =
-    exemption === 'insufficient_data'
-      ? 'waived'
-      : exemption
-        ? 'not_charged'
-        : charge?.confirmed === false
-          ? 'degraded'
-          : charge?.ok
-            ? charge.idempotent
-              ? 'replayed'
-              : 'charged'
-            : 'not_charged';
+  const status = isDeterministicZeroReason(exemption)
+    ? 'waived'
+    : exemption
+      ? 'not_charged'
+      : charge?.confirmed === false
+        ? 'degraded'
+        : charge?.ok
+          ? charge.idempotent
+            ? 'replayed'
+            : 'charged'
+          : 'not_charged';
   // `consume_credits` returns the POST-debit balance when it charged, and the
   // current balance otherwise (see migration 0042). Reconstruct the pre-request
   // balance from the debit so `X-Credit-Balance` and `X-Credit-Balance-After`
@@ -175,13 +180,12 @@ function applyRestBillingReceipt(
     balance,
     balanceAfter,
     status,
-    // A zero charge must say why: no data vs upstream timeout vs generic failure.
-    zeroReason:
-      exemption === 'insufficient_data'
-        ? 'insufficient_data'
-        : exemption === 'upstream_timeout'
-          ? 'timeout'
-          : undefined,
+    // A zero charge must say why: no data vs all items failed vs timeout.
+    zeroReason: isDeterministicZeroReason(exemption)
+      ? exemption
+      : exemption === 'upstream_timeout'
+        ? BILLING_ZERO_REASONS.timeout
+        : undefined,
     receipt,
   });
 }
@@ -262,7 +266,7 @@ async function chargeRestRequest(params: {
   const isBatch = REST_BATCH_METERED_PATHS.has(params.path);
   const requestedItems = params.quotaInfo?.billableItems ?? 1;
   const reason = params.exemption
-    ? 'insufficient_data'
+    ? BILLING_ZERO_REASONS.insufficientData
     : isBatch
       ? params.chargedItems < requestedItems
         ? 'batch_partial'
@@ -274,7 +278,6 @@ async function chargeRestRequest(params: {
     pendingCharge.meteringKey,
     params.path,
     {
-      source: 'wallet',
       reason,
       requestId: pendingCharge.meteringKey,
       meta: isBatch ? { requested: requestedItems, charged: params.chargedItems } : undefined,
@@ -292,7 +295,8 @@ async function recordBatchWaiver(
     keyId: pendingCharge.apiKeyId,
     meteringKey: pendingCharge.meteringKey,
     ref: path,
-    reason: 'insufficient_data',
+    // Every requested item failed upstream: no usable row was delivered.
+    reason: BILLING_ZERO_REASONS.upstreamFailed,
     meta: { requested: quotaInfo?.billableItems ?? 1, charged: 0 },
   });
 }
@@ -303,7 +307,9 @@ function batchEchoStatus(
   requestedItems: number,
   exemption: string | undefined
 ): string {
-  if (chargedCost === 0) return exemption === 'insufficient_data' ? 'waived' : 'not_charged';
+  if (chargedCost === 0) {
+    return isDeterministicZeroReason(exemption) ? 'waived' : 'not_charged';
+  }
   return chargedItems < requestedItems ? 'batch_partial' : 'charged';
 }
 
@@ -336,30 +342,38 @@ async function maybeRecordErrorWaiver(params: {
   exemption: string;
 }): Promise<void> {
   if (!params.keyId || !params.receiptKey) return;
-  if (params.exemption !== 'insufficient_data' && params.exemption !== 'upstream_timeout') {
+  if (
+    params.exemption !== BILLING_ZERO_REASONS.insufficientData &&
+    params.exemption !== 'upstream_timeout'
+  ) {
     return;
   }
   await recordWaivedCredit({
     keyId: params.keyId,
     meteringKey: params.receiptKey,
     ref: params.path,
-    reason: params.exemption === 'insufficient_data' ? 'insufficient_data' : 'timeout',
+    reason:
+      params.exemption === BILLING_ZERO_REASONS.insufficientData
+        ? BILLING_ZERO_REASONS.insufficientData
+        : BILLING_ZERO_REASONS.timeout,
   });
 }
 
-/** Cache a confirmed, positively-priced success for idempotent replay. */
+/** Cache a confirmed success, or a deterministic terminal zero-charge outcome. */
 async function cacheRestReplayResult(params: {
   replayKey: string;
   response: NextResponse;
   chargedCost: number;
   chargedItems: number;
   receiptKey: string;
+  zeroReason?: string;
 }): Promise<NextResponse> {
   try {
     const snapshot = await snapshotResponseForCache(params.response);
     setCachedMcpResult(params.replayKey, {
       priceCredits: params.chargedCost,
       billableItems: params.chargedItems,
+      zeroReason: params.zeroReason,
       result: null,
       rest: {
         status: snapshot.response.status,
@@ -373,6 +387,16 @@ async function cacheRestReplayResult(params: {
     // Cache population is an optimization; never fail the served request.
     return params.response;
   }
+}
+
+/** Cache a confirmed priced success, or a deterministic all-failed batch. */
+function shouldCacheRestResult(
+  exemption: string | undefined,
+  chargedCost: number,
+  charge: RestChargeOutcome | null
+): boolean {
+  if (isDeterministicZeroReason(exemption)) return true;
+  return chargedCost > 0 && charge?.ok === true && charge.confirmed !== false;
 }
 
 /**
@@ -1061,9 +1085,9 @@ export function createApiHandler<
         apiContext.quotaInfo = quotaResult.quotaInfo;
       }
 
-      // Raw payloads / plain envelopes are normalized into NextResponse here;
-      // ready-made Response instances pass through untouched.
-      let response = normalizeHandlerResult(await handler(request, apiContext));
+      // Normalize raw payloads / plain envelopes; ready-made Responses pass
+      // through. Each invocation has its own 25 s timer, never a global one.
+      let response = normalizeHandlerResult(await withRouteDeadline(handler(request, apiContext)));
 
       // Route-level response helpers may opt into public caching for market
       // data. On an authenticated route the HTTP response itself is never
@@ -1096,10 +1120,11 @@ export function createApiHandler<
           const inspected = await countUsableBatchRows(response);
           response = inspected.response;
           const usableRows = inspected.usable;
-          if (usableRows === 0) {
+          const batchZero = classifyBatchZeroReason(usableRows);
+          if (batchZero) {
             chargedCost = 0;
             chargedItems = 0;
-            exemption = 'insufficient_data';
+            exemption = batchZero;
           } else if (usableRows !== null) {
             const unitCost = apiContext.quotaInfo?.creditUnitCost;
             if (unitCost !== undefined) {
@@ -1171,7 +1196,7 @@ export function createApiHandler<
           // Bill-verifiable zero: the batch delivered no usable rows. A
           // `waiver` row (delta 0, source=free) proves it without touching the
           // wallet or the usage metering key.
-          if (exemption === 'insufficient_data') {
+          if (exemption === BILLING_ZERO_REASONS.upstreamFailed) {
             await recordBatchWaiver(pendingCharge, request.nextUrl.pathname, apiContext.quotaInfo);
           }
         }
@@ -1190,21 +1215,19 @@ export function createApiHandler<
           );
         }
 
-        // Cache only a confirmed, positively-priced successful result. Failures,
-        // insufficient_data exemptions, free calls and unconfirmed charges are
-        // deliberately not cached so a retry can re-attempt or fail again.
-        if (
-          restReplayKey &&
-          chargedCost > 0 &&
-          chargeOutcome?.ok &&
-          chargeOutcome.confirmed !== false
-        ) {
+        // Cache a confirmed, positively-priced success and an all-failed
+        // batch (deterministic terminal). Transient failures, unconfirmed
+        // charges and other zero-charge exemptions are deliberately not cached
+        // so a retry can re-attempt or fail again.
+        const zeroReason = isDeterministicZeroReason(exemption) ? exemption : undefined;
+        if (restReplayKey && shouldCacheRestResult(exemption, chargedCost, chargeOutcome)) {
           response = await cacheRestReplayResult({
             replayKey: restReplayKey,
             response,
             chargedCost,
             chargedItems,
             receiptKey: pendingCharge.meteringKey,
+            zeroReason,
           });
         }
       }
@@ -1229,7 +1252,7 @@ export function createApiHandler<
       const timeout = isUpstreamTimeoutError(error);
       const errorExemption =
         error instanceof Error && /INSUFFICIENT_DATA/.test(error.message)
-          ? 'insufficient_data'
+          ? BILLING_ZERO_REASONS.insufficientData
           : timeout
             ? 'upstream_timeout'
             : 'failed';
@@ -1240,14 +1263,15 @@ export function createApiHandler<
           null,
           errorExemption,
           undefined,
-          receiptKey
+          receiptKey ?? apiContext.quotaInfo?.pendingCharge?.meteringKey ?? null
         );
         if (timeout) errorResponse.headers.set('X-Credit-Status', 'not_charged');
       };
 
       await maybeRecordErrorWaiver({
         keyId: apiContext.auth?.apiKey?.keyId,
-        receiptKey,
+        // A route deadline rejects before the success path derives receiptKey.
+        receiptKey: receiptKey ?? apiContext.quotaInfo?.pendingCharge?.meteringKey ?? null,
         path: request.nextUrl.pathname,
         exemption: errorExemption,
       });

@@ -353,7 +353,8 @@ const GUARD_QUICKSTARTS = [
     method: 'POST',
     query: '(POST body: {"symbol":"BTC","chain":"hyperevm"}; returns a one-time window token)',
     mcp: 'REST-first (token-authed in-window polls)',
-    decides: '24h of continuous halt/proceed signals for one position',
+    decides:
+      '24h of continuous halt/proceed signals for one position (300 polls, ≥30s apart; 10/min and 5 open windows per key)',
     price: '$0.50 per window',
   },
   {
