@@ -16,6 +16,7 @@ import {
   isUpstreamTimeoutError,
   type BillingZeroReason,
 } from '@/lib/billing/exemptions';
+import { isFreeVerifyCall } from '@/lib/billing/freeVerify';
 import { countMcpBatchSuccessItems, getMcpToolBillableItems } from '@/lib/billing/metering';
 import { getMcpToolCreditCostForCall } from '@/lib/billing/productPricing';
 import {
@@ -289,6 +290,19 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
             await recordWaiver(BILLING_ZERO_REASONS.upstreamFailed);
             cacheZeroOutcome(result, BILLING_ZERO_REASONS.upstreamFailed);
             logger.info(`MCP batch failed upstream for every item; not billed: ${name}`);
+          } else if (isFreeVerifyCall(name, args)) {
+            // Offline verification is zero-priced by design. Record a waiver
+            // row so the bill proves the call was free because of the price
+            // rule, not because the data was unusable.
+            if (receipt) {
+              Object.assign(receipt, {
+                costCredits: 0,
+                status: 'waived',
+                zeroReason: BILLING_ZERO_REASONS.toolFree,
+              });
+            }
+            await recordWaiver(BILLING_ZERO_REASONS.toolFree);
+            logger.info(`MCP offline verification is zero-priced; not billed: ${name}`);
           } else {
             // Batch tools can partially succeed. Bill only the items that
             // actually returned usable data; all-failed batches delivered no
