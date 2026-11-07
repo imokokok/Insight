@@ -47,6 +47,12 @@ const WINDOW_DURATION_MS = ORACLE_WATCH_WINDOW_PLAN.durationHours * 60 * 60 * 10
 /** Bearer prefix on the raw window token. Cosmetic; stripped before hashing. */
 const TOKEN_PREFIX = 'oww_';
 
+/** A lifecycle hands out one token for itself and its embedded window. */
+const LIFECYCLE_TOKEN_PREFIX = 'plc_';
+
+/** Prefixes accepted when authenticating against a window token hash. */
+const ACCEPTED_TOKEN_PREFIXES = [TOKEN_PREFIX, LIFECYCLE_TOKEN_PREFIX];
+
 /** A raw window token is 32 random bytes, hex-encoded. */
 const RAW_TOKEN_HEX_LENGTH = 64;
 
@@ -131,7 +137,8 @@ export class OracleWatchWindowError extends Error {
 
 /** SHA-256 hex of a raw token — the only token form ever persisted. */
 function hashToken(presented: string): string | null {
-  const raw = presented.startsWith(TOKEN_PREFIX) ? presented.slice(TOKEN_PREFIX.length) : presented;
+  const prefix = ACCEPTED_TOKEN_PREFIXES.find((candidate) => presented.startsWith(candidate));
+  const raw = prefix ? presented.slice(prefix.length) : presented;
   if (!new RegExp(`^[0-9a-f]{${RAW_TOKEN_HEX_LENGTH}}$`).test(raw)) return null;
   return createHash('sha256').update(raw, 'utf8').digest('hex');
 }

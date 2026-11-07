@@ -579,6 +579,8 @@ export async function issueBundledReceipt(
  * already-closed lifecycle re-reads and re-returns the same summary rather
  * than erroring, so a lost response is recoverable. Closing an expired
  * lifecycle is also allowed — the summary is the record of what it covered.
+ * The embedded window is closed first, so a failure cannot leave a closed
+ * lifecycle whose window still occupies a paid concurrency slot.
  */
 export async function closePositionLifecycle(
   lifecycleId: string,
@@ -587,6 +589,8 @@ export async function closePositionLifecycle(
   const client = createServiceRoleClient();
   const row = await loadLifecycle(client, lifecycleId, presentedToken);
   const expired = Date.parse(row.expires_at) <= Date.now();
+
+  const watch = await closeOracleWatchWindow(row.window_id, presentedToken);
 
   let closedAt = row.closed_at;
   if (row.status === 'active') {
@@ -601,8 +605,6 @@ export async function closePositionLifecycle(
       throw new Error('Position lifecycle close failed', { cause: error });
     }
   }
-
-  const watch = await closeOracleWatchWindow(row.window_id, presentedToken);
 
   logger.info('Position lifecycle closed', {
     lifecycleId: row.id,

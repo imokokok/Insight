@@ -393,6 +393,15 @@ describe('closeOracleWatchWindow', () => {
     );
   });
 
+  it('accepts the lifecycle token for its embedded window', async () => {
+    queueFrom([builder({ value: ROW }), builder({}), builder({ value: [] })]);
+
+    // A lifecycle bundles this window and hands out one `plc_` token for it.
+    const summary = await closeOracleWatchWindow(ROW.id, `plc_${RAW_TOKEN}`);
+
+    expect(summary.status).toBe('closed');
+  });
+
   it('rejects an invalid token', async () => {
     queueFrom([builder({ value: ROW })]);
     await expect(closeOracleWatchWindow(ROW.id, 'garbage')).rejects.toBeInstanceOf(
