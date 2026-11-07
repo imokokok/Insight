@@ -99,6 +99,11 @@ upstream, so no usable row was delivered; `timeout`, `free`, `replay` and
 apart lets reconciliation tell "the market had no data" from "our upstreams
 were down".
 
+An all-failed batch is a deterministic terminal outcome, so its replay cache
+entry keeps the original `zeroReason: upstream_failed` for audit. The replayed
+response itself reports `X-Credit-Zero-Reason: replay` at zero cost: the cache
+preserves `upstream_failed`, while the header says the request was replayed.
+
 Per-key spend caps are set with `PATCH /api/user/api-keys/:id`
 (`{"budgetMonthly": <credits> | null}`; also editable in Settings → Billing) and
 enforced inside `precheck_credits`/`consume_credits`. When a call brings the key

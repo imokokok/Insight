@@ -154,7 +154,8 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
               Object.assign(receipt, { budgetWarning: true });
             }
           }
-          recordMcpToolUsage(auth, name, 200, Date.now() - startTime);
+          const replayedIsError = (cached.result as { isError?: boolean } | null)?.isError === true;
+          recordMcpToolUsage(auth, name, replayedIsError ? 500 : 200, Date.now() - startTime);
           logger.info(`MCP tool replayed from idempotency cache: ${name}`);
           return cached.result as {
             content: Array<{ type: 'text'; text: string }>;
@@ -180,6 +181,21 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
           meteringKey,
           ref: `/mcp/tools/${name}`,
           reason,
+        });
+      };
+
+      /**
+       * Cache a deterministic terminal zero-charge outcome (never a timeout).
+       * Shares the success-result cache and TTL; the entry keeps the original
+       * `zeroReason`, while a replay reports `replay`.
+       */
+      const cacheZeroOutcome = (outcome: unknown, reason: BillingZeroReason) => {
+        if (requestKey === null) return;
+        setCachedMcpResult(requestKey, {
+          priceCredits: 0,
+          billableItems: 0,
+          zeroReason: reason,
+          result: outcome,
         });
       };
 
@@ -247,8 +263,10 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
                     : undefined,
               });
             }
-            if (insufficient) await recordWaiver(BILLING_ZERO_REASONS.insufficientData);
-            else if (timedOut) await recordWaiver(BILLING_ZERO_REASONS.timeout);
+            if (insufficient) {
+              await recordWaiver(BILLING_ZERO_REASONS.insufficientData);
+              cacheZeroOutcome(result, BILLING_ZERO_REASONS.insufficientData);
+            } else if (timedOut) await recordWaiver(BILLING_ZERO_REASONS.timeout);
           } else if (isInsufficientDataResult(resultText)) {
             if (receipt) {
               Object.assign(receipt, {
@@ -258,6 +276,7 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
               });
             }
             await recordWaiver(BILLING_ZERO_REASONS.insufficientData);
+            cacheZeroOutcome(result, BILLING_ZERO_REASONS.insufficientData);
             logger.info(`MCP tool returned no usable data; not billed: ${name}`);
           } else if (isAllItemsFailedResult(resultText)) {
             if (receipt) {
@@ -268,6 +287,7 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
               });
             }
             await recordWaiver(BILLING_ZERO_REASONS.upstreamFailed);
+            cacheZeroOutcome(result, BILLING_ZERO_REASONS.upstreamFailed);
             logger.info(`MCP batch failed upstream for every item; not billed: ${name}`);
           } else {
             // Batch tools can partially succeed. Bill only the items that
@@ -283,6 +303,7 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
                 });
               }
               await recordWaiver(BILLING_ZERO_REASONS.upstreamFailed);
+              cacheZeroOutcome(result, BILLING_ZERO_REASONS.upstreamFailed);
               logger.info(`MCP batch returned no usable items; not billed: ${name}`);
             } else {
               const requestedItems = getMcpToolBillableItems(name, args);
