@@ -12,11 +12,13 @@ import { getMcpToolCreditCharge } from '@/lib/billing/channelCostPolicy';
 import { makeMeteringKey, precheckCredits, recordWaivedCredit } from '@/lib/billing/creditWallet';
 import {
   BILLING_ZERO_REASONS,
+  assessProductOutcome,
   isAllItemsFailedResult,
   isInsufficientDataResult,
   isUpstreamTimeoutError,
-  structuredProductOutcome,
+  rejectedEvidenceDowngradeEnvelope,
   type BillingZeroReason,
+  type ProductOutcomeAssessment,
 } from '@/lib/billing/exemptions';
 import { isFreeVerifyCall } from '@/lib/billing/freeVerify';
 import { countMcpBatchSuccessItems, getMcpToolBillableItems } from '@/lib/billing/metering';
@@ -106,9 +108,17 @@ type ZeroBillingDecision = {
  */
 function resolveZeroBilling(
   result: { isError?: boolean },
-  resultText: string
+  resultText: string,
+  assessment: ProductOutcomeAssessment
 ): ZeroBillingDecision | null {
-  const productOutcome = structuredProductOutcome(resultText);
+  if (assessment.downgradedFromRejected) {
+    return {
+      status: 'waived',
+      zeroReason: BILLING_ZERO_REASONS.rejectedWithoutEvidence,
+      cacheZero: false,
+    };
+  }
+  const productOutcome = assessment.outcome;
   const unavailable = productOutcome === 'unavailable';
   if (!unavailable && (productOutcome === 'rejected' || !result.isError)) return null;
 
@@ -130,6 +140,25 @@ function resolveZeroBilling(
     return { status: 'waived', zeroReason: BILLING_ZERO_REASONS.timeout, cacheZero: false };
   }
   return { status: 'not_charged', cacheZero: false };
+}
+
+/**
+ * A claimed rejection without all five reproducibility items is not a verdict
+ * the customer can reproduce, so it is downgraded before it leaves the server.
+ */
+function downgradeIncompleteRejection<
+  T extends { content: { type: 'text'; text: string }[]; isError?: boolean },
+>(result: T, assessment: ProductOutcomeAssessment): T {
+  return {
+    ...result,
+    content: [
+      {
+        type: 'text',
+        text: rejectedEvidenceDowngradeEnvelope(assessment.missingEvidence),
+      },
+    ],
+    isError: false,
+  };
 }
 
 export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions = {}): Server {
@@ -292,20 +321,34 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
           markBudgetWarning(receipt, creditCheck.budgetWarning);
         }
 
-        const result = await executeTool(name, args, {
+        const rawResult = await executeTool(name, args, {
           // Product tools record payment provenance from the caller surface:
           // an API key bought with credits, a keyless caller buys with x402.
           apiKeyId: auth?.type === 'apikey' ? auth.apiKey.keyId : null,
         });
+        const assessment = assessProductOutcome(
+          rawResult.content.map((block) => block.text).join('\n')
+        );
+        if (assessment.downgradedFromRejected) {
+          logger.warn('MCP rejected outcome downgraded to unavailable: incomplete evidence', {
+            tool: name,
+            missingEvidence: assessment.missingEvidence,
+            zeroReason: BILLING_ZERO_REASONS.rejectedWithoutEvidence,
+          });
+        }
+        const result = assessment.downgradedFromRejected
+          ? downgradeIncompleteRejection(rawResult, assessment)
+          : rawResult;
 
         if (auth) {
           const resultText = result.content.map((block) => block.text).join('\n');
           // The product outcome is read from the structured result, not from
-          // whether the handler returned or threw. A rejected trade is a
-          // formed, delivered judgement and stays billable even when the MCP
-          // transport marks it `isError`; only `unavailable` is exempt.
-          const rejected = structuredProductOutcome(resultText) === 'rejected';
-          const zeroBilling = resolveZeroBilling(result, resultText);
+          // whether the handler returned or threw. A rejected trade with all
+          // five reproducibility items is a formed, delivered judgement and
+          // stays billable even when the MCP transport marks it `isError`;
+          // `unavailable` (including downgraded rejections) is exempt.
+          const rejected = assessment.outcome === 'rejected';
+          const zeroBilling = resolveZeroBilling(result, resultText, assessment);
 
           // Only consume credits when the tool actually delivered usable data.
           // Protocol overhead (initialize/tools/list/ping), execution failures,
