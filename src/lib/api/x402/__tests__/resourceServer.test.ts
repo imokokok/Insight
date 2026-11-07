@@ -1,5 +1,7 @@
 import { type HTTPAdapter } from '@x402/core/server';
 
+import mcpToolCatalog from '@/mcp/tools/generatedCatalog.json';
+
 import {
   X402_REST_PAYMENT_SCOPE_BY_PATH,
   x402ConfigForPaymentScope,
@@ -34,7 +36,9 @@ import { resetFacilitatorResilienceForTests } from '../facilitatorResilience';
 import {
   BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME,
   BAZAAR_SERVICE_METADATA,
+  bazaarMcpDiscoveryExtensionFor,
   buildX402HttpServer,
+  MCP_INDEXER_QUOTE_TOOL,
   resetX402HttpServerForTests,
 } from '../resourceServer';
 
@@ -382,6 +386,32 @@ describe('x402 SVM resource-server registration', () => {
       type: 'mcp',
       toolName: BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME,
       transport: 'streamable-http',
+    });
+  });
+
+  describe('per-tool MCP discovery declarations', () => {
+    const catalog = mcpToolCatalog as Array<{ name: string }>;
+
+    function declaredToolName(toolName: string): string {
+      const extension = bazaarMcpDiscoveryExtensionFor(toolName);
+      const bazaar = extension.bazaar as unknown as {
+        info: { input: { toolName: string } };
+      };
+      return bazaar.info.input.toolName;
+    }
+
+    it('declares exactly the 16 catalog tools, each once and none legacy', () => {
+      expect(catalog).toHaveLength(16);
+      const declared = catalog.map((tool) => declaredToolName(tool.name));
+      expect(new Set(declared).size).toBe(16);
+      expect(new Set(declared)).toEqual(new Set(catalog.map((tool) => tool.name)));
+      expect(declared).not.toContain('pre_trade_safety_check');
+      expect(declared).not.toContain('prepare_base_agent_swap_guard');
+    });
+
+    it('names a real catalog tool for a bare GET indexer quote', () => {
+      expect(catalog.some((tool) => tool.name === MCP_INDEXER_QUOTE_TOOL)).toBe(true);
+      expect(declaredToolName(MCP_INDEXER_QUOTE_TOOL)).toBe(MCP_INDEXER_QUOTE_TOOL);
     });
   });
 

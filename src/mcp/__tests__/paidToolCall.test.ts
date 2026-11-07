@@ -42,6 +42,7 @@ const getMcpX402HttpServerMock = jest.fn();
 
 jest.mock('@/lib/api/x402/resourceServer', () => ({
   BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME: 'prepare_base_agent_swap_guard',
+  MCP_INDEXER_QUOTE_TOOL: 'check_trade_safety',
   getMcpX402HttpServer: (...args: unknown[]) => getMcpX402HttpServerMock(...(args as [])),
 }));
 
@@ -459,7 +460,8 @@ describe('unauthenticated GET indexer probes', () => {
     // handshake's method so directory metadata stays accurate.
     expect(getMcpX402HttpServerMock).toHaveBeenCalledWith(
       expect.objectContaining({ enabled: true }),
-      priceAtomicForTool('pre_trade_safety_check')
+      priceAtomicForTool('check_trade_safety'),
+      'check_trade_safety'
     );
     expect(processHTTPRequest).toHaveBeenCalledWith(expect.objectContaining({ method: 'POST' }));
     await new Promise((resolve) => setTimeout(resolve, 0));
