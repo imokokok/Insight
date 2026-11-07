@@ -21,6 +21,7 @@ import {
 import {
   getX402PaymentOptions,
   type X402Config,
+  type X402PaymentNetworkId,
   usdToAtomicUnits,
   X402_CREDIT_USD,
   X402_MCP_ROUTE,
@@ -249,6 +250,37 @@ async function extractMcpToolArguments(request: Request): Promise<unknown> {
 }
 
 /**
+ * Explain a floor-driven exclusion, if that is why no option survived.
+ * Only EVM and Solana rails participate in `X402_NETWORK_MIN_AMOUNT`; other
+ * scopes keep the generic "rail not configured" reason.
+ */
+function floorExclusionForScope(
+  cfg: X402Config,
+  scope: X402PaymentScope,
+  priceAtomic: string
+): { reason: 'floor_excluded'; floorAtomic: string } | null {
+  const network =
+    scope.kind === 'evm'
+      ? scope.network
+      : scope.kind === 'solana'
+        ? cfg.solana?.network
+        : scope.kind === 'configured'
+          ? cfg.network
+          : null;
+  if (!network) return null;
+  const floor = cfg.networkMinAmountAtomic?.[network as X402PaymentNetworkId];
+  if (!floor) return null;
+  try {
+    if (BigInt(priceAtomic) < BigInt(floor)) {
+      return { reason: 'floor_excluded', floorAtomic: floor };
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+/**
  * No payment rail can cover this tool/data-chain combination. Per the pricing
  * audit (v2.1 §2.4) "chain not supported" must be a 402 with an empty
  * `accepts[]`, never a 5xx: 5xx is reserved for genuine service failures.
@@ -256,7 +288,8 @@ async function extractMcpToolArguments(request: Request): Promise<unknown> {
 function noEligibleChainResponse(
   toolName: string,
   scope: X402PaymentScope | null,
-  priceAtomic: string
+  priceAtomic: string,
+  floorExclusion?: { reason: 'floor_excluded'; floorAtomic: string } | null
 ): Response {
   const body = {
     x402Version: 2,
@@ -269,7 +302,16 @@ function noEligibleChainResponse(
         declinedScope: scope?.label ?? null,
         eligible: [],
         excluded: scope
-          ? [{ scope: scope.label, reason: 'payment_scope_not_configured' }]
+          ? [
+              floorExclusion
+                ? {
+                    scope: scope.label,
+                    reason: floorExclusion.reason,
+                    floorAtomic: floorExclusion.floorAtomic,
+                    priceAtomic,
+                  }
+                : { scope: scope.label, reason: 'payment_scope_not_configured' },
+            ]
           : [{ scope: 'unknown', reason: 'no_declared_payment_scope' }],
         retryable: false,
       },
@@ -732,7 +774,15 @@ export async function handleMcpPaidToolCall({
   // `X402_NETWORK_MIN_AMOUNT`). Answer 402 + accepts:[] before the SDK builds
   // a scheme set, so an excluded chain can never surface as a 5xx.
   if (getX402PaymentOptions(paymentConfig, priceAtomic).length === 0) {
-    return attachRequestId(noEligibleChainResponse(toolName, paymentScope, priceAtomic), requestId);
+    return attachRequestId(
+      noEligibleChainResponse(
+        toolName,
+        paymentScope,
+        priceAtomic,
+        paymentScope ? floorExclusionForScope(paymentConfig, paymentScope, priceAtomic) : null
+      ),
+      requestId
+    );
   }
 
   const isBaseAgentSwapGuard = toolName === BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME;
