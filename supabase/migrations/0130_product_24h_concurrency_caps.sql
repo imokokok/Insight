@@ -1,4 +1,4 @@
--- Migration 0129: atomic per-API-key concurrency caps for the 24h products.
+-- Migration 0130: atomic per-API-key concurrency caps for the 24h products.
 --
 -- A $0.50 monitored window and a $0.55 lifecycle are flat-priced, so the
 -- in-window work must be bounded or the flat price becomes an unlimited cost

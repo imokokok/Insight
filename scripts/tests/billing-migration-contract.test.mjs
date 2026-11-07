@@ -17,7 +17,8 @@ const CHAIN = [
   '0126_credit_ledger_semantics.sql',
   '0127_restore_budget_warning.sql',
   '0128_waiver_comment.sql',
-  '0129_product_24h_concurrency_caps.sql',
+  '0129_billing_schema_audit.sql',
+  '0130_product_24h_concurrency_caps.sql',
 ];
 
 const CONTRACT = {
@@ -77,7 +78,9 @@ async function boot(migrations) {
     CREATE TABLE public.api_keys(id uuid PRIMARY KEY, user_id uuid REFERENCES auth.users(id), plan text);
     CREATE TABLE public.subscriptions(id uuid PRIMARY KEY, user_id uuid, plan text, interval text, status text, current_period_end timestamptz);
     CREATE TABLE public.oracle_watch_windows(id uuid PRIMARY KEY, api_key_id uuid, status text, expires_at timestamptz);
-    CREATE TABLE public.position_lifecycles(id uuid PRIMARY KEY, api_key_id uuid, status text, expires_at timestamptz);`);
+    CREATE TABLE public.position_lifecycles(id uuid PRIMARY KEY, api_key_id uuid, status text, expires_at timestamptz);
+    CREATE SCHEMA supabase_migrations;
+    CREATE TABLE supabase_migrations.schema_migrations(version text PRIMARY KEY, name text);`);
   for (const migration of migrations) {
     await db.exec(
       await readFile(new URL(`../../supabase/migrations/${migration}`, import.meta.url), 'utf8')
@@ -212,7 +215,7 @@ test('no migration after the chain redefines the contract behind its back', asyn
   }
 });
 
-test('0129 caps match the service constants and fire only on INSERT', async () => {
+test('0130 caps match the service constants and fire only on INSERT', async () => {
   const codeLimits = await readFile(
     new URL('../../src/lib/api/services/productLimits.ts', import.meta.url),
     'utf8'

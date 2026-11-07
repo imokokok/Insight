@@ -19,7 +19,7 @@
  * Enforcement happens at the service boundary — `beginOracleWatchWindow`,
  * `beginPositionLifecycle` and `pollOracleWatchWindow` — because that is the
  * only choke point shared by REST, MCP and the x402 callback path. A DB trigger
- * (migration 0129) re-checks the two concurrency caps atomically so a race
+ * (migration 0130) re-checks the two concurrency caps atomically so a race
  * between two concurrent purchases cannot exceed them.
  */
 
@@ -132,7 +132,7 @@ export async function consumePollRate(subject: string): Promise<void> {
   }
 }
 
-/** True when a Supabase error came from the migration-0129 concurrency trigger. */
+/** True when a Supabase error came from the migration-0130 concurrency trigger. */
 export function isConcurrencyTriggerError(message: string | undefined): boolean {
   return (message ?? '').includes('product_concurrency_limit');
 }
