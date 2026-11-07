@@ -13,7 +13,13 @@
 
 import { logApiKeyUsage } from '@/lib/api/apiKey';
 import { rateLimitStore } from '@/lib/api/middleware/rateLimitStore';
-import { consumeCredits, makeMeteringKey, precheckCredits } from '@/lib/billing/creditWallet';
+import {
+  consumeCredits,
+  makeMeteringKey,
+  precheckCredits,
+  recordWaivedCredit,
+} from '@/lib/billing/creditWallet';
+import { BILLING_ZERO_REASONS } from '@/lib/billing/exemptions';
 import { isFreeVerifyCall } from '@/lib/billing/freeVerify';
 import { batchChargeCredits, getMcpToolBillableItems } from '@/lib/billing/metering';
 import { normalizePlan, PLANS } from '@/lib/billing/plans';
@@ -297,16 +303,30 @@ export async function consumeMcpQuota(
   // Product-priced tools: 0 means covered by the prior purchase. Offline
   // verification kinds are also 0 and stay free.
   if (cost === 0) {
+    const coveredByEntitlement =
+      !isFreeVerifyCall(toolName, args) && isEntitlementCoveredMcpTool(toolName);
+    if (coveredByEntitlement) {
+      // An entitlement-covered call is still a delivered call. Without this
+      // 0-delta row it would vanish from the ledger, which is indistinguishable
+      // from "never happened" during reconciliation.
+      const waiverKey =
+        options?.meteringKey ?? makeMeteringKey(`mcp:${auth.apiKey.keyId}:${toolName}`);
+      await recordWaivedCredit({
+        keyId: auth.apiKey.keyId,
+        meteringKey: waiverKey,
+        ref: `/mcp/tools/${toolName}`,
+        source: 'subscription',
+        reason: BILLING_ZERO_REASONS.toolFree,
+        requestId: waiverKey,
+        meta: options?.meta,
+      });
+    }
     return {
       allowed: true,
       cost,
       items,
       charged: 0,
-      source: isFreeVerifyCall(toolName, args)
-        ? 'free'
-        : isEntitlementCoveredMcpTool(toolName)
-          ? 'entitlement'
-          : 'free',
+      source: coveredByEntitlement ? 'entitlement' : 'free',
       receipt: options?.meteringKey,
     };
   }
@@ -319,7 +339,6 @@ export async function consumeMcpQuota(
     meteringKey,
     `/mcp/tools/${toolName}`,
     {
-      source: 'wallet',
       reason: options?.reason ?? toolName,
       requestId: meteringKey,
       meta: options?.meta,

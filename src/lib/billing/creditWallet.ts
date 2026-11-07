@@ -21,6 +21,15 @@
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
 
+import {
+  allocateFifoLots,
+  allocationCoversCost,
+  dominantLotSource,
+  grantBucket,
+  type CreditLot,
+  type FundedBucket,
+} from './sourceAttribution';
+
 const logger = createLogger('credit-wallet');
 
 export interface CreditPrecheck {
@@ -51,14 +60,112 @@ export interface CreditCharge {
 }
 
 export interface CreditChargeContext {
-  /** Ledger `source` (signup | x402 | subscription | wallet). */
-  source?: string;
   /** Ledger `reason` (billed SKU or batch outcome: prices.batch | batch_partial | insufficient_data | upstream_failed | timeout). */
   reason?: string;
   /** Client-visible request/receipt id. */
   requestId?: string;
   /** Per-charge detail, e.g. { requested, charged } for batches. */
   meta?: Record<string, unknown>;
+}
+
+/**
+ * How this charge was funded. Derived from the ledger, never supplied by the
+ * caller: `source` is the bucket with the largest allocated share and `meta`
+ * carries the per-lot FIFO allocations.
+ */
+type ChargeAttribution = {
+  source: FundedBucket | null;
+  meta: Record<string, unknown> | undefined;
+};
+
+/**
+ * Attribute a charge to its funding lots (FIFO).
+ *
+ * Exhaustion is derived, not stored: `sum(lot amounts) - wallet balance` is
+ * exactly the amount the ledger has consumed so far, so no new column or table
+ * is needed. Historical lots whose grant row has no `source` stay unattributed
+ * (`null`); they are not retroactively labelled.
+ *
+ * Read-only and best effort: if any read fails the charge proceeds with
+ * `source: null` rather than blocking billing or guessing a bucket.
+ */
+async function attributeCharge(
+  client: ReturnType<typeof createServiceRoleClient>,
+  keyId: string,
+  cost: number,
+  meta: Record<string, unknown> | undefined
+): Promise<ChargeAttribution> {
+  if (cost <= 0) return { source: null, meta };
+
+  try {
+    const { data: keyRow } = await client
+      .from('api_keys')
+      .select('user_id')
+      .eq('id', keyId)
+      .maybeSingle();
+    const userId = (keyRow as { user_id?: string } | null)?.user_id;
+    if (!userId) {
+      logger.warn('credit attribution skipped — api key has no owner', { keyId, cost });
+      return { source: null, meta };
+    }
+
+    const { data: walletRow } = await client
+      .from('credit_wallet')
+      .select('balance')
+      .eq('user_id', userId)
+      .maybeSingle();
+    const balance = Number((walletRow as { balance?: number | string } | null)?.balance);
+    if (!Number.isFinite(balance)) {
+      logger.warn('credit attribution skipped — wallet balance unavailable', { keyId, cost });
+      return { source: null, meta };
+    }
+
+    const { data: lotRows } = await client
+      .from('credit_ledger')
+      .select('id, delta, source')
+      .eq('user_id', userId)
+      .gt('delta', 0)
+      .in('kind', ['grant', 'topup', 'refund'])
+      .order('created_at', { ascending: true })
+      .order('id', { ascending: true });
+
+    const rows = (lotRows ?? []) as Array<{
+      id: number | string;
+      delta: number | string;
+      source: string | null;
+    }>;
+    const lots: CreditLot[] = rows.map((row) => ({
+      lotId: Number(row.id),
+      amount: Number(row.delta),
+      source: grantBucket(row.source),
+    }));
+
+    const granted = lots.reduce((total, lot) => total + lot.amount, 0);
+    const consumed = Math.max(0, granted - balance);
+    const allocations = allocateFifoLots(lots, consumed, cost);
+
+    if (allocations.length === 0) {
+      logger.warn('credit attribution found no funding lot', { keyId, cost, granted, balance });
+      return { source: null, meta };
+    }
+    if (!allocationCoversCost(allocations, cost)) {
+      logger.warn('credit attribution covered only part of the charge', {
+        keyId,
+        cost,
+        granted,
+        balance,
+      });
+    }
+
+    return { source: dominantLotSource(allocations), meta: { ...meta, allocations } };
+  } catch (error) {
+    logger.warn('credit attribution unavailable — source left null', {
+      keyId,
+      cost,
+      error: normalizeError(error),
+    });
+    return { source: null, meta };
+  }
 }
 
 /** Fallback metering key. Only used when a caller has no deterministic
@@ -142,16 +249,17 @@ export async function consumeCredits(
   context: CreditChargeContext = {}
 ): Promise<CreditCharge> {
   const client = createServiceRoleClient();
+  const attribution = await attributeCharge(client, keyId, cost, context.meta);
   try {
     const { data, error } = await client.rpc('consume_credits', {
       p_key_id: keyId,
       p_cost: cost,
       p_metering_key: meteringKey,
       p_ref: ref ?? null,
-      p_source: context.source ?? null,
+      p_source: attribution.source,
       p_reason: context.reason ?? null,
       p_request_id: context.requestId ?? null,
-      p_meta: context.meta ?? null,
+      p_meta: attribution.meta ?? null,
     });
     if (error) {
       logger.error(
@@ -164,7 +272,15 @@ export async function consumeCredits(
           error: error.message,
         }
       );
-      await recordPendingSettlement(keyId, cost, meteringKey, ref, context, error.message);
+      await recordPendingSettlement(
+        keyId,
+        cost,
+        meteringKey,
+        ref,
+        context,
+        attribution,
+        error.message
+      );
       return { ok: true, confirmed: false };
     }
     if (!data || typeof data.ok !== 'boolean') {
@@ -173,7 +289,15 @@ export async function consumeCredits(
         new Error('UNEXPECTED_CONSUME_PAYLOAD'),
         { keyId, cost, meteringKey }
       );
-      await recordPendingSettlement(keyId, cost, meteringKey, ref, context, 'unexpected_payload');
+      await recordPendingSettlement(
+        keyId,
+        cost,
+        meteringKey,
+        ref,
+        context,
+        attribution,
+        'unexpected_payload'
+      );
       return { ok: true, confirmed: false };
     }
     return { ...data, confirmed: true } as CreditCharge;
@@ -184,7 +308,7 @@ export async function consumeCredits(
       cost,
       meteringKey,
     });
-    await recordPendingSettlement(keyId, cost, meteringKey, ref, context, message);
+    await recordPendingSettlement(keyId, cost, meteringKey, ref, context, attribution, message);
     return { ok: true, confirmed: false };
   }
 }
@@ -200,6 +324,7 @@ async function recordPendingSettlement(
   meteringKey: string,
   ref: string | undefined,
   context: CreditChargeContext,
+  attribution: ChargeAttribution,
   errorMessage: string
 ): Promise<void> {
   try {
@@ -209,10 +334,10 @@ async function recordPendingSettlement(
       p_cost: cost,
       p_metering_key: meteringKey,
       p_ref: ref ?? null,
-      p_source: context.source ?? null,
+      p_source: attribution.source,
       p_reason: context.reason ?? null,
       p_request_id: context.requestId ?? null,
-      p_meta: context.meta ?? null,
+      p_meta: attribution.meta ?? null,
       p_error: errorMessage,
     });
     if (error) {
