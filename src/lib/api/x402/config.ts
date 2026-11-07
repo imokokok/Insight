@@ -979,6 +979,16 @@ export function effectiveNetworkMinAmountAtomic(cfg: X402Config, network: string
   return floor === null ? null : floor.toString();
 }
 
+/**
+ * Built-in floor for a network, ignoring deployment overrides. The billing
+ * channel guard uses this so a temporary acceptance override can never move
+ * the credit-channel minimum price.
+ */
+export function builtInNetworkFloorAtomic(network: string): string | null {
+  const builtin = DEFAULT_NETWORK_MIN_AMOUNT_ATOMIC[network as X402PaymentNetworkId];
+  return builtin ?? null;
+}
+
 /** Build the network-specific payment options advertised by REST and MCP. */
 export function getX402PaymentOptions(
   cfg: X402Config,

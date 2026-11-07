@@ -13,6 +13,7 @@
 
 import { logApiKeyUsage } from '@/lib/api/apiKey';
 import { rateLimitStore } from '@/lib/api/middleware/rateLimitStore';
+import { getMcpToolCreditCharge, isCreditsCallableTool } from '@/lib/billing/channelCostPolicy';
 import {
   consumeCredits,
   makeMeteringKey,
@@ -23,10 +24,7 @@ import { BILLING_ZERO_REASONS } from '@/lib/billing/exemptions';
 import { isFreeVerifyCall } from '@/lib/billing/freeVerify';
 import { batchChargeCredits, getMcpToolBillableItems } from '@/lib/billing/metering';
 import { normalizePlan, PLANS } from '@/lib/billing/plans';
-import {
-  getMcpToolCreditCostForCall,
-  isEntitlementCoveredMcpTool,
-} from '@/lib/billing/productPricing';
+import { isEntitlementCoveredMcpTool } from '@/lib/billing/productPricing';
 import { createLogger } from '@/lib/utils/logger';
 
 import type { McpAuthContext } from './auth';
@@ -175,12 +173,26 @@ export async function precheckMcpToolQuota(
   allowed: boolean;
   reason?: string;
   balance?: number;
+  /** True when the call was refused because the tool is x402-only, not because
+   *  the credit balance is short. */
+  channelBlocked?: boolean;
   /** True when this call brings the key to >=80% of its monthly spend cap.
    *  False below the threshold and for keys with no cap at all; the receipt
    *  only carries `true`, so the transport never emits an empty
    *  `X-Credit-Budget-Warning`. */
   budgetWarning?: boolean;
 }> {
+  // Channel rule (A07): a tool that necessarily settles on-chain is x402-only.
+  // Refuse it before any credit precheck or execution so a future on-chain tool
+  // can never be reached through the credits channel.
+  if (!isCreditsCallableTool(toolName)) {
+    return {
+      allowed: false,
+      reason: `${toolName} settles on-chain and is available through x402 only; credits are not accepted.`,
+      channelBlocked: true,
+    };
+  }
+
   if (auth.type !== 'apikey') {
     return { allowed: true };
   }
@@ -195,7 +207,10 @@ export async function precheckMcpToolQuota(
   // the in-window tools (0) are covered by that purchase — never re-metered.
   // Offline verification kinds also resolve to 0 and never precheck. Batch
   // tools precheck against the full requested item count.
-  const cost = getMcpToolCreditCostForCall(toolName, args);
+  // Only chain-settling tools get the per-chain minimum credits
+  // (ceil(floor / 1000)); credits-only tools keep their list price because
+  // the credits channel never pays the chain floor.
+  const cost = getMcpToolCreditCharge(toolName, args);
   if (cost === 0) {
     return { allowed: true };
   }
@@ -262,7 +277,7 @@ export async function consumeMcpQuota(
   }
 ): Promise<McpConsumeOutcome> {
   const requestedItems = getMcpToolBillableItems(toolName, args);
-  const requestedCost = getMcpToolCreditCostForCall(toolName, args);
+  const requestedCost = getMcpToolCreditCharge(toolName, args);
   // Batch tools precheck against the requested item count but are billed for
   // the items that actually returned usable data (never more than requested).
   const items =
