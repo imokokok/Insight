@@ -7,6 +7,7 @@ import {
   restRequestFingerprint,
 } from '@/lib/billing/requestIdempotency';
 
+import { logApiKeyUsage } from '../apiKey';
 import { createApiHandler } from '../handler';
 import { createAuthMiddleware, createErrorMiddleware, createQuotaMiddleware } from '../middleware';
 
@@ -376,5 +377,72 @@ describe('REST billing receipt boundary', () => {
     expect(consumeCredits).not.toHaveBeenCalled();
     expect(response.headers.get('X-Credit-Status')).toBe('not_charged');
     expect(response.headers.get('X-Credit-Cost')).toBe('0');
+  });
+
+  it('waives and never bills a success that arrives after the 25 s route deadline', async () => {
+    jest.useFakeTimers();
+    try {
+      (consumeCredits as jest.Mock).mockClear();
+      (recordWaivedCredit as jest.Mock).mockClear();
+      (logApiKeyUsage as jest.Mock).mockClear();
+
+      // Exercise the real error middleware so the 504 body contract is
+      // asserted end to end rather than through the default 500 stub.
+      const actualMiddleware = jest.requireActual('../middleware') as {
+        createErrorMiddleware: typeof createErrorMiddleware;
+      };
+      (createErrorMiddleware as jest.Mock).mockImplementation(() =>
+        actualMiddleware.createErrorMiddleware({ logErrors: false })
+      );
+
+      let resolveLate: ((response: NextResponse) => void) | undefined;
+      const late = new Promise<NextResponse>((resolve) => {
+        resolveLate = resolve;
+      });
+
+      const route = createApiHandler(() => late, {
+        middlewares: { auth: { required: true, requireApiKey: true }, quota: true, cors: true },
+      });
+
+      const pending = route(
+        {
+          method: 'GET',
+          nextUrl: new URL('https://example.test/api/v1/coverage'),
+          headers: new Headers(),
+        } as never,
+        { params: Promise.resolve({}) }
+      );
+
+      await jest.advanceTimersByTimeAsync(25_000);
+      const response = await pending;
+      const body = await response.json();
+
+      expect(response.status).toBe(504);
+      expect(body.error.code).toBe('ROUTE_DEADLINE_EXCEEDED');
+      expect(body.error.retryable).toBe(true);
+      expect(body.error.details).toMatchObject({ scope: 'route', deadlineMs: 25_000 });
+      expect(response.headers.get('X-Credit-Status')).toBe('not_charged');
+      expect(response.headers.get('X-Credit-Zero-Reason')).toBe('timeout');
+      expect(recordWaivedCredit).toHaveBeenCalledTimes(1);
+      expect(recordWaivedCredit).toHaveBeenCalledWith(
+        expect.objectContaining({ keyId: 'key-fixture', reason: 'timeout' })
+      );
+      expect(consumeCredits).not.toHaveBeenCalled();
+
+      // The abandoned upstream now answers successfully. The response is
+      // already committed as a 504, so this late result must not add a debit,
+      // a second waiver row or a second usage row.
+      await jest.advanceTimersByTimeAsync(0);
+      const usageRowsAfterDeadline = (logApiKeyUsage as jest.Mock).mock.calls.length;
+      resolveLate?.(NextResponse.json({ result: 'late' }, { status: 200 }));
+      await jest.advanceTimersByTimeAsync(10_000);
+      await Promise.resolve();
+
+      expect(consumeCredits).not.toHaveBeenCalled();
+      expect(recordWaivedCredit).toHaveBeenCalledTimes(1);
+      expect((logApiKeyUsage as jest.Mock).mock.calls.length).toBe(usageRowsAfterDeadline);
+    } finally {
+      jest.useRealTimers();
+    }
   });
 });
