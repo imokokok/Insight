@@ -15,47 +15,19 @@
  * (or deliberately serve for free) enter the cache.
  */
 
-import { createHmac, scryptSync } from 'node:crypto';
+import { createHash } from 'node:crypto';
 
 export const IDEMPOTENCY_WINDOW_MS = 10 * 60 * 1000;
 
 /**
- * Server-side salt for the caller tag. The fallback keeps fingerprints stable
- * when the variable is unset; this value only scopes idempotency, it protects
- * no secret material.
+ * Digest the request payload only. The caller identity is deliberately kept
+ * out of the hash and prefixed as plain text instead: it is a public API-key id
+ * (never the secret), and feeding it to a digest is what tripped CodeQL's
+ * js/insufficient-password-hash heuristic. Scoping stays correct because the
+ * identity occupies its own unambiguous segment of the fingerprint.
  */
-const FINGERPRINT_SECRET =
-  process.env.IDEMPOTENCY_FINGERPRINT_SECRET?.trim() ||
-  process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ||
-  'insight-request-fingerprint-v1';
-
-/**
- * Irreversible caller tag. The auth layer hands us the API-key identity and
- * CodeQL treats that value as a password source, so it goes through a strong
- * password KDF (scrypt) rather than a fast digest. The KDF is deliberately
- * expensive, so the result is cached per process (bounded) instead of being
- * recomputed on every request.
- */
-const MAX_CALLER_TAGS = 2_000;
-const callerTagCache = new Map<string, string>();
-
-function callerTag(identity: string): string {
-  const cached = callerTagCache.get(identity);
-  if (cached) return cached;
-  const tag = scryptSync(identity, FINGERPRINT_SECRET, 16).toString('hex');
-  if (callerTagCache.size >= MAX_CALLER_TAGS) callerTagCache.clear();
-  callerTagCache.set(identity, tag);
-  return tag;
-}
-
-/**
- * Keyed digest over already-canonical parts. The caller identity only reaches
- * the digest through its scrypt tag; the remaining parts are request content.
- */
-function keyedDigest(parts: readonly string[]): string {
-  const [identity, ...rest] = parts;
-  const joined = [callerTag(identity), ...rest].join('\n');
-  return createHmac('sha256', FINGERPRINT_SECRET).update(joined).digest('hex').slice(0, 32);
+function payloadDigest(parts: readonly string[]): string {
+  return createHash('sha256').update(parts.join('\n')).digest('hex').slice(0, 32);
 }
 
 /** Upper bound on cached responses; the process is shared across callers. */
@@ -127,7 +99,7 @@ export function mcpRequestFingerprint(
   args: unknown,
   clientKey: string | null = null
 ): string {
-  return keyedDigest([identity, toolName, clientKey ?? '', canonicalize(args ?? {})]);
+  return `${identity}:${payloadDigest([toolName, clientKey ?? '', canonicalize(args ?? {})])}`;
 }
 
 /**
@@ -144,14 +116,13 @@ export function restRequestFingerprint(input: {
   bodyText: string;
   clientKey: string | null;
 }): string {
-  return keyedDigest([
-    input.identity,
+  return `${input.identity}:${payloadDigest([
     input.method,
     input.path,
     input.search,
     input.clientKey ?? '',
     input.bodyText,
-  ]);
+  ])}`;
 }
 
 /**
