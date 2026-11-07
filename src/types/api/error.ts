@@ -39,6 +39,10 @@ export enum ErrorCode {
   SCENARIO_INVALID = 'SCENARIO_INVALID',
   JOURNEY_NOT_FOUND = 'JOURNEY_NOT_FOUND',
   CALCULATION_ERROR = 'CALCULATION_ERROR',
+  /** The route's own 25 s hard deadline expired before the handler answered.
+   *  Distinct from `UPSTREAM_TIMEOUT` so upstream health reporting can tell
+   *  "the upstream was slow" from "we gave up waiting". */
+  ROUTE_DEADLINE_EXCEEDED = 'ROUTE_DEADLINE_EXCEEDED',
 }
 
 export function createErrorResponse(

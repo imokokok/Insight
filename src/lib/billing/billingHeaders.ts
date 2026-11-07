@@ -26,7 +26,8 @@ export interface CreditBillingHeaderInput {
   /**
    * Why this request cost zero credits: `insufficient_data` (the evidence
    * grade itself could not support a conclusion), `upstream_failed` (every
-   * requested batch item failed upstream), `timeout`, `free`, `replay`,
+   * requested batch item failed upstream), `timeout`, `tool_free` (the tool or
+   * verification kind is zero-priced by design), `free`, `replay`,
    * `unconfirmed`. Emitted only for zero-charge outcomes so a caller can tell
    * "free because there was no data" from "free by price".
    */

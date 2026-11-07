@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { isJsonRecord } from '@/lib/api/client/responseValidation';
+import { RouteDeadlineExceededError } from '@/lib/api/routeDeadline';
 import { isUpstreamTimeoutError, UPSTREAM_TIMEOUT_CODE } from '@/lib/billing/exemptions';
 import { errorToResponse, isAppError, classifyByStringMatching } from '@/lib/errors';
 import { createLogger } from '@/lib/utils/logger';
@@ -88,6 +89,31 @@ export function createErrorMiddleware(options: ErrorMiddlewareOptions = {}) {
       const isTimeout = stringResult?.errorType === 'timeout' || isUpstreamTimeoutError(error);
 
       const isProduction = process.env.NODE_ENV === 'production';
+
+      // A route deadline is our own decision to stop waiting, not an upstream
+      // timeout. Keep the codes apart so upstream health statistics stay
+      // attributable: 504 + ROUTE_DEADLINE_EXCEEDED here, 504 +
+      // UPSTREAM_TIMEOUT when an upstream reported the timeout itself.
+      if (error instanceof RouteDeadlineExceededError) {
+        const deadlineBody = ApiResponseBuilder.error(
+          'ROUTE_DEADLINE_EXCEEDED',
+          isProduction ? 'Route deadline exceeded' : error.message,
+          { retryable: true, requestId }
+        );
+        deadlineBody.error.details = {
+          ...deadlineBody.error.details,
+          scope: 'route',
+          deadlineMs: error.deadlineMs,
+        };
+        if (includeStackTrace && !isProduction) {
+          deadlineBody.error.details = {
+            ...deadlineBody.error.details,
+            stack: error.stack,
+          };
+        }
+        return NextResponse.json(deadlineBody, { status: 504 });
+      }
+
       const clientMessage = isProduction
         ? isTimeout
           ? 'Upstream service timed out'

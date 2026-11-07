@@ -35,6 +35,7 @@
     "test:watch": "jest --watch",
     "verifier:release:check": "node --import tsx scripts/check-verifier-release.mts",
     "verify:solana-evidence": "node --import tsx scripts/verify-solana-evidence.mts",
+    "billing:verify:a04": "node --import tsx --env-file=.env.local scripts/verify-billing-a04.mts",
     "lending:rpc:check": "node --import tsx scripts/verify-lending-guard-live-rpc.mts",
     "test:coverage": "jest --coverage",
     "test:e2e": "playwright test",
