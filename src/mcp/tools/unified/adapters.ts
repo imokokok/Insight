@@ -7,12 +7,23 @@ import {
   reviewedPancakeSwapV3Profile,
   type ReviewedPancakeSwapV3ProfileId,
 } from '@/lib/dex/pancakeSwapV3';
-import { prepareSolanaDriftPerpOrder } from '@/lib/dex/solanaDriftPerpOrder';
 import {
-  prepareBasePerpOrderEnvelope,
+  type SolanaDriftPerpOrderPayload,
+  type SolanaDriftPerpOrderRequest,
+} from '@/lib/dex/solanaDriftPerpOrder';
+import {
+  executionAdapterRegistry,
+  type PreparedExecution,
+  type PreparedExecutionPayload,
+} from '@/lib/execution/adapters';
+import {
+  type BasePerpOrderEnvelope,
   type BasePerpOrderEnvelopeRequest,
 } from '@/lib/perps/basePerpOrderEnvelope';
-import { prepareBnbPerpOrderEnvelope } from '@/lib/perps/bnbPerpOrderEnvelope';
+import {
+  type BnbPerpOrderEnvelope,
+  type BnbPerpOrderEnvelopeRequest,
+} from '@/lib/perps/bnbPerpOrderEnvelope';
 import { BNB_PERP_GUARD_ASTER_PROTOCOL_ID } from '@/lib/perps/bnbPerpGuard';
 import { PerpOrderAdapterError } from '@/lib/perps/perpOrderEnvelope';
 import { STABLECOINS } from '@/lib/stablecoins/config';
@@ -804,20 +815,80 @@ function mapPerpAdapterFailure(toolName: string, venue: string, error: unknown):
   return describeWireFailure('rejected', 'invalid_request', toolName, venue, error);
 }
 
-function formatUnsignedArtifact(input: {
-  venue: string;
-  artifactKind: string;
-  artifactLabel: string;
-  requires: string[];
-  envelope: unknown;
-}): string {
+type PerpOrderVenue = 'synthetix-perps-v3-base' | 'aster-perps-bnb-mainnet' | 'solana_drift';
+
+const PERP_ORDER_ADAPTER_ID: Record<PerpOrderVenue, string> = {
+  'synthetix-perps-v3-base': 'insight.evm.synthetix-perps-v3-order.v1',
+  'aster-perps-bnb-mainnet': 'insight.venue.aster-perps-order.v1',
+  solana_drift: 'insight.solana.drift-perp-order.v1',
+};
+
+interface PerpArtifactSpec {
+  readonly payloadKind: PreparedExecutionPayload['kind'];
+  readonly label: string;
+  readonly requires: readonly string[];
+}
+
+const PERP_ARTIFACT_SPEC: Record<PerpOrderVenue, PerpArtifactSpec> = {
+  'synthetix-perps-v3-base': {
+    payloadKind: 'evm-transaction',
+    label:
+      'EVM calldata for the Synthetix Perps V3 commitOrder call; the caller signs it in a local wallet. This is not a signed, broadcast, or on-chain-confirmed order.',
+    requires: [
+      'Local wallet signing of the unsigned transaction; the caller controls nonce and broadcast.',
+      'Margins already deposited into the declared Synthetix account; the envelope does not move collateral.',
+      'Reference price is Insight cross-oracle consensus, not the Synthetix mark price; acceptablePrice is derived from that consensus plus slippage.',
+    ],
+  },
+  'aster-perps-bnb-mainnet': {
+    payloadKind: 'venue-rest-order',
+    label:
+      'Aster centralized REST order payload (JSON body), not EVM calldata and not an on-chain transaction. It proves binding to the exact order payload, not on-chain execution.',
+    requires: [
+      'User-held Aster venue credentials in the user-controlled client; Insight never creates credentials or signs for the venue.',
+      'Reference price is the Aster venue mark price; acceptablePrice is derived from that price plus slippage.',
+    ],
+  },
+  solana_drift: {
+    payloadKind: 'solana-instruction',
+    label:
+      'Drift v2 Borsh place-perp-order instruction payload. It is not a ready-to-sign transaction: the caller must complete remaining accounts and compose the instruction with the Drift SDK.',
+    requires: [
+      'Local wallet signing by the declared authority; Insight does not sign or submit.',
+      'The reviewed Solana perp guard runs inside the adapter; its verdict reference is carried in the envelope.',
+    ],
+  },
+};
+
+function renderPerpArtifact(
+  venue: PerpOrderVenue,
+  prepared: PreparedExecution<unknown>
+): string {
+  const spec = PERP_ARTIFACT_SPEC[venue];
+  const payload = prepared.payload;
+  if (payload !== null && payload.kind !== spec.payloadKind) {
+    throw new TypeError(
+      `Adapter ${PERP_ORDER_ADAPTER_ID[venue]} returned ${payload.kind} for ${venue}.`
+    );
+  }
+  const requires = [...spec.requires];
+  if (payload?.kind === 'venue-rest-order') {
+    requires.push(
+      `Caller submits the canonical payload to ${payload.endpoint.host}${payload.endpoint.path}; Insight does not submit it.`
+    );
+  }
+  if (payload?.kind === 'solana-instruction') {
+    requires.push(`Caller-supplied inputs: ${payload.requiredInputs.join(', ')}.`);
+  }
   return JSON.stringify(
     {
-      venue: input.venue,
-      artifact_kind: input.artifactKind,
-      artifact_label: input.artifactLabel,
-      requires: input.requires,
-      envelope: input.envelope,
+      venue,
+      state: prepared.state,
+      artifact_kind: payload?.kind ?? null,
+      artifact_label: spec.label,
+      requires,
+      validity_anchor: prepared.validityAnchor,
+      envelope: prepared.native,
     },
     null,
     2
@@ -864,77 +935,55 @@ export async function routePreparePerpOrder(
         validForSeconds: args.valid_for_seconds,
       };
       try {
-        const envelope = await prepareBasePerpOrderEnvelope(request);
-        return formatUnsignedArtifact({
-          venue: args.venue,
-          artifactKind: 'evm-calldata',
-          artifactLabel:
-            'EVM calldata for the Synthetix Perps V3 commitOrder call; the caller signs it in a local wallet. This is not a signed, broadcast, or on-chain-confirmed order.',
-          requires: [
-            'Local wallet signing of unsignedTransaction; the caller controls nonce and broadcast.',
-            'Margins already deposited into the declared Synthetix account; the envelope does not move collateral.',
-            'Reference price is Insight cross-oracle consensus, not the Synthetix mark price; acceptablePrice is derived from that consensus quote plus slippage.',
-          ],
-          envelope,
-        });
+        const prepared = await executionAdapterRegistry.preflight<
+          BasePerpOrderEnvelopeRequest,
+          BasePerpOrderEnvelope
+        >(PERP_ORDER_ADAPTER_ID[args.venue], request);
+        return renderPerpArtifact(args.venue, prepared);
       } catch (error) {
         throw mapPerpAdapterFailure('prepare_perp_order', args.venue, error);
       }
     }
     case 'aster-perps-bnb-mainnet': {
+      const request: BnbPerpOrderEnvelopeRequest = {
+        chain: 'eip155:56',
+        market: args.market,
+        side: args.side === 'buy' ? 'long' : 'short',
+        quantity: args.quantity,
+        leverage: args.leverage,
+        maxSlippageBps: args.max_slippage_bps,
+        orderType: args.order_type,
+        limitPrice: args.limit_price,
+        clientOrderId: args.client_order_id,
+        validForSeconds: args.valid_for_seconds,
+      };
       try {
-        const envelope = await prepareBnbPerpOrderEnvelope({
-          chain: 'eip155:56',
-          market: args.market,
-          side: args.side === 'buy' ? 'long' : 'short',
-          quantity: args.quantity,
-          leverage: args.leverage,
-          maxSlippageBps: args.max_slippage_bps,
-          orderType: args.order_type,
-          limitPrice: args.limit_price,
-          clientOrderId: args.client_order_id,
-          validForSeconds: args.valid_for_seconds,
-        });
-        return formatUnsignedArtifact({
-          venue: args.venue,
-          artifactKind: 'venue-rest-order-payload',
-          artifactLabel:
-            'Aster centralized REST order payload (JSON body), not EVM calldata and not an on-chain transaction. It proves binding to the exact order payload, not on-chain execution.',
-          requires: [
-            'User-held Aster venue credentials in the user-controlled client; Insight never creates credentials or signs for the venue.',
-            'Caller submits the canonical payload to the Aster REST endpoint; Insight does not submit it.',
-            'Reference price is the Aster venue mark price; acceptablePrice is derived from that price plus slippage.',
-          ],
-          envelope,
-        });
+        const prepared = await executionAdapterRegistry.preflight<
+          BnbPerpOrderEnvelopeRequest,
+          BnbPerpOrderEnvelope
+        >(PERP_ORDER_ADAPTER_ID[args.venue], request);
+        return renderPerpArtifact(args.venue, prepared);
       } catch (error) {
         throw mapPerpAdapterFailure('prepare_perp_order', args.venue, error);
       }
     }
     case 'solana_drift': {
+      const request: SolanaDriftPerpOrderRequest = {
+        assetSymbol: args.market,
+        action: args.side === 'buy' ? 'open_long' : 'open_short',
+        sizeUsd: args.size_usd,
+        marginValueUsd: args.margin_value_usd,
+        sizeBase: args.size_base,
+        authority: args.wallet,
+        userIndex: args.user_index,
+        expiresAfterSeconds: args.expires_after_seconds,
+      };
       try {
-        const envelope = await prepareSolanaDriftPerpOrder({
-          assetSymbol: args.market,
-          action: args.side === 'buy' ? 'open_long' : 'open_short',
-          sizeUsd: args.size_usd,
-          marginValueUsd: args.margin_value_usd,
-          sizeBase: args.size_base,
-          authority: args.wallet,
-          userIndex: args.user_index,
-          expiresAfterSeconds: args.expires_after_seconds,
-        });
-        return formatUnsignedArtifact({
-          venue: args.venue,
-          artifactKind: 'solana-instruction-payload',
-          artifactLabel:
-            'Drift v2 Borsh place-perp-order instruction payload. It is not a ready-to-sign transaction: the caller must complete remaining accounts and compose the instruction with the Drift SDK.',
-          requires: [
-            'The caller completes remaining Drift accounts and composes the instruction with the Drift SDK before signing.',
-            'Local wallet signing by the declared authority; Insight does not sign or submit.',
-            'The reviewed Solana perp guard runs inside the adapter; its verdict reference is carried in the envelope.',
-          ],
-          envelope,
-        });
+        const prepared = await executionAdapterRegistry.preflight<
+          SolanaDriftPerpOrderRequest,
+          SolanaDriftPerpOrderPayload
+        >(PERP_ORDER_ADAPTER_ID[args.venue], request);
+        return renderPerpArtifact(args.venue, prepared);
       } catch (error) {
         throw mapPerpAdapterFailure('prepare_perp_order', args.venue, error);
       }
