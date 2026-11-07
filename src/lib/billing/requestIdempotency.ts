@@ -15,9 +15,26 @@
  * (or deliberately serve for free) enter the cache.
  */
 
-import { createHash } from 'node:crypto';
+import { createHmac } from 'node:crypto';
 
 export const IDEMPOTENCY_WINDOW_MS = 10 * 60 * 1000;
+
+/**
+ * Server-side key for the caller tag. A keyed MAC (not a plain digest) keeps
+ * the API-key identity out of a reversible-looking hash; CodeQL's
+ * js/insufficient-password-hash flagged the previous `createHash` use. The
+ * fallback keeps fingerprints stable when the variable is unset, and the
+ * value only scopes idempotency — it protects no secret material.
+ */
+const FINGERPRINT_SECRET =
+  process.env.IDEMPOTENCY_FINGERPRINT_SECRET?.trim() ||
+  process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ||
+  'insight-request-fingerprint-v1';
+
+/** Keyed digest over already-canonical parts; the caller identity is MACed. */
+function keyedDigest(parts: readonly string[]): string {
+  return createHmac('sha256', FINGERPRINT_SECRET).update(parts.join('\n')).digest('hex').slice(0, 32);
+}
 
 /** Upper bound on cached responses; the process is shared across callers. */
 const MAX_CACHED_RESULTS = 5_000;
@@ -88,10 +105,7 @@ export function mcpRequestFingerprint(
   args: unknown,
   clientKey: string | null = null
 ): string {
-  return createHash('sha256')
-    .update(`${identity}\n${toolName}\n${clientKey ?? ''}\n${canonicalize(args ?? {})}`)
-    .digest('hex')
-    .slice(0, 32);
+  return keyedDigest([identity, toolName, clientKey ?? '', canonicalize(args ?? {})]);
 }
 
 /**
@@ -108,19 +122,14 @@ export function restRequestFingerprint(input: {
   bodyText: string;
   clientKey: string | null;
 }): string {
-  return createHash('sha256')
-    .update(
-      [
-        input.identity,
-        input.method,
-        input.path,
-        input.search,
-        input.clientKey ?? '',
-        input.bodyText,
-      ].join('\n')
-    )
-    .digest('hex')
-    .slice(0, 32);
+  return keyedDigest([
+    input.identity,
+    input.method,
+    input.path,
+    input.search,
+    input.clientKey ?? '',
+    input.bodyText,
+  ]);
 }
 
 /**
