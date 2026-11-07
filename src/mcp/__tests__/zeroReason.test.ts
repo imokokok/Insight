@@ -24,6 +24,7 @@ import {
   type CreditBillingHeaderInput,
 } from '@/lib/billing/billingHeaders';
 import { BILLING_ZERO_REASONS } from '@/lib/billing/exemptions';
+import { clearMcpRequestCache } from '@/lib/billing/requestIdempotency';
 
 const recordWaivedCreditMock = jest.fn();
 const precheckCreditsMock = jest.fn();
@@ -84,6 +85,7 @@ async function callBatch(): Promise<CreditBillingHeaderInput> {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  clearMcpRequestCache();
   // `resetMocks: true` wipes implementations between tests, so re-arm here.
   precheckCreditsMock.mockResolvedValue({ ok: true, balance: 100 });
   recordWaivedCreditMock.mockResolvedValue(undefined);
@@ -142,6 +144,27 @@ describe('MCP zero-charge reason', () => {
     expect(recordWaivedCreditMock.mock.calls[0][0]).toMatchObject({
       reason: 'insufficient_data',
     });
+  });
+
+  it('replays a deterministic all-failed outcome from the shared cache', async () => {
+    executeToolMock.mockResolvedValue({
+      content: [
+        {
+          type: 'text',
+          text: '**Batch price results (1 query)**\n\n**Successful:**\nNo successful prices.\n',
+        },
+      ],
+    });
+
+    const first = await callBatch();
+    expect(first.zeroReason).toBe('upstream_failed');
+
+    const replay = await callBatch();
+    expect(executeToolMock).toHaveBeenCalledTimes(1);
+    expect(replay.status).toBe('replayed');
+    expect(replay.zeroReason).toBe('replay');
+    expect(replay.costCredits).toBe(0);
+    expect(recordWaivedCreditMock).toHaveBeenCalledTimes(1);
   });
 
   it('keeps the three documented surfaces on the same vocabulary', () => {
