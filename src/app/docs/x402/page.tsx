@@ -641,7 +641,7 @@ export default function X402QuickstartPage() {
                 <code className="font-mono text-base">tools/call</code> is priced by the tool&apos;s
                 metering class and settles through the same x402 rail. With an{' '}
                 <code className="font-mono text-base">X-API-Key</code>, calls draw from the credit
-                wallet instead. New accounts receive a one-time 100-credit grant after email
+                wallet instead. New accounts receive a one-time 400-credit grant after email
                 verification, so an agent can start without a wallet. The MPP pilot at{' '}
                 <code className="font-mono text-base">{MCP_MPP_ENDPOINT}</code>
                 accepts only <code className="font-mono text-base">pre_trade_safety_check</code>;

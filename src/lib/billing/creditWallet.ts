@@ -33,6 +33,9 @@ export interface CreditPrecheck {
   /** The RPC failed and the gate was opened for availability. The charge is
    *  still authoritative; a degraded precheck is never a free pass. */
   degraded?: boolean;
+  /** True when this call brings the key to >=80% of its monthly spend cap.
+   *  The cap itself is a hard stop; the warning is advisory. */
+  budgetWarning?: boolean;
 }
 
 export interface CreditCharge {

@@ -43,6 +43,9 @@ export interface QuotaInfo {
   creditUnitCost?: number;
   /** Number of billable items in this request (1 outside batch endpoints). */
   billableItems?: number;
+  /** Set when this call reaches 80% of the key's monthly spend cap; surfaced
+   *  by the handler as X-Credit-Budget-Warning: 80. */
+  creditBudgetWarning?: boolean;
   /** The charge to commit AFTER the handler succeeds. The handler fires
    *  consumeCredits only on a 2xx response, so a request that fails in the
    *  handler is not metered. */
@@ -64,9 +67,9 @@ type QuotaMiddlewareResult =
  *
  * There is no recurring free tier and no plan-based feature gating: "can this
  * call proceed?" is answered solely by the wallet balance covering the credit
- * cost. The only free credits are the one-time 400-credit signup grant (a
- * wallet top-up from POST /api/billing/signup-grant; it never resets). The
- * only bypass is Enterprise (unlimited), which skips metering.
+ * cost. The only free credits are the one-time 400-credit signup trial grant
+ * (a wallet top-up, see POST /api/billing/signup-grant; it never resets). The only bypass is
+ * Enterprise (unlimited), which skips metering.
  *
  * Runs in sequence with rateLimitMiddleware — a request must pass rate limit
  * AND credit precheck to succeed.
@@ -211,6 +214,7 @@ export function createQuotaMiddleware(
         creditCost: cost,
         creditUnitCost: unitCost,
         billableItems,
+        creditBudgetWarning: precheck.budgetWarning === true,
         pendingCharge: {
           apiKeyId: context.apiKeyId,
           meteringKey:

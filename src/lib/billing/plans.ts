@@ -42,9 +42,13 @@
  *     Starter $19/mo (−24.0%), Team $79/mo (−34.2%), Scale $299/mo (−40.2%).
  *   - Yearly = 10× monthly for 12 monthly credit grants:
  *     $190 / $790 / $2,990 (−36.7% / −45.1% / −50.2% vs face value).
- *   - Prepaid packs are NOT a volume discount; their value is settlement
- *     batching (one invoice instead of a per-call on-chain x402 payment).
- *   - Packs: Starter $99 / 100K, Builder $389 / 400K, Agent $1,849 / 2M credits.
+ *   - Prepaid packs are NOT a volume discount. Their value is settlement
+ *     batching: one invoice instead of a per-call on-chain x402 payment. Do not
+ *     advertise them as cheaper — advertise them as fewer settlements.
+ *   - Starter $19/mo : 25K credits, entry production workload
+ *   - Team $79/mo    : 120K credits, multi-agent workload
+ *   - Scale $299/mo  : 500K credits, high-volume production workload
+ *   - Packs: Starter 99 / 100K, Builder 389 / 400K, Agent 1,849 / 2M
  *
  * Payments are processed via NOWPayments (crypto only). Prices are denominated
  * in USDC at 1:1 with USD; the payer may settle in any NOWPayments-supported
@@ -256,9 +260,9 @@ export function callsPerCycle(plan: Plan, cls: MeteringClass): number {
  * activation). Enterprise is unlimited and receives no grant.
  */
 export function planCreditGrant(planValue: Plan): number {
-  if (planValue === 'developer') return PLANS.developer.monthlyQuota; // 60_000
-  if (planValue === 'team') return PLANS.team.monthlyQuota; // 300_000
-  if (planValue === 'scale') return PLANS.scale.monthlyQuota; // 1_000_000
+  if (planValue === 'developer') return PLANS.developer.monthlyQuota; // 25_000
+  if (planValue === 'team') return PLANS.team.monthlyQuota; // 120_000
+  if (planValue === 'scale') return PLANS.scale.monthlyQuota; // 500_000
   return 0; // enterprise — unlimited
 }
 

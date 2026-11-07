@@ -107,6 +107,11 @@ function applySuccessTail(params: {
   if (params.rateLimitInfo) {
     applyRateLimitHeaders(params.response, params.rateLimitInfo);
   }
+  // Advisory: this key has reached 80% of its monthly spend cap.
+  // precheck_credits still hard-stops the call at 100%.
+  if (params.quotaInfo?.creditBudgetWarning) {
+    params.response.headers.set('X-Credit-Budget-Warning', '80');
+  }
   // Per-request billing receipt. Non-2xx responses are never charged.
   const receiptExemption =
     params.exemption ??

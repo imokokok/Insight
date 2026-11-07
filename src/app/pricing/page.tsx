@@ -22,9 +22,9 @@ const METERING_LADDER_LABEL = `${METERING_CLASS_ORDER[0]}–${
 
 const BILLING_FACTS = [
   {
-    value: '100',
+    value: '400',
     label: 'Trial credits',
-    detail: 'One grant after email verification',
+    detail: 'One-time grant after email verification, never resets',
   },
   {
     value: METERING_LADDER_LABEL,

@@ -62,7 +62,7 @@ override them. HTTP 402 responses also carry `x-insight-quickstart`,
 An agent without a wallet can use the credit rail instead of x402:
 
 1. Sign up at https://www.oracleinsight.xyz and verify the email address. A
-   one-time, idempotent 100-credit grant is issued (about 20 C3 decisions).
+   one-time, idempotent 400-credit grant is issued (about 20 C3 decisions).
 2. Create an API key at https://www.oracleinsight.xyz/settings?tab=api-keys.
 3. Send `X-API-Key: <key>` on REST calls, or set `INSIGHT_API_KEY` in the MCP
    host's `env` block. No wallet, USDC, private key or x402 client is needed.

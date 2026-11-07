@@ -261,6 +261,36 @@ describe('REST billing receipt boundary', () => {
     expect(await response.json()).not.toHaveProperty('result');
   });
 
+  it('emits the 80% spend-cap warning header when the precheck flags it', async () => {
+    (createQuotaMiddleware as jest.Mock).mockImplementation((_options, context) => async () => ({
+      success: true,
+      quotaInfo: {
+        creditCost: 5,
+        creditBalance: 20,
+        creditBudgetWarning: true,
+        pendingCharge: {
+          apiKeyId: 'key-fixture',
+          cost: 5,
+          meteringKey: `rest:key-fixture:${context.requestId}`,
+        },
+      },
+    }));
+    (consumeCredits as jest.Mock).mockResolvedValue({
+      ok: true,
+      confirmed: true,
+      balance: 15,
+      idempotent: false,
+    });
+
+    const response = await request();
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('X-Credit-Budget-Warning')).toBe('80');
+    expect(response.headers.get('Access-Control-Expose-Headers')).toContain(
+      'X-Credit-Budget-Warning'
+    );
+  });
+
   it.each([400, 500])('never charges a handler failure (%s)', async (status) => {
     const response = await request(status);
     expect(response.status).toBe(status);

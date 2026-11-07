@@ -36,6 +36,19 @@ describe('quota middleware credit exhaustion', () => {
     if (result.success)
       expect(result.quotaInfo.pendingCharge?.meteringKey).toBe('rest:key-1:req_server_generated');
   });
+  it('surfaces the 80% spend-cap warning from the precheck', async () => {
+    mockedPrecheck.mockResolvedValue({ ok: true, balance: 50, budgetWarning: true });
+
+    const middleware = createQuotaMiddleware({}, { apiKeyId: 'key-1', plan: 'developer' });
+    const result = await middleware({
+      nextUrl: new URL('https://www.oracleinsight.xyz/api/v1/coverage'),
+      headers: new Headers(),
+    } as NextRequest);
+
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.quotaInfo.creditBudgetWarning).toBe(true);
+  });
+
   it('marks a 402 as non-retryable and tells polling clients when to retry', async () => {
     mockedPrecheck.mockResolvedValue({
       ok: false,
