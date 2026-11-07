@@ -158,6 +158,28 @@ describe('x402 capability payment bindings', () => {
     );
   });
 
+  it('settles BNB quote and BNB perp guard capabilities in the BNB realm', () => {
+    expect(
+      x402PaymentScopeForMcpTool('get_market_quote', { venue: 'bnb_pancakeswap_v3' })
+    ).toEqual(X402_PAYMENT_SCOPE.bnb);
+    expect(
+      x402PaymentScopeForMcpTool('prepare_swap', { venue: 'bnb_pancakeswap_v3' })
+    ).toEqual(X402_PAYMENT_SCOPE.bnb);
+    expect(
+      x402PaymentScopeForMcpTool('get_market_quote', {
+        venue: 'bnb_pancakeswap_v3',
+        profile_id: 'bnb-pancakeswap-v3-usdt-wbnb-100',
+      })
+    ).toEqual(X402_PAYMENT_SCOPE.bnb);
+    expect(
+      x402PaymentScopeForMcpTool('get_market_quote', {
+        venue: 'bnb_pancakeswap_v3',
+        profile_id: 'unknown-pool',
+      })
+    ).toBeNull();
+    expect(x402PaymentScopeForMcpTool('bnb_perp_guard', {})).toEqual(X402_PAYMENT_SCOPE.bnb);
+  });
+
   it('binds the Solana swap guard lifecycle to the native Solana rail', () => {
     expect(X402_REST_PAYMENT_SCOPE_BY_PATH['/api/v1/safety/solana-swap-guard']).toEqual(
       X402_PAYMENT_SCOPE.solana

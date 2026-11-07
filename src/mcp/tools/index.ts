@@ -20,6 +20,7 @@ import {
   BaseLendingGuardJsonSchema,
   BasePerpGuardExactJsonSchema,
   BasePerpGuardJsonSchema,
+  BnbPerpGuardJsonSchema,
   MonadLendingGuardExactJsonSchema,
   MonadLendingGuardJsonSchema,
   MultichainEvmLendingGuardExactJsonSchema,
@@ -94,7 +95,7 @@ const logger = createLogger(`mcp-tools`);
 
 /**
  * Default `core` lists the 16 consolidated tools. `MCP_TOOL_PROFILE=legacy`
- * re-exposes the 80 legacy tools for rollback only until
+ * re-exposes the 81 legacy tools for rollback only until
  * LEGACY_TOOL_REMOVAL_DATE. Legacy names are always callable by name in both
  * profiles.
  */
@@ -369,6 +370,11 @@ const JSON_SCHEMA_MAP: Record<
     required?: string[];
   },
   base_perp_guard_exact_call: BasePerpGuardExactJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  bnb_perp_guard: BnbPerpGuardJsonSchema.toJSONSchema() as {
     type: 'object';
     properties?: Record<string, unknown>;
     required?: string[];

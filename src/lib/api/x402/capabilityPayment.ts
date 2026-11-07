@@ -219,6 +219,7 @@ export const X402_MCP_PAYMENT_SCOPE_BY_TOOL: Readonly<Record<string, X402Payment
   base_lending_guard_exact_call: X402_PAYMENT_SCOPE.base,
   base_perp_guard: X402_PAYMENT_SCOPE.base,
   base_perp_guard_exact_call: X402_PAYMENT_SCOPE.base,
+  bnb_perp_guard: X402_PAYMENT_SCOPE.bnb,
   get_monad_dex_market: X402_PAYMENT_SCOPE.monad,
   get_hanji_monad_market: X402_PAYMENT_SCOPE.monad,
   monad_lending_guard: X402_PAYMENT_SCOPE.monad,
@@ -332,7 +333,10 @@ function venueMcpPaymentScope(venue: unknown, profileIdValue: unknown): X402Paym
     return X402_PAYMENT_SCOPE.solana;
   }
   if (venue === 'hyperliquid_perp') return X402_PAYMENT_SCOPE.hypercore;
-  if (typeof venue !== 'string' || (!venue.startsWith('base_') && !venue.startsWith('monad_'))) {
+  if (
+    typeof venue !== 'string' ||
+    (!venue.startsWith('base_') && !venue.startsWith('bnb_') && !venue.startsWith('monad_'))
+  ) {
     return null;
   }
   const profileId = typeof profileIdValue === 'string' ? profileIdValue : null;
@@ -342,6 +346,7 @@ function venueMcpPaymentScope(venue: unknown, profileIdValue: unknown): X402Paym
     if (profileId.startsWith('monad-')) return X402_PAYMENT_SCOPE.monad;
     return null;
   }
+  if (venue.startsWith('bnb_')) return X402_PAYMENT_SCOPE.bnb;
   if (venue.startsWith('monad_')) return X402_PAYMENT_SCOPE.monad;
   return X402_PAYMENT_SCOPE.base;
 }

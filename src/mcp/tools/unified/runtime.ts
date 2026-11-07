@@ -26,6 +26,7 @@ import {
 import { baseLendingGuardExactCallTool, baseLendingGuardTool } from '../baseLendingGuardTools';
 import { basePerpGuardExactCallTool, basePerpGuardTool } from '../basePerpGuardTools';
 import { getOraclePricesBatchTool, getPriceHistoryTool } from '../batchTools';
+import { bnbPerpGuardTool } from '../bnbPerpGuardTools';
 import { getCrossChainSpreadsTool } from '../crossChainTools';
 import {
   getAerodromeSlipstreamMarketTool,
@@ -173,6 +174,7 @@ export const LEGACY_MCP_TOOLS: McpToolDefinition[] = [
   baseLendingGuardExactCallTool,
   basePerpGuardTool,
   basePerpGuardExactCallTool,
+  bnbPerpGuardTool,
   hyperliquidPerpGuardTool,
   hyperliquidPerpGuardExactCallTool,
   monadLendingGuardTool,

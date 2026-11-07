@@ -178,8 +178,8 @@ const TOOL_RULES: Array<[RegExp, MeteringClass]> = [
   [/^prepare_hyperliquid_perp_order$/, 'C3'],
   // Hyperliquid perp decision gates: assessment plus exact-envelope binding.
   [/^hyperliquid_perp_guard(_exact_call)?$/, 'C3'],
-  // Solana perp decision gate: on-chain Drift v2 evidence assessment.
-  [/^solana_perp_guard$/, 'C3'],
+  // BNB/Solana perp decision gates: venue and on-chain evidence assessment.
+  [/^(?:bnb|solana)_perp_guard$/, 'C3'],
   // A decision gate, not an execution receipt: must precede the broad C4
   // `execution` matcher below.
   [/^execution_preflight$/, 'C3'],
