@@ -61,6 +61,20 @@ function resolveMcpChargeReceipt(charge: McpConsumeOutcome): {
   return charge.charged > 0 ? { status: 'charged' } : { status: 'not_charged' };
 }
 
+/**
+ * Persist the advisory spend-cap flag on the receipt. Shared by the fresh-call
+ * and replay paths; kept out of the tool handler so its branching stays within
+ * the complexity budget.
+ */
+function markBudgetWarning(
+  receipt: CreditBillingHeaderInput | undefined,
+  budgetWarning: boolean | undefined
+): void {
+  if (receipt && budgetWarning === true) {
+    Object.assign(receipt, { budgetWarning: true });
+  }
+}
+
 export interface McpServerOptions {
   mppPaymentEnabled?: boolean;
   mppCallHandler?: MppMcpCallHandler;
@@ -151,9 +165,7 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
             });
             // Advisory only: a replay still shows whether the key sits at
             // >=80% of its cap. Omitted when there is no cap.
-            if (replayPrecheck.budgetWarning === true) {
-              Object.assign(receipt, { budgetWarning: true });
-            }
+            markBudgetWarning(receipt, replayPrecheck.budgetWarning);
           }
           const replayedIsError = (cached.result as { isError?: boolean } | null)?.isError === true;
           recordMcpToolUsage(auth, name, replayedIsError ? 500 : 200, Date.now() - startTime);
@@ -231,9 +243,7 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
           // call's cost into `used`. Persisted on the receipt so the HTTP
           // transport emits the same `X-Credit-Budget-Warning` REST does.
           // No cap configured (undefined) → no header, never an empty value.
-          if (receipt && creditCheck.budgetWarning === true) {
-            Object.assign(receipt, { budgetWarning: true });
-          }
+          markBudgetWarning(receipt, creditCheck.budgetWarning);
         }
 
         const result = await executeTool(name, args, {
