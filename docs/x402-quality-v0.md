@@ -15,11 +15,12 @@ Full narrative, boundary notes and known gaps:
 
 ## Canonical artifacts
 
-| What                                         | Canonical URL                                                               |
-| -------------------------------------------- | --------------------------------------------------------------------------- |
-| JSON Schema (draft 2020-12)                  | <https://www.oracleinsight.xyz/x402-quality/v0/x402-quality-v0.schema.json> |
-| Projection tool (zero dependencies)          | <https://www.oracleinsight.xyz/x402-quality/v0/projection.mjs>              |
-| Fixtures (live receipts + derived artifacts) | <https://www.oracleinsight.xyz/x402-quality/v0/fixtures/>                   |
+| What                                         | Canonical URL                                                                    |
+| -------------------------------------------- | -------------------------------------------------------------------------------- |
+| JSON Schema (draft 2020-12)                  | <https://www.oracleinsight.xyz/x402-quality/v0/x402-quality-v0.schema.json>      |
+| Projection tool (zero dependencies)          | <https://www.oracleinsight.xyz/x402-quality/v0/projection.mjs>                   |
+| Fixtures (live receipts + derived artifacts) | <https://www.oracleinsight.xyz/x402-quality/v0/fixtures/>                        |
+| Pinned stale-admissibility controls          | <https://www.oracleinsight.xyz/x402-quality/v0/fixtures/stale-admissibility-v1/> |
 
 Source of record in this repository: [`public/x402-quality/v0/`](../public/x402-quality/v0/). The
 served copy and the repository copy are byte-identical; `npm run test:reliability` fails if a fixture
@@ -59,6 +60,17 @@ node projection.mjs verify artifact.json receipt.json
 
 Step 3 exits `0` and prints `ok` on a faithful projection; on any divergence it prints each differing
 path and exits `1`.
+
+## Temporal controls are a separate fixture
+
+[`fixtures/stale-admissibility-v1/`](../public/x402-quality/v0/fixtures/stale-admissibility-v1/)
+is a synthetic, pinned control set for the question a signed receipt does **not** answer by itself:
+whether a claim remains admissible for a new action. Its evaluator reports signature validity, age,
+current admissibility and observed settlement independently. The controls cover a fresh claim that
+is already unsafe and an older historical claim whose status remains accurate but whose caller
+age policy rejects a new action. It requires a trusted clock and a stated future-skew bound;
+neither a signer timestamp, matching RPC endpoints nor a settlement observation proves event time,
+source independence or acceptance criteria.
 
 ## What it does not establish
 

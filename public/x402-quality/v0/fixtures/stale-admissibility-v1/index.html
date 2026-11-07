@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pinned stale-admissibility controls</title>
+  </head>
+  <body>
+    <main>
+      <h1>Pinned stale-admissibility controls</h1>
+      <p>
+        A synthetic, non-production fixture bundle that keeps signature validity, age, current
+        admissibility and observed settlement as separate predicates.
+      </p>
+      <ul>
+        <li><a href="README.md">Scope, controls and reproduction instructions</a></li>
+        <li><a href="manifest.json">Pinned manifest</a></li>
+        <li><a href="evaluate.mjs">Frozen evaluator</a></li>
+        <li><a href="expected/fresh-unsafe.json">Expected result: fresh but unsafe</a></li>
+        <li>
+          <a href="expected/older-accurate.json"
+            >Expected result: older but historically accurate</a
+          >
+        </li>
+      </ul>
+      <p>
+        These test fixtures do not establish a real-world event time, source independence,
+        settlement, acceptance criteria, authorization or standard adoption.
+      </p>
+    </main>
+  </body>
+</html>

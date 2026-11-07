@@ -1,0 +1,76 @@
+{
+  "schema": "insight.x402-stale-admissibility-fixture/v1",
+  "title": "Pinned stale-admissibility controls",
+  "synthetic": true,
+  "evaluator": {
+    "id": "insight-x402-stale-admissibility-evaluator",
+    "version": "1.0.0",
+    "dependency": "viem@2.57.13",
+    "source": "evaluate.mjs"
+  },
+  "signing": {
+    "scheme": "EIP-712",
+    "domain": {
+      "name": "Insight x402 stale-admissibility fixture",
+      "version": "1",
+      "chainId": 1
+    },
+    "primaryType": "StaleFixtureClaim",
+    "types": {
+      "StaleFixtureClaim": [
+        {
+          "name": "caseId",
+          "type": "string"
+        },
+        {
+          "name": "assertedAt",
+          "type": "uint256"
+        },
+        {
+          "name": "subjectHash",
+          "type": "bytes32"
+        },
+        {
+          "name": "claimHash",
+          "type": "bytes32"
+        }
+      ]
+    }
+  },
+  "cases": {
+    "fresh-unsafe": {
+      "evaluationTime": 1700000030,
+      "maxAgeSeconds": 60,
+      "maxFutureSkewSeconds": 5,
+      "claim": {
+        "path": "claims/fresh-unsafe.json",
+        "sha256": "6337741174e8bad0841bae46b351e669e6b26bda6962a006cb7be88b95410330"
+      },
+      "status": {
+        "path": "status/fresh-unsafe.json",
+        "sha256": "9ded54ebd49c2f4fde56b7e3d490f14282452fcf5930cf4f6cec7d44a4c5a5b5"
+      },
+      "expected": {
+        "path": "expected/fresh-unsafe.json",
+        "sha256": "52213ecf0136b7726f513d8d2c3e7244b0cb82aa277fff19e612cc60576b2228"
+      }
+    },
+    "older-accurate": {
+      "evaluationTime": 1700003600,
+      "maxAgeSeconds": 300,
+      "maxFutureSkewSeconds": 5,
+      "claim": {
+        "path": "claims/older-accurate.json",
+        "sha256": "d6546700e1cf3f9a37075493c775ec263e8de040ab97e431872ef9965a9aa41d"
+      },
+      "status": {
+        "path": "status/older-accurate.json",
+        "sha256": "b981582c63fd6f97accde437b904de37b40559bbc335e5e842dd36bc398ccdf9"
+      },
+      "expected": {
+        "path": "expected/older-accurate.json",
+        "sha256": "f81458a427ec3ee4dc376f37446b216425357f4a88920ed0464354cb15404e9e"
+      }
+    }
+  }
+}
