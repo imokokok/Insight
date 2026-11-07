@@ -118,7 +118,7 @@ starts serving.
 Verification means one charge and one top-up against a test key:
 
 - `consume_credits` with four arguments must still return `{ok: true, cost,
-  balance}`;
+balance}`;
 - `top_up_credits` with five arguments must still return the new balance as a
   bare numeric.
 
