@@ -150,6 +150,53 @@ key has crossed 80% of its cap". Do not turn it into a computed percentage
 the rejection rule to `>=`. Caps are calendar-month scoped and do not carry
 over.
 
+### Funding-source attribution
+
+`credit_ledger.source` answers "which bucket paid for this call", using the
+three buckets already allowed by `credit_ledger_source_check`:
+
+- `free` — signup/trial grants (`source = signup`, and any grant tagged `free`);
+- `subscription` — plan allowances (`source = subscription`) and
+  entitlement-covered product calls;
+- `wallet` — money-funded top-ups (`source = wallet` or `x402`).
+
+Attribution is FIFO over lots. Every positive-delta `grant`/`topup`/`refund`
+row is a lot, ordered by `created_at` (then `id`). A charge is allocated to the
+oldest unexhausted lot first, so a user spending a signup grant is recorded
+against `free` even though the wallet holds one pooled balance. Per-lot
+allocations are written to the existing `meta` JSONB as
+`[{ "lotId": <credit_ledger.id>, "source": "free" | "subscription" | "wallet" | null, "amount": <credits> }]`.
+The row-level `source` is the allocation with the largest amount; on a tie the
+older lot wins. Lot exhaustion is derived (`sum(lot amounts) - wallet balance`),
+so this needed no new table, no new column, no DDL, and neither
+`consume_credits` nor the balance calculation changed.
+
+Historical rows are excluded from the rule. Every row written before 0126 has
+`source`, `reason`, `request_id` and `meta` as `NULL` (2092 rows at the
+attribution cutover); those are pre-bucketing history whose provenance cannot
+be reconstructed. They are not backfilled and must not be rewritten: inventing
+today's bucket for a past charge would fabricate an audit trail. A new charge
+that lands on an untagged historical lot is therefore written with
+`source = NULL` and an allocation whose `source` is `null`, until those lots
+are exhausted. Reconciliation should treat `NULL` as "before bucketing"
+(`meta IS NULL`), or "attribution unavailable / legacy lot" (`meta.allocations`
+present with a null source), never as a fourth funding bucket.
+
+Entitlement-covered MCP calls (a product-priced tool whose per-call cost is 0
+because the purchase already happened) now write an audit row instead of
+disappearing: `kind = waiver`, `delta = 0`, `source = subscription`,
+`reason = tool_free`. The wallet is untouched. This uses the existing
+`record_waived_credit` RPC and the same `waive:`-prefixed key as every other
+zero-charge outcome, so it remains idempotent and never blocks a later charge.
+
+Known gap: attribution reads the ledger before `consume_credits` serializes the
+wallet row, so two concurrent charges for the same user can attribute the same
+lot slice twice. The balance and the debits stay correct (the RPC still locks
+and idempotency still holds); only the per-lot allocation detail can
+double-count during that overlap. Fixing it needs either a transactional
+attribution RPC or a lot table, both of which would change `consume_credits`; it
+is deliberately out of scope for this attribution-only change.
+
 ## Source latency and coverage
 
 Coverage probes expose per-provider `fetchDurationMs` and `freshnessShortfall`.

@@ -17,6 +17,7 @@
     "scripts/coverage-slo.mts",
     "scripts/lib/verifier-package-conformance.mts",
     "scripts/lib/billing-a04-check.ts",
+    "scripts/lib/migration-numbers.ts",
     "scripts/verify-billing-a04.mts",
     "scripts/collect-market-reference.ts",
     "scripts/dev-test-alpaca-market-data.mts",

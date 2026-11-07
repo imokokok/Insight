@@ -278,7 +278,6 @@ async function chargeRestRequest(params: {
     pendingCharge.meteringKey,
     params.path,
     {
-      source: 'wallet',
       reason,
       requestId: pendingCharge.meteringKey,
       meta: isBatch ? { requested: requestedItems, charged: params.chargedItems } : undefined,

@@ -37,8 +37,10 @@ export type AuditOptions = {
 
 /**
  * Migrations this check must find applied. 0122 widened the acquisition
- * allowlist, 0123-0128 established the credit ledger semantics, and 0129 adds
- * the audit function itself.
+ * allowlist, 0123-0128 established the credit ledger semantics, 0129 adds
+ * the audit function itself, and 0130 adds the product 24h concurrency caps
+ * trigger (owned by the product line; it must be merged before this audit is
+ * green in production).
  */
 export const REQUIRED_MIGRATIONS = [
   '0122',
@@ -49,7 +51,15 @@ export const REQUIRED_MIGRATIONS = [
   '0127',
   '0128',
   '0129',
+  '0130',
 ] as const;
+
+/**
+ * The migration head the audit pins. 0130 belongs to the 24h concurrency caps
+ * trigger; new migrations start at 0131. A database or checkout at any other
+ * head means the two histories have diverged, so the audit must not be green.
+ */
+export const EXPECTED_HEAD = REQUIRED_MIGRATIONS[REQUIRED_MIGRATIONS.length - 1];
 
 export const DEFAULT_LEDGER_BASELINE = 2118;
 
