@@ -104,6 +104,36 @@ entry keeps the original `zeroReason: upstream_failed` for audit. The replayed
 response itself reports `X-Credit-Zero-Reason: replay` at zero cost: the cache
 preserves `upstream_failed`, while the header says the request was replayed.
 
+### Application rollback across 0126
+
+Migration `0126` replaced `consume_credits(uuid,numeric,text,text)` with an
+eight-argument version and `top_up_credits(uuid,numeric,text,text,text)` with a
+nine-argument version. The new trailing parameters (`source`, `reason`,
+`request_id`, `meta`) all carry SQL `DEFAULT`s, so an older build's four-argument
+charge and five-argument top-up still resolve and settle normally. The earlier
+"do not roll back to a build before #479" constraint is withdrawn: rollback is
+allowed, provided the response structure is verified after the rolled-back build
+starts serving.
+
+Verification means one charge and one top-up against a test key:
+
+- `consume_credits` with four arguments must still return `{ok: true, cost,
+  balance}`;
+- `top_up_credits` with five arguments must still return the new balance as a
+  bare numeric.
+
+This was measured against the `0126`→`0128` chain in embedded PostgreSQL: five-argument `top_up_credits` returned `100.00`; four-argument `consume_credits` returned `{"ok":true,"cost":5,"balance":95}`.
+
+The cost of rolling back is traceability, not correctness. A pre-`0126` build
+cannot supply the new arguments, so every ledger row it writes records
+`source`, `reason`, `request_id` and `meta` as `NULL`. Credits are still debited
+and topped up correctly, but those rows cannot be attributed to a funding
+bucket (`free`, `subscription`/entitlement, or `wallet`), and the `request_id`
+link back to `X-Credit-Receipt` is lost. Any source bucketing or per-bucket
+reconciliation that depends on those columns will show a gap for the rollback
+window. Record the window's start and end and reconcile it manually; do not
+delete or rewrite the `NULL` rows to hide the gap.
+
 Per-key spend caps are set with `PATCH /api/user/api-keys/:id`
 (`{"budgetMonthly": <credits> | null}`; also editable in Settings → Billing) and
 enforced inside `precheck_credits`/`consume_credits`. When a call brings the key
