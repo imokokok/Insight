@@ -156,6 +156,10 @@ export function buildSignalVector(params: {
   agreement?: number;
   verificationMethod?: string;
   blockNumber?: number | null;
+  /** Per-feed staleness bound. Chainlink feeds publish their heartbeat; a
+   *  global 300s default would mark a legitimate 24h-heartbeat feed (e.g.
+   *  HyperEVM ETH/USD) as stale. Defaults to 300 when omitted. */
+  staleThresholdSeconds?: number;
 }): OracleSignalVector {
   const {
     dataAgeSeconds,
@@ -172,10 +176,11 @@ export function buildSignalVector(params: {
     agreement = 1,
     verificationMethod = '',
     blockNumber = null,
+    staleThresholdSeconds = 300,
   } = params;
 
   return {
-    freshness: calculateFreshnessSignal(dataAgeSeconds),
+    freshness: calculateFreshnessSignal(dataAgeSeconds, staleThresholdSeconds),
     sourceReliability: calculateSourceReliabilitySignal({
       isOnChain,
       hasVerification,

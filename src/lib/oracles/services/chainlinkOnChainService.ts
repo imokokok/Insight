@@ -4,7 +4,10 @@ import { createLogger } from '@/lib/utils/logger';
 import { nowInSeconds } from '@/lib/utils/time';
 
 import { OracleCache } from '../base';
-import { getCatalogSupportedChainIds } from '../constants/chainlinkCatalogLoader';
+import {
+  getCatalogSupportedChainIds,
+  getFeedHeartbeatFromCatalog,
+} from '../constants/chainlinkCatalogLoader';
 import {
   decodeAggregate3,
   encodeAggregate3,
@@ -28,6 +31,15 @@ import {
 } from './chainlinkDataSources';
 
 const logger = createLogger('ChainlinkOnChainService');
+
+/**
+ * Explicit "this chain does not support this asset" error. Returning null or an
+ * empty array would let callers mistake missing coverage for a successful read.
+ */
+function feedNotFoundMessage(symbol: string, chainId: number): string {
+  const chainName = getChainlinkRPCConfig(chainId)?.name ?? 'this chain';
+  return `No Chainlink USD feed for ${symbol} on ${chainName} (chain ${chainId})`;
+}
 
 export interface ChainlinkPriceData {
   symbol: string;
@@ -159,6 +171,13 @@ class ChainlinkOnChainService {
   private rpcClient = new RpcClientWithFallback({ contextLabel: 'chainlink' });
   private cache = new OracleCache();
   private cacheTTL = 30000;
+  /**
+   * In-flight read coalescing. HyperEVM's only reviewed RPC
+   * (rpc.hyperliquid.xyz/evm) is capped at 100 requests/minute/IP, so
+   * concurrent callers for the same (feed, chain) must share one read instead
+   * of each issuing their own latestRoundData/decimals calls.
+   */
+  private pendingReads = new Map<string, Promise<ChainlinkPriceData | null>>();
 
   private async ethCall(
     chainId: number,
@@ -308,8 +327,7 @@ class ChainlinkOnChainService {
           const feed = request.feedAddressOverride
             ? { symbol: request.symbol, address: request.feedAddressOverride }
             : resolvedFeed;
-          if (!feed)
-            throw new Error(`Price feed not found for ${request.symbol} on chain ${chainId}`);
+          if (!feed) throw new Error(feedNotFoundMessage(request.symbol, chainId));
           return { request, feed, error: null };
         } catch (error) {
           return {
@@ -528,12 +546,39 @@ class ChainlinkOnChainService {
       this.cache.delete(cacheKey);
     }
 
+    // Abort signals are caller-scoped and cannot be shared safely.
+    if (signal) {
+      return this.readPrice(symbol, chainId, cacheKey, signal, feedAddressOverride);
+    }
+
+    const pending = this.pendingReads.get(cacheKey);
+    if (pending) {
+      logger.debug('Coalescing in-flight Chainlink read', { symbol, chainId });
+      return pending;
+    }
+
+    const read = this.readPrice(symbol, chainId, cacheKey, undefined, feedAddressOverride).finally(
+      () => {
+        this.pendingReads.delete(cacheKey);
+      }
+    );
+    this.pendingReads.set(cacheKey, read);
+    return read;
+  }
+
+  private async readPrice(
+    symbol: string,
+    chainId: number,
+    cacheKey: string,
+    signal: AbortSignal | undefined,
+    feedAddressOverride?: `0x${string}`
+  ): Promise<ChainlinkPriceData | null> {
     const resolvedFeed = feedAddressOverride
       ? null
       : await getChainlinkPriceFeedAsync(symbol, chainId);
     const feed = feedAddressOverride ? { symbol, address: feedAddressOverride } : resolvedFeed;
     if (!feed) {
-      throw new Error(`Price feed not found for ${symbol} on chain ${chainId}`);
+      throw new Error(feedNotFoundMessage(symbol, chainId));
     }
 
     try {
@@ -612,13 +657,18 @@ class ChainlinkOnChainService {
           metadata.verifiedAt
         );
 
-      const STALE_PRICE_THRESHOLD_SECONDS = 3600;
+      // Per-feed heartbeat. ETH/USD on HyperEVM has a 24h heartbeat and can
+      // legitimately sit unchanged for ~21h; a global 1h threshold would flag
+      // a healthy feed. Allow one missed heartbeat before warning.
+      const heartbeatSeconds = getFeedHeartbeatFromCatalog(feed.symbol, chainId);
+      const staleThresholdSeconds = heartbeatSeconds ? Math.max(300, heartbeatSeconds * 2) : 3600;
       const priceAge = nowInSeconds() - Number(decoded.updatedAt);
-      if (priceAge > STALE_PRICE_THRESHOLD_SECONDS) {
+      if (priceAge > staleThresholdSeconds) {
         logger.warn('Chainlink price is stale', {
           symbol: feed.symbol,
           priceAge,
-          threshold: STALE_PRICE_THRESHOLD_SECONDS,
+          threshold: staleThresholdSeconds,
+          heartbeatSeconds,
           roundId: decoded.roundId?.toString(),
         });
       }

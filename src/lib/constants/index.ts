@@ -63,6 +63,7 @@ export const chainNames: Record<Blockchain, string> = {
   [Blockchain.SUPRA_CHAIN]: 'Supra',
   [Blockchain.BANDCHAIN]: 'BandChain',
   [Blockchain.MONAD]: 'Monad',
+  [Blockchain.HYPEREVM]: 'HyperEVM',
 };
 
 export const chainColors: Record<Blockchain, string> = {
@@ -108,6 +109,7 @@ export const chainColors: Record<Blockchain, string> = {
   [Blockchain.SUPRA_CHAIN]: configChainColors.supra,
   [Blockchain.BANDCHAIN]: configChainColors.bandchain,
   [Blockchain.MONAD]: configChainColors.monad,
+  [Blockchain.HYPEREVM]: configChainColors.hyperevm,
 };
 
 export const oracleColors: Record<OracleProvider, string> = {

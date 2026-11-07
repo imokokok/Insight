@@ -21,6 +21,10 @@ export interface ConsensusPriceInput {
   /** Oracle-true age in seconds (preferred over ingestionTimestamp for freshness).
    *  When present and old, the freshness guard may exclude the participant. */
   dataAgeSeconds?: number;
+  /** Per-feed staleness bound in seconds. Chainlink feeds declare a heartbeat
+   *  (HyperEVM ETH/USD is 24h), so a global 1h bound would treat a healthy feed
+   *  as old. Falls back to {@link FRESHNESS_STALE_AGE_SECONDS}. */
+  staleAgeThresholdSeconds?: number;
   confidence?: number;
   confidenceInterval?: {
     bid: number;
@@ -473,7 +477,8 @@ function getConfidenceLevel(confidence: number): ConsensusConfidenceLevel {
 function isEffectivelyStale(input: ConsensusPriceInput, refMedian: number): boolean {
   const age = input.dataAgeSeconds;
   if (age === undefined || age === null) return false;
-  if (age < FRESHNESS_STALE_AGE_SECONDS) return false;
+  const staleAgeThreshold = input.staleAgeThresholdSeconds ?? FRESHNESS_STALE_AGE_SECONDS;
+  if (age < staleAgeThreshold) return false;
   if (refMedian <= 0 || input.price <= 0) return false;
   const deviation = (Math.abs(input.price - refMedian) / refMedian) * 100;
   return deviation > FRESHNESS_STALE_DIVERGENCE_PCT;
