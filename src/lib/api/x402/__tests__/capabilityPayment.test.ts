@@ -76,7 +76,7 @@ describe('x402 capability payment bindings', () => {
     ];
 
     for (const [capability, scope] of bindings) {
-      if (scope.kind === 'configured') continue;
+      if (scope.kind === 'configured' || scope.kind === 'multichain') continue;
       const scoped = x402ConfigForPaymentScope(cfg, scope);
       if (scope.kind === 'hypercore') {
         expect(scoped).toBeNull();
@@ -88,6 +88,53 @@ describe('x402 capability payment bindings', () => {
       if (scope.kind === 'evm') expect(options[0]?.network).toBe(scope.network);
       if (scope.kind === 'solana') expect(options[0]?.network).toMatch(/^solana:/);
       expect(capability).toBeTruthy();
+    }
+  });
+
+  it('quotes Base and BNB for chain-neutral unified tools, never below the BNB floor', () => {
+    const cfg = parseX402Config({
+      ...EVM_ENV,
+      X402_EVM_PAY_TOS:
+        'eip155:8453=0xAbC0000000000000000000000000000000000002,' +
+        'eip155:56=0xAbC0000000000000000000000000000000000003',
+      X402_SOLANA_ENABLED: 'true',
+      X402_SOLANA_NETWORK: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      X402_SOLANA_PAY_TO: 'seFkxFkXEY9JGEpCyPfCWTuPZG9WK6ucf95zvKCfsRX',
+    });
+
+    for (const tool of [
+      'get_oracle_price',
+      'get_price_analytics',
+      'get_oracle_health',
+      'search_oracle_registry',
+      'begin_trade_evidence',
+      'oracle_watch',
+      'oracle_watch_window_begin',
+      'position_lifecycle_begin',
+    ]) {
+      expect(x402PaymentScopeForMcpTool(tool, {})).toEqual(X402_PAYMENT_SCOPE.multichain);
+    }
+
+    const scoped = x402ConfigForPaymentScope(cfg, X402_PAYMENT_SCOPE.multichain);
+    expect(scoped).not.toBeNull();
+    const networksAt = (amountAtomic: string) =>
+      getX402PaymentOptions(scoped!, amountAtomic).map((option) => option.network);
+
+    // C1/C2 stay below the BNB floor (4861), so BNB is omitted, not discounted.
+    expect(networksAt('2000')).toEqual([
+      'eip155:999',
+      'eip155:8453',
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    ]);
+    expect(networksAt('4000')).toEqual([
+      'eip155:999',
+      'eip155:8453',
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    ]);
+    // C3/C4 and the 24h products clear the floor and quote BNB as well.
+    for (const amountAtomic of ['20000', '40000', '50000', '55000']) {
+      expect(networksAt(amountAtomic)).toContain('eip155:56');
+      expect(networksAt(amountAtomic)).toContain('eip155:8453');
     }
   });
 

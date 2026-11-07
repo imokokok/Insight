@@ -8,6 +8,7 @@ import { bazaarResourceServerExtension, declareDiscoveryExtension } from '@x402/
 import { ExactSvmScheme } from '@x402/svm/exact/server';
 
 import { BaseAgentSwapGuardInputSchema } from '@/lib/dex/baseAgentSwapGuard';
+import mcpToolCatalog from '@/mcp/tools/generatedCatalog.json';
 
 import { assertX402RestScopeCoverage } from './capabilityPayment';
 import {
@@ -644,43 +645,34 @@ function routeConfigWithoutDiscovery(
 }
 
 /**
- * Bazaar discovery metadata for the MCP endpoint. Declared as an MCP-shaped
- * extension (`toolName` present) so the SDK emits `{type:"mcp"}` info; a
- * config without `toolName` is downgraded to a query extension, which the
- * CDP indexer rejects for this POST-only resource. The example is the
- * JSON-RPC `tools/call` params object. Exported for tests.
+ * The `tools/list` catalog is the single source of truth for the 16-tool
+ * surface. An MCP discovery extension must declare the exact tool the quote
+ * is for, so its name, description and argument schema come from here rather
+ * than from a catalog-level default.
  */
-export const BAZAAR_MCP_DISCOVERY_EXTENSION = declareDiscoveryExtension({
-  toolName: 'pre_trade_safety_check',
-  transport: 'streamable-http',
-  example: {
-    name: 'pre_trade_safety_check',
-    arguments: {
-      asset: 'ETH',
-      chainId: 1,
-      action: 'swap',
-      tradeAmountUsd: 1000,
-    },
+interface McpCatalogTool {
+  name: string;
+  description?: string;
+  inputSchema?: Record<string, unknown>;
+}
+
+const MCP_DISCOVERY_TOOL_BY_NAME: ReadonlyMap<string, McpCatalogTool> = new Map(
+  (mcpToolCatalog as McpCatalogTool[]).map((tool) => [tool.name, tool])
+);
+
+/** Tool named by the bare GET indexer probe, where the caller declares no tool. */
+export const MCP_INDEXER_QUOTE_TOOL = 'check_trade_safety';
+
+const MCP_DISCOVERY_FALLBACK_INPUT_SCHEMA: Record<string, unknown> = {
+  type: 'object',
+  properties: {
+    name: { type: 'string', description: 'MCP tool name (JSON-RPC tools/call params)' },
+    arguments: { type: 'object', description: 'Tool arguments object' },
   },
-  inputSchema: {
-    type: 'object',
-    properties: {
-      name: { type: 'string', description: 'MCP tool name, e.g. pre_trade_safety_check' },
-      arguments: { type: 'object', description: 'Tool arguments object' },
-    },
-    required: ['name'],
-  },
-  output: {
-    example: {
-      content: [
-        {
-          type: 'text',
-          text: '{"verdict":"PASS","consensusPrice":3124.5,"maxDeviationPct":0.42}',
-        },
-      ],
-    },
-  },
-});
+  required: ['name'],
+};
+
+const bazaarMcpDiscoveryCache = new Map<string, ReturnType<typeof declareDiscoveryExtension>>();
 
 /**
  * The Base Swap Guard is sold as a distinct x402 MCP resource, not merely as
@@ -728,6 +720,36 @@ export const BAZAAR_BASE_AGENT_SWAP_GUARD_MCP_DISCOVERY_EXTENSION = declareDisco
   },
 });
 
+/**
+ * Bazaar discovery metadata for one MCP tools/call. Declared as an MCP-shaped
+ * extension (`toolName` present) so the SDK emits `{type:"mcp"}` info; a
+ * config without `toolName` is downgraded to a query extension, which the
+ * CDP indexer rejects for this POST-only resource.
+ *
+ * Bazaar identifies MCP resources by (resource URL, tool name), so the
+ * advertised toolName must be the exact tool named in the request body.
+ * Declaring a catalog-level legacy name made every per-tool 402 advertise a
+ * tool that the 16-tool `tools/list` surface does not contain.
+ */
+export function bazaarMcpDiscoveryExtensionFor(
+  toolName: string
+): ReturnType<typeof declareDiscoveryExtension> {
+  if (toolName === BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME) {
+    return BAZAAR_BASE_AGENT_SWAP_GUARD_MCP_DISCOVERY_EXTENSION;
+  }
+  const cached = bazaarMcpDiscoveryCache.get(toolName);
+  if (cached) return cached;
+  const tool = MCP_DISCOVERY_TOOL_BY_NAME.get(toolName);
+  const extension = declareDiscoveryExtension({
+    toolName,
+    ...(tool?.description ? { description: tool.description } : {}),
+    transport: 'streamable-http',
+    inputSchema: tool?.inputSchema ?? MCP_DISCOVERY_FALLBACK_INPUT_SCHEMA,
+  });
+  bazaarMcpDiscoveryCache.set(toolName, extension);
+  return extension;
+}
+
 function mcpRouteConfigFor(cfg: X402Config, amountAtomic: string, discoveryToolName?: string) {
   const baseSwapGuard = discoveryToolName === BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME;
   return {
@@ -737,9 +759,7 @@ function mcpRouteConfigFor(cfg: X402Config, amountAtomic: string, discoveryToolN
     mimeType: 'application/json',
     accepts: acceptsFor(cfg, amountAtomic),
     ...BAZAAR_SERVICE_METADATA,
-    extensions: baseSwapGuard
-      ? BAZAAR_BASE_AGENT_SWAP_GUARD_MCP_DISCOVERY_EXTENSION
-      : BAZAAR_MCP_DISCOVERY_EXTENSION,
+    extensions: bazaarMcpDiscoveryExtensionFor(discoveryToolName ?? MCP_INDEXER_QUOTE_TOOL),
     x402Version: 2,
   };
 }

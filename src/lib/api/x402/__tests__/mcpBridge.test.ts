@@ -24,6 +24,7 @@ if (typeof Response.prototype.clone !== 'function') {
 
 jest.mock('../resourceServer', () => ({
   BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME: 'prepare_base_agent_swap_guard',
+  MCP_INDEXER_QUOTE_TOOL: 'check_trade_safety',
   getMcpX402HttpServer: jest.fn(),
 }));
 
@@ -394,7 +395,7 @@ describe('handleMcpPaidToolCall settlement gating', () => {
     expect(mockedServerFactory).toHaveBeenCalledWith(
       expect.objectContaining({ network: 'eip155:42161', evmNetworks: ['eip155:42161'] }),
       '20000',
-      undefined
+      'multichain_evm_lending_guard'
     );
   });
 

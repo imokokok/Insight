@@ -43,7 +43,7 @@ import {
   hypercorePayloadFromHeader,
   type HypercoreX402Config,
 } from './hypercore';
-import { BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME, getMcpX402HttpServer } from './resourceServer';
+import { getMcpX402HttpServer, MCP_INDEXER_QUOTE_TOOL } from './resourceServer';
 
 const logger = createLogger('x402-mcp-bridge');
 
@@ -164,11 +164,15 @@ export function priceAtomicForTool(toolName: string, args?: unknown): string {
  * tools/call quote for the flagship tool so the discovery metadata keeps the
  * resource's real method and shape; the actual per-tool price is still issued
  * by the POST handshake, where the requested tool name is known.
+ *
+ * A bare GET declares no tool, so the challenge names the flagship catalog
+ * tool. It must never name a legacy alias: Bazaar indexes (URL, toolName),
+ * and an alias absent from `tools/list` produces an unservable listing.
  */
 export async function handleMcpIndexerQuote(request: Request, cfg: X402Config): Promise<Response> {
   const requestId = newRequestId();
-  const price = priceAtomicForTool(REPUTATION_OPT_IN_TOOL);
-  const httpServer = await getMcpX402HttpServer(cfg, price);
+  const price = priceAtomicForTool(MCP_INDEXER_QUOTE_TOOL);
+  const httpServer = await getMcpX402HttpServer(cfg, price, MCP_INDEXER_QUOTE_TOOL);
   const result = await httpServer.processHTTPRequest({
     adapter: new PlainRequestAdapter(request),
     path: X402_MCP_ROUTE,
@@ -785,14 +789,12 @@ export async function handleMcpPaidToolCall({
     );
   }
 
-  const isBaseAgentSwapGuard = toolName === BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME;
   let httpServer: Awaited<ReturnType<typeof getMcpX402HttpServer>>;
   try {
-    httpServer = await getMcpX402HttpServer(
-      paymentConfig,
-      priceAtomic,
-      isBaseAgentSwapGuard ? toolName : undefined
-    );
+    // Every per-tool quote declares the requested tool itself. Bazaar indexes
+    // MCP resources by (resource URL, toolName), so a shared catalog-level
+    // toolName would advertise a tool the quote is not for.
+    httpServer = await getMcpX402HttpServer(paymentConfig, priceAtomic, toolName);
   } catch (error) {
     logger.warn('x402 MCP payment rail unavailable', {
       requestId,

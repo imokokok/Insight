@@ -33,9 +33,13 @@ import {
  * The settlement realm promised by a capability. `configured` deliberately
  * retains the merchant-selected rails for chain-neutral capabilities; a
  * chain-bound capability must instead name its execution chain explicitly.
+ * `multichain` is for chain-neutral capabilities that must quote every rail
+ * the merchant configured (including Base and BNB, which may not be part of
+ * the default `X402_EVM_NETWORKS` list).
  */
 export type X402PaymentScope =
   | { readonly kind: 'configured'; readonly label: string }
+  | { readonly kind: 'multichain'; readonly label: string }
   | { readonly kind: 'evm'; readonly network: X402NetworkId; readonly label: string }
   | { readonly kind: 'solana'; readonly label: string }
   | { readonly kind: 'hypercore'; readonly label: string };
@@ -43,6 +47,7 @@ export type X402PaymentScope =
 /** Canonical payment scopes used by every x402 capability binding. */
 export const X402_PAYMENT_SCOPE = {
   configured: { kind: 'configured', label: 'the merchant-configured x402 payment rail' },
+  multichain: { kind: 'multichain', label: 'every configured x402 payment rail' },
   base: { kind: 'evm', network: `eip155:${CHAIN_ID.BASE}`, label: 'Base mainnet' },
   monad: { kind: 'evm', network: `eip155:${CHAIN_ID.MONAD}`, label: 'Monad mainnet' },
   polygon: { kind: 'evm', network: `eip155:${CHAIN_ID.POLYGON}`, label: 'Polygon PoS' },
@@ -132,7 +137,7 @@ export function assertX402RestScopeCoverage(paidRestPaths: readonly string[]): v
  */
 const X402_CHAIN_NEUTRAL_MCP_PAYMENT_SCOPE_BY_TOOL = {
   agent_begin_trade: X402_PAYMENT_SCOPE.configured,
-  begin_trade_evidence: X402_PAYMENT_SCOPE.configured,
+  begin_trade_evidence: X402_PAYMENT_SCOPE.multichain,
   check_liquidation_risk: X402_PAYMENT_SCOPE.configured,
   check_position_safety: X402_PAYMENT_SCOPE.configured,
   compare_oracle_deviation: X402_PAYMENT_SCOPE.configured,
@@ -151,9 +156,9 @@ const X402_CHAIN_NEUTRAL_MCP_PAYMENT_SCOPE_BY_TOOL = {
   get_incidents: X402_PAYMENT_SCOPE.configured,
   get_latency: X402_PAYMENT_SCOPE.configured,
   get_metrics: X402_PAYMENT_SCOPE.configured,
-  get_oracle_health: X402_PAYMENT_SCOPE.configured,
-  get_oracle_price: X402_PAYMENT_SCOPE.configured,
-  get_price_analytics: X402_PAYMENT_SCOPE.configured,
+  get_oracle_health: X402_PAYMENT_SCOPE.multichain,
+  get_oracle_price: X402_PAYMENT_SCOPE.multichain,
+  get_price_analytics: X402_PAYMENT_SCOPE.multichain,
   get_oracle_prices_batch: X402_PAYMENT_SCOPE.configured,
   get_price_history: X402_PAYMENT_SCOPE.configured,
   get_protocol_oracle_exposure: X402_PAYMENT_SCOPE.configured,
@@ -169,16 +174,16 @@ const X402_CHAIN_NEUTRAL_MCP_PAYMENT_SCOPE_BY_TOOL = {
   get_stablecoin_peg: X402_PAYMENT_SCOPE.configured,
   get_symbols: X402_PAYMENT_SCOPE.configured,
   get_wrapped_asset_peg: X402_PAYMENT_SCOPE.configured,
-  oracle_watch: X402_PAYMENT_SCOPE.configured,
+  oracle_watch: X402_PAYMENT_SCOPE.multichain,
   oracle_watch_history: X402_PAYMENT_SCOPE.configured,
-  // Product begin tools are chain-neutral purchases: the monitored subject is
-  // optional-chain data scope, not an execution chain, so the merchant's
-  // configured rail applies (same reasoning as oracle_watch).
-  oracle_watch_window_begin: X402_PAYMENT_SCOPE.configured,
-  position_lifecycle_begin: X402_PAYMENT_SCOPE.configured,
+  // Product purchases are chain-neutral: the monitored subject is
+  // optional-chain data scope, not an execution chain, so they quote every
+  // configured rail (Base and BNB included) subject to each network's floor.
+  oracle_watch_window_begin: X402_PAYMENT_SCOPE.multichain,
+  position_lifecycle_begin: X402_PAYMENT_SCOPE.multichain,
   pre_trade_safety_check: X402_PAYMENT_SCOPE.configured,
   recommend_oracle_setup: X402_PAYMENT_SCOPE.configured,
-  search_oracle_registry: X402_PAYMENT_SCOPE.configured,
+  search_oracle_registry: X402_PAYMENT_SCOPE.multichain,
   verify_execution_pair: X402_PAYMENT_SCOPE.configured,
 } as const satisfies Record<string, X402PaymentScope>;
 
@@ -472,6 +477,30 @@ export function x402ConfigForPaymentScope(
 ): X402Config | null {
   if (!cfg.enabled) return null;
   if (scope.kind === 'configured') return cfg;
+
+  if (scope.kind === 'multichain') {
+    // Advertise every rail the merchant configured, not just the default
+    // X402_EVM_NETWORKS list. Base/BNB are configured per network for
+    // fixed-scope capabilities, so they only appear via evmPayTos; unioning
+    // both sources keeps those rails visible without re-pricing anything.
+    // Per-network floors are still applied by getX402PaymentOptions.
+    const networks = evmEnabled(cfg)
+      ? Array.from(
+          new Set<X402NetworkId>([
+            ...((cfg.evmNetworks ?? []) as X402NetworkId[]),
+            ...(Object.keys(cfg.evmPayTos ?? {}) as X402NetworkId[]),
+          ])
+        ).filter((network) => payToForEvmNetwork(cfg, network) !== '')
+      : [];
+    if (networks.length === 0 && !cfg.solana) return null;
+    return {
+      ...cfg,
+      evmEnabled: networks.length > 0,
+      ...(networks.length > 0 ? { network: networks[0], evmNetworks: networks } : {}),
+      hypercore: null,
+      solana: cfg.solana,
+    };
+  }
 
   if (scope.kind === 'hypercore') {
     // HyperCore is a dedicated Core-USDC lifecycle (quote → verify → settle).
