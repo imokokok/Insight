@@ -428,10 +428,12 @@ describe('x402 paid MCP tools/call', () => {
     // C3 (20cr) → $0.02 = 20000; C1 (2cr) → $0.002 = 2000.
     expect(priceAtomicForTool('pre_trade_safety_check')).toBe('20000');
     expect(priceAtomicForTool('get_symbols')).toBe('2000');
-    // Offline verification kinds are free; the live-read perp kind stays C2.
+    // Offline verification kinds are free; the live-read perp kind is C4.
     expect(priceAtomicForTool('verify_execution_pair')).toBe('0');
     expect(priceAtomicForTool('verify_evidence', { kind: 'execution_pair' })).toBe('0');
-    expect(priceAtomicForTool('verify_evidence', { kind: 'hyperliquid_perp' })).toBe('4000');
+    expect(priceAtomicForTool('verify_evidence', { kind: 'hyperliquid_perp' })).toBe('40000');
+    // An unrecognised kind is billable by default and priced at C4.
+    expect(priceAtomicForTool('verify_evidence', { kind: 'something_else' })).toBe('40000');
   });
 });
 
