@@ -1,0 +1,46 @@
+{
+  "schema": "insight.x402-stale-admissibility-result/v1",
+  "evaluator": {
+    "id": "insight-x402-stale-admissibility-evaluator",
+    "version": "1.0.0",
+    "dependency": "viem@2.57.13",
+    "source": "evaluate.mjs"
+  },
+  "caseId": "older-accurate",
+  "evaluationTime": 1700003600,
+  "inputIntegrity": {
+    "claimSha256": "d6546700e1cf3f9a37075493c775ec263e8de040ab97e431872ef9965a9aa41d",
+    "statusSha256": "b981582c63fd6f97accde437b904de37b40559bbc335e5e842dd36bc398ccdf9"
+  },
+  "signatureValidity": {
+    "valid": true,
+    "scheme": "EIP-712",
+    "signer": "0x19E7E376E7C213B7E7e7e46cc70A5dD086DAff2A"
+  },
+  "age": {
+    "state": "STALE",
+    "assertedAt": 1700000000,
+    "evaluationTime": 1700003600,
+    "ageSeconds": 3600,
+    "maxAgeSeconds": 300,
+    "maxFutureSkewSeconds": 5,
+    "trustedClockRequired": true
+  },
+  "statusEvidence": {
+    "state": "SAFE",
+    "observedAt": 1700003500,
+    "authority": "fixture-authority/stale-admissibility-v1",
+    "synthetic": true,
+    "eventTimeEstablished": false,
+    "sourceIndependenceEstablished": false
+  },
+  "currentAdmissibility": {
+    "admissible": false,
+    "reason": "AGE_EXCEEDS_MAX"
+  },
+  "observedSettlement": {
+    "state": "NOT_OBSERVED",
+    "reference": null,
+    "synthetic": true
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "schema": "insight.x402-stale-admissibility-result/v1",
+  "evaluator": {
+    "id": "insight-x402-stale-admissibility-evaluator",
+    "version": "1.0.0",
+    "dependency": "viem@2.57.13",
+    "source": "evaluate.mjs"
+  },
+  "caseId": "fresh-unsafe",
+  "evaluationTime": 1700000030,
+  "inputIntegrity": {
+    "claimSha256": "6337741174e8bad0841bae46b351e669e6b26bda6962a006cb7be88b95410330",
+    "statusSha256": "9ded54ebd49c2f4fde56b7e3d490f14282452fcf5930cf4f6cec7d44a4c5a5b5"
+  },
+  "signatureValidity": {
+    "valid": true,
+    "scheme": "EIP-712",
+    "signer": "0x19E7E376E7C213B7E7e7e46cc70A5dD086DAff2A"
+  },
+  "age": {
+    "state": "FRESH",
+    "assertedAt": 1700000000,
+    "evaluationTime": 1700000030,
+    "ageSeconds": 30,
+    "maxAgeSeconds": 60,
+    "maxFutureSkewSeconds": 5,
+    "trustedClockRequired": true
+  },
+  "statusEvidence": {
+    "state": "UNSAFE",
+    "observedAt": 1700000020,
+    "authority": "fixture-authority/stale-admissibility-v1",
+    "synthetic": true,
+    "eventTimeEstablished": false,
+    "sourceIndependenceEstablished": false
+  },
+  "currentAdmissibility": {
+    "admissible": false,
+    "reason": "STATUS_UNSAFE"
+  },
+  "observedSettlement": {
+    "state": "OBSERVED",
+    "reference": "fixture://fresh-unsafe/synthetic-settlement-observation",
+    "synthetic": true
+  }
+}
