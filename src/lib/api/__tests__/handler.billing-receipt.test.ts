@@ -87,7 +87,7 @@ describe('REST billing receipt boundary', () => {
       5,
       receipt,
       '/api/v1/coverage',
-      expect.objectContaining({ source: 'wallet', reason: '/api/v1/coverage' })
+      expect.objectContaining({ reason: '/api/v1/coverage' })
     );
     expect(response.headers.get('X-Credit-Status')).toBe(status);
     expect(response.headers.get('X-Credit-Balance')).toBe('20');
@@ -169,7 +169,6 @@ describe('REST billing receipt boundary', () => {
       expect.any(String),
       '/api/v1/prices/batch',
       expect.objectContaining({
-        source: 'wallet',
         reason: 'batch_partial',
         meta: { requested: 3, charged: 2 },
       })

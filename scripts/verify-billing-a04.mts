@@ -21,6 +21,7 @@ import { createClient } from '@supabase/supabase-js';
 
 import {
   DEFAULT_LEDGER_BASELINE,
+  EXPECTED_HEAD,
   evaluateBillingAudit,
   formatAuditReport,
   type AuditSnapshot,
@@ -32,6 +33,11 @@ function option(name: string): string | null {
   return match ? match.slice(prefix.length) : null;
 }
 
+/**
+ * The audit pins an exact head instead of trusting whatever file happens to be
+ * newest: a checkout that is missing the product-line 0130 trigger, or one that
+ * has already moved to 0131, is a different era and must fail loudly.
+ */
 async function repositoryHead(): Promise<string> {
   const files = await readdir(new URL('../supabase/migrations/', import.meta.url));
   const versions = files
@@ -39,7 +45,17 @@ async function repositoryHead(): Promise<string> {
     .filter((version): version is string => version !== undefined)
     .sort();
   if (versions.length === 0) throw new Error('no numbered migrations found in supabase/migrations');
-  return versions.at(-1) as string;
+  const head = versions.at(-1) as string;
+  if (head !== EXPECTED_HEAD) {
+    fail(
+      head < EXPECTED_HEAD
+        ? `repository head is ${head} but the audit pins ${EXPECTED_HEAD}: ` +
+            `migration ${EXPECTED_HEAD} (24h concurrency caps trigger) is not in this checkout yet`
+        : `repository head is ${head} but the audit pins ${EXPECTED_HEAD}: ` +
+            `update EXPECTED_HEAD and REQUIRED_MIGRATIONS in scripts/lib/billing-a04-check.ts`
+    );
+  }
+  return head;
 }
 
 function fail(message: string): never {
