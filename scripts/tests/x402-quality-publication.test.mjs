@@ -21,6 +21,9 @@ const dir = join(root, 'public', 'x402-quality', 'v0');
 const schemaPath = join(dir, 'x402-quality-v0.schema.json');
 const projectionPath = join(dir, 'projection.mjs');
 const fixturesDir = join(dir, 'fixtures');
+const staleFixtureDir = join(fixturesDir, 'stale-admissibility-v1');
+const staleEvaluatorPath = join(staleFixtureDir, 'evaluate.mjs');
+const staleManifestPath = join(staleFixtureDir, 'manifest.json');
 
 const SCHEMA_ID = 'https://www.oracleinsight.xyz/x402-quality/v0/x402-quality-v0.schema.json';
 
@@ -33,6 +36,19 @@ function verifyProjection(artifactPath, receiptPath) {
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe'],
   });
+}
+
+/** Run the frozen stale-admissibility control exactly as its README instructs. */
+function evaluateStaleControl(caseId, { manifestPath = staleManifestPath, check = true } = {}) {
+  const args = [staleEvaluatorPath, '--manifest', manifestPath, '--case', caseId];
+  if (check) args.push('--check');
+  return JSON.parse(
+    execFileSync(process.execPath, args, {
+      cwd: root,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    })
+  );
 }
 
 const FIXTURE_PAIRS = [
@@ -104,5 +120,52 @@ test('projection.mjs imports nothing outside the node standard library', () => {
   assert.ok(specs.length > 0, 'expected projection.mjs to import the node standard library');
   for (const spec of specs) {
     assert.ok(spec.startsWith('node:'), `projection.mjs must stay zero-dependency, saw "${spec}"`);
+  }
+});
+
+test('pinned stale-admissibility controls preserve the predicate split', () => {
+  const freshUnsafe = evaluateStaleControl('fresh-unsafe');
+  const olderAccurate = evaluateStaleControl('older-accurate');
+
+  assert.equal(freshUnsafe.signatureValidity.valid, true);
+  assert.equal(freshUnsafe.age.state, 'FRESH');
+  assert.equal(freshUnsafe.statusEvidence.state, 'UNSAFE');
+  assert.equal(freshUnsafe.currentAdmissibility.reason, 'STATUS_UNSAFE');
+  assert.equal(freshUnsafe.observedSettlement.state, 'OBSERVED');
+
+  assert.equal(olderAccurate.signatureValidity.valid, true);
+  assert.equal(olderAccurate.age.state, 'STALE');
+  assert.equal(olderAccurate.statusEvidence.state, 'SAFE');
+  assert.equal(olderAccurate.currentAdmissibility.reason, 'AGE_EXCEEDS_MAX');
+  assert.equal(olderAccurate.observedSettlement.state, 'NOT_OBSERVED');
+
+  for (const result of [freshUnsafe, olderAccurate]) {
+    assert.equal(result.age.trustedClockRequired, true);
+    assert.equal(result.statusEvidence.eventTimeEstablished, false);
+    assert.equal(result.statusEvidence.sourceIndependenceEstablished, false);
+    assert.equal(result.currentAdmissibility.admissible, false);
+  }
+});
+
+test('the stale-admissibility evaluator fails closed on future timestamps outside its skew bound', () => {
+  const alteredManifest = readJson(staleManifestPath);
+  alteredManifest.cases['fresh-unsafe'].evaluationTime = 1699999980;
+  for (const config of Object.values(alteredManifest.cases)) {
+    for (const input of ['claim', 'status', 'expected']) {
+      config[input].path = join(staleFixtureDir, config[input].path);
+    }
+  }
+  const alteredManifestPath = join(tmpdir(), `x402-quality-future-${process.pid}.json`);
+  writeFileSync(alteredManifestPath, JSON.stringify(alteredManifest));
+  try {
+    const result = evaluateStaleControl('fresh-unsafe', {
+      manifestPath: alteredManifestPath,
+      check: false,
+    });
+    assert.equal(result.age.state, 'FUTURE_TIMESTAMP');
+    assert.equal(result.currentAdmissibility.admissible, false);
+    assert.equal(result.currentAdmissibility.reason, 'FUTURE_TIMESTAMP');
+  } finally {
+    rmSync(alteredManifestPath, { force: true });
   }
 });

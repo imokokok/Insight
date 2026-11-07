@@ -1,0 +1,10 @@
+{
+  "schema": "insight.x402-stale-admissibility-claim/v1",
+  "caseId": "older-accurate",
+  "assertedAt": 1700000000,
+  "hashAlgorithm": "sha256",
+  "subjectHash": "0xe6aa7c0beb26d39c56af8f73a22b818ff397faaa007f2b4424ac6ffd1d1dddc0",
+  "claimHash": "0x4eaea8dbf92e5f9d30554b3c4fca20e94cc3982d080f2536b2316de0aeb6d2a8",
+  "attester": "0x19E7E376E7C213B7E7e7e46cc70A5dD086DAff2A",
+  "signature": "0x007407e61dd7c2a5dfd41a2c4f9f750ebc997a84b82aefe5c9ba0204bbcca17a56335b91a6e91f3dacf87683bacc8a1494ea8ff586e38bbc2dbec8bb73a151651c"
+}

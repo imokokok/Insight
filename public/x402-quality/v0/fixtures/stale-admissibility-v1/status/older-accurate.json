@@ -1,0 +1,18 @@
+{
+  "schema": "insight.x402-stale-admissibility-status/v1",
+  "caseId": "older-accurate",
+  "authority": "fixture-authority/stale-admissibility-v1",
+  "synthetic": true,
+  "observedAt": 1700003500,
+  "state": "SAFE",
+  "statement": "The synthetic fixture authority still describes the historical claim as accurate, without authorizing a new action.",
+  "appliesTo": {
+    "subjectHash": "0xe6aa7c0beb26d39c56af8f73a22b818ff397faaa007f2b4424ac6ffd1d1dddc0",
+    "claimHash": "0x4eaea8dbf92e5f9d30554b3c4fca20e94cc3982d080f2536b2316de0aeb6d2a8"
+  },
+  "observedSettlement": {
+    "state": "NOT_OBSERVED",
+    "reference": null,
+    "synthetic": true
+  }
+}
