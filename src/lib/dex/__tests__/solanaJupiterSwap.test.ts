@@ -216,4 +216,26 @@ describe('Solana Jupiter spot swap', () => {
     expect(result.riskVerdictRef?.verdict).toBe('BLOCK');
     expect(fetcher).not.toHaveBeenCalled();
   });
+
+  it('treats a CAUTION guard verdict as blocking instead of building a transaction', async () => {
+    const fetcher = jest.fn();
+    const result = await prepareSolanaJupiterSwap(
+      {
+        ...BASE_REQUEST,
+        riskVerdict: {
+          source: 'solana_jupiter_swap_guard',
+          verdict: 'CAUTION',
+          reasons: ['PRICE_IMPACT_REQUIRES_REVIEW: 0.6%'],
+        },
+      },
+      { apiKey: 'test-key', endpoints: ['https://solana.example'], fetcher: fetcher as never }
+    );
+
+    expect(result.verdict).toBe('BLOCK');
+    expect(result.transaction).toBeNull();
+    expect(result.quote).toBeNull();
+    expect(result.blockingReasons.join(' ')).toMatch(/PRICE_IMPACT_REQUIRES_REVIEW/);
+    expect(result.riskVerdictRef?.verdict).toBe('CAUTION');
+    expect(fetcher).not.toHaveBeenCalled();
+  });
 });
