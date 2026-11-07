@@ -223,6 +223,19 @@ reported. Non-zero rows must be excluded from source-bucket totals (or counted
 as an explicit `overlap` bucket) until the transactional fix lands; they are
 never evidence that the balance or the charge is wrong.
 
+The RPC field contract is pinned by `scripts/tests/billing-migration-contract.test.mjs`.
+`precheck_credits` documents seven fields across branches (`ok`, `reason`,
+`balance`, `cost`, `budget`, `used`, `budget_warning`): a successful call omits
+`reason` and returns six, while rejection branches differ by `reason`:
+`INSUFFICIENT_CREDITS` returns four (`ok`, `reason`, `balance`, `cost`),
+`BUDGET_EXCEEDED` returns five (`ok`, `reason`, `budget`, `used`, `cost`), and
+`KEY_NOT_FOUND` returns two (`ok`, `reason`). `consume_credits` likewise
+documents seven across branches (`ok`, `reason`, `balance`, `cost`, `budget`,
+`used`, `idempotent`) and returns three on the plain success path. Neither RPC
+returns `confirmed`; the `{ok: true, confirmed: false}` shape is the
+application-layer fail-open result after an RPC failure, not a database field.
+The charge decision is `ok` plus `X-Credit-Status`.
+
 ## Source latency and coverage
 
 Coverage probes expose per-provider `fetchDurationMs` and `freshnessShortfall`.
