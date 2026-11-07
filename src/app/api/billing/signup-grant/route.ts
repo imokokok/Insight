@@ -5,10 +5,10 @@
  * the API before paying. Requirements:
  *
  *   - Email-verified account only (anti-farming; OAuth signups are verified).
- *   - Exactly once per user, never refreshed. The grant is keyed on the
- *     deterministic metering_key `signup:<userId>`: `top_up_credits` is
- *     idempotent on that key, so re-running (re-login, duplicate request) is
- *     a no-op and the allowance is never issued a second time.
+ *   - At most once per user, ever. The grant is keyed on the deterministic
+ *     metering_key `signup:<userId>`: `top_up_credits` is idempotent on that
+ *     key, so re-running (re-login or a duplicate request) is a no-op.
+ *   - There is deliberately NO monthly reset: the allowance is granted once.
  *
  * The client calls this after a successful login; failure is non-fatal (the
  * user can still pay and use the API), so it is fire-and-forget from the UI.
@@ -54,9 +54,11 @@ export const POST = createApiHandler(
       );
     }
 
+    // One-time idempotency key: the same user can only ever receive the grant
+    // once. Re-login and duplicate requests collapse into a no-op.
     const meteringKey = `signup:${userId}`;
 
-    // Informational: distinguish first-time grant from an idempotent no-op.
+    // Informational: distinguish the first grant from a no-op.
     const { data: existing } = await serviceClient
       .from('credit_ledger')
       .select('id')
@@ -69,6 +71,8 @@ export const POST = createApiHandler(
       meteringKey,
       kind: 'grant',
       ref: 'signup',
+      source: 'signup',
+      reason: 'signup_grant',
     });
 
     if (balance === null) {

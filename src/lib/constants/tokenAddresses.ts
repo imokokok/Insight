@@ -24,6 +24,7 @@ export const CHAIN_ID = {
   BSC: 56,
   BASE: 8453,
   MONAD: 143,
+  HYPEREVM: 999,
   AVALANCHE: 43114,
   FANTOM: 250,
   CRONOS: 25,

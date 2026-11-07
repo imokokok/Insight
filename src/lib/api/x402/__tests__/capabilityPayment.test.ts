@@ -34,6 +34,7 @@ describe('x402 capability payment bindings', () => {
     [X402_PAYMENT_SCOPE.polygon, ['eip155:137']],
     [X402_PAYMENT_SCOPE.arbitrum, ['eip155:42161']],
     [X402_PAYMENT_SCOPE.bnb, ['eip155:56']],
+    [X402_PAYMENT_SCOPE.hyperevm, ['eip155:999']],
   ] as const)(
     'isolates %s.label from a globally HyperEVM-configured merchant',
     (scope, networks) => {
@@ -93,6 +94,7 @@ describe('x402 capability payment bindings', () => {
   it('derives dynamic multichain lending scopes from the declared chain only', () => {
     expect(x402PaymentScopeForEvmChainId(8453)).toEqual(X402_PAYMENT_SCOPE.base);
     expect(x402PaymentScopeForEvmChainId(42161)).toEqual(X402_PAYMENT_SCOPE.arbitrum);
+    expect(x402PaymentScopeForEvmChainId(999)).toEqual(X402_PAYMENT_SCOPE.hyperevm);
     expect(x402PaymentScopeForEvmChainId(999_999)).toBeNull();
     expect(x402PaymentScopeForMcpTool('multichain_evm_lending_guard', { chainId: 137 })).toEqual(
       X402_PAYMENT_SCOPE.polygon
@@ -103,6 +105,9 @@ describe('x402 capability payment bindings', () => {
       })
     ).toEqual(X402_PAYMENT_SCOPE.bnb);
     expect(x402PaymentScopeForMcpTool('multichain_evm_lending_guard', {})).toBeNull();
+    expect(x402PaymentScopeForMcpTool('check_trade_safety', { chain_id: 999 })).toEqual(
+      X402_PAYMENT_SCOPE.hyperevm
+    );
   });
 
   it('binds the Solana swap guard lifecycle to the native Solana rail', () => {

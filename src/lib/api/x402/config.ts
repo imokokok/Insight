@@ -270,7 +270,7 @@ export interface X402Config {
    * with a real settlement. When set, a network whose quote is below its floor
    * is omitted from `accepts[]` instead of advertising an unsettleable amount.
    */
-  networkMinAmountAtomic?: Partial<Record<X402NetworkId, string>>;
+  networkMinAmountAtomic?: Partial<Record<X402PaymentNetworkId, string>>;
   facilitatorUrl: string;
   /**
    * Per-network facilitator overrides parsed from X402_FACILITATOR_URLS
@@ -465,9 +465,9 @@ function parseNetworkMinAmounts(
       if (key && value) entries.push([key.trim(), value.trim()]);
     }
   }
-  const result: Partial<Record<X402NetworkId, string>> = {};
+  const result: Partial<Record<X402PaymentNetworkId, string>> = {};
   for (const [key, value] of entries) {
-    const network = NetworkSchema.parse(key);
+    const network = PaymentNetworkSchema.parse(key);
     const amount = Number(value);
     if (!Number.isInteger(amount) || amount <= 0) {
       throw new Error(`X402_NETWORK_MIN_AMOUNT for ${key} must be a positive integer`);
@@ -902,6 +902,24 @@ export function atomicUnitsForNetwork(network: X402NetworkId, microUsdAtomic: st
   return (BigInt(microUsdAtomic) * 10n ** shift).toString();
 }
 
+/**
+ * BNB C1 is not listed: at $0.002 the 50% gross-margin floor ($0.0042 from
+ * $0.0021 settlement gas) is violated (−5%). C2 ($0.004) and above stay on
+ * shelf, so the cut-off is 4000 micro-USDC rather than the full BNB floor.
+ * A deployment-set `X402_NETWORK_MIN_AMOUNT` floor still applies on top.
+ */
+const BNB_MIN_LISTED_MICRO_ATOMIC = '4000';
+
+/** Effective micro-USDC floor for a network, combining the hard product floor
+ *  with the optional `X402_NETWORK_MIN_AMOUNT` deployment override. */
+function microFloorForNetwork(cfg: X402Config, network: string): bigint | null {
+  const configured = cfg.networkMinAmountAtomic?.[network as X402PaymentNetworkId];
+  const hard = network === 'eip155:56' ? BNB_MIN_LISTED_MICRO_ATOMIC : undefined;
+  if (configured === undefined && hard === undefined) return null;
+  const values = [configured, hard].filter((value): value is string => value !== undefined);
+  return values.reduce((max, value) => (BigInt(value) > max ? BigInt(value) : max), 0n);
+}
+
 /** Build the network-specific payment options advertised by REST and MCP. */
 export function getX402PaymentOptions(
   cfg: X402Config,
@@ -915,8 +933,8 @@ export function getX402PaymentOptions(
   if (evmEnabled) {
     for (const network of cfg.evmNetworks?.length ? cfg.evmNetworks : [cfg.network]) {
       const microAtomic = amountOverride ?? cfg.amountAtomic;
-      const floor = cfg.networkMinAmountAtomic?.[network];
-      if (floor !== undefined && BigInt(microAtomic) < BigInt(floor)) {
+      const floor = microFloorForNetwork(cfg, network);
+      if (floor !== null && BigInt(microAtomic) < floor) {
         // Below the settlement floor (e.g. HyperEVM with unsponsored gas):
         // omit the rail instead of quoting an amount it cannot settle.
         continue;
@@ -949,13 +967,19 @@ export function getX402PaymentOptions(
   }
 
   if (cfg.solana) {
-    options.push({
-      family: 'svm',
-      network: cfg.solana.network,
-      payTo: cfg.solana.payTo,
-      asset: cfg.solana.usdcMint,
-      amountAtomic: amountOverride ?? cfg.solana.amountAtomic,
-    });
+    // Solana honors the same floor rule as EVM; it used to be skipped, which
+    // made `X402_NETWORK_MIN_AMOUNT` silently ineffective for the SVM rail.
+    const microAtomic = amountOverride ?? cfg.solana.amountAtomic;
+    const floor = microFloorForNetwork(cfg, cfg.solana.network);
+    if (floor === null || BigInt(microAtomic) >= floor) {
+      options.push({
+        family: 'svm',
+        network: cfg.solana.network,
+        payTo: cfg.solana.payTo,
+        asset: cfg.solana.usdcMint,
+        amountAtomic: microAtomic,
+      });
+    }
   }
 
   return options;

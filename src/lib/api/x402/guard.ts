@@ -125,6 +125,17 @@ export function x402AcquisitionSource(
  * wallet-free entitlement, and plans.ts, quotaMiddleware.ts and
  * mcp/middleware.ts all state "no recurring free tier".
  */
+/** UVD facilitator settlement receipt/purchase id header. */
+export const UVD_PURCHASE_HEADER = 'X-UVD-Purchase';
+
+/** Re-expose a settlement receipt id under the canonical `X-Credit-Receipt`. */
+export function attachX402ReceiptHeader(
+  response: Response,
+  receiptId: string | null | undefined
+): void {
+  if (receiptId) response.headers.set('X-Credit-Receipt', receiptId);
+}
+
 export function x402OnboardingHeaders(): Record<string, string> {
   // The explicit key type makes a missing or renamed hint a compile error:
   // every emitted name must also appear in the shared CORS expose list.
@@ -1134,6 +1145,12 @@ export async function handlePaidPreTradeRequest(
   logBazaarExtensionStatus(requestId, settle.headers);
 
   if (settle.success) {
+    // UVD returns a purchase/receipt id on settlement. Copying settle.headers
+    // already lands it on the response; also mirror it into the canonical
+    // receipt header so buyers have one documented place to reconcile gas and
+    // sponsorship after the fact.
+    attachX402ReceiptHeader(businessResponse, businessResponse.headers.get(UVD_PURCHASE_HEADER));
+
     // The CDP v2 settle response omits `amount`, and the exact scheme always
     // settles the issued requirements, so the configured atomic amount is the
     // deterministic charge. Verdict is lifted from the business body

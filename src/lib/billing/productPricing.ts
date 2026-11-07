@@ -15,7 +15,13 @@
  */
 
 import { isFreeVerifyCall } from './freeVerify';
-import { getCreditCost, getToolCreditCost } from './metering';
+import {
+  BATCH_UNIT_CREDITS,
+  getCreditCost,
+  getMcpToolBillableItems,
+  getToolCreditCost,
+  isMcpBatchCall,
+} from './metering';
 import {
   ORACLE_WATCH_WINDOW_BEGIN_PATH,
   ORACLE_WATCH_WINDOW_CREDIT_COST,
@@ -89,11 +95,19 @@ export function getMcpToolCreditCost(toolName: string): number {
 
 /**
  * Per-call cost that knows the tool arguments. Offline verification kinds are
- * free; everything else falls back to the tool's static class price.
+ * free; batch tools charge per requested item; everything else falls back to
+ * the tool's static class price.
  */
 export function getMcpToolCreditCostForCall(toolName: string, args?: unknown): number {
   if (isFreeVerifyCall(toolName, args)) return 0;
-  return getMcpToolCreditCost(toolName);
+  // Batch tools are priced at the C1 rate per successful item (2 credits),
+  // not the flat C2 class price: see §7.2 of the pricing review.
+  if (isMcpBatchCall(toolName, args)) {
+    return BATCH_UNIT_CREDITS * getMcpToolBillableItems(toolName, args);
+  }
+  const unitCost = getMcpToolCreditCost(toolName);
+  if (unitCost === 0) return 0;
+  return unitCost * getMcpToolBillableItems(toolName, args);
 }
 
 /** True when a tool's per-call cost is covered by a prior product purchase. */

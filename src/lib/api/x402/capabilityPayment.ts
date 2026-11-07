@@ -48,6 +48,7 @@ export const X402_PAYMENT_SCOPE = {
   polygon: { kind: 'evm', network: `eip155:${CHAIN_ID.POLYGON}`, label: 'Polygon PoS' },
   arbitrum: { kind: 'evm', network: `eip155:${CHAIN_ID.ARBITRUM}`, label: 'Arbitrum One' },
   bnb: { kind: 'evm', network: `eip155:${CHAIN_ID.BSC}`, label: 'BNB Smart Chain' },
+  hyperevm: { kind: 'evm', network: `eip155:${CHAIN_ID.HYPEREVM}`, label: 'HyperEVM' },
   solana: { kind: 'solana', label: 'Solana' },
   hypercore: { kind: 'hypercore', label: 'Hyperliquid HyperCore' },
 } as const satisfies Record<string, X402PaymentScope>;
@@ -213,15 +214,15 @@ export const X402_MCP_PAYMENT_SCOPE_BY_TOOL: Readonly<Record<string, X402Payment
   settle_solana_swap_guard: X402_PAYMENT_SCOPE.solana,
   verify_solana_swap_guard_settlement: X402_PAYMENT_SCOPE.solana,
   loopscale_vault_deposit: X402_PAYMENT_SCOPE.solana,
-  // MCP does not yet implement the HyperCore verify/settle lifecycle. Keep
-  // these tools from falling back to an unrelated EVM quote until it does.
+  // HyperCore tools ride the dedicated Core-USDC verify/settle lifecycle in
+  // the MCP bridge; there is no EVM substitute.
   get_hyperliquid_perp_market: X402_PAYMENT_SCOPE.hypercore,
   prepare_hyperliquid_perp_order: X402_PAYMENT_SCOPE.hypercore,
   prepare_perp_order: X402_PAYMENT_SCOPE.hypercore,
   verify_hyperliquid_perp_execution: X402_PAYMENT_SCOPE.hypercore,
   // The Hyperliquid perp guard is venue-bound evidence about Hyperliquid, so
-  // it names the same realm; the paid tier is served by the REST route, and
-  // MCP-side keyless payment stays fail closed until HyperCore lands.
+  // it names the same realm; keyless MCP payment runs the HyperCore lifecycle
+  // in the MCP bridge.
   hyperliquid_perp_guard: X402_PAYMENT_SCOPE.hypercore,
   hyperliquid_perp_guard_exact_call: X402_PAYMENT_SCOPE.hypercore,
 };
@@ -473,10 +474,19 @@ export function x402ConfigForPaymentScope(
   if (scope.kind === 'configured') return cfg;
 
   if (scope.kind === 'hypercore') {
-    // HyperCore is supported by the REST guard's dedicated lifecycle, but not
-    // by the MCP x402 bridge. Do not represent a HyperCore capability with an
-    // EVM substitute while that protocol work is incomplete.
-    return null;
+    // HyperCore is a dedicated Core-USDC lifecycle (quote → verify → settle).
+    // Keep an isolated config so no EVM/Solana option can leak into the quote;
+    // `null` means the HyperCore rail is not configured and the caller fails
+    // closed.
+    if (!cfg.hypercore) return null;
+    return {
+      ...cfg,
+      evmEnabled: false,
+      evmNetworks: [],
+      payTo: '',
+      evmPayTos: {},
+      solana: null,
+    };
   }
 
   if (scope.kind === 'solana') {

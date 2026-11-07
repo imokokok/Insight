@@ -7,20 +7,67 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 
 import type { MppMcpCallHandler } from '@/lib/api/mpp/mcp';
+import type { CreditBillingHeaderInput } from '@/lib/billing/billingHeaders';
+import { makeMeteringKey, precheckCredits, recordWaivedCredit } from '@/lib/billing/creditWallet';
+import { isNoUsableDataResult, isUpstreamTimeoutError } from '@/lib/billing/exemptions';
+import { countMcpBatchSuccessItems, getMcpToolBillableItems } from '@/lib/billing/metering';
+import { getMcpToolCreditCostForCall } from '@/lib/billing/productPricing';
+import {
+  getCachedMcpResult,
+  idempotencyMeteringKey,
+  mcpRequestFingerprint,
+  setCachedMcpResult,
+} from '@/lib/billing/requestIdempotency';
 import { createLogger } from '@/lib/utils/logger';
 
 import packageJson from '../../package.json';
 
-import { consumeMcpQuota, precheckMcpToolQuota, recordMcpToolUsage } from './middleware';
+import {
+  consumeMcpQuota,
+  precheckMcpToolQuota,
+  recordMcpToolUsage,
+  type McpConsumeOutcome,
+} from './middleware';
 import { executeTool, getToolDefinitions } from './tools';
 
 import type { McpAuthContext } from './auth';
 
 const logger = createLogger('mcp-server');
 
+/**
+ * Map a consume outcome to its receipt status. Kept out of the tool handler so
+ * the handler's branching stays within the complexity budget.
+ */
+function resolveMcpChargeReceipt(charge: McpConsumeOutcome): {
+  status: CreditBillingHeaderInput['status'];
+  zeroReason?: string;
+} {
+  if (charge.source === 'unmetered' || charge.cost === 0) {
+    return { status: 'free', zeroReason: 'free' };
+  }
+  if (charge.confirmed === false) {
+    return { status: 'degraded', zeroReason: 'unconfirmed' };
+  }
+  if (charge.idempotent) {
+    return { status: 'replayed', zeroReason: 'replay' };
+  }
+  return charge.charged > 0 ? { status: 'charged' } : { status: 'not_charged' };
+}
+
 export interface McpServerOptions {
   mppPaymentEnabled?: boolean;
   mppCallHandler?: MppMcpCallHandler;
+  /**
+   * Caller-supplied idempotency key (`Idempotency-Key` or `X-Request-Id`).
+   * When present it participates in the request fingerprint so an explicit
+   * retry resolves to the same cache entry and ledger key.
+   */
+  idempotencyKey?: string | null;
+  /**
+   * Mutable per-request billing receipt. The HTTP transport fills
+   * `X-Credit-*` headers from it after the response is produced.
+   */
+  billingReceipt?: CreditBillingHeaderInput;
 }
 
 export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions = {}): Server {
@@ -67,12 +114,82 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
       const startTime = Date.now();
       logger.info(`MCP tool called: ${name}`, { args });
 
+      const receipt = options.billingReceipt;
+      const listPrice = getMcpToolCreditCostForCall(name, args);
+
+      // Request-level idempotency only applies to metered API-key calls. A
+      // replay inside the 10-minute window is served from the process cache
+      // without re-executing or re-charging; the deterministic ledger key
+      // protects replays that land on another instance.
+      let requestKey: string | null = null;
+      if (auth?.type === 'apikey') {
+        requestKey = mcpRequestFingerprint(
+          `key:${auth.apiKey.keyId}`,
+          name,
+          args,
+          options.idempotencyKey ?? null
+        );
+        const cached = getCachedMcpResult(requestKey);
+        if (cached) {
+          if (receipt) {
+            const replayBalance = (await precheckCredits(auth.apiKey.keyId, 0)).balance;
+            Object.assign(receipt, {
+              // A replay debits nothing: report 0, not the original price.
+              costCredits: 0,
+              balance: replayBalance ?? null,
+              balanceAfter: replayBalance ?? null,
+              status: 'replayed',
+              zeroReason: 'replay',
+              receipt: cached.receipt ?? cached.rest?.receipt ?? null,
+            });
+          }
+          recordMcpToolUsage(auth, name, 200, Date.now() - startTime);
+          logger.info(`MCP tool replayed from idempotency cache: ${name}`);
+          return cached.result as {
+            content: Array<{ type: 'text'; text: string }>;
+            isError?: boolean;
+            _meta?: Record<string, unknown>;
+          };
+        }
+      }
+
+      /**
+       * Write a 0-delta `waiver` ledger row for a zero-charge outcome. Uses the
+       * same deterministic request key as the charge path, so a retried free
+       * outcome records exactly one row and never blocks a later real charge.
+       */
+      const recordWaiver = async (reason: 'insufficient_data' | 'timeout') => {
+        if (auth?.type !== 'apikey') return;
+        const meteringKey =
+          requestKey !== null
+            ? idempotencyMeteringKey(requestKey)
+            : makeMeteringKey(`mcp:waiver:${auth.apiKey.keyId}:${name}`);
+        await recordWaivedCredit({
+          keyId: auth.apiKey.keyId,
+          meteringKey,
+          ref: `/mcp/tools/${name}`,
+          reason,
+        });
+      };
+
       const runBusiness = async () => {
+        if (receipt) {
+          Object.assign(receipt, { costCredits: listPrice, status: 'quote' });
+        }
+
         // Credit gate: reject before executing if the key can't afford THIS
         // tool (the HTTP-boundary precheck only tests the cheapest class).
         if (auth) {
           const creditCheck = await precheckMcpToolQuota(auth, name, args);
           if (!creditCheck.allowed) {
+            if (receipt) {
+              Object.assign(receipt, {
+                costCredits: 0,
+                status: 'not_charged',
+                balance: creditCheck.balance ?? null,
+                balanceAfter: creditCheck.balance ?? null,
+              });
+            }
             recordMcpToolUsage(auth, name, 402, Date.now() - startTime);
             return {
               content: [
@@ -90,23 +207,139 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
         });
 
         if (auth) {
-          // Only consume credits when the tool actually returned data.
-          // Protocol overhead (initialize/tools/list/ping) and execution
-          // failures are NOT metered — mirroring the REST API which only
-          // charges successful data requests.
-          if (!result.isError) {
-            const charge = await consumeMcpQuota(auth, name, args);
-            if (!charge.allowed) {
-              recordMcpToolUsage(auth, name, 402, Date.now() - startTime);
-              return {
-                content: [
+          const resultText = result.content.map((block) => block.text).join('\n');
+
+          // Only consume credits when the tool actually delivered usable data.
+          // Protocol overhead (initialize/tools/list/ping), execution failures,
+          // upstream/chain timeouts, and `insufficient_data` results are NOT
+          // metered — mirroring the REST API which only charges delivered data.
+          if (result.isError) {
+            const insufficient = /INSUFFICIENT_DATA/.test(resultText);
+            const timedOut = !insufficient && isUpstreamTimeoutError(resultText);
+            if (receipt) {
+              Object.assign(receipt, {
+                costCredits: 0,
+                status: insufficient ? 'waived' : 'not_charged',
+                zeroReason: insufficient ? 'insufficient_data' : timedOut ? 'timeout' : undefined,
+              });
+            }
+            if (insufficient) await recordWaiver('insufficient_data');
+            else if (timedOut) await recordWaiver('timeout');
+          } else if (isNoUsableDataResult(resultText)) {
+            if (receipt) {
+              Object.assign(receipt, {
+                costCredits: 0,
+                status: 'waived',
+                zeroReason: 'insufficient_data',
+              });
+            }
+            await recordWaiver('insufficient_data');
+            logger.info(`MCP tool returned no usable data; not billed: ${name}`);
+          } else {
+            // Batch tools can partially succeed. Bill only the items that
+            // actually returned usable data; all-failed batches delivered no
+            // conclusion and are exempt.
+            const successfulItems = countMcpBatchSuccessItems(name, args, resultText);
+            if (successfulItems === 0) {
+              if (receipt) {
+                Object.assign(receipt, {
+                  costCredits: 0,
+                  status: 'waived',
+                  zeroReason: 'insufficient_data',
+                });
+              }
+              await recordWaiver('insufficient_data');
+              logger.info(`MCP batch returned no usable items; not billed: ${name}`);
+            } else {
+              const requestedItems = getMcpToolBillableItems(name, args);
+              const charge = await consumeMcpQuota(auth, name, args, {
+                meteringKey: requestKey !== null ? idempotencyMeteringKey(requestKey) : undefined,
+                billableItems: successfulItems ?? undefined,
+                reason:
+                  successfulItems !== null
+                    ? successfulItems < requestedItems
+                      ? 'batch_partial'
+                      : 'prices.batch'
+                    : name,
+                meta:
+                  successfulItems !== null
+                    ? { requested: requestedItems, charged: successfulItems }
+                    : undefined,
+              });
+              if (!charge.allowed) {
+                if (receipt) {
+                  Object.assign(receipt, {
+                    costCredits: 0,
+                    status: 'not_charged',
+                    balance: charge.balance ?? null,
+                    balanceAfter: charge.balance ?? null,
+                  });
+                }
+                recordMcpToolUsage(auth, name, 402, Date.now() - startTime);
+                return {
+                  content: [
+                    {
+                      type: 'text' as const,
+                      text: `Insufficient credits: ${charge.reason ?? 'authoritative charge rejected'}`,
+                    },
+                  ],
+                  isError: true,
+                };
+              }
+
+              if (receipt) {
+                // `charge.balance` is the post-debit balance when a debit
+                // happened, and the current balance otherwise (see 0042 RPC).
+                const balanceAfter = charge.balance ?? null;
+                const balanceBefore =
+                  balanceAfter !== null && charge.charged > 0
+                    ? balanceAfter + charge.charged
+                    : balanceAfter;
+                const { status, zeroReason } = resolveMcpChargeReceipt(charge);
+                Object.assign(receipt, {
+                  costCredits: charge.cost,
+                  balance: balanceBefore,
+                  balanceAfter,
+                  status,
+                  zeroReason,
+                  receipt: charge.receipt ?? null,
+                });
+              }
+
+              // C4 fail-closed (§1.1 row 9 / §8.3): do not return the data
+              // when a 40-credit debit could not be confirmed. A pending
+              // settlement row has already been queued by consumeCredits.
+              if (charge.confirmed === false && charge.cost >= 40) {
+                logger.error(
+                  'MCP C4 debit unconfirmed — withholding result',
+                  new Error('C4_SETTLEMENT_UNCONFIRMED'),
                   {
-                    type: 'text' as const,
-                    text: `Insufficient credits: ${charge.reason ?? 'authoritative charge rejected'}`,
-                  },
-                ],
-                isError: true,
-              };
+                    apiKeyId: auth.type === 'apikey' ? auth.apiKey.keyId : null,
+                    cost: charge.cost,
+                  }
+                );
+                recordMcpToolUsage(auth, name, 503, Date.now() - startTime);
+                return {
+                  content: [
+                    {
+                      type: 'text' as const,
+                      text: 'CREDIT_SETTLEMENT_UNAVAILABLE: the credit ledger is temporarily unavailable. Retry shortly; this call was not charged.',
+                    },
+                  ],
+                  isError: true,
+                };
+              }
+
+              // Cache only confirmed, billable successes. A replay of a free,
+              // failed or unconfirmed request must never shadow a chargeable one.
+              if (requestKey && charge.cost > 0 && charge.confirmed !== false) {
+                setCachedMcpResult(requestKey, {
+                  priceCredits: charge.cost,
+                  billableItems: charge.items,
+                  receipt: charge.receipt ?? null,
+                  result,
+                });
+              }
             }
           }
           recordMcpToolUsage(auth, name, result.isError ? 500 : 200, Date.now() - startTime);

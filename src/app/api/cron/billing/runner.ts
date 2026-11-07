@@ -23,7 +23,7 @@ import { NextResponse } from 'next/server';
 
 import { cleanupIncompleteSubscriptions, downgradeExpiredSubscriptions } from '@/lib/api/apiKey';
 import { verifyCronSecret } from '@/lib/api/cronAuth';
-import { addMonthlyCredits } from '@/lib/billing/creditWallet';
+import { addMonthlyCredits, settlePendingCredits } from '@/lib/billing/creditWallet';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
 
 const logger = createLogger('CronBilling');
@@ -51,6 +51,8 @@ export async function runBilling(): Promise<BillingResult> {
     subscriptionsDowngraded: number;
     subscriptionsCleanedUp: number;
     creditsGranted?: number;
+    pendingSettlements?: number;
+    pendingSettlementsAbandoned?: number;
   } = { subscriptionsDowngraded: 0, subscriptionsCleanedUp: 0 };
 
   try {
@@ -81,6 +83,30 @@ export async function runBilling(): Promise<BillingResult> {
       creditsGranted: results.creditsGranted,
     });
 
+    // 4. Daily: replay charges whose consume_credits RPC failed at request
+    //    time. Idempotent on the original metering key, so a request that was
+    //    actually charged is a no-op. A non-zero `pending` count means the
+    //    ledger is still behind and must be alerted on.
+    logger.info('Billing cron: starting settlePendingCredits');
+    const settlement = await settlePendingCredits();
+    if (settlement === null) throw new Error('PENDING_SETTLEMENT_RECONCILE_FAILED');
+    results.pendingSettlements = settlement.settled;
+    results.pendingSettlementsAbandoned = settlement.abandoned;
+    if (settlement.pending > 0) {
+      logger.error(
+        'Billing cron: pending settlements still unresolved',
+        new Error('PENDING_SETTLEMENTS_UNRESOLVED'),
+        {
+          pending: settlement.pending,
+        }
+      );
+    }
+    logger.info('Billing cron: settlePendingCredits complete', {
+      settled: settlement.settled,
+      abandoned: settlement.abandoned,
+      pending: settlement.pending,
+    });
+
     logger.info('Billing cron complete', {
       ...results,
       utcDate: now.toISOString(),
@@ -91,7 +117,7 @@ export async function runBilling(): Promise<BillingResult> {
       body: {
         success: true,
         data: results,
-        message: `Billing cron complete: ${results.subscriptionsDowngraded} expired subs downgraded, ${results.subscriptionsCleanedUp} zombies cleaned, ${results.creditsGranted} wallets credited`,
+        message: `Billing cron complete: ${results.subscriptionsDowngraded} expired subs downgraded, ${results.subscriptionsCleanedUp} zombies cleaned, ${results.creditsGranted} wallets credited, ${results.pendingSettlements} pending charges settled (${results.pendingSettlementsAbandoned} abandoned)`,
       },
     };
   } catch (error) {

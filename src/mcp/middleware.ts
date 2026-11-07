@@ -14,8 +14,13 @@
 import { logApiKeyUsage } from '@/lib/api/apiKey';
 import { rateLimitStore } from '@/lib/api/middleware/rateLimitStore';
 import { consumeCredits, makeMeteringKey, precheckCredits } from '@/lib/billing/creditWallet';
+import { isFreeVerifyCall } from '@/lib/billing/freeVerify';
+import { batchChargeCredits, getMcpToolBillableItems } from '@/lib/billing/metering';
 import { normalizePlan, PLANS } from '@/lib/billing/plans';
-import { getMcpToolCreditCostForCall } from '@/lib/billing/productPricing';
+import {
+  getMcpToolCreditCostForCall,
+  isEntitlementCoveredMcpTool,
+} from '@/lib/billing/productPricing';
 import { createLogger } from '@/lib/utils/logger';
 
 import type { McpAuthContext } from './auth';
@@ -160,7 +165,7 @@ export async function precheckMcpToolQuota(
   auth: McpAuthContext,
   toolName: string,
   args?: unknown
-): Promise<{ allowed: boolean; reason?: string }> {
+): Promise<{ allowed: boolean; reason?: string; balance?: number }> {
   if (auth.type !== 'apikey') {
     return { allowed: true };
   }
@@ -173,51 +178,136 @@ export async function precheckMcpToolQuota(
 
   // Product-priced tools: the begin tools charge the full product price, and
   // the in-window tools (0) are covered by that purchase — never re-metered.
-  // Offline verification kinds also resolve to 0 and never precheck.
+  // Offline verification kinds also resolve to 0 and never precheck. Batch
+  // tools precheck against the full requested item count.
   const cost = getMcpToolCreditCostForCall(toolName, args);
   if (cost === 0) {
     return { allowed: true };
   }
   const precheck = await precheckCredits(auth.apiKey.keyId, cost);
   if (!precheck.ok) {
-    return { allowed: false, reason: precheck.reason ?? 'Insufficient credits' };
+    return {
+      allowed: false,
+      reason: precheck.reason ?? 'Insufficient credits',
+      balance: precheck.balance,
+    };
   }
 
-  return { allowed: true };
+  return { allowed: true, balance: precheck.balance };
+}
+
+/** How this MCP call was settled. `credits` = wallet debit, `free` = priced
+ *  at zero, `entitlement` = covered by a prior product purchase,
+ *  `unmetered` = non-API-key caller or unlimited plan. */
+export type McpBillingSource = 'credits' | 'free' | 'entitlement' | 'unmetered';
+
+export interface McpConsumeOutcome {
+  allowed: boolean;
+  reason?: string;
+  /** List price for this call, in credits (batch-scaled to successful items). */
+  cost: number;
+  /** Batch items actually billed; 1 for per-call tools. */
+  items: number;
+  /** Credits actually deducted. 0 for free, entitlement, replay, or fail-open. */
+  charged: number;
+  /** Ledger metering key for this logical request (X-Credit-Receipt). */
+  receipt?: string;
+  balance?: number;
+  idempotent?: boolean;
+  confirmed?: boolean;
+  source: McpBillingSource;
 }
 
 /**
  * Authoritatively consume credits for a successful MCP tool call before its
  * data is returned. No-op for session, shared-bearer and unlimited callers.
+ *
+ * `meteringKey` is the caller's deterministic request key: `consume_credits`
+ * is idempotent on it, so a replay is served without a second charge even
+ * across serverless instances.
  */
 export async function consumeMcpQuota(
   auth: McpAuthContext,
   toolName: string,
-  args?: unknown
-): Promise<{ allowed: boolean; reason?: string }> {
+  args?: unknown,
+  options?: {
+    meteringKey?: string;
+    billableItems?: number;
+    /** Ledger reason override (prices.batch / batch_partial / insufficient_data / timeout). */
+    reason?: string;
+    /** Per-charge detail written to `credit_ledger.meta`. */
+    meta?: Record<string, unknown>;
+  }
+): Promise<McpConsumeOutcome> {
+  const requestedItems = getMcpToolBillableItems(toolName, args);
+  const requestedCost = getMcpToolCreditCostForCall(toolName, args);
+  // Batch tools precheck against the requested item count but are billed for
+  // the items that actually returned usable data (never more than requested).
+  const items =
+    options?.billableItems !== undefined
+      ? Math.min(requestedItems, Math.max(0, options.billableItems))
+      : requestedItems;
+  const cost =
+    items === requestedItems
+      ? requestedCost
+      : requestedCost > 0
+        ? batchChargeCredits(requestedCost / requestedItems, items)
+        : 0;
   if (auth.type !== 'apikey') {
-    return { allowed: true };
+    return {
+      allowed: true,
+      cost,
+      items,
+      charged: 0,
+      source: 'unmetered',
+      receipt: options?.meteringKey,
+    };
   }
 
   const plan = normalizePlan(auth.apiKey.plan);
 
   if (PLANS[plan].monthlyQuota < 0) {
     // Unlimited (enterprise) — not metered.
-    return { allowed: true };
+    return {
+      allowed: true,
+      cost,
+      items,
+      charged: 0,
+      source: 'unmetered',
+      receipt: options?.meteringKey,
+    };
   }
 
   // Product-priced tools: 0 means covered by the prior purchase. Offline
   // verification kinds are also 0 and stay free.
-  const cost = getMcpToolCreditCostForCall(toolName, args);
   if (cost === 0) {
-    return { allowed: true };
+    return {
+      allowed: true,
+      cost,
+      items,
+      charged: 0,
+      source: isFreeVerifyCall(toolName, args)
+        ? 'free'
+        : isEntitlementCoveredMcpTool(toolName)
+          ? 'entitlement'
+          : 'free',
+      receipt: options?.meteringKey,
+    };
   }
-  const meteringKey = makeMeteringKey(`mcp:${auth.apiKey.keyId}:${toolName}`);
+
+  const meteringKey =
+    options?.meteringKey ?? makeMeteringKey(`mcp:${auth.apiKey.keyId}:${toolName}`);
   const charge = await consumeCredits(
     auth.apiKey.keyId,
     cost,
     meteringKey,
-    `/mcp/tools/${toolName}`
+    `/mcp/tools/${toolName}`,
+    {
+      source: 'wallet',
+      reason: options?.reason ?? toolName,
+      requestId: meteringKey,
+      meta: options?.meta,
+    }
   );
   if (!charge.ok) {
     logger.warn('MCP authoritative credit consume rejected', {
@@ -226,9 +316,44 @@ export async function consumeMcpQuota(
       toolName,
       reason: charge.reason,
     });
-    return { allowed: false, reason: charge.reason ?? 'Insufficient credits' };
+    return {
+      allowed: false,
+      reason: charge.reason ?? 'Insufficient credits',
+      cost,
+      items,
+      charged: 0,
+      balance: charge.balance,
+      source: 'credits',
+      receipt: meteringKey,
+    };
   }
-  return { allowed: true };
+
+  // Fail-open on transient DB errors: the response is still delivered, but
+  // the header must not claim a charge that was not confirmed.
+  if (charge.confirmed === false) {
+    return {
+      allowed: true,
+      cost,
+      items,
+      charged: 0,
+      balance: charge.balance,
+      confirmed: false,
+      source: 'credits',
+      receipt: meteringKey,
+    };
+  }
+
+  return {
+    allowed: true,
+    cost,
+    items,
+    charged: charge.idempotent ? 0 : cost,
+    balance: charge.balance,
+    idempotent: charge.idempotent,
+    confirmed: true,
+    source: 'credits',
+    receipt: meteringKey,
+  };
 }
 
 /**

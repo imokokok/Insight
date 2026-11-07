@@ -10,7 +10,7 @@
  * derives its numbers from {@link creditPricePaths} / {@link callPriceRange}
  * below, so the pricing page cannot drift from what the middleware charges.
  *
- * Model (2026-09): Codex-style paid platform.
+ * Model (2026-11): Codex-style paid platform.
  *   - NO recurring free tier. API access requires either an active
  *     subscription or a positive credit-wallet balance.
  *   - New users get ONE non-refreshing trial grant (400 cr) after email
