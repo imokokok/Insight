@@ -40,6 +40,7 @@ export const CREDIT_BILLING_HEADER_NAMES = [
   'X-Credit-Status',
   'X-Credit-Zero-Reason',
   'X-Credit-Receipt',
+  'X-Credit-Budget-Warning',
 ] as const;
 
 export function applyCreditBillingHeaders(headers: Headers, input: CreditBillingHeaderInput): void {
