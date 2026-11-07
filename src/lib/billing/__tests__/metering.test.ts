@@ -20,6 +20,11 @@ describe('MCP tool metering', () => {
     expect(getCreditCost('/api/v1/safety/preflight')).toBe(20);
   });
 
+  it('prices the online verification kind as a C4 attested receipt', () => {
+    expect(getToolCreditCost('verify_evidence')).toBe(40);
+    expect(getToolCreditCost('verify_hyperliquid_perp_execution')).toBe(40);
+  });
+
   it('prices reviewed Aerodrome evidence as C1 and unsigned preparation as C3', () => {
     expect(getCreditCost('/api/v1/markets/dex/aerodrome')).toBe(2);
     expect(getToolCreditCost('get_aerodrome_slipstream_market')).toBe(2);

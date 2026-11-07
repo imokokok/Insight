@@ -138,10 +138,11 @@ const TOOL_RULES: Array<[RegExp, MeteringClass]> = [
   [/^get_provider_reputation$/, 'C2'],
   [/^get_protocol_risk_params$/, 'C1'],
   [/^get_stablecoin_list$/, 'C1'],
-  // Only the hyperliquid_perp verification needs a live upstream read; the
-  // three offline kinds are free (see freeVerify.ts) and never reach here.
-  [/^verify_evidence$/, 'C2'],
-  [/^verify_hyperliquid_perp_execution$/, 'C2'],
+  // Attested proof / receipt (C4): only the hyperliquid_perp verification
+  // needs a live upstream read. The three offline kinds are zero-priced by
+  // design (see freeVerify.ts) and never reach this class price.
+  [/^verify_evidence$/, 'C4'],
+  [/^verify_hyperliquid_perp_execution$/, 'C4'],
 
   // Consolidated 16-tool surface. Explicit rules keep each unified tool at its
   // documented class regardless of later broad-regex changes.
