@@ -489,7 +489,9 @@ function isNoRouteError(status: number, detail: string | null): boolean {
 }
 
 function isBlockingRiskVerdict(verdict: SolanaJupiterRiskVerdict): boolean {
-  return verdict === 'BLOCK' || verdict === 'DANGER';
+  // The product contract has three states. A CAUTION signal is surfaced to the
+  // customer as a rejection, so it must never produce a signable transaction.
+  return verdict === 'BLOCK' || verdict === 'DANGER' || verdict === 'CAUTION';
 }
 
 function assertRequest(request: SolanaJupiterSwapRequest): {
@@ -873,7 +875,7 @@ export async function prepareSolanaJupiterSwap(
 
   return {
     ...base,
-    verdict: request.riskVerdict?.verdict === 'CAUTION' ? 'CAUTION' : 'READY_TO_SIGN',
+    verdict: 'READY_TO_SIGN',
     quote,
     transaction: {
       ...transaction,
