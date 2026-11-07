@@ -189,13 +189,39 @@ disappearing: `kind = waiver`, `delta = 0`, `source = subscription`,
 `record_waived_credit` RPC and the same `waive:`-prefixed key as every other
 zero-charge outcome, so it remains idempotent and never blocks a later charge.
 
-Known gap: attribution reads the ledger before `consume_credits` serializes the
-wallet row, so two concurrent charges for the same user can attribute the same
-lot slice twice. The balance and the debits stay correct (the RPC still locks
-and idempotency still holds); only the per-lot allocation detail can
-double-count during that overlap. Fixing it needs either a transactional
-attribution RPC or a lot table, both of which would change `consume_credits`; it
-is deliberately out of scope for this attribution-only change.
+Known gap, with a hard boundary: attribution reads the ledger before
+`consume_credits` serializes the wallet row, so two concurrent charges for the
+same user can attribute the same lot slice twice. **What this can corrupt is
+only the accounting detail** — `meta.allocations` may overlap across rows, and
+the row-level `source` (derived from those allocations) may therefore name the
+wrong bucket. **What it can never corrupt is the money**: `delta`,
+`balance_after`, the wallet balance and the debit itself are decided atomically
+by `consume_credits`, which still locks the wallet row and still deduplicates on
+`metering_key`. Do not "fix" this by changing `consume_credits`; the fix, when
+it comes, is a transactional attribution RPC or a lot table.
+
+The gap is detectable, not merely acknowledged: a usage row is suspicious when
+its recorded allocations do not add up to the amount actually charged. Run this
+before any source-bucket report:
+
+```sql
+select id,
+       metering_key,
+       delta,
+       source,
+       (select coalesce(sum((a->>'amount')::numeric), 0)
+          from jsonb_array_elements(meta->'allocations') a) as allocated
+from credit_ledger
+where kind = 'usage'
+  and meta ? 'allocations'
+  and (select coalesce(sum((a->>'amount')::numeric), 0)
+         from jsonb_array_elements(meta->'allocations') a) <> abs(delta);
+```
+
+Zero rows means the attribution detail is consistent for the window being
+reported. Non-zero rows must be excluded from source-bucket totals (or counted
+as an explicit `overlap` bucket) until the transactional fix lands; they are
+never evidence that the balance or the charge is wrong.
 
 ## Source latency and coverage
 

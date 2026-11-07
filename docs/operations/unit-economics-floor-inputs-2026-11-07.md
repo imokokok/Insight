@@ -66,14 +66,24 @@ upstreamCost(request) = Σ over providers ( unitCost(provider) × attempts(provi
 注意：这是**采集任务**的扇出，不是对外 API 请求的扇出。API 请求实际触发几次
 上游读取没有埋点，不能直接拿 `p95=4` 当每次调用的上游读取数。
 
-### 缺数据
+### 缺数据（具体到账户与账单/指标）
 
-1. **每次上游读取的美元单价**：Alchemy/Helius 等 RPC 账单按 compute unit /
-   credit 计费，不在仓库里。需要当月账单 + 各 provider 的计费单位说明。
-2. **按请求的上游读取分布**：需要给对外请求路径加"本次调用了哪些 provider、
-   各尝试几次"的埋点（或从现有网关日志按请求 ID 聚合）。
-3. **采集任务与线上读的区分**：`price_snapshots` 只覆盖采集任务。线上 API
-   可能命中缓存、可能实时读，二者成本不同，需要按路径拆分。
+1. **每次上游读取的美元单价**：链上预言机读取的成本落在 RPC 账单里。需要：
+   - Alchemy 账户 → Dashboard → **Billing / Usage 当月 invoice**，取当月 compute
+     units 与 storage 单价（plan 单价 + overage 单价）；
+   - Helius 账户 → **Billing → 当月 invoice**，取 credits 消耗与单价；
+   - 若某个 provider 走独立付费 API（而非链上读），取该 provider 后台的当月
+     invoice 与单价页；
+   - 若上游读取经过自建 RPC 节点，取节点主机/VPS 的当月 invoice。
+     仓库里没有任何一项账单，不能用估值填空。
+2. **按请求的上游读取分布**：需要的指标是"每个对外 `request_id` 触发了几次
+   上游读取、命中哪些 provider"。当前 `price_snapshots` 没有 `request_id`，
+   只有采集槽。取数来源：Vercel 函数日志（或网关访问日志）按 `request_id`
+   聚合上游调用；若日志里没有 provider 维度，需要在 `enhancedRetry` / 各
+   provider adapter 加结构化字段后重新采集一个完整月。
+3. **采集任务与线上读的区分**：需要把 **Vercel Cron 日志的读取次数** 与
+   **API 路由日志的读取次数** 分开统计。`price_snapshots` 只覆盖前者；后者
+   可能命中缓存、可能实时读，成本不同。
 
 补齐后，就把"provider 单价 × 请求级扇出与尝试数"按请求求和，再取 P95，而
 不是把上面的时延 P95 当成成本 P95。
@@ -109,13 +119,17 @@ volatilityBuffer = |price(t + settlementWindow) / price(t) - 1| 的 P95 × 结�
 不是地板的主要组成部分**。但若未来把"报价币种数量"作为应收资产、或结算资产
 不是稳定币，暴露额会变成整笔应收，结论会变。
 
-### 缺数据
+### 缺数据（具体到账户与账单/指标）
 
-1. **真实报价 → 结算窗口分布**：需要 x402 结算记录里的
-   `授权时间 / 结算时间`（或链上 tx 时间）分位数，而不是用 15m/1h 近似。
-2. **每笔结算的 gas 暴露**：需要链上 gas used × gas price 的月度实测，而不是
-   从 4861 反推。
-3. **结算资产价格序列**：若结算不是 USDC 计价，需要该资产的同窗口价格。
+1. **真实报价 → 结算窗口分布**：需要 x402 结算记录中的
+   **授权时间戳** 与 **结算时间戳**（链上 tx receipt 的 `blockTimestamp`），
+   按窗口取分位数。来源：支付服务商后台的结算记录 + 链上 tx 收据；不要用
+   15m/1h 采集槽近似。
+2. **每笔结算的 gas 暴露**：需要链上结算 tx 的 `gasUsed × effectiveGasPrice`
+   按月汇总。来源：结算钱包在 BNB Chain 上的 tx 列表（Etherscan/BscScan
+   API 或自建索引），单位换算成 USD 需要同小时的 BNB/USD 价格。
+3. **结算资产价格序列**：若结算不是 USDC 计价，需要该资产的同窗口价格；
+   来源同上，或该资产的交易所 K 线。
 4. 上面 15m/1h 的观测是**采集槽粒度**，不是真实结算粒度；只能作为上限近似。
 
 ## 3. ③ 失败重试的期望放大系数
@@ -155,14 +169,18 @@ retryAmplification = E[ attempts per successful upstream read ]
 说明"最终失败率反推尝试失败率"这个假设在 5 次重试下不成立，不能用于
 aggressive。
 
-### 缺数据
+### 缺数据（具体到账户与账单/指标）
 
-1. **逐次尝试埋点**：每次 retry 记录 `attempt`, `provider`, `outcome`,
-   `errorClass`；或用增强重试的日志按请求聚合落库。没有它就没有点值。
-2. **按 provider/路径拆分**：redstone 的 73.31% 成功率与 chainlink 的 99.98%
-   差了两个数量级，混在一起取平均会系统性低估重试成本。
-3. **重试是否计费**：RPC 失败请求是否计 compute unit，需账单侧确认；若失败
-   不计费，成本放大应只乘成功尝试，而不是所有尝试。
+1. **逐次尝试埋点**：需要每次重试记录 `request_id`、`provider`、`attempt`、
+   `outcome`、`errorClass`，并落库或输出结构化日志。来源优先级：
+   `src/lib/oracles/utils/retry.ts` 的 attempt 循环加字段（最可靠） >
+   Vercel 日志按 `request_id` 聚合（需日志里有该字段）> 现在的
+   `price_snapshots` 最终结果（只能给区间）。
+2. **按 provider/路径拆分**：需要按 provider 分别统计尝试与失败；数据源同
+   第 1 项。redstone 的 73.31% 成功率与 chainlink 的 99.98% 差了两个数量级，
+   混在一起取平均会系统性低估重试成本。
+3. **重试是否计费**：需要 Alchemy/Helius 当月 usage 明细里的请求计数口径，
+   确认失败请求是否也扣 compute unit；若失败不计费，成本放大只乘成功尝试。
 
 ## 4. ④ 基础设施固定成本分摊
 
@@ -187,18 +205,29 @@ infraPerCall = 月度固定成本（USD） / 月度可分摊请求数
 网站/文档访问、采集任务自身、被重试的上游读取。拿它做分母会把单次分摊放大
 到失真。
 
-### 缺数据
+### 缺数据（具体到账户与账单/指标）
 
-1. **月度固定成本账单**：Vercel、Supabase、Turso、Alchemy/Helius RPC、监控/
-   日志等各供应商的月度金额。仓库里没有任何账单数据。
-2. **全量请求计数**：数据库没有 `api_requests` / `api_request_logs` 表（已探测
-   均 404）。需要从 Vercel 日志/分析导出，或在网关加按月计数器。
-3. **分摊驱动（allocation driver）**：按请求数、按 CPU 秒、按存储/带宽？不同
-   基础设施的成本驱动不同（例如 Supabase 按存储/IO，Vercel 按函数调用/带宽），
-   单一"按调用数"可能不成立，需要分别取驱动量。
-4. **采集任务成本归属**：采集任务 15 分钟一轮，30 天写入约 158,700 行
-   （约 5,300 行/天），是上游读取和存储的主要来源之一；它属于"产品数据成本"
-   还是"公共基础设施"，会影响分母和分子，需要先定口径。
+1. **月度固定成本账单**：需要各账户当月 invoice：
+   - Vercel：Team → **Usage & Billing → 当月 invoice**（函数调用、带宽、
+     构建分钟、Cron）；
+   - Supabase：Organization → **Billing → 当月 invoice**（plan、存储、IO、
+     egress）；
+   - Turso：Organization → **Billing → 当月 invoice**（storage、rows read）；
+   - Alchemy / Helius：**Billing → 当月 invoice**（compute units / credits）；
+   - 监控、日志、告警等第三方：各自账户的当月 invoice。
+2. **全量请求计数**：需要的指标是"当月所有路由的函数调用次数（含未计费
+   调用）"。数据源：Vercel Observability → Functions / Logs 的月度调用数，
+   按路由拆分；数据库里没有 `api_requests` / `api_request_logs` 表（已探测
+   均 404），若 Vercel 侧不可导出，需在网关/中间件加按月计数器并落库。
+3. **分摊驱动（allocation driver）**：需要各供应商自己的驱动量，而不是单一
+   请求数：
+   - Vercel：函数调用数 + 带宽 + 构建分钟；
+   - Supabase：存储字节 + IO + egress；
+   - Turso：rows read + storage；
+   - RPC：compute units。
+4. **采集任务成本归属**：需要财务/产品口径确认采集任务算"产品数据成本"还是
+   "公共基础设施"；数据侧对应指标是 Vercel Cron 调用数与 API 路由调用数的
+   拆分（见第 2 项）。
 
 ## 5. 复算方法（数据齐了之后）
 
