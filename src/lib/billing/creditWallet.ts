@@ -70,6 +70,32 @@ export function makeMeteringKey(prefix: string): string {
 }
 
 /**
+ * precheck_credits returns snake_case JSONB. Map it field by field: casting
+ * the payload wholesale leaves `budget_warning` under a key nothing reads, so
+ * `budgetWarning` stays undefined and the spend-cap warning never fires.
+ */
+function parsePrecheckPayload(data: unknown): CreditPrecheck {
+  if (data === null || typeof data !== 'object') return { ok: true };
+  const payload = data as Record<string, unknown>;
+  const num = (value: unknown) => (typeof value === 'number' ? value : undefined);
+  const reason = payload.reason;
+  return {
+    ok: payload.ok === true,
+    reason:
+      reason === 'KEY_NOT_FOUND' ||
+      reason === 'BUDGET_EXCEEDED' ||
+      reason === 'INSUFFICIENT_CREDITS'
+        ? reason
+        : undefined,
+    balance: num(payload.balance),
+    cost: num(payload.cost),
+    budget: num(payload.budget),
+    used: num(payload.used),
+    budgetWarning: payload.budget_warning === true,
+  };
+}
+
+/**
  * Read-only gate check for an API-key request that costs `cost` credits.
  * Returns whether the call may proceed, plus balance/budget for headers and
  * error reporting. Callers should always treat consumeCredits as the source
@@ -89,7 +115,7 @@ export async function precheckCredits(keyId: string, cost: number): Promise<Cred
       logger.warn('precheck_credits RPC error (degraded)', { keyId, cost, error: error.message });
       return { ok: true, degraded: true };
     }
-    return (data ?? { ok: true }) as CreditPrecheck;
+    return parsePrecheckPayload(data);
   } catch (error) {
     logger.warn('precheck_credits failed (degraded)', {
       keyId,

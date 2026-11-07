@@ -1,8 +1,43 @@
 import { createServiceRoleClient } from '@/lib/supabase/server';
 
-import { consumeCredits, makeMeteringKey, recordWaivedCredit } from '../creditWallet';
+import {
+  consumeCredits,
+  makeMeteringKey,
+  precheckCredits,
+  recordWaivedCredit,
+} from '../creditWallet';
 
 jest.mock('@/lib/supabase/server', () => ({ createServiceRoleClient: jest.fn() }));
+
+it('maps the snake_case precheck payload onto CreditPrecheck', async () => {
+  const rpc = jest.fn();
+  jest.mocked(createServiceRoleClient).mockReturnValue({ rpc } as never);
+  rpc.mockResolvedValueOnce({
+    data: { ok: true, balance: 20, cost: 7, budget: 8, used: 6, budget_warning: true },
+    error: null,
+  });
+  expect(await precheckCredits('key', 7)).toEqual({
+    ok: true,
+    balance: 20,
+    cost: 7,
+    budget: 8,
+    used: 6,
+    budgetWarning: true,
+  });
+
+  rpc.mockResolvedValueOnce({
+    data: { ok: true, balance: 20, cost: 1, budget: null, used: 0, budget_warning: false },
+    error: null,
+  });
+  expect(await precheckCredits('key', 1)).toEqual({
+    ok: true,
+    balance: 20,
+    cost: 1,
+    budget: undefined,
+    used: 0,
+    budgetWarning: false,
+  });
+});
 
 it('distinguishes confirmed charges and replays from uncertain database outcomes', async () => {
   const rpc = jest.fn();
