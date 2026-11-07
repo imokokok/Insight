@@ -9,7 +9,13 @@ import {
 import type { MppMcpCallHandler } from '@/lib/api/mpp/mcp';
 import type { CreditBillingHeaderInput } from '@/lib/billing/billingHeaders';
 import { makeMeteringKey, precheckCredits, recordWaivedCredit } from '@/lib/billing/creditWallet';
-import { isNoUsableDataResult, isUpstreamTimeoutError } from '@/lib/billing/exemptions';
+import {
+  BILLING_ZERO_REASONS,
+  isAllItemsFailedResult,
+  isInsufficientDataResult,
+  isUpstreamTimeoutError,
+  type BillingZeroReason,
+} from '@/lib/billing/exemptions';
 import { countMcpBatchSuccessItems, getMcpToolBillableItems } from '@/lib/billing/metering';
 import { getMcpToolCreditCostForCall } from '@/lib/billing/productPricing';
 import {
@@ -158,7 +164,7 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
        * same deterministic request key as the charge path, so a retried free
        * outcome records exactly one row and never blocks a later real charge.
        */
-      const recordWaiver = async (reason: 'insufficient_data' | 'timeout') => {
+      const recordWaiver = async (reason: BillingZeroReason) => {
         if (auth?.type !== 'apikey') return;
         const meteringKey =
           requestKey !== null
@@ -211,30 +217,45 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
 
           // Only consume credits when the tool actually delivered usable data.
           // Protocol overhead (initialize/tools/list/ping), execution failures,
-          // upstream/chain timeouts, and `insufficient_data` results are NOT
-          // metered — mirroring the REST API which only charges delivered data.
+          // upstream/chain timeouts, and results with no usable conclusion
+          // (`insufficient_data` / `upstream_failed`) are NOT metered —
+          // mirroring the REST API which only charges delivered data.
           if (result.isError) {
-            const insufficient = /INSUFFICIENT_DATA/.test(resultText);
+            const insufficient = isInsufficientDataResult(resultText);
             const timedOut = !insufficient && isUpstreamTimeoutError(resultText);
             if (receipt) {
               Object.assign(receipt, {
                 costCredits: 0,
                 status: insufficient ? 'waived' : 'not_charged',
-                zeroReason: insufficient ? 'insufficient_data' : timedOut ? 'timeout' : undefined,
+                zeroReason: insufficient
+                  ? BILLING_ZERO_REASONS.insufficientData
+                  : timedOut
+                    ? BILLING_ZERO_REASONS.timeout
+                    : undefined,
               });
             }
-            if (insufficient) await recordWaiver('insufficient_data');
-            else if (timedOut) await recordWaiver('timeout');
-          } else if (isNoUsableDataResult(resultText)) {
+            if (insufficient) await recordWaiver(BILLING_ZERO_REASONS.insufficientData);
+            else if (timedOut) await recordWaiver(BILLING_ZERO_REASONS.timeout);
+          } else if (isInsufficientDataResult(resultText)) {
             if (receipt) {
               Object.assign(receipt, {
                 costCredits: 0,
                 status: 'waived',
-                zeroReason: 'insufficient_data',
+                zeroReason: BILLING_ZERO_REASONS.insufficientData,
               });
             }
-            await recordWaiver('insufficient_data');
+            await recordWaiver(BILLING_ZERO_REASONS.insufficientData);
             logger.info(`MCP tool returned no usable data; not billed: ${name}`);
+          } else if (isAllItemsFailedResult(resultText)) {
+            if (receipt) {
+              Object.assign(receipt, {
+                costCredits: 0,
+                status: 'waived',
+                zeroReason: BILLING_ZERO_REASONS.upstreamFailed,
+              });
+            }
+            await recordWaiver(BILLING_ZERO_REASONS.upstreamFailed);
+            logger.info(`MCP batch failed upstream for every item; not billed: ${name}`);
           } else {
             // Batch tools can partially succeed. Bill only the items that
             // actually returned usable data; all-failed batches delivered no
@@ -245,10 +266,10 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
                 Object.assign(receipt, {
                   costCredits: 0,
                   status: 'waived',
-                  zeroReason: 'insufficient_data',
+                  zeroReason: BILLING_ZERO_REASONS.upstreamFailed,
                 });
               }
-              await recordWaiver('insufficient_data');
+              await recordWaiver(BILLING_ZERO_REASONS.upstreamFailed);
               logger.info(`MCP batch returned no usable items; not billed: ${name}`);
             } else {
               const requestedItems = getMcpToolBillableItems(name, args);
