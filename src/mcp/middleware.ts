@@ -249,7 +249,7 @@ export async function consumeMcpQuota(
   options?: {
     meteringKey?: string;
     billableItems?: number;
-    /** Ledger reason override (prices.batch / batch_partial / insufficient_data / upstream_failed / timeout). */
+    /** Ledger reason override (prices.batch / batch_partial / insufficient_data / upstream_failed / timeout / tool_free). */
     reason?: string;
     /** Per-charge detail written to `credit_ledger.meta`. */
     meta?: Record<string, unknown>;

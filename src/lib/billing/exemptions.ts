@@ -12,6 +12,9 @@
  *     answer. Kept separate so a ledger cannot confuse "no data" with "all
  *     upstreams down".
  *   - `timeout` — upstream/chain deadline (`UPSTREAM_TIMEOUT`), also unbilled.
+ *   - `tool_free` — the tool or verification kind is zero-priced by design
+ *     (offline verification: signature + digest, no live upstream read). Unlike
+ *     the reasons above this is a price decision, not a data-quality outcome.
  */
 
 export const UPSTREAM_TIMEOUT_CODE = 'UPSTREAM_TIMEOUT';
@@ -21,6 +24,7 @@ export const BILLING_ZERO_REASONS = {
   insufficientData: 'insufficient_data',
   upstreamFailed: 'upstream_failed',
   timeout: 'timeout',
+  toolFree: 'tool_free',
 } as const;
 
 export type BillingZeroReason = (typeof BILLING_ZERO_REASONS)[keyof typeof BILLING_ZERO_REASONS];

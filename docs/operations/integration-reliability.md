@@ -94,10 +94,12 @@ headers do not introduce client-controlled cross-request idempotency.
 `X-Credit-Zero-Reason` and the `waiver` row's `credit_ledger.reason` share one
 vocabulary: `insufficient_data` means the evidence grade itself could not
 support a conclusion; `upstream_failed` means every requested batch item failed
-upstream, so no usable row was delivered; `timeout`, `free`, `replay` and
-`unconfirmed` cover the remaining zero-charge outcomes. Keeping the first two
-apart lets reconciliation tell "the market had no data" from "our upstreams
-were down".
+upstream, so no usable row was delivered; `tool_free` means the tool or
+verification kind is zero-priced by design (offline verification); `timeout`,
+`free`, `replay` and `unconfirmed` cover the remaining zero-charge outcomes.
+Keeping the first two apart lets reconciliation tell "the market had no data"
+from "our upstreams were down", and `tool_free` apart from both lets it tell a
+pricing decision from a data outcome.
 
 An all-failed batch is a deterministic terminal outcome, so its replay cache
 entry keeps the original `zeroReason: upstream_failed` for audit. The replayed

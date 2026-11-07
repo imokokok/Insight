@@ -65,22 +65,28 @@ const AUTH = {
   apiKey: { keyId: 'key-test-1' },
 } as unknown as Parameters<typeof createMcpServer>[0];
 
-async function callBatch(): Promise<CreditBillingHeaderInput> {
+async function callTool(
+  name: string,
+  args: Record<string, unknown>
+): Promise<CreditBillingHeaderInput> {
   const receipt: CreditBillingHeaderInput = {};
   const server = createMcpServer(AUTH, { billingReceipt: receipt });
   const client = new Client({ name: 'billing-test', version: '0.0.0' });
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
   try {
-    await client.callTool({
-      name: 'get_oracle_prices_batch',
-      arguments: { queries: [{ provider: 'chainlink', symbol: 'ETH' }] },
-    });
+    await client.callTool({ name, arguments: args });
   } finally {
     await client.close();
     await server.close();
   }
   return receipt;
+}
+
+async function callBatch(): Promise<CreditBillingHeaderInput> {
+  return callTool('get_oracle_prices_batch', {
+    queries: [{ provider: 'chainlink', symbol: 'ETH' }],
+  });
 }
 
 beforeEach(() => {
@@ -165,6 +171,53 @@ describe('MCP zero-charge reason', () => {
     expect(replay.zeroReason).toBe('replay');
     expect(replay.costCredits).toBe(0);
     expect(recordWaivedCreditMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('waives an offline verification with reason tool_free', async () => {
+    executeToolMock.mockResolvedValue({
+      content: [{ type: 'text', text: '{"kind":"execution_pair","valid":true}' }],
+    });
+
+    const receipt = await callTool('verify_evidence', { kind: 'execution_pair' });
+
+    const headers = new Headers();
+    applyCreditBillingHeaders(headers, receipt);
+    expect(headers.get('X-Credit-Status')).toBe('waived');
+    expect(headers.get('X-Credit-Zero-Reason')).toBe('tool_free');
+    expect(receipt.costCredits).toBe(0);
+    expect(consumeQuotaMock).not.toHaveBeenCalled();
+
+    expect(recordWaivedCreditMock).toHaveBeenCalledTimes(1);
+    expect(recordWaivedCreditMock.mock.calls[0][0]).toMatchObject({
+      keyId: 'key-test-1',
+      ref: '/mcp/tools/verify_evidence',
+      reason: 'tool_free',
+    });
+  });
+
+  it('charges an unrecognised verification kind at C4 and reports charged', async () => {
+    executeToolMock.mockResolvedValue({
+      content: [{ type: 'text', text: '{"kind":"something_else","valid":true}' }],
+    });
+    consumeQuotaMock.mockResolvedValue({
+      allowed: true,
+      cost: 40,
+      items: 1,
+      charged: 40,
+      confirmed: true,
+      source: 'credits',
+      receipt: 'key-test-1:test',
+    });
+
+    const receipt = await callTool('verify_evidence', { kind: 'something_else' });
+
+    const headers = new Headers();
+    applyCreditBillingHeaders(headers, receipt);
+    expect(headers.get('X-Credit-Status')).toBe('charged');
+    expect(receipt.status).toBe('charged');
+    expect(receipt.costCredits).toBe(40);
+    expect(consumeQuotaMock).toHaveBeenCalledTimes(1);
+    expect(recordWaivedCreditMock).not.toHaveBeenCalled();
   });
 
   it('keeps the three documented surfaces on the same vocabulary', () => {
