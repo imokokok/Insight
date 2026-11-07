@@ -131,8 +131,9 @@ describe('x402 capability payment bindings', () => {
       'eip155:8453',
       'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
     ]);
-    // C3/C4 and the 24h products clear the floor and quote BNB as well.
-    for (const amountAtomic of ['20000', '40000', '50000', '55000']) {
+    // C3/C4 and the 24h products ($0.50 / $0.55 = 500000 / 550000 atomic)
+    // clear the floor and quote BNB as well.
+    for (const amountAtomic of ['20000', '40000', '500000', '550000']) {
       expect(networksAt(amountAtomic)).toContain('eip155:56');
       expect(networksAt(amountAtomic)).toContain('eip155:8453');
     }
