@@ -53,7 +53,7 @@ export interface CreditCharge {
 export interface CreditChargeContext {
   /** Ledger `source` (signup | x402 | subscription | wallet). */
   source?: string;
-  /** Ledger `reason` (billed SKU or batch/timeout/insufficient_data outcome). */
+  /** Ledger `reason` (billed SKU or batch outcome: prices.batch | batch_partial | insufficient_data | upstream_failed | timeout). */
   reason?: string;
   /** Client-visible request/receipt id. */
   requestId?: string;
@@ -67,6 +67,32 @@ export interface CreditChargeContext {
  *  charge via the ledger UNIQUE constraint. */
 export function makeMeteringKey(prefix: string): string {
   return `${prefix}:${crypto.randomUUID()}`;
+}
+
+/**
+ * precheck_credits returns snake_case JSONB. Map it field by field: casting
+ * the payload wholesale leaves `budget_warning` under a key nothing reads, so
+ * `budgetWarning` stays undefined and the spend-cap warning never fires.
+ */
+function parsePrecheckPayload(data: unknown): CreditPrecheck {
+  if (data === null || typeof data !== 'object') return { ok: true };
+  const payload = data as Record<string, unknown>;
+  const num = (value: unknown) => (typeof value === 'number' ? value : undefined);
+  const reason = payload.reason;
+  return {
+    ok: payload.ok === true,
+    reason:
+      reason === 'KEY_NOT_FOUND' ||
+      reason === 'BUDGET_EXCEEDED' ||
+      reason === 'INSUFFICIENT_CREDITS'
+        ? reason
+        : undefined,
+    balance: num(payload.balance),
+    cost: num(payload.cost),
+    budget: num(payload.budget),
+    used: num(payload.used),
+    budgetWarning: payload.budget_warning === true,
+  };
 }
 
 /**
@@ -89,7 +115,7 @@ export async function precheckCredits(keyId: string, cost: number): Promise<Cred
       logger.warn('precheck_credits RPC error (degraded)', { keyId, cost, error: error.message });
       return { ok: true, degraded: true };
     }
-    return (data ?? { ok: true }) as CreditPrecheck;
+    return parsePrecheckPayload(data);
   } catch (error) {
     logger.warn('precheck_credits failed (degraded)', {
       keyId,
@@ -236,7 +262,7 @@ export async function settlePendingCredits(): Promise<{
 
 /**
  * Append a 0-delta `waiver` ledger row for a zero-charge outcome
- * (insufficient_data / timeout / no usable data), so the bill itself proves
+ * (insufficient_data / upstream_failed / timeout), so the bill itself proves
  * the request was free. The row uses a `waive:`-prefixed metering key and
  * `kind='waiver'`, so it can never be mistaken for a usage debit and never
  * blocks a later real charge for the same logical request.
@@ -251,7 +277,7 @@ export async function recordWaivedCredit(params: {
   ref?: string;
   /** Ledger `source`; defaults to `free` (no money moved). */
   source?: string;
-  /** Zero reason: insufficient_data | timeout | no_data. */
+  /** Zero reason: insufficient_data | upstream_failed | timeout. */
   reason: string;
   requestId?: string;
   meta?: Record<string, unknown>;

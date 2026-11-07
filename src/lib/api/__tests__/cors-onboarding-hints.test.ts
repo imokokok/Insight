@@ -1,3 +1,5 @@
+import { CREDIT_BILLING_HEADER_NAMES } from '@/lib/billing/billingHeaders';
+
 import { getCorsHeaders } from '../handler';
 import { X402_ONBOARDING_HEADER_NAMES, corsExposeHeaders } from '../x402/corsExposeHeaders';
 import { x402OnboardingHeaders } from '../x402/guard';
@@ -36,6 +38,14 @@ describe('CORS exposure of x402 onboarding hints', () => {
     }
     expect(exposed).toContain('x-ratelimit-limit');
     expect(exposed).toContain('x-quota-reset');
+  });
+
+  it('exposes every canonical credit billing header', () => {
+    const exposed = parseExposed(corsExposeHeaders());
+    for (const name of CREDIT_BILLING_HEADER_NAMES) {
+      expect(exposed).toContain(name.toLowerCase());
+    }
+    expect(exposed).toContain('x-credit-budget-warning');
   });
 
   it('retains payment and credit headers while de-duplicating extra names', () => {
