@@ -973,6 +973,12 @@ function microFloorForNetwork(cfg: X402Config, network: string): bigint | null {
   return BigInt(override);
 }
 
+/** Effective floor as an atomic string, including built-in defaults and overrides. */
+export function effectiveNetworkMinAmountAtomic(cfg: X402Config, network: string): string | null {
+  const floor = microFloorForNetwork(cfg, network);
+  return floor === null ? null : floor.toString();
+}
+
 /** Build the network-specific payment options advertised by REST and MCP. */
 export function getX402PaymentOptions(
   cfg: X402Config,
