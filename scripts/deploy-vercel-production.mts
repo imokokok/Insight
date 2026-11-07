@@ -4,6 +4,11 @@ import { pathToFileURL } from 'node:url';
 const TERMINAL_FAILURES = new Set(['ERROR', 'CANCELED', 'BLOCKED', 'DELETED']);
 const READY = 'READY';
 
+// The custom domain is the only signal that proves users actually receive a
+// release. Vercel sets aliasAssigned for the branch alias even when a
+// deployment stays STAGED, so aliasAssigned must never stand in for promotion.
+const PRODUCTION_DOMAIN = 'www.oracleinsight.xyz';
+
 type Deployment = {
   uid?: unknown;
   projectId?: unknown;
@@ -75,11 +80,67 @@ function deploymentState(deployment: Deployment) {
       : null;
 }
 
-function isPromoted(deployment: Deployment) {
-  return (
-    deploymentState(deployment) === READY &&
-    (Boolean(deployment.aliasAssigned) || deployment.readySubstate === 'PROMOTED')
+export type ProductionDomainDeployment = {
+  deploymentId: string | null;
+  commitSha: string | null;
+  readyState: string | null;
+  deployment: Deployment;
+};
+
+// Resolve what the public custom domain actually serves right now. The alias
+// API, not the deployment's own flags, is the authority: a STAGED deployment
+// reports aliasAssigned=true through its branch alias while the domain keeps
+// serving the previous release.
+export async function fetchProductionDomainDeployment({
+  token,
+  teamId,
+  projectId,
+  fetcher,
+  domain = PRODUCTION_DOMAIN,
+}: {
+  token: string;
+  teamId?: string;
+  projectId?: string;
+  fetcher: Fetcher;
+  domain?: string;
+}): Promise<ProductionDomainDeployment | null> {
+  const aliasResponse = await fetcher(
+    requestUrl(`/v4/aliases?limit=100${projectId ? `&projectId=${projectId}` : ''}`, teamId),
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(15_000),
+    }
   );
+  if (!aliasResponse.ok) {
+    throw new Error(`Vercel alias lookup failed: HTTP ${aliasResponse.status}`);
+  }
+  const aliasBody: unknown = await aliasResponse.json();
+  const aliases = Array.isArray((aliasBody as { aliases?: unknown })?.aliases)
+    ? (aliasBody as { aliases: Array<{ alias?: unknown; deploymentId?: unknown }> }).aliases
+    : [];
+  const match = aliases.find((alias) => alias.alias === domain);
+  const id = typeof match?.deploymentId === 'string' ? match.deploymentId : null;
+  if (!id) return null;
+
+  const deploymentResponse = await fetcher(requestUrl(`/v13/deployments/${id}`, teamId), {
+    headers: { Authorization: `Bearer ${token}` },
+    signal: AbortSignal.timeout(15_000),
+  });
+  if (!deploymentResponse.ok) {
+    throw new Error(`Vercel deployment lookup for ${domain} failed: HTTP ${deploymentResponse.status}`);
+  }
+  const deployment = (await deploymentResponse.json()) as Deployment;
+  return {
+    deploymentId: id,
+    commitSha:
+      typeof deployment.meta?.githubCommitSha === 'string' ? deployment.meta.githubCommitSha : null,
+    readyState: deploymentState(deployment),
+    deployment,
+  };
+}
+
+function servesCommit(domainDeployment: ProductionDomainDeployment | null, commitSha: string) {
+  return domainDeployment !== null && domainDeployment.commitSha === commitSha;
 }
 
 function isActive(deployment: Deployment) {
@@ -259,6 +320,7 @@ async function waitForDeployment({
   pollIntervalMs: number;
 }) {
   const deadline = now() + timeoutMs;
+  let servedCommit: string | null = null;
   while (now() < deadline) {
     const deployments = await listDeployments({ projectId, token, teamId, commitSha, fetcher });
     const deployment = deployments
@@ -274,11 +336,22 @@ async function waitForDeployment({
       if (state && TERMINAL_FAILURES.has(state)) {
         throw new Error(`Vercel production deployment ${id} failed: ${state}`);
       }
-      if (isPromoted(deployment)) return deployment;
+      if (state === READY) {
+        const domainDeployment = await fetchProductionDomainDeployment({
+          token,
+          teamId,
+          projectId,
+          fetcher,
+        });
+        if (servesCommit(domainDeployment, commitSha)) return deployment;
+        servedCommit = domainDeployment?.commitSha ?? null;
+      }
     }
     await sleep(pollIntervalMs);
   }
-  throw new Error(`Vercel production deployment for ${commitSha} was not ready before the timeout`);
+  throw new Error(
+    `Vercel production deployment for ${commitSha} was not ready before the timeout (${PRODUCTION_DOMAIN} serves ${servedCommit ?? 'no commit'})`
+  );
 }
 
 function nodeMajor(version: string) {
@@ -449,15 +522,16 @@ export async function deployVercelProduction({
   });
 
   const existing = await listDeployments({ projectId, token, teamId, commitSha, fetcher });
-  const alreadyPromoted = existing
-    .filter(
-      (deployment) => matchesCommit(deployment, projectId, commitSha) && isPromoted(deployment)
-    )
-    .sort(
-      (left, right) =>
-        (deploymentTime(right, 'createdAt') ?? deploymentTime(right, 'created') ?? 0) -
-        (deploymentTime(left, 'createdAt') ?? deploymentTime(left, 'created') ?? 0)
-    )[0];
+  const domainDeployment = await fetchProductionDomainDeployment({
+    token,
+    teamId,
+    projectId,
+    fetcher,
+  });
+  const alreadyPromoted = servesCommit(domainDeployment, commitSha)
+    ? existing.find((candidate) => deploymentId(candidate) === domainDeployment?.deploymentId) ??
+      domainDeployment?.deployment
+    : undefined;
   const activeCurrentBuild = existing
     .filter(
       (deployment) =>
