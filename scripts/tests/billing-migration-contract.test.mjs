@@ -245,8 +245,16 @@ test('0129 caps match the service constants and fire only on INSERT', async () =
       assert.equal(trigger.tgtype & 1, 1, `${name}: must be FOR EACH ROW`);
       assert.equal(trigger.tgtype & 2, 2, `${name}: must be BEFORE`);
       assert.equal(trigger.tgtype & 4, 4, `${name}: must fire on INSERT`);
-      assert.equal(trigger.tgtype & (8 | 16 | 32), 0, `${name}: must not fire on UPDATE/DELETE/TRUNCATE`);
-      assert.match(trigger.def, /BEFORE INSERT ON public\./, `${name}: unexpected trigger definition`);
+      assert.equal(
+        trigger.tgtype & (8 | 16 | 32),
+        0,
+        `${name}: must not fire on UPDATE/DELETE/TRUNCATE`
+      );
+      assert.match(
+        trigger.def,
+        /BEFORE INSERT ON public\./,
+        `${name}: unexpected trigger definition`
+      );
       assert.match(trigger.prosrc, /pg_advisory_xact_lock\(/, `${name}: missing advisory lock`);
       assert.match(trigger.prosrc, /hashtextextended\(/, `${name}: lock key must be per API key`);
       assert.match(trigger.prosrc, /product_concurrency_limit/, `${name}: refusal prefix changed`);
