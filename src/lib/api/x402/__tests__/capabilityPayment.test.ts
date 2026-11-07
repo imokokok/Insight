@@ -159,12 +159,12 @@ describe('x402 capability payment bindings', () => {
   });
 
   it('settles BNB quote and BNB perp guard capabilities in the BNB realm', () => {
-    expect(
-      x402PaymentScopeForMcpTool('get_market_quote', { venue: 'bnb_pancakeswap_v3' })
-    ).toEqual(X402_PAYMENT_SCOPE.bnb);
-    expect(
-      x402PaymentScopeForMcpTool('prepare_swap', { venue: 'bnb_pancakeswap_v3' })
-    ).toEqual(X402_PAYMENT_SCOPE.bnb);
+    expect(x402PaymentScopeForMcpTool('get_market_quote', { venue: 'bnb_pancakeswap_v3' })).toEqual(
+      X402_PAYMENT_SCOPE.bnb
+    );
+    expect(x402PaymentScopeForMcpTool('prepare_swap', { venue: 'bnb_pancakeswap_v3' })).toEqual(
+      X402_PAYMENT_SCOPE.bnb
+    );
     expect(
       x402PaymentScopeForMcpTool('get_market_quote', {
         venue: 'bnb_pancakeswap_v3',
@@ -178,6 +178,34 @@ describe('x402 capability payment bindings', () => {
       })
     ).toBeNull();
     expect(x402PaymentScopeForMcpTool('bnb_perp_guard', {})).toEqual(X402_PAYMENT_SCOPE.bnb);
+  });
+
+  it('resolves prepare_perp_order settlement from the venue chain, never below the BNB floor', () => {
+    expect(
+      x402PaymentScopeForMcpTool('prepare_perp_order', { venue: 'synthetix-perps-v3-base' })
+    ).toEqual(X402_PAYMENT_SCOPE.base);
+    expect(
+      x402PaymentScopeForMcpTool('prepare_perp_order', { venue: 'aster-perps-bnb-mainnet' })
+    ).toEqual(X402_PAYMENT_SCOPE.bnb);
+    expect(x402PaymentScopeForMcpTool('prepare_perp_order', { venue: 'solana_drift' })).toEqual(
+      X402_PAYMENT_SCOPE.solana
+    );
+    expect(x402PaymentScopeForMcpTool('prepare_perp_order', { venue: 'hyperliquid' })).toEqual(
+      X402_PAYMENT_SCOPE.hypercore
+    );
+    // Unknown or missing venues must not inherit the HyperCore default.
+    expect(x402PaymentScopeForMcpTool('prepare_perp_order', { venue: 'unknown' })).toBeNull();
+    expect(x402PaymentScopeForMcpTool('prepare_perp_order', {})).toBeNull();
+
+    // $0.02 (20,000 atomic) is above the 4,861 BNB micro floor and must quote;
+    // a sub-floor amount is still dropped rather than discounted.
+    const bnbCfg = parseX402Config({ ...EVM_ENV, X402_EVM_NETWORKS: 'eip155:56' });
+    const scoped = x402ConfigForPaymentScope(bnbCfg, X402_PAYMENT_SCOPE.bnb);
+    expect(scoped).not.toBeNull();
+    expect(getX402PaymentOptions(scoped!, '20000').map((option) => option.network)).toEqual([
+      'eip155:56',
+    ]);
+    expect(getX402PaymentOptions(scoped!, '4000')).toEqual([]);
   });
 
   it('binds the Solana swap guard lifecycle to the native Solana rail', () => {
@@ -202,6 +230,7 @@ describe('x402 capability payment bindings', () => {
       'verify_base_agent_swap_guard_settlement',
       'get_pancakeswap_v3_market',
       'prepare_pancakeswap_v3_swap',
+      'prepare_perp_order',
       'check_trade_safety',
       'prepare_swap',
       'get_market_quote',

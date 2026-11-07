@@ -235,7 +235,6 @@ export const X402_MCP_PAYMENT_SCOPE_BY_TOOL: Readonly<Record<string, X402Payment
   // the MCP bridge; there is no EVM substitute.
   get_hyperliquid_perp_market: X402_PAYMENT_SCOPE.hypercore,
   prepare_hyperliquid_perp_order: X402_PAYMENT_SCOPE.hypercore,
-  prepare_perp_order: X402_PAYMENT_SCOPE.hypercore,
   verify_hyperliquid_perp_execution: X402_PAYMENT_SCOPE.hypercore,
   // The Hyperliquid perp guard is venue-bound evidence about Hyperliquid, so
   // it names the same realm; keyless MCP payment runs the HyperCore lifecycle
@@ -351,6 +350,68 @@ function venueMcpPaymentScope(venue: unknown, profileIdValue: unknown): X402Paym
   return X402_PAYMENT_SCOPE.base;
 }
 
+/**
+ * `prepare_perp_order` serves one venue per chain. The data realm is the chain
+ * the adapter prepares the order for; the settlement realm is the rail the
+ * caller pays on. They are declared separately so a future drift between the
+ * two fails the quote instead of charging one chain and delivering another.
+ */
+const PREPARE_PERP_ORDER_VENUE_DATA_CHAIN = {
+  'synthetix-perps-v3-base': 8453,
+  'aster-perps-bnb-mainnet': 56,
+  solana_drift: 'solana',
+  hyperliquid: 'hypercore',
+} as const;
+
+const PREPARE_PERP_ORDER_VENUE_SETTLEMENT_SCOPE = {
+  'synthetix-perps-v3-base': X402_PAYMENT_SCOPE.base,
+  'aster-perps-bnb-mainnet': X402_PAYMENT_SCOPE.bnb,
+  solana_drift: X402_PAYMENT_SCOPE.solana,
+  hyperliquid: X402_PAYMENT_SCOPE.hypercore,
+} as const;
+
+function samePaymentRealm(left: X402PaymentScope, right: X402PaymentScope): boolean {
+  if (left.kind !== right.kind) return false;
+  if (left.kind === 'evm' && right.kind === 'evm') return left.network === right.network;
+  return true;
+}
+
+function paymentScopeForPerpDataChain(
+  chain: (typeof PREPARE_PERP_ORDER_VENUE_DATA_CHAIN)[keyof typeof PREPARE_PERP_ORDER_VENUE_DATA_CHAIN]
+): X402PaymentScope | null {
+  if (chain === 8453) return X402_PAYMENT_SCOPE.base;
+  if (chain === 56) return X402_PAYMENT_SCOPE.bnb;
+  if (chain === 'solana') return X402_PAYMENT_SCOPE.solana;
+  if (chain === 'hypercore') return X402_PAYMENT_SCOPE.hypercore;
+  return null;
+}
+
+function preparePerpOrderMcpPaymentScope(argumentsValue: unknown): X402PaymentScope | null {
+  if (!isRecord(argumentsValue)) return null;
+  const venue = argumentsValue.venue;
+  if (typeof venue !== 'string') return null;
+  if (!(venue in PREPARE_PERP_ORDER_VENUE_DATA_CHAIN)) return null;
+
+  const dataChain =
+    PREPARE_PERP_ORDER_VENUE_DATA_CHAIN[venue as keyof typeof PREPARE_PERP_ORDER_VENUE_DATA_CHAIN];
+  const settlementScope =
+    PREPARE_PERP_ORDER_VENUE_SETTLEMENT_SCOPE[
+      venue as keyof typeof PREPARE_PERP_ORDER_VENUE_SETTLEMENT_SCOPE
+    ];
+  const dataScope = paymentScopeForPerpDataChain(dataChain);
+  if (dataScope === null) {
+    throw new Error(
+      `prepare_perp_order venue ${venue} has no resolvable data realm; refusing to quote a payment.`
+    );
+  }
+  if (!samePaymentRealm(dataScope, settlementScope)) {
+    throw new Error(
+      `prepare_perp_order venue ${venue} data realm ${dataScope.label} cannot settle on ${settlementScope.label}; refusing to quote a mismatched payment.`
+    );
+  }
+  return settlementScope;
+}
+
 /** Read the execution chain carried by a signed guard decision/settlement. */
 function signedEvidenceChainId(value: unknown): number | null {
   if (!isRecord(value)) return null;
@@ -398,6 +459,10 @@ export function x402PaymentScopeForMcpTool(
     return baseAgentSwapGuardMcpPaymentScope(toolName, argumentsValue);
   }
 
+  if (toolName === 'prepare_perp_order') {
+    return preparePerpOrderMcpPaymentScope(argumentsValue);
+  }
+
   if (!isRecord(argumentsValue)) {
     return X402_MCP_PAYMENT_SCOPE_BY_TOOL[toolName] ?? null;
   }
@@ -440,6 +505,7 @@ const X402_DYNAMIC_MCP_PAYMENT_SCOPE_TOOLS = new Set([
   'verify_base_agent_swap_guard_settlement',
   'get_pancakeswap_v3_market',
   'prepare_pancakeswap_v3_swap',
+  'prepare_perp_order',
   'check_trade_safety',
   'prepare_swap',
   'get_market_quote',
