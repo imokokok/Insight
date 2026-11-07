@@ -578,3 +578,118 @@ describe('x402 SVM resource-server registration', () => {
     });
   });
 });
+
+describe('multichain MCP indexer quote', () => {
+  const originalFetch = global.fetch;
+  const testGlobal = global as typeof globalThis & {
+    structuredClone?: <T>(value: T) => T;
+  };
+  const originalStructuredClone = testGlobal.structuredClone;
+
+  beforeEach(() => {
+    resetX402HttpServerForTests();
+    resetFacilitatorResilienceForTests();
+    testGlobal.structuredClone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
+  });
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+    if (originalStructuredClone === undefined) delete testGlobal.structuredClone;
+    else testGlobal.structuredClone = originalStructuredClone;
+  });
+
+  function productionLikeConfig() {
+    const cfg = parseX402Config({
+      X402_ENABLED: 'true',
+      X402_NETWORK: 'eip155:999',
+      X402_EVM_NETWORKS: 'eip155:999',
+      X402_PAY_TO: EVM_PAY_TO,
+      X402_FACILITATOR_URL: 'https://facilitator.example',
+      X402_SOLANA_ENABLED: 'true',
+      X402_SOLANA_NETWORK: SOLANA_DEVNET_CAIP2,
+      X402_SOLANA_PAY_TO: PAY_TO,
+      X402_SOLANA_RPC_URL: 'https://rpc.example/solana',
+      X402_SOLANA_FACILITATOR_URL: 'https://facilitator.example',
+    });
+    const scoped = x402ConfigForPaymentScope(cfg, X402_PAYMENT_SCOPE.multichain);
+    if (!scoped) throw new Error('expected multichain payment scope to be enabled');
+    return scoped;
+  }
+
+  function mockFacilitator() {
+    global.fetch = jest.fn(async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url === 'https://facilitator.example/supported') {
+        return Response.json({
+          kinds: [
+            { x402Version: 2, scheme: 'exact', network: 'eip155:999' },
+            { x402Version: 2, scheme: 'exact', network: 'eip155:8453' },
+            { x402Version: 2, scheme: 'exact', network: 'eip155:56' },
+            {
+              x402Version: 2,
+              scheme: 'exact',
+              network: SOLANA_DEVNET_CAIP2,
+              extra: { feePayer: FEE_PAYER },
+            },
+          ],
+          extensions: [],
+          signers: {},
+        });
+      }
+      if (url === 'https://rpc.example/solana') {
+        return Response.json({
+          jsonrpc: '2.0',
+          id: '1',
+          result: {
+            context: { slot: 1 },
+            value: { blockhash: BLOCKHASH, lastValidBlockHeight: 123 },
+          },
+        });
+      }
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+  }
+
+  it('advertises HyperEVM, Base, BNB, and Solana on the bare GET quote', async () => {
+    mockFacilitator();
+    const quoteConfig = productionLikeConfig();
+    const server = await buildX402HttpServer(quoteConfig, undefined, {
+      mcpAmountAtomic: '20000',
+      mcpDiscoveryToolName: MCP_INDEXER_QUOTE_TOOL,
+    });
+    const result = await server.processHTTPRequest({
+      adapter: new McpTestRequestAdapter(),
+      path: '/api/mcp',
+      method: 'POST',
+    });
+
+    expect(result.type).toBe('payment-error');
+    if (result.type !== 'payment-error') throw new Error('expected a payment quote');
+    const quote = JSON.parse(
+      Buffer.from(result.response.headers['PAYMENT-REQUIRED'] ?? '', 'base64url').toString('utf8')
+    ) as { accepts: Array<{ network: string; amount: string }> };
+
+    expect(quote.accepts.map((entry) => entry.network).sort()).toEqual(
+      ['eip155:999', 'eip155:8453', 'eip155:56', SOLANA_DEVNET_CAIP2].sort()
+    );
+    // Each rail keeps the amount that network actually settles this price at.
+    const expectedPairs = getX402PaymentOptions(quoteConfig, '20000')
+      .map((option) => [option.network, option.amountAtomic] as [string, string])
+      .sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0));
+    const quotedPairs = quote.accepts
+      .map((entry) => [entry.network, entry.amount] as [string, string])
+      .sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0));
+    expect(quotedPairs).toEqual(expectedPairs);
+  });
+
+  it('drops a rail whose floor exceeds the quoted amount', () => {
+    const quoteConfig = productionLikeConfig();
+    const low = getX402PaymentOptions(quoteConfig, '2000').map((option) => option.network);
+    expect(low).toContain('eip155:999');
+    expect(low).toContain('eip155:8453');
+    expect(low).not.toContain('eip155:56');
+
+    const full = getX402PaymentOptions(quoteConfig, '20000').map((option) => option.network);
+    expect(full).toContain('eip155:56');
+  });
+});
