@@ -111,7 +111,7 @@ describe('solana_perp_guard tool', () => {
     const tool = LEGACY_TOOL_BY_NAME.get('solana_perp_guard');
 
     expect(tool).toBeDefined();
-    expect(getToolCreditCost('solana_perp_guard')).toBe(5);
+    expect(getToolCreditCost('solana_perp_guard')).toBe(20);
   });
 
   it('validates its parameters against the shared guard schema', () => {

@@ -90,7 +90,7 @@ describe('POST /api/billing/checkout', () => {
     expect(mockInsert).toHaveBeenCalledWith(
       expect.objectContaining({
         user_id: USER_ID,
-        credits: 25_000,
+        credits: 100_000,
         price_usd: 99,
         status: 'incomplete',
       })
@@ -120,7 +120,7 @@ describe('POST /api/billing/checkout', () => {
       })
     );
     expect(mockCreateInvoice).toHaveBeenCalledWith(
-      expect.objectContaining({ priceAmount: 229, priceCurrency: 'usd' })
+      expect.objectContaining({ priceAmount: 19, priceCurrency: 'usd' })
     );
     expect(mockUpdate).toHaveBeenCalledWith(
       expect.objectContaining({ nowpayments_invoice_id: 'invoice_1' })
@@ -136,7 +136,7 @@ describe('POST /api/billing/checkout', () => {
 
     expect(response.status).toBe(200);
     expect(mockCreateInvoice).toHaveBeenCalledWith(
-      expect.objectContaining({ priceAmount: 2519, priceCurrency: 'usd' })
+      expect.objectContaining({ priceAmount: 190, priceCurrency: 'usd' })
     );
     expect(mockFrom).toHaveBeenCalledWith('subscriptions');
     expect(mockInsert).toHaveBeenCalledWith(

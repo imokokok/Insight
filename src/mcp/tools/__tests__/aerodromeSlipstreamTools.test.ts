@@ -44,7 +44,7 @@ describe('prepare_aerodrome_slipstream_swap MCP tool', () => {
       prepareAerodromeSlipstreamSwapTool.parameters.safeParse({ ...args, maxSlippageBps: 10_000 })
         .success
     ).toBe(false);
-    expect(getToolCreditCost('prepare_aerodrome_slipstream_swap')).toBe(5);
+    expect(getToolCreditCost('prepare_aerodrome_slipstream_swap')).toBe(20);
   });
 
   it('returns unsigned preparation output and the Base execution-receipt handoff', async () => {

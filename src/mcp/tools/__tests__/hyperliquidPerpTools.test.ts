@@ -53,8 +53,8 @@ describe('Hyperliquid order MCP tools', () => {
         },
       }).success
     ).toBe(true);
-    expect(getToolCreditCost('prepare_hyperliquid_perp_order')).toBe(5);
-    expect(getToolCreditCost('verify_hyperliquid_perp_execution')).toBe(10);
+    expect(getToolCreditCost('prepare_hyperliquid_perp_order')).toBe(20);
+    expect(getToolCreditCost('verify_hyperliquid_perp_execution')).toBe(4);
   });
 
   it('routes venue observation through the common adapter and keeps its native evidence', async () => {

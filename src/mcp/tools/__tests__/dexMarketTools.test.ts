@@ -25,7 +25,7 @@ describe('get_monad_dex_market MCP tool', () => {
   it('is discoverable, takes no untrusted market selector, and has C1 pricing', () => {
     expect(getMonadDexMarketTool.parameters.safeParse({}).success).toBe(true);
     expect(LEGACY_TOOL_BY_NAME.has('get_monad_dex_market')).toBe(true);
-    expect(getToolCreditCost('get_monad_dex_market')).toBe(0.5);
+    expect(getToolCreditCost('get_monad_dex_market')).toBe(2);
   });
 
   it('returns block-pinned market evidence with explicit non-oracle caveats', async () => {

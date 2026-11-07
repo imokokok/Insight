@@ -143,9 +143,9 @@ describe('solana_swap_guard MCP tool', () => {
         guard: { ...args.guard, policy: { ...args.guard.policy, maxSlippageBps: 5_000 } },
       }).success
     ).toBe(false);
-    expect(getToolCreditCost('solana_swap_guard')).toBe(5);
-    expect(getToolCreditCost('settle_solana_swap_guard')).toBe(10);
-    expect(getToolCreditCost('verify_solana_swap_guard_settlement')).toBe(10);
+    expect(getToolCreditCost('solana_swap_guard')).toBe(20);
+    expect(getToolCreditCost('settle_solana_swap_guard')).toBe(40);
+    expect(getToolCreditCost('verify_solana_swap_guard_settlement')).toBe(40);
   });
 
   it('requires human confirmation only for an attested ALLOW', async () => {

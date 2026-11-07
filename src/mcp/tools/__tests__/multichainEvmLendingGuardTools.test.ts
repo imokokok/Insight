@@ -40,8 +40,8 @@ describe('multichain_evm_lending_guard MCP tools', () => {
   it('is discoverable and metered as an agent gate', () => {
     expect(LEGACY_TOOL_BY_NAME.has('multichain_evm_lending_guard')).toBe(true);
     expect(LEGACY_TOOL_BY_NAME.has('multichain_evm_lending_guard_exact_call')).toBe(true);
-    expect(getToolCreditCost('multichain_evm_lending_guard')).toBe(5);
-    expect(getToolCreditCost('multichain_evm_lending_guard_exact_call')).toBe(5);
+    expect(getToolCreditCost('multichain_evm_lending_guard')).toBe(20);
+    expect(getToolCreditCost('multichain_evm_lending_guard_exact_call')).toBe(20);
   });
 
   it('makes the no-execution boundary explicit', async () => {

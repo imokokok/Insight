@@ -28,15 +28,15 @@ import {
 
 describe('oracle watch window plan', () => {
   it('converts its USD list price at the canonical credit rate', () => {
-    expect(USD_PER_CREDIT).toBe(0.004);
-    expect(usdToCredits(ORACLE_WATCH_WINDOW_PLAN.priceUsd)).toBe(125);
-    expect(ORACLE_WATCH_WINDOW_CREDIT_COST).toBe(125);
+    expect(USD_PER_CREDIT).toBe(0.001);
+    expect(usdToCredits(ORACLE_WATCH_WINDOW_PLAN.priceUsd)).toBe(500);
+    expect(ORACLE_WATCH_WINDOW_CREDIT_COST).toBe(500);
   });
 });
 
 describe('getEndpointCreditCost', () => {
   it('charges the window purchase its product price, not a class price', () => {
-    expect(getEndpointCreditCost(ORACLE_WATCH_WINDOW_BEGIN_PATH)).toBe(125);
+    expect(getEndpointCreditCost(ORACLE_WATCH_WINDOW_BEGIN_PATH)).toBe(500);
     // Sanity: without the product registry the same path would fall through to
     // the /safety/ C3 rule — the bug this layer exists to prevent.
     expect(getCreditCost(ORACLE_WATCH_WINDOW_BEGIN_PATH)).toBe(CREDIT_COST.C3);
@@ -44,7 +44,7 @@ describe('getEndpointCreditCost', () => {
   });
 
   it('charges the lifecycle purchase its product price as well', () => {
-    expect(getEndpointCreditCost(POSITION_LIFECYCLE_BEGIN_PATH)).toBe(138);
+    expect(getEndpointCreditCost(POSITION_LIFECYCLE_BEGIN_PATH)).toBe(550);
     expect(getCreditCost(POSITION_LIFECYCLE_BEGIN_PATH)).toBe(CREDIT_COST.C3);
     expect(PRODUCT_ENDPOINT_CREDIT_COSTS[POSITION_LIFECYCLE_BEGIN_PATH]).toBeDefined();
   });
@@ -63,15 +63,15 @@ describe('getEndpointCreditCost', () => {
 
 describe('position lifecycle plan', () => {
   it('converts its USD list price at the canonical credit rate', () => {
-    expect(usdToCredits(POSITION_LIFECYCLE_PLAN.priceUsd)).toBe(138);
-    expect(POSITION_LIFECYCLE_CREDIT_COST).toBe(138);
+    expect(usdToCredits(POSITION_LIFECYCLE_PLAN.priceUsd)).toBe(550);
+    expect(POSITION_LIFECYCLE_CREDIT_COST).toBe(550);
   });
 });
 
 describe('getMcpToolCreditCost', () => {
   it('charges the begin tools their product price, not a class price', () => {
-    expect(getMcpToolCreditCost('oracle_watch_window_begin')).toBe(125);
-    expect(getMcpToolCreditCost('position_lifecycle_begin')).toBe(138);
+    expect(getMcpToolCreditCost('oracle_watch_window_begin')).toBe(500);
+    expect(getMcpToolCreditCost('position_lifecycle_begin')).toBe(550);
     // Sanity: without the product registry the names would fall through to the
     // oracle_watch / lifecycle-ish class rules — the bug this layer prevents.
     expect(getToolCreditCost('oracle_watch_window_begin')).toBe(CREDIT_COST.C3);

@@ -31,18 +31,22 @@ describe('PricingCards', () => {
     expect(
       screen.getByText(PLANS.developer.priceMonthly.toLocaleString('en-US'))
     ).toBeInTheDocument();
-    expect(screen.getByText('1,099')).toBeInTheDocument();
-    expect(screen.getByText('3,499')).toBeInTheDocument();
+    expect(screen.getByText(PLANS.team.priceMonthly.toLocaleString('en-US'))).toBeInTheDocument();
+    expect(screen.getByText(PLANS.scale.priceMonthly.toLocaleString('en-US'))).toBeInTheDocument();
   });
 
   it('shows the annual total with separators and an effective monthly price', () => {
     render(<PricingCards billingCycle="yearly" />);
 
     expect(
-      screen.getByText('2,519 USDC billed annually · effective monthly price')
+      screen.getByText(
+        `${PLANS.developer.priceYearly.toLocaleString('en-US')} USDC billed annually · effective monthly price`
+      )
     ).toBeInTheDocument();
     expect(
-      screen.getByText('38,489 USDC billed annually · effective monthly price')
+      screen.getByText(
+        `${PLANS.scale.priceYearly.toLocaleString('en-US')} USDC billed annually · effective monthly price`
+      )
     ).toBeInTheDocument();
     expect(screen.getByText((PLANS.team.priceYearly / 12).toFixed(2))).toBeInTheDocument();
   });
@@ -51,7 +55,7 @@ describe('PricingCards', () => {
     render(<PricingCards billingCycle="monthly" />);
 
     expect(screen.getAllByText(/^Everything in .+, plus$/).map((node) => node.textContent)).toEqual(
-      ['Everything in Developer, plus', 'Everything in Team, plus', 'Everything in Scale, plus']
+      ['Everything in Starter, plus', 'Everything in Team, plus', 'Everything in Scale, plus']
     );
   });
 

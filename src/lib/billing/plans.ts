@@ -61,35 +61,34 @@ import { CREDIT_COST, creditAllowanceExamples, type MeteringClass } from './mete
 
 export const PLANS = {
   developer: {
-    name: 'Developer',
-    rateLimit: 60, // requests per minute
-    monthlyQuota: 60_000, // credits included per billing cycle with a subscription
-    priceMonthly: 229,
-    priceYearly: 2519,
+    name: 'Starter',
+    rateLimit: 120, // requests per minute
+    monthlyQuota: 25_000, // credits included per billing cycle with a subscription
+    priceMonthly: 19,
+    priceYearly: 190,
     features: [
-      '60,000 credits / month included',
-      '60 requests / minute',
+      '25,000 credits / month included',
+      '120 requests / minute',
+      '2 API keys',
       'Full platform access — every endpoint & MCP tool',
       'Historical 15-minute snapshots (90-day archive)',
-      'Reliability rankings (90-day trend)',
       'Protocol risk parameters & position stress tests',
-      'Anomaly detection, incident timeline & coverage analysis',
-      'CSV / Excel export',
       'Email support (48h SLA)',
     ],
   },
   team: {
     name: 'Team',
-    rateLimit: 300, // requests per minute
-    monthlyQuota: 300_000, // credits included per billing cycle with a subscription
-    priceMonthly: 1099,
-    priceYearly: 12089,
+    rateLimit: 400, // requests per minute
+    monthlyQuota: 120_000, // credits included per billing cycle with a subscription
+    priceMonthly: 79,
+    priceYearly: 790,
     features: [
-      '300,000 credits / month included',
-      '300 requests / minute',
+      '120,000 credits / month included',
+      '400 requests / minute',
+      '10 API keys',
+      '5 team seats',
       'Full platform access — every endpoint & MCP tool',
       'Batch query priority queue',
-      'Quarterly reliability review',
       '99.5% uptime SLA',
       'Slack support (24h SLA)',
     ],
@@ -97,15 +96,16 @@ export const PLANS = {
   scale: {
     name: 'Scale',
     rateLimit: 1_200, // requests per minute
-    monthlyQuota: 1_000_000, // credits included per billing cycle with a subscription
-    priceMonthly: 3499,
-    priceYearly: 38489,
+    monthlyQuota: 500_000, // credits included per billing cycle with a subscription
+    priceMonthly: 299,
+    priceYearly: 2_990,
     features: [
-      '1,000,000 credits / month included',
+      '500,000 credits / month included',
       '1,200 requests / minute',
+      '50 API keys',
+      '20 team seats',
       'Full platform access — every endpoint & MCP tool',
       'Highest-priority batch queue',
-      'Monthly reliability review',
       '99.9% uptime SLA',
       'Dedicated support channel (4h SLA)',
     ],
@@ -130,12 +130,12 @@ export const PLANS = {
 export type Plan = keyof typeof PLANS;
 
 /**
- * Canonical USD value of one credit, anchored to the x402 public list price
- * (C1 $0.002 per 0.5 cr). Product-level credit prices are derived from this
- * constant so a non-per-call purchase can never drift from the per-call
- * x402↔credit exchange rate documented in the pricing-model comment above.
+ * Canonical USD value of one credit after the 2026-11 rebase. The public USD
+ * list prices are unchanged (C1 $0.002, C2 $0.004); only the unit changed
+ * from $0.004 to $0.001, so credit counts are 4× larger and existing balances
+ * are migrated ×4.
  */
-export const USD_PER_CREDIT = 0.004;
+export const USD_PER_CREDIT = 0.001;
 
 /** Convert a USD list price into its integer credit cost at {@link USD_PER_CREDIT}. */
 export function usdToCredits(usd: number): number {
@@ -156,21 +156,21 @@ export const PLAN_ORDER: Plan[] = ['developer', 'team', 'scale', 'enterprise'];
 export const CREDIT_PACKS = {
   starter: {
     name: 'Starter Pack',
-    credits: 25_000,
+    credits: 100_000,
     priceUsd: 99,
-    description: creditAllowanceExamples(25_000, ['C2', 'C3']),
+    description: creditAllowanceExamples(100_000, ['C2', 'C3']),
   },
   builder: {
     name: 'Builder Pack',
-    credits: 100_000,
+    credits: 400_000,
     priceUsd: 389,
-    description: creditAllowanceExamples(100_000, ['C2', 'C3']),
+    description: creditAllowanceExamples(400_000, ['C2', 'C3']),
   },
   agent: {
     name: 'Agent Pack',
-    credits: 500_000,
+    credits: 2_000_000,
     priceUsd: 1849,
-    description: creditAllowanceExamples(500_000, ['C3', 'C4']),
+    description: creditAllowanceExamples(2_000_000, ['C3', 'C4']),
   },
 } as const;
 

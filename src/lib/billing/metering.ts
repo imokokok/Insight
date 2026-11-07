@@ -8,22 +8,23 @@
  * priced identically across surfaces.
  *
  * Classes (cost = supplier cost + value to the calling agent):
- *   C1 (0.5cr)  — foundational, cached data (prices, listings, reports)
- *   C2 (1cr)    — deep aggregation / analysis (halved from 2cr in the
- *                 2026-11-03 pricing review; see
- *                 docs/research/2026-11-03-first-pricing-review.md)
- *   C3 (5cr)    — agent gating (pre-trade, oracle-watch)
- *   C4 (10cr)   — attested proofs & receipts (RPC read + KMS signing)
+ *   C1 (2cr)    — foundational, cached data (prices, listings, reports)
+ *   C2 (4cr)    — deep aggregation / analysis
+ *   C3 (20cr)   — agent gating (pre-trade, oracle-watch)
+ *   C4 (40cr)   — attested proofs & receipts (RPC read + KMS signing)
+ *
+ * One credit is $0.001 after the 2026-11 rebase. The USD list prices are
+ * unchanged: C1 $0.002, C2 $0.004, C3 $0.02, C4 $0.04.
  */
 
 export type MeteringClass = 'C1' | 'C2' | 'C3' | 'C4';
 
 /** Credits charged per call for each metering class. */
 export const CREDIT_COST: Record<MeteringClass, number> = {
-  C1: 0.5,
-  C2: 1,
-  C3: 5,
-  C4: 10,
+  C1: 2,
+  C2: 4,
+  C3: 20,
+  C4: 40,
 };
 
 /** Display order for the metering ladder, cheapest class first. */
@@ -127,6 +128,21 @@ const ENDPOINT_RULES: Array<[RegExp, MeteringClass]> = [
  * names like `pre_trade_safety_check` and `get_risk_summary`. Default is C1.
  */
 const TOOL_RULES: Array<[RegExp, MeteringClass]> = [
+  // Approved price-tier alignment: every member of a unified tool must share
+  // one class, otherwise the tools could not be merged. Legacy names map to
+  // the same class as the unified tool that now covers them.
+  [/^get_price_history$/, 'C2'],
+  [/^get_daily_report$/, 'C2'],
+  [/^get_metrics$/, 'C2'],
+  [/^get_reputation_rankings$/, 'C2'],
+  [/^get_provider_reputation$/, 'C2'],
+  [/^get_protocol_risk_params$/, 'C1'],
+  [/^get_stablecoin_list$/, 'C1'],
+  // Only the hyperliquid_perp verification needs a live upstream read; the
+  // three offline kinds are free (see freeVerify.ts) and never reach here.
+  [/^verify_evidence$/, 'C2'],
+  [/^verify_hyperliquid_perp_execution$/, 'C2'],
+
   // Consolidated 16-tool surface. Explicit rules keep each unified tool at its
   // documented class regardless of later broad-regex changes.
   [/^get_price_analytics$/, 'C2'],
@@ -135,7 +151,6 @@ const TOOL_RULES: Array<[RegExp, MeteringClass]> = [
   [/^prepare_swap$/, 'C3'],
   [/^prepare_perp_order$/, 'C3'],
   [/^begin_trade_evidence$/, 'C4'],
-  [/^verify_evidence$/, 'C4'],
   [/^get_robinhood_rwa_context$/, 'C1'],
   [/^get_robinhood_rwa_instrument$/, 'C1'],
   // Block-pinned, single-market evidence — foundational data, not a safety gate.

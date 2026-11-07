@@ -14,6 +14,7 @@
  * product registry in here keeps the module graph acyclic.
  */
 
+import { isFreeVerifyCall } from './freeVerify';
 import { getCreditCost, getToolCreditCost } from './metering';
 import {
   ORACLE_WATCH_WINDOW_BEGIN_PATH,
@@ -84,6 +85,15 @@ export function getMcpToolCreditCost(toolName: string): number {
   const product = PRODUCT_MCP_TOOL_CREDIT_COSTS[toolName];
   if (product !== undefined) return product;
   return getToolCreditCost(toolName);
+}
+
+/**
+ * Per-call cost that knows the tool arguments. Offline verification kinds are
+ * free; everything else falls back to the tool's static class price.
+ */
+export function getMcpToolCreditCostForCall(toolName: string, args?: unknown): number {
+  if (isFreeVerifyCall(toolName, args)) return 0;
+  return getMcpToolCreditCost(toolName);
 }
 
 /** True when a tool's per-call cost is covered by a prior product purchase. */
