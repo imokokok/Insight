@@ -46,6 +46,9 @@ export const BLOCKCHAIN_TO_CHAIN_ID: Record<Blockchain, number> = {
   [Blockchain.BANDCHAIN]: 0,
   // Monad mainnet (chainId 143 verified via eth_chainId against rpc.monad.xyz, 2026-10-19).
   [Blockchain.MONAD]: 143,
+  // HyperEVM mainnet (chainId 999 verified via eth_chainId against
+  // rpc.hyperliquid.xyz/evm, 2026-11-08).
+  [Blockchain.HYPEREVM]: CHAIN_ID.HYPEREVM,
 };
 
 // Reverse mapping: chain_id → Blockchain.

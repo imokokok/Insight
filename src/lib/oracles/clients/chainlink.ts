@@ -1,4 +1,5 @@
 import { BaseOracleClient } from '@/lib/oracles/base';
+import { getFeedHeartbeatFromCatalog } from '@/lib/oracles/constants/chainlinkCatalogLoader';
 import { CHAINLINK_SUPPORTED_CHAINS } from '@/lib/oracles/constants/chainlinkSupportedChains';
 import { BLOCKCHAIN_TO_CHAIN_ID } from '@/lib/oracles/constants/chainMapping';
 import {
@@ -72,6 +73,9 @@ const CHAINLINK_QUALITY_CONFIG = {
     // New chain (mainnet 2025-11, feeds since 2025-11-24). Conservative
     // reliability until an observed track record justifies raising it.
     [Blockchain.MONAD]: 0.93,
+    // HyperEVM mainnet feeds (chainId 999). Conservative until an observed
+    // track record justifies raising it.
+    [Blockchain.HYPEREVM]: 0.95,
   } as Record<Blockchain, number>,
   defaultConfidence: 0.98,
   minConfidence: 0.9,
@@ -158,6 +162,14 @@ export class ChainlinkClient extends BaseOracleClient {
       ? { address: verificationFeedAddress }
       : getChainlinkPriceFeed(chainlinkData.symbol, chainId);
 
+    // Freshness is per feed: ETH/USD on HyperEVM has a 24h heartbeat and can
+    // legitimately go ~21h between rounds. A global 300s bound would report a
+    // healthy feed as stale. Allow one missed heartbeat before scoring zero.
+    const heartbeatSeconds = getFeedHeartbeatFromCatalog(chainlinkData.symbol, chainId);
+    const dataAgeSeconds = chainlinkData.timestamp
+      ? Math.floor((Date.now() - chainlinkData.timestamp) / 1000)
+      : 0;
+
     logger.debug('Converting Chainlink data to PriceData', {
       symbol: chainlinkData.symbol,
       roundId,
@@ -189,9 +201,7 @@ export class ChainlinkClient extends BaseOracleClient {
         ? FailureMode.FALLBACK_METADATA
         : FailureMode.NONE,
       signalVector: buildSignalVector({
-        dataAgeSeconds: chainlinkData.timestamp
-          ? Math.floor((Date.now() - chainlinkData.timestamp) / 1000)
-          : 0,
+        dataAgeSeconds,
         isOnChain: true,
         hasVerification: !!feed,
         providerUptime:
@@ -201,6 +211,7 @@ export class ChainlinkClient extends BaseOracleClient {
         hasDecimals: chainlinkData.decimals !== undefined,
         hasSource: !!chainlinkData.description,
         verificationMethod: 'latestRoundData',
+        staleThresholdSeconds: heartbeatSeconds ? Math.max(300, heartbeatSeconds * 2) : undefined,
       }),
       verification: feed
         ? buildEvmVerification(feed.address, chainId, 'latestRoundData')

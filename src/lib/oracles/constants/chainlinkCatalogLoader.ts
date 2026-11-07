@@ -66,6 +66,20 @@ export function getFeedFromCatalog(symbol: string, chainId: number): ChainlinkPr
   return entry ? toChainlinkPriceFeed(entry, symbol) : null;
 }
 
+/**
+ * Official heartbeat (seconds) for a (symbol, chainId) feed. Freshness gates
+ * must use this per-feed value instead of a global minute-level threshold:
+ * HyperEVM ETH/USD, for example, has a 24h heartbeat and can legitimately go
+ * ~21h without a new round. Returns null when the catalog has no heartbeat.
+ */
+export function getFeedHeartbeatFromCatalog(symbol: string, chainId: number): number | null {
+  const netFeeds = catalog.networks[String(chainId)];
+  if (!netFeeds) return null;
+  const upper = symbol.toUpperCase();
+  const entry = netFeeds.find((f) => f.base.toUpperCase() === upper);
+  return entry?.heartbeat && entry.heartbeat > 0 ? entry.heartbeat : null;
+}
+
 /** Every EVM network present in the catalog (numeric chain ids, ascending). */
 export function getCatalogNetworkChainIds(): number[] {
   return Object.keys(catalog.networks)
