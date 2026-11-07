@@ -158,19 +158,19 @@ function clientWithLedger(input: {
 }
 
 it('attributes a charge to the oldest unexhausted lot and records the split', async () => {
-  const rpc = jest.fn().mockResolvedValue({ data: { ok: true, balance: 120, cost: 30 }, error: null });
-  jest
-    .mocked(createServiceRoleClient)
-    .mockReturnValue(
-      clientWithLedger({
-        balance: 120,
-        lots: [
-          { id: 10, delta: 100, source: 'signup' },
-          { id: 11, delta: 50, source: 'subscription' },
-        ],
-        rpc,
-      }) as never
-    );
+  const rpc = jest
+    .fn()
+    .mockResolvedValue({ data: { ok: true, balance: 120, cost: 30 }, error: null });
+  jest.mocked(createServiceRoleClient).mockReturnValue(
+    clientWithLedger({
+      balance: 120,
+      lots: [
+        { id: 10, delta: 100, source: 'signup' },
+        { id: 11, delta: 50, source: 'subscription' },
+      ],
+      rpc,
+    }) as never
+  );
 
   // Granted 150, balance 120 → 30 already consumed out of the first lot.
   await consumeCredits('key', 30, 'request-fifo', '/api/v1/prices', { reason: 'prices' });
@@ -185,19 +185,19 @@ it('attributes a charge to the oldest unexhausted lot and records the split', as
 });
 
 it('splits across lots and reports the largest share as the row source', async () => {
-  const rpc = jest.fn().mockResolvedValue({ data: { ok: true, balance: 60, cost: 25 }, error: null });
-  jest
-    .mocked(createServiceRoleClient)
-    .mockReturnValue(
-      clientWithLedger({
-        balance: 60,
-        lots: [
-          { id: 10, delta: 100, source: 'signup' },
-          { id: 11, delta: 50, source: 'subscription' },
-        ],
-        rpc,
-      }) as never
-    );
+  const rpc = jest
+    .fn()
+    .mockResolvedValue({ data: { ok: true, balance: 60, cost: 25 }, error: null });
+  jest.mocked(createServiceRoleClient).mockReturnValue(
+    clientWithLedger({
+      balance: 60,
+      lots: [
+        { id: 10, delta: 100, source: 'signup' },
+        { id: 11, delta: 50, source: 'subscription' },
+      ],
+      rpc,
+    }) as never
+  );
 
   // Granted 150, balance 60 → 90 consumed. Lot 10 has 10 left, so this
   // 25-credit charge takes 10 from the signup lot and 15 from the plan lot.
@@ -218,16 +218,16 @@ it('splits across lots and reports the largest share as the row source', async (
 });
 
 it('leaves the source null when the funding lots predate source tracking', async () => {
-  const rpc = jest.fn().mockResolvedValue({ data: { ok: true, balance: 80, cost: 20 }, error: null });
-  jest
-    .mocked(createServiceRoleClient)
-    .mockReturnValue(
-      clientWithLedger({
-        balance: 100,
-        lots: [{ id: 9, delta: 120, source: null }],
-        rpc,
-      }) as never
-    );
+  const rpc = jest
+    .fn()
+    .mockResolvedValue({ data: { ok: true, balance: 80, cost: 20 }, error: null });
+  jest.mocked(createServiceRoleClient).mockReturnValue(
+    clientWithLedger({
+      balance: 100,
+      lots: [{ id: 9, delta: 120, source: null }],
+      rpc,
+    }) as never
+  );
 
   await consumeCredits('key', 20, 'request-legacy', '/api/v1/prices', { reason: 'prices' });
 

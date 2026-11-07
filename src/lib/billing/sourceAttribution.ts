@@ -108,10 +108,7 @@ export function dominantLotSource(allocations: readonly LotAllocation[]): Funded
 }
 
 /** Whether every credit in `cost` found a lot to land on. */
-export function allocationCoversCost(
-  allocations: readonly LotAllocation[],
-  cost: number
-): boolean {
+export function allocationCoversCost(allocations: readonly LotAllocation[], cost: number): boolean {
   const allocated = allocations.reduce((total, allocation) => total + allocation.amount, 0);
   return round2(allocated) >= round2(cost);
 }
