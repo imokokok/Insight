@@ -351,7 +351,7 @@ const GUARD_QUICKSTARTS = [
     family: 'Oracle Watch Window (24h)',
     path: '/api/v1/safety/oracle-watch-window',
     method: 'POST',
-    query: '(POST body: {"symbol":"BTC","chain":"hyperevm"}; returns a one-time window token)',
+    query: '(POST body: {"symbol":"BTC","chain":"base"}; returns a one-time window token)',
     mcp: 'REST-first (token-authed in-window polls)',
     decides:
       '24h of continuous halt/proceed signals for one position (300 polls, ≥30s apart; 10/min and 5 open windows per key)',
@@ -361,7 +361,7 @@ const GUARD_QUICKSTARTS = [
     family: 'Position Lifecycle Bundle (24h)',
     path: '/api/v1/safety/position-lifecycle',
     method: 'POST',
-    query: '(POST body: {"symbol":"BTC","chain":"hyperevm"}; returns a one-time lifecycle token)',
+    query: '(POST body: {"symbol":"BTC","chain":"base"}; returns a one-time lifecycle token)',
     mcp: 'REST-first (bundled calls are token-authed)',
     decides: 'Embedded window + 4 guard assessments + 1 attested receipt',
     price: '$0.55 per lifecycle',
@@ -382,7 +382,7 @@ curl -sD - -o /dev/null -H 'X-Insight-Entry-Source: docs' \\
 curl -sD - -o /dev/null -X POST \\
   "https://www.oracleinsight.xyz/api/v1/safety/position-lifecycle" \\
   -H 'Content-Type: application/json' \\
-  --data '{"symbol":"BTC","chain":"hyperevm"}' \\
+  --data '{"symbol":"BTC","chain":"base"}' \\
   | grep -i '^payment-required' | cut -d' ' -f2- | base64 --decode | jq
 # The purchase returns a one-time lifecycle token; the bundled window polls,
 # guard assessments, and receipt are then token-authenticated, never re-charged.`;
