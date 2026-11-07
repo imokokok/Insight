@@ -1,9 +1,6 @@
 import { pathToFileURL } from 'node:url';
 
-import {
-  fetchProductionDomainDeployment,
-  projectIdFromHook,
-} from './deploy-vercel-production.mts';
+import { fetchProductionDomainDeployment, projectIdFromHook } from './deploy-vercel-production.mts';
 
 // Hard gate before the live smoke: the smoke probes the public domain, so a
 // domain pinned to an older deployment would "pass" while the new release never
@@ -33,7 +30,9 @@ export async function assertProductionDomainCommit({
     domain,
   });
   if (!domainDeployment) {
-    throw new Error(`The production domain ${domain ?? 'www.oracleinsight.xyz'} has no deployment alias`);
+    throw new Error(
+      `The production domain ${domain ?? 'www.oracleinsight.xyz'} has no deployment alias`
+    );
   }
   if (domainDeployment.commitSha !== commitSha) {
     throw new Error(

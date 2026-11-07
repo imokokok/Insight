@@ -25,9 +25,7 @@ function harness({
       requests.push(endpoint);
       if (endpoint.includes('/v4/aliases')) {
         return response({
-          aliases: deploymentId
-            ? [{ alias: 'www.oracleinsight.xyz', deploymentId }]
-            : [],
+          aliases: deploymentId ? [{ alias: 'www.oracleinsight.xyz', deploymentId }] : [],
         });
       }
       return response({

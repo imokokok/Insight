@@ -127,7 +127,9 @@ export async function fetchProductionDomainDeployment({
     signal: AbortSignal.timeout(15_000),
   });
   if (!deploymentResponse.ok) {
-    throw new Error(`Vercel deployment lookup for ${domain} failed: HTTP ${deploymentResponse.status}`);
+    throw new Error(
+      `Vercel deployment lookup for ${domain} failed: HTTP ${deploymentResponse.status}`
+    );
   }
   const deployment = (await deploymentResponse.json()) as Deployment;
   return {
@@ -529,8 +531,8 @@ export async function deployVercelProduction({
     fetcher,
   });
   const alreadyPromoted = servesCommit(domainDeployment, commitSha)
-    ? existing.find((candidate) => deploymentId(candidate) === domainDeployment?.deploymentId) ??
-      domainDeployment?.deployment
+    ? (existing.find((candidate) => deploymentId(candidate) === domainDeployment?.deploymentId) ??
+      domainDeployment?.deployment)
     : undefined;
   const activeCurrentBuild = existing
     .filter(
