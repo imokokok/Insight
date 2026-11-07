@@ -30,6 +30,13 @@ import type { Blockchain } from '@/types/oracle';
 
 import { recordOracleWatchCheck } from './oracleWatchAudit';
 import { getOracleWatchSignal } from './oracleWatchService';
+import {
+  assertOpenWindowSlot,
+  consumePollRate,
+  isConcurrencyTriggerError,
+  ProductLimitError,
+  PRODUCT_24H_LIMITS,
+} from './productLimits';
 
 import type { OracleWatchResult } from './oracleWatchService';
 
@@ -148,6 +155,7 @@ interface WindowRow {
   closed_at: string | null;
   poll_count: number;
   last_poll_at: string | null;
+  api_key_id: string | null;
 }
 
 function toView(row: WindowRow): OracleWatchWindowView {
@@ -171,6 +179,8 @@ function toView(row: WindowRow): OracleWatchWindowView {
  * throws so the caller never returns a windowId without durable storage.
  */
 export async function beginOracleWatchWindow(input: BeginWindowInput): Promise<BeginWindowResult> {
+  await assertOpenWindowSlot(input.apiKeyId);
+
   const rawToken = randomBytes(RAW_TOKEN_HEX_LENGTH / 2).toString('hex');
   const tokenHash = createHash('sha256').update(rawToken, 'utf8').digest('hex');
   const expiresAt = new Date(Date.now() + WINDOW_DURATION_MS).toISOString();
@@ -190,11 +200,20 @@ export async function beginOracleWatchWindow(input: BeginWindowInput): Promise<B
       api_key_id: input.apiKeyId ?? null,
     })
     .select(
-      'id, symbol, chain, status, payment_method, token_hash, created_at, expires_at, closed_at, poll_count, last_poll_at'
+      'id, symbol, chain, status, payment_method, token_hash, created_at, expires_at, closed_at, poll_count, last_poll_at, api_key_id'
     )
     .single();
 
   if (error || !data) {
+    if (isConcurrencyTriggerError(error?.message)) {
+      throw new ProductLimitError(
+        'open_windows',
+        PRODUCT_24H_LIMITS.maxOpenWindowsPerKey,
+        PRODUCT_24H_LIMITS.maxOpenWindowsPerKey,
+        null,
+        'recheck'
+      );
+    }
     logger.error(
       'Monitored window insert failed',
       new Error(error?.message ?? 'unknown supabase error'),
@@ -226,7 +245,7 @@ async function loadWindow(
   const { data, error } = await client
     .from('oracle_watch_windows')
     .select(
-      'id, symbol, chain, status, payment_method, token_hash, created_at, expires_at, closed_at, poll_count, last_poll_at'
+      'id, symbol, chain, status, payment_method, token_hash, created_at, expires_at, closed_at, poll_count, last_poll_at, api_key_id'
     )
     .eq('id', windowId)
     .maybeSingle();
@@ -278,6 +297,10 @@ export async function pollOracleWatchWindow(
       );
     }
   }
+
+  // Per-key poll rate, checked after the token/interval guards so a rejected
+  // poll does not consume budget. Keyless windows are bounded by their token.
+  await consumePollRate(row.api_key_id ? `key:${row.api_key_id}` : `window:${row.id}`);
 
   const { data: updated, error: updateError } = await client
     .from('oracle_watch_windows')
