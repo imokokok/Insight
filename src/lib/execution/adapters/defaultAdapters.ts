@@ -44,6 +44,8 @@ import { canonicalJsonString } from '@/lib/utils/canonicalJson';
 
 import { estimateVenueNativeFee, noVenueFeeCommercialTerms } from '../commerce';
 
+import { baseSynthetixPerpAdapter } from './baseSynthetixPerpAdapter';
+import { bnbAsterPerpAdapter } from './bnbAsterPerpAdapter';
 import {
   createPreparedExecution,
   ExecutionAdapterRegistry,
@@ -52,6 +54,8 @@ import {
   type ExecutionReference,
   type PreparedExecution,
 } from './contracts';
+import { solanaDriftPerpAdapter } from './solanaDriftPerpAdapter';
+import { solanaJupiterSwapAdapter } from './solanaJupiterSwapAdapter';
 
 type EvmExactInput = PreparedAerodromeSlipstreamExactInput | PreparedPancakeSwapV3ExactInput;
 
@@ -66,6 +70,7 @@ function evmPrepared<Native extends EvmExactInput>(
   adapterId: string,
   native: Native
 ): PreparedExecution<Native> {
+  const expiresAt = new Date(native.exactInput.deadlineUnixSeconds * 1_000).toISOString();
   return createPreparedExecution({
     schema: 'insight.prepared-execution.v1',
     adapterId,
@@ -73,7 +78,8 @@ function evmPrepared<Native extends EvmExactInput>(
     authorization: 'user-controlled',
     intent: keccakIntent({ adapterId, transaction: native.transaction, approval: native.approval }),
     observedAt: native.quote.observedAt,
-    expiresAt: new Date(native.exactInput.deadlineUnixSeconds * 1_000).toISOString(),
+    expiresAt,
+    validityAnchor: { kind: 'timestamp', expiresAt },
     evidence: [
       {
         kind: 'pinned-quote',
@@ -148,6 +154,7 @@ export const solanaLendingAdapter: ExecutionAdapter<
       intent: { algorithm: 'sha256', digest: messageHash },
       observedAt: native.evaluatedAt,
       expiresAt: null,
+      validityAnchor: null,
       evidence: [
         {
           kind: 'protocol-simulation',
@@ -192,6 +199,7 @@ export const solanaSwapAdapter: ExecutionAdapter<SolanaSwapGuardExactInput, Sola
         intent: { algorithm: 'sha256', digest: messageHash },
         observedAt: native.evaluatedAt,
         expiresAt: null,
+      validityAnchor: null,
         evidence: [
           {
             kind: 'protocol-simulation',
@@ -238,6 +246,7 @@ export const solanaPerpAdapter: ExecutionAdapter<
       intent: { algorithm: 'sha256', digest: messageHash },
       observedAt: native.evaluatedAt,
       expiresAt: null,
+      validityAnchor: null,
       evidence: [
         {
           kind: 'protocol-simulation',
@@ -292,6 +301,13 @@ export const hyperliquidPerpAdapter: ExecutionAdapter<
       expiresAt: native.unsignedExchangeEnvelope
         ? new Date(native.unsignedExchangeEnvelope.expiresAfter).toISOString()
         : null,
+      validityAnchor: {
+        kind: 'venue-policy',
+        venue: 'hyperliquid',
+        expiresAt: native.unsignedExchangeEnvelope
+          ? new Date(native.unsignedExchangeEnvelope.expiresAfter).toISOString()
+          : null,
+      },
       evidence: [
         {
           kind: 'displayed-order-book',
@@ -368,7 +384,11 @@ export function createDefaultExecutionAdapterRegistry(): ExecutionAdapterRegistr
     .register(solanaLendingAdapter)
     .register(solanaSwapAdapter)
     .register(solanaPerpAdapter)
-    .register(hyperliquidPerpAdapter);
+    .register(hyperliquidPerpAdapter)
+    .register(baseSynthetixPerpAdapter)
+    .register(bnbAsterPerpAdapter)
+    .register(solanaDriftPerpAdapter)
+    .register(solanaJupiterSwapAdapter);
 }
 
 /** Shared application registry; it has no network or wallet side effects at import time. */
