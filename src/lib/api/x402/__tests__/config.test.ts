@@ -166,7 +166,7 @@ describe('x402 config', () => {
       ...BASE_ENV,
       X402_EVM_NETWORKS: 'eip155:8453,eip155:56',
     });
-    // 1 credit = $0.004 → 4000 micro-units canonical.
+    // 4000 micro-USDC canonical units (4 credits at $0.001 each).
     const bnb = getX402PaymentOptions(cfg, '4000').find((option) => option.network === 'eip155:56');
     expect(bnb?.amountAtomic).toBe('4000000000000000');
   });
@@ -507,6 +507,67 @@ describe('x402 config', () => {
         })
       ).toThrow(/without whitespace/);
     });
+  });
+});
+
+describe('per-network minimum quote', () => {
+  it('applies no floor by default', () => {
+    const cfg = parseX402Config({
+      ...BASE_ENV,
+      X402_EVM_NETWORKS: 'eip155:8453,eip155:999',
+    });
+    expect(cfg.networkMinAmountAtomic).toBeUndefined();
+    expect(getX402PaymentOptions(cfg).map((option) => option.network)).toEqual([
+      'eip155:8453',
+      'eip155:999',
+    ]);
+  });
+
+  it('omits a network whose quote is below its floor', () => {
+    const cfg = parseX402Config({
+      ...BASE_ENV,
+      X402_EVM_NETWORKS: 'eip155:8453,eip155:999',
+      X402_NETWORK_MIN_AMOUNT: 'eip155:999=100000',
+    });
+    expect(cfg.networkMinAmountAtomic).toEqual({ 'eip155:999': '100000' });
+    expect(getX402PaymentOptions(cfg).map((option) => option.network)).toEqual(['eip155:8453']);
+  });
+
+  it('keeps a network whose quote meets the floor', () => {
+    const cfg = parseX402Config({
+      ...BASE_ENV,
+      X402_EVM_NETWORKS: 'eip155:8453,eip155:999',
+      X402_NETWORK_MIN_AMOUNT: 'eip155:8453=20000',
+    });
+    expect(getX402PaymentOptions(cfg).map((option) => option.network)).toEqual([
+      'eip155:8453',
+      'eip155:999',
+    ]);
+  });
+
+  it('compares the floor against an MCP per-tool amount override', () => {
+    const cfg = parseX402Config({
+      ...BASE_ENV,
+      X402_EVM_NETWORKS: 'eip155:8453',
+      X402_NETWORK_MIN_AMOUNT: 'eip155:8453=20000',
+    });
+    expect(getX402PaymentOptions(cfg, '4000')).toEqual([]);
+    expect(getX402PaymentOptions(cfg, '20000')).toHaveLength(1);
+  });
+
+  it('accepts a JSON object and rejects malformed values', () => {
+    const cfg = parseX402Config({
+      ...BASE_ENV,
+      X402_NETWORK_MIN_AMOUNT: '{"eip155:999":"100000"}',
+    });
+    expect(cfg.networkMinAmountAtomic).toEqual({ 'eip155:999': '100000' });
+
+    expect(() => parseX402Config({ ...BASE_ENV, X402_NETWORK_MIN_AMOUNT: 'eip155:999=0' })).toThrow(
+      /positive integer/
+    );
+    expect(() =>
+      parseX402Config({ ...BASE_ENV, X402_NETWORK_MIN_AMOUNT: 'not-a-network=1000' })
+    ).toThrow();
   });
 });
 

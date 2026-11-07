@@ -76,11 +76,11 @@ describe('additional DEX market MCP tools', () => {
       false
     );
     expect(getHanjiMonadMarketTool.parameters.safeParse({}).success).toBe(true);
-    expect(getToolCreditCost('get_base_dex_market')).toBe(0.5);
-    expect(getToolCreditCost('get_aerodrome_slipstream_market')).toBe(0.5);
-    expect(getToolCreditCost('get_solana_dex_route')).toBe(0.5);
-    expect(getToolCreditCost('get_hyperliquid_perp_market')).toBe(0.5);
-    expect(getToolCreditCost('get_hanji_monad_market')).toBe(0.5);
+    expect(getToolCreditCost('get_base_dex_market')).toBe(2);
+    expect(getToolCreditCost('get_aerodrome_slipstream_market')).toBe(2);
+    expect(getToolCreditCost('get_solana_dex_route')).toBe(2);
+    expect(getToolCreditCost('get_hyperliquid_perp_market')).toBe(2);
+    expect(getToolCreditCost('get_hanji_monad_market')).toBe(2);
   });
 
   it('keeps Base pool evidence explicitly separate from oracle consensus', async () => {

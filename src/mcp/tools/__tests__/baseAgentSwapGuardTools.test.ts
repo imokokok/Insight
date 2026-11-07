@@ -104,7 +104,7 @@ describe('prepare_base_agent_swap_guard MCP tool', () => {
         policy: { ...args.policy, maxSlippageBps: 1_001 },
       }).success
     ).toBe(false);
-    expect(getToolCreditCost('prepare_base_agent_swap_guard')).toBe(5);
+    expect(getToolCreditCost('prepare_base_agent_swap_guard')).toBe(20);
   });
 
   it('tells an agent to request human confirmation only after ALLOW', async () => {

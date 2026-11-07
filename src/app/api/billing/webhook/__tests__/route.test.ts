@@ -160,7 +160,7 @@ describe('POST /api/billing/webhook', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUpdateApiKeyPlanForUser.mockResolvedValue(undefined);
-    mockTopUpCredits.mockResolvedValue(60000);
+    mockTopUpCredits.mockResolvedValue(25000);
   });
 
   it('returns 400 when signature verification fails', async () => {
@@ -228,7 +228,7 @@ describe('POST /api/billing/webhook', () => {
     mockParseIpnEvent.mockReturnValue({
       id: 'pay_2',
       type: 'finished',
-      data: { invoice_id: 'inv_2', order_id: 'order_2', price_amount: 229, price_currency: 'usd' },
+      data: { invoice_id: 'inv_2', order_id: 'order_2', price_amount: 19, price_currency: 'usd' },
     });
     const supabase = createSupabaseMock({
       selectData: {
@@ -255,7 +255,7 @@ describe('POST /api/billing/webhook', () => {
     expect(mockTopUpCredits).toHaveBeenCalledWith(
       expect.objectContaining({
         userId: 'user_123',
-        amount: 60000,
+        amount: 25000,
         meteringKey: 'grant:user_123:sub:order_2',
         kind: 'grant',
       })
@@ -285,7 +285,7 @@ describe('POST /api/billing/webhook', () => {
       data: {
         invoice_id: 'inv_annual',
         order_id: 'sub_annual',
-        price_amount: 2519,
+        price_amount: 190,
         price_currency: 'usd',
       },
     });
@@ -311,7 +311,7 @@ describe('POST /api/billing/webhook', () => {
     expect(mockTopUpCredits).toHaveBeenCalledWith(
       expect.objectContaining({
         userId: 'user_annual',
-        amount: 60_000,
+        amount: 25_000,
         meteringKey: expect.stringMatching(/^grant:user_annual:sub:sub_annual:\d{4}-\d{2}$/),
         kind: 'grant',
       })
@@ -352,7 +352,7 @@ describe('POST /api/billing/webhook', () => {
     mockParseIpnEvent.mockReturnValue({
       id: 'pay_renew',
       type: 'finished',
-      data: { invoice_id: 12345, order_id: 'sub_renew', price_amount: 229, price_currency: 'usd' },
+      data: { invoice_id: 12345, order_id: 'sub_renew', price_amount: 19, price_currency: 'usd' },
     });
     const supabase = createSupabaseMock({
       selectData: {
@@ -620,7 +620,7 @@ describe('POST /api/billing/webhook lease and failure handling', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUpdateApiKeyPlanForUser.mockResolvedValue(undefined);
-    mockTopUpCredits.mockResolvedValue(60000);
+    mockTopUpCredits.mockResolvedValue(25000);
   });
 
   it('does NOT reset the billing period or re-grant on a duplicate confirmed IPN', async () => {
@@ -687,7 +687,7 @@ describe('POST /api/billing/webhook lease and failure handling', () => {
     mockParseIpnEvent.mockReturnValue({
       id: 'pay_9',
       type: 'finished',
-      data: { invoice_id: 'inv_9', price_amount: 229, price_currency: 'usd' },
+      data: { invoice_id: 'inv_9', price_amount: 19, price_currency: 'usd' },
     });
     const supabase = createSupabaseMock({
       selectData: {
@@ -745,7 +745,7 @@ describe('POST /api/billing/webhook lease and failure handling', () => {
     mockParseIpnEvent.mockReturnValue({
       id: 'pay_activation_down',
       type: 'finished',
-      data: { invoice_id: 'inv_activation_down', price_amount: 1099, price_currency: 'usd' },
+      data: { invoice_id: 'inv_activation_down', price_amount: 79, price_currency: 'usd' },
     });
     mockCreateServiceRoleClient.mockReturnValue(
       createSupabaseMock({
@@ -829,7 +829,7 @@ describe('top-up & pending-state IPN edge cases', () => {
           credit_purchases: {
             id: 'purchase_1',
             user_id: 'user_topup',
-            credits: 25000,
+            credits: 100000,
             price_usd: 99,
             status: 'incomplete',
           },
@@ -844,7 +844,7 @@ describe('top-up & pending-state IPN edge cases', () => {
     expect(mockTopUpCredits).toHaveBeenCalledWith(
       expect.objectContaining({
         userId: 'user_topup',
-        amount: 25000,
+        amount: 100000,
         meteringKey: 'topup:inv_topup1',
         kind: 'topup',
       })
@@ -869,7 +869,7 @@ describe('top-up & pending-state IPN edge cases', () => {
         credit_purchases: {
           id: 'purchase_2',
           user_id: 'user_topup2',
-          credits: 100000,
+          credits: 400000,
           price_usd: 389,
           status: 'incomplete',
         },

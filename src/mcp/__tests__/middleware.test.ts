@@ -33,7 +33,7 @@ describe('consumeMcpQuota', () => {
     expect(result).toEqual({ allowed: false, reason: 'INSUFFICIENT_CREDITS' });
     expect(mockedConsumeCredits).toHaveBeenCalledWith(
       'key-1',
-      10,
+      40,
       'metering-key',
       '/mcp/tools/agent_begin_trade'
     );

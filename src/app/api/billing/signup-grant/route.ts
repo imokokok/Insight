@@ -23,9 +23,9 @@ import { createLogger, normalizeError } from '@/lib/utils/logger';
 
 const logger = createLogger('billing-signup-grant');
 
-/** Trial credits granted once per user. Enough for five complete Guard
- *  workflows (2x C3 + 1x C4), while remaining a bounded one-time grant. */
-const TRIAL_CREDITS = 100;
+/** Trial credits granted once per user (≈ $0.40). Enough for six complete
+ *  Guard workflows (2x C3 + 1x C4), while remaining a bounded one-time grant. */
+const TRIAL_CREDITS = 400;
 
 export const POST = createApiHandler(
   async (_request, context) => {

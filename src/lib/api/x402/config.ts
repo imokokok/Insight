@@ -264,6 +264,13 @@ export interface X402Config {
   amountAtomic: string;
   /** Human-readable USD price for docs/telemetry. */
   priceUsd: number;
+  /**
+   * Per-network minimum quote in micro-USDC from `X402_NETWORK_MIN_AMOUNT`.
+   * Unset by default: no rail is filtered until gas sponsorship is verified
+   * with a real settlement. When set, a network whose quote is below its floor
+   * is omitted from `accepts[]` instead of advertising an unsettleable amount.
+   */
+  networkMinAmountAtomic?: Partial<Record<X402NetworkId, string>>;
   facilitatorUrl: string;
   /**
    * Per-network facilitator overrides parsed from X402_FACILITATOR_URLS
@@ -438,6 +445,38 @@ function parsePriceUsd(raw: string | undefined): number {
   return parsed;
 }
 
+/**
+ * Parse `X402_NETWORK_MIN_AMOUNT`: a JSON object or comma-separated list of
+ * `network=microUSDC` pairs. Default (unset) applies no floor. Invalid input
+ * fails loudly at startup rather than silently dropping a payment rail.
+ */
+function parseNetworkMinAmounts(
+  raw: string | undefined
+): Partial<Record<X402NetworkId, string>> | undefined {
+  const trimmed = raw?.trim();
+  if (!trimmed) return undefined;
+  const entries: Array<[string, string]> = [];
+  if (trimmed.startsWith('{')) {
+    const parsed = JSON.parse(trimmed) as Record<string, unknown>;
+    for (const [key, value] of Object.entries(parsed)) entries.push([key, String(value)]);
+  } else {
+    for (const pair of trimmed.split(',')) {
+      const [key, value] = pair.split('=');
+      if (key && value) entries.push([key.trim(), value.trim()]);
+    }
+  }
+  const result: Partial<Record<X402NetworkId, string>> = {};
+  for (const [key, value] of entries) {
+    const network = NetworkSchema.parse(key);
+    const amount = Number(value);
+    if (!Number.isInteger(amount) || amount <= 0) {
+      throw new Error(`X402_NETWORK_MIN_AMOUNT for ${key} must be a positive integer`);
+    }
+    result[network] = String(amount);
+  }
+  return Object.keys(result).length === 0 ? undefined : result;
+}
+
 function parseEvmNetworks(raw: string | undefined, defaultNetwork: X402NetworkId): X402NetworkId[] {
   if (raw === undefined || raw.trim() === '') return [defaultNetwork];
 
@@ -596,6 +635,7 @@ export function parseX402Config(env: NodeJS.ProcessEnv = process.env): X402Confi
     evmPayTos,
     amountAtomic: usdToAtomicUnits(priceUsd),
     priceUsd,
+    networkMinAmountAtomic: parseNetworkMinAmounts(env.X402_NETWORK_MIN_AMOUNT),
     facilitatorUrl,
     facilitatorUrls,
     facilitatorBearerToken,
@@ -784,13 +824,13 @@ export function assertPaidRestRouteCoverage(registeredPaths: readonly string[]):
 }
 
 /**
- * USD value of one billing credit for the MCP x402 tier, derived from the
- * REST anchor: the pre-trade check (metering class C3 = 5 credits) sells for
- * $0.02 on the keyless tier, so 1 credit = $0.004. The MCP bridge converts a
- * tool's credit cost (getToolCreditCost) into a USDC amount with this factor,
- * keeping the two payment rails price-consistent by construction.
+ * USD value of one billing credit for the MCP x402 tier. After the 2026-11
+ * rebase one credit is $0.001 and C3 is 20 credits, keeping the pre-trade
+ * check at its unchanged $0.02 public price. The MCP bridge converts a tool's
+ * credit cost into a USDC amount with this factor, keeping the two payment
+ * rails price-consistent by construction.
  */
-export const X402_CREDIT_USD = 0.004;
+export const X402_CREDIT_USD = 0.001;
 
 /** EVM USDC contract for the configured EVM network. */
 export function usdcForNetwork(network: X402NetworkId): string {
@@ -875,6 +915,12 @@ export function getX402PaymentOptions(
   if (evmEnabled) {
     for (const network of cfg.evmNetworks?.length ? cfg.evmNetworks : [cfg.network]) {
       const microAtomic = amountOverride ?? cfg.amountAtomic;
+      const floor = cfg.networkMinAmountAtomic?.[network];
+      if (floor !== undefined && BigInt(microAtomic) < BigInt(floor)) {
+        // Below the settlement floor (e.g. HyperEVM with unsponsored gas):
+        // omit the rail instead of quoting an amount it cannot settle.
+        continue;
+      }
       const payTo = payToForEvmNetwork(cfg, network);
       options.push({
         family: 'evm',

@@ -50,20 +50,20 @@ info:
     Access is gated by a **credit wallet**, not plan tiers. There is no recurring
     free tier and no feature gating — every paying user gets every endpoint and
     MCP tool; a call is allowed iff the key's credit balance covers its metering
-    class cost (C1–C4). New users receive a **one-time 100-credit trial** after
+    class cost (C1–C4). New users receive a **one-time 400-credit trial** after
     email verification (it never refreshes).
 
     | Plan | Monthly / annual price | Rate Limit | Included credits/mo | Credit Packs (pay-as-you-go) |
     |------|-----------------------|-----------|---------------------|------------------------------|
-    | **Developer** | $229/mo / $2,519/yr | 60 req/min | 60,000 | Starter 25k / $99 |
-    | **Team** | $1,099/mo / $12,089/yr | 300 req/min | 300,000 | Builder 100k / $389 |
-    | **Scale** | $3,499/mo / $38,489/yr | 1,200 req/min | 1,000,000 | Agent 500k / $1,849 |
+    | **Starter** | $19/mo / $190/yr | 120 req/min | 25,000 | Starter 100k / $99 |
+    | **Team** | $79/mo / $790/yr | 400 req/min | 120,000 | Builder 400k / $389 |
+    | **Scale** | $299/mo / $2,990/yr | 1,200 req/min | 500,000 | Agent 2M / $1,849 |
     | **Enterprise** | Contact us | Unlimited | Unlimited | Available on every paid path |
 
     Endpoints marked with 🔒 are **credit-metered** (charged per call from the
     wallet). Public metadata endpoints (`/health`, `/symbols`) are free.
-    Annual billing is 11 times the monthly price for 12 monthly credit grants
-    (one month included). API C3 pre-trade checks work out to about $0.0160–$0.0198
+    Annual billing is 10 times the monthly price for 12 monthly credit grants.
+    API C3 pre-trade checks work out to about $0.0100–$0.0198
     per call depending on the plan, billing cycle, or prepaid pack; direct x402
     and optional MPP C3 access remains $0.02.
     Payments are crypto-only via NOWPayments (USDC-denominated); there is no

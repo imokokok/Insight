@@ -19,15 +19,15 @@ import { getEndpointCreditCost, PRODUCT_ENDPOINT_CREDIT_COSTS } from '../product
 
 describe('position lifecycle plan', () => {
   it('converts its USD list price at the canonical credit rate', () => {
-    expect(USD_PER_CREDIT).toBe(0.004);
-    expect(usdToCredits(POSITION_LIFECYCLE_PLAN.priceUsd)).toBe(138);
-    expect(POSITION_LIFECYCLE_CREDIT_COST).toBe(138);
+    expect(USD_PER_CREDIT).toBe(0.001);
+    expect(usdToCredits(POSITION_LIFECYCLE_PLAN.priceUsd)).toBe(550);
+    expect(POSITION_LIFECYCLE_CREDIT_COST).toBe(550);
   });
 
   it('is cheaper than buying the bundled coverage à la carte on both rails', () => {
-    // Credits: window (125) + 4 guard assessments (4 × C3) + 1 receipt (C4).
+    // Credits: window (500) + 4 guard assessments (4 × C3) + 1 receipt (C4).
     const aLaCarteCredits = ORACLE_WATCH_WINDOW_CREDIT_COST + 4 * CREDIT_COST.C3 + CREDIT_COST.C4;
-    expect(aLaCarteCredits).toBe(155);
+    expect(aLaCarteCredits).toBe(620);
     expect(POSITION_LIFECYCLE_CREDIT_COST).toBeLessThan(aLaCarteCredits);
 
     // x402: the flat per-call REST price applies to the guard/receipt calls;
@@ -57,7 +57,7 @@ describe('position lifecycle plan', () => {
 
 describe('getEndpointCreditCost for the bundle', () => {
   it('charges the bundle purchase its product price, not a class price', () => {
-    expect(getEndpointCreditCost(POSITION_LIFECYCLE_BEGIN_PATH)).toBe(138);
+    expect(getEndpointCreditCost(POSITION_LIFECYCLE_BEGIN_PATH)).toBe(550);
     // Sanity: without the product registry the same path would fall through to
     // the /safety/ C3 rule.
     expect(getCreditCost(POSITION_LIFECYCLE_BEGIN_PATH)).toBe(CREDIT_COST.C3);

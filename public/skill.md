@@ -159,12 +159,16 @@ JSON containing: `verdict` (`PASS` / `WARN` / `BLOCK`), consensus price, max dev
 
 ## MCP tool metering classes
 
-| Class | Atomic (USDC 6dp) | USD    |
-| ----- | ----------------- | ------ |
-| C1    | 2000              | $0.002 |
-| C2    | 4000              | $0.004 |
-| C3    | 20000             | $0.02  |
-| C4    | 40000             | $0.04  |
+| Class | Credits | Atomic (USDC 6dp) | USD    |
+| ----- | ------- | ----------------- | ------ |
+| C1    | 2       | 2000              | $0.002 |
+| C2    | 4       | 4000              | $0.004 |
+| C3    | 20      | 20000             | $0.02  |
+| C4    | 40      | 40000             | $0.04  |
+
+One credit is $0.001. Offline verification kinds (`execution_pair`,
+`base_agent_swap`, `solana_swap`) are free; only `hyperliquid_perp`
+verification reads live state and costs C2.
 
 ## Compliance notes
 

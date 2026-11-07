@@ -30,7 +30,7 @@ describe('execution_preflight MCP tool', () => {
       false
     );
     expect(LEGACY_TOOL_BY_NAME.has('execution_preflight')).toBe(true);
-    expect(getToolCreditCost('execution_preflight')).toBe(5);
+    expect(getToolCreditCost('execution_preflight')).toBe(20);
   });
 
   it('renders the decision, missing evidence, and scope without claiming execution safety', async () => {

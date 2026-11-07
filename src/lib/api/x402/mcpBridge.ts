@@ -2,6 +2,7 @@ import { after } from 'next/server';
 
 import { type HTTPAdapter, type HTTPResponseInstructions } from '@x402/core/server';
 
+import { isFreeVerifyCall } from '@/lib/billing/freeVerify';
 import { getToolCreditCost } from '@/lib/billing/metering';
 import {
   isEntitlementCoveredMcpTool,
@@ -58,8 +59,8 @@ function logUnsignedMcpQuoteSample(
  *
  * Unauthenticated `tools/call` requests on /api/mcp are metered on-chain via
  * x402 v2 instead of credit wallets:
- *   1. no PAYMENT-SIGNATURE → a 402 quote whose USDC amount is derived from
- *      the tool's metering class (the "pricing bridge": 1 credit = $0.004,
+ *   1. no PAYMENT-SIGNATURE → a 402 quote whose amount is derived from the
+ *      tool's metering class (the "pricing bridge": 1 credit = $0.001,
  *      anchored to the REST pre-trade tier's $0.02 for C3);
  *   2. valid PAYMENT-SIGNATURE → the JSON-RPC call is dispatched first and
  *      settlement runs only after a 2xx response whose JSON-RPC result is not
@@ -119,10 +120,11 @@ export function toResponse(instructions: HTTPResponseInstructions): Response {
  * price for a product begin tool, otherwise credit cost × the per-credit USD
  * factor, floored onto the micro-dollar grid with integer math. A zero/negative
  * result can only come from a zero cost, which the metering table never
- * produces (C1 = 0.5); still guarded so a misconfigured table can never mint a
+ * produces (C1 = 2); still guarded so a misconfigured table can never mint a
  * free-quote.
  */
-export function priceAtomicForTool(toolName: string): string {
+export function priceAtomicForTool(toolName: string, args?: unknown): string {
+  if (isFreeVerifyCall(toolName, args)) return '0';
   const productUsd = PRODUCT_MCP_TOOL_USD_PRICES[toolName];
   if (productUsd !== undefined) {
     // Product purchases quote the plan's USD list price directly — the same
@@ -320,8 +322,31 @@ export async function handleMcpPaidToolCall({
   if (isEntitlementCoveredMcpTool(toolName)) {
     return attachRequestId(await runBusiness(), requestId);
   }
-  const priceAtomic = priceAtomicForTool(toolName);
-  const paymentScope = x402PaymentScopeForMcpTool(toolName, await extractMcpToolArguments(request));
+  const args = await extractMcpToolArguments(request);
+  // Offline verification kinds need no upstream read, so they are free. A
+  // caller that still attaches a payment signature is rejected explicitly
+  // instead of silently settling a zero-value transfer.
+  if (isFreeVerifyCall(toolName, args)) {
+    if (request.headers.has('payment-signature')) {
+      return attachRequestId(
+        new Response(
+          JSON.stringify({
+            jsonrpc: '2.0',
+            error: {
+              code: -32000,
+              message: 'This verification kind is free; do not attach a payment-signature.',
+            },
+            id: null,
+          }),
+          { status: 400, headers: { 'content-type': 'application/json' } }
+        ),
+        requestId
+      );
+    }
+    return attachRequestId(await runBusiness(), requestId);
+  }
+  const priceAtomic = priceAtomicForTool(toolName, args);
+  const paymentScope = x402PaymentScopeForMcpTool(toolName, args);
   const paymentConfig = paymentScope ? x402ConfigForPaymentScope(cfg, paymentScope) : null;
   if (!paymentConfig) {
     return attachRequestId(unavailablePaymentScopeResponse(toolName, paymentScope), requestId);

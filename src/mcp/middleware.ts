@@ -7,17 +7,15 @@
  * types.
  *
  * Metering is a single credit-wallet path shared with REST: an API key may
- * call a tool iff its balance covers the tool's credit cost (getToolCreditCost).
- * There is no recurring free tier and no plan-based feature gating — the only
- * "free" credits are the one-time 100-credit signup trial grant, which simply
- * tops up the same wallet.
+ * call a tool iff its balance covers the tool's credit cost. There is no
+ * plan-based feature gating; offline verification kinds are free by design.
  */
 
 import { logApiKeyUsage } from '@/lib/api/apiKey';
 import { rateLimitStore } from '@/lib/api/middleware/rateLimitStore';
 import { consumeCredits, makeMeteringKey, precheckCredits } from '@/lib/billing/creditWallet';
 import { normalizePlan, PLANS } from '@/lib/billing/plans';
-import { getMcpToolCreditCost } from '@/lib/billing/productPricing';
+import { getMcpToolCreditCostForCall } from '@/lib/billing/productPricing';
 import { createLogger } from '@/lib/utils/logger';
 
 import type { McpAuthContext } from './auth';
@@ -109,8 +107,8 @@ interface McpQuotaResult {
  * and shared-bearer callers are never metered.
  *
  * Tool name is unavailable at the HTTP boundary, so API keys are checked
- * against the cheapest class cost (0.5) — enough to short-circuit an empty
- * wallet. The precise per-tool cost is charged in consumeMcpQuota.
+ * against the cheapest class cost (C1 = 2 credits) — enough to short-circuit
+ * an empty wallet. The precise per-tool cost is charged in consumeMcpQuota.
  */
 export async function checkMcpQuota(auth: McpAuthContext): Promise<McpQuotaResult> {
   if (auth.type !== 'apikey') {
@@ -127,7 +125,7 @@ export async function checkMcpQuota(auth: McpAuthContext): Promise<McpQuotaResul
 
   // Credit-wallet precheck at the cheapest class cost. Fail open on transient
   // DB error (precheckCredits already fall-open).
-  const minCost = 0.5;
+  const minCost = 2;
   const precheck = await precheckCredits(auth.apiKey.keyId, minCost);
   if (!precheck.ok) {
     logger.warn('MCP credit precheck rejected', {
@@ -152,15 +150,16 @@ export async function checkMcpQuota(auth: McpAuthContext): Promise<McpQuotaResul
  * cost of this specific tool is rejected BEFORE the tool executes.
  *
  * The HTTP-boundary {@link checkMcpQuota} only prechecks against the cheapest
- * class (0.5cr) because the tool name is unavailable there. Without this
- * per-tool check, a key with e.g. 1 credit could call a C4 tool (10cr)
+ * class (2 credits) because the tool name is unavailable there. Without this
+ * per-tool check, a key with e.g. 2 credits could call a C4 tool (40 credits)
  * repeatedly and get it for free — the fire-and-forget consume would fail
  * silently afterwards. Mirrors the REST precheck, which uses the actual
  * endpoint cost.
  */
 export async function precheckMcpToolQuota(
   auth: McpAuthContext,
-  toolName: string
+  toolName: string,
+  args?: unknown
 ): Promise<{ allowed: boolean; reason?: string }> {
   if (auth.type !== 'apikey') {
     return { allowed: true };
@@ -174,7 +173,8 @@ export async function precheckMcpToolQuota(
 
   // Product-priced tools: the begin tools charge the full product price, and
   // the in-window tools (0) are covered by that purchase — never re-metered.
-  const cost = getMcpToolCreditCost(toolName);
+  // Offline verification kinds also resolve to 0 and never precheck.
+  const cost = getMcpToolCreditCostForCall(toolName, args);
   if (cost === 0) {
     return { allowed: true };
   }
@@ -192,7 +192,8 @@ export async function precheckMcpToolQuota(
  */
 export async function consumeMcpQuota(
   auth: McpAuthContext,
-  toolName: string
+  toolName: string,
+  args?: unknown
 ): Promise<{ allowed: boolean; reason?: string }> {
   if (auth.type !== 'apikey') {
     return { allowed: true };
@@ -205,8 +206,9 @@ export async function consumeMcpQuota(
     return { allowed: true };
   }
 
-  // Product-priced tools: 0 means covered by the prior purchase.
-  const cost = getMcpToolCreditCost(toolName);
+  // Product-priced tools: 0 means covered by the prior purchase. Offline
+  // verification kinds are also 0 and stay free.
+  const cost = getMcpToolCreditCostForCall(toolName, args);
   if (cost === 0) {
     return { allowed: true };
   }

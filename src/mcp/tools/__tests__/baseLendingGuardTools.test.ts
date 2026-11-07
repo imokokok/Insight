@@ -25,8 +25,8 @@ describe('base_lending_guard MCP tool', () => {
   it('is discoverable and bills both preview and exact evidence as C3 agent gates', () => {
     expect(LEGACY_TOOL_BY_NAME.has('base_lending_guard')).toBe(true);
     expect(LEGACY_TOOL_BY_NAME.has('base_lending_guard_exact_call')).toBe(true);
-    expect(getToolCreditCost('base_lending_guard')).toBe(5);
-    expect(getToolCreditCost('base_lending_guard_exact_call')).toBe(5);
+    expect(getToolCreditCost('base_lending_guard')).toBe(20);
+    expect(getToolCreditCost('base_lending_guard_exact_call')).toBe(20);
     expect(baseLendingGuardExactCallTool.description).toContain('never authorizes');
   });
 

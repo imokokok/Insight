@@ -71,7 +71,7 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
         // Credit gate: reject before executing if the key can't afford THIS
         // tool (the HTTP-boundary precheck only tests the cheapest class).
         if (auth) {
-          const creditCheck = await precheckMcpToolQuota(auth, name);
+          const creditCheck = await precheckMcpToolQuota(auth, name, args);
           if (!creditCheck.allowed) {
             recordMcpToolUsage(auth, name, 402, Date.now() - startTime);
             return {
@@ -95,7 +95,7 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
           // failures are NOT metered — mirroring the REST API which only
           // charges successful data requests.
           if (!result.isError) {
-            const charge = await consumeMcpQuota(auth, name);
+            const charge = await consumeMcpQuota(auth, name, args);
             if (!charge.allowed) {
               recordMcpToolUsage(auth, name, 402, Date.now() - startTime);
               return {

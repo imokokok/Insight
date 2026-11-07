@@ -126,7 +126,7 @@ explicitly excluded from oracle quorum and remains non-authorizing.
 - MCP issuer-context tool: `get_robinhood_rwa_context`.
 - MCP instrument tool: `get_robinhood_rwa_instrument`.
 - [Machine-readable strict request schema](../public/rwa-assessment.schema.json).
-- Authentication/credits use existing middleware. HTTP and MCP cost C1 (0.5 credit);
+- Authentication/credits use existing middleware. HTTP and MCP cost C1 (2 credits);
   no paid feed retrieval or production signing occurs in this endpoint.
 - Result: `mode: diagnostic`, `mayAuthorizeExecution: false`,
   `evidenceProvenance: caller-supplied-unverified`, and the computed report.
