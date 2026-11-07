@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
 
 import { consumeCredits, precheckCredits, recordWaivedCredit } from '@/lib/billing/creditWallet';
-import { clearMcpRequestCache } from '@/lib/billing/requestIdempotency';
+import {
+  clearMcpRequestCache,
+  getCachedMcpResult,
+  restRequestFingerprint,
+} from '@/lib/billing/requestIdempotency';
 
 import { createApiHandler } from '../handler';
 import { createAuthMiddleware, createErrorMiddleware, createQuotaMiddleware } from '../middleware';
@@ -196,12 +200,12 @@ describe('REST billing receipt boundary', () => {
     expect(recordWaivedCredit).toHaveBeenCalledWith(
       expect.objectContaining({
         keyId: 'key-fixture',
-        reason: 'insufficient_data',
+        reason: 'upstream_failed',
       })
     );
     expect(response.headers.get('X-Credit-Cost')).toBe('0');
     expect(response.headers.get('X-Credit-Status')).toBe('waived');
-    expect(response.headers.get('X-Credit-Zero-Reason')).toBe('insufficient_data');
+    expect(response.headers.get('X-Credit-Zero-Reason')).toBe('upstream_failed');
     expect((await response.json()).billing).toEqual({
       itemsRequested: 3,
       itemsCharged: 0,
@@ -209,6 +213,81 @@ describe('REST billing receipt boundary', () => {
       costCredits: 0,
       status: 'waived',
     });
+  });
+
+  function batchRequest(key: string) {
+    return {
+      method: 'POST',
+      nextUrl: new URL('https://example.test/api/v1/prices/batch'),
+      headers: new Headers({ 'Idempotency-Key': key }),
+    } as never;
+  }
+
+  it('caches an all-failed batch with its original zero reason and replays it free', async () => {
+    const route = batchRoute({ data: [{ error: 'timeout' }, { error: 'no data' }] });
+
+    const first = await route(batchRequest('fail-a'), { params: Promise.resolve({}) });
+    expect(first.headers.get('X-Credit-Status')).toBe('waived');
+    expect(first.headers.get('X-Credit-Zero-Reason')).toBe('upstream_failed');
+    expect(recordWaivedCredit).toHaveBeenCalledTimes(1);
+
+    // The cache entry preserves the original terminal reason; only a replay
+    // reports `replay`.
+    const cached = getCachedMcpResult(
+      restRequestFingerprint({
+        identity: 'key-fixture',
+        method: 'POST',
+        path: '/api/v1/prices/batch',
+        search: '',
+        bodyText: '',
+        clientKey: 'fail-a',
+      })
+    );
+    expect(cached?.zeroReason).toBe('upstream_failed');
+    expect(cached?.priceCredits).toBe(0);
+
+    const replay = await route(batchRequest('fail-a'), { params: Promise.resolve({}) });
+    expect(consumeCredits).not.toHaveBeenCalled();
+    expect(recordWaivedCredit).toHaveBeenCalledTimes(1);
+    expect(replay.status).toBe(200);
+    expect(replay.headers.get('X-Credit-Status')).toBe('replayed');
+    expect(replay.headers.get('X-Credit-Cost')).toBe('0');
+    expect(replay.headers.get('X-Credit-Zero-Reason')).toBe('replay');
+    const body = await replay.json();
+    expect(body.data).toEqual([{ error: 'timeout' }, { error: 'no data' }]);
+    expect(body.billing.status).toBe('waived');
+  });
+
+  it('keeps the all-failed entry separate from a priced request', async () => {
+    (consumeCredits as jest.Mock).mockResolvedValue({
+      ok: true,
+      confirmed: true,
+      balance: 14,
+    });
+    const failed = batchRoute({ data: [{ error: 'upstream down' }] });
+    const priced = batchRoute({
+      data: [{ error: null }, { error: null }, { error: null }],
+    });
+
+    await failed(batchRequest('fail-b'), { params: Promise.resolve({}) });
+    expect(consumeCredits).not.toHaveBeenCalled();
+
+    await priced(batchRequest('paid-b'), { params: Promise.resolve({}) });
+    expect(consumeCredits).toHaveBeenCalledTimes(1);
+    expect(consumeCredits).toHaveBeenCalledWith(
+      'key-fixture',
+      6,
+      expect.any(String),
+      '/api/v1/prices/batch',
+      expect.objectContaining({ reason: 'prices.batch' })
+    );
+
+    // Replaying either key cannot cross over to the other entry.
+    await failed(batchRequest('fail-b'), { params: Promise.resolve({}) });
+    const replayPriced = await priced(batchRequest('paid-b'), { params: Promise.resolve({}) });
+    expect(consumeCredits).toHaveBeenCalledTimes(1);
+    expect(replayPriced.headers.get('X-Credit-Status')).toBe('replayed');
+    expect(replayPriced.headers.get('X-Credit-Zero-Reason')).toBe('replay');
   });
 
   it('treats different client idempotency keys as different logical requests', async () => {
