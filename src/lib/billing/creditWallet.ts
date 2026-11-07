@@ -88,7 +88,11 @@ export async function precheckCredits(keyId: string, cost: number): Promise<Cred
     }
     return (data ?? { ok: true }) as CreditPrecheck;
   } catch (error) {
-    logger.warn('precheck_credits failed (degraded)', { keyId, cost, error: normalizeError(error) });
+    logger.warn('precheck_credits failed (degraded)', {
+      keyId,
+      cost,
+      error: normalizeError(error),
+    });
     return { ok: true, degraded: true };
   }
 }
@@ -121,12 +125,16 @@ export async function consumeCredits(
       p_meta: context.meta ?? null,
     });
     if (error) {
-      logger.error('consume_credits RPC error — recording pending settlement', new Error(error.message), {
-        keyId,
-        cost,
-        meteringKey,
-        error: error.message,
-      });
+      logger.error(
+        'consume_credits RPC error — recording pending settlement',
+        new Error(error.message),
+        {
+          keyId,
+          cost,
+          meteringKey,
+          error: error.message,
+        }
+      );
       await recordPendingSettlement(keyId, cost, meteringKey, ref, context, error.message);
       return { ok: true, confirmed: false };
     }
@@ -220,6 +228,59 @@ export async function settlePendingCredits(): Promise<{
   } catch (error) {
     logger.error('settle_pending_credits failed', normalizeError(error));
     return null;
+  }
+}
+
+/**
+ * Append a 0-delta `waiver` ledger row for a zero-charge outcome
+ * (insufficient_data / timeout / no usable data), so the bill itself proves
+ * the request was free. The row uses a `waive:`-prefixed metering key and
+ * `kind='waiver'`, so it can never be mistaken for a usage debit and never
+ * blocks a later real charge for the same logical request.
+ *
+ * Best effort: a failed audit write must not change the user-facing outcome,
+ * but it is warned about so the gap is visible.
+ */
+export async function recordWaivedCredit(params: {
+  keyId: string;
+  /** Base ledger key of the logical request (the charge key). */
+  meteringKey: string;
+  ref?: string;
+  /** Ledger `source`; defaults to `free` (no money moved). */
+  source?: string;
+  /** Zero reason: insufficient_data | timeout | no_data. */
+  reason: string;
+  requestId?: string;
+  meta?: Record<string, unknown>;
+}): Promise<boolean> {
+  const client = createServiceRoleClient();
+  const waiverKey = `waive:${params.meteringKey}`;
+  try {
+    const { error } = await client.rpc('record_waived_credit', {
+      p_key_id: params.keyId,
+      p_metering_key: waiverKey,
+      p_ref: params.ref ?? null,
+      p_source: params.source ?? 'free',
+      p_reason: params.reason,
+      p_request_id: params.requestId ?? params.meteringKey,
+      p_meta: params.meta ?? null,
+    });
+    if (error) {
+      logger.warn('record_waived_credit RPC error — waiver row missing', {
+        keyId: params.keyId,
+        reason: params.reason,
+        error: error.message,
+      });
+      return false;
+    }
+    return true;
+  } catch (error) {
+    logger.warn('record_waived_credit failed — waiver row missing', {
+      keyId: params.keyId,
+      reason: params.reason,
+      error: normalizeError(error),
+    });
+    return false;
   }
 }
 

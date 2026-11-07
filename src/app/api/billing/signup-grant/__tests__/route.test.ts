@@ -102,6 +102,8 @@ describe('POST /api/billing/signup-grant', () => {
       meteringKey: 'signup:user_1',
       kind: 'grant',
       ref: 'signup',
+      source: 'signup',
+      reason: 'signup_grant',
     });
   });
 

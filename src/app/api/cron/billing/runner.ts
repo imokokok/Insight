@@ -93,9 +93,13 @@ export async function runBilling(): Promise<BillingResult> {
     results.pendingSettlements = settlement.settled;
     results.pendingSettlementsAbandoned = settlement.abandoned;
     if (settlement.pending > 0) {
-      logger.error('Billing cron: pending settlements still unresolved', new Error('PENDING_SETTLEMENTS_UNRESOLVED'), {
-        pending: settlement.pending,
-      });
+      logger.error(
+        'Billing cron: pending settlements still unresolved',
+        new Error('PENDING_SETTLEMENTS_UNRESOLVED'),
+        {
+          pending: settlement.pending,
+        }
+      );
     }
     logger.info('Billing cron: settlePendingCredits complete', {
       settled: settlement.settled,

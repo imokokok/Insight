@@ -912,10 +912,7 @@ const BNB_MIN_LISTED_MICRO_ATOMIC = '4000';
 
 /** Effective micro-USDC floor for a network, combining the hard product floor
  *  with the optional `X402_NETWORK_MIN_AMOUNT` deployment override. */
-function microFloorForNetwork(
-  cfg: X402Config,
-  network: string
-): bigint | null {
+function microFloorForNetwork(cfg: X402Config, network: string): bigint | null {
   const configured = cfg.networkMinAmountAtomic?.[network as X402PaymentNetworkId];
   const hard = network === 'eip155:56' ? BNB_MIN_LISTED_MICRO_ATOMIC : undefined;
   if (configured === undefined && hard === undefined) return null;

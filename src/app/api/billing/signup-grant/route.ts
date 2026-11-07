@@ -23,7 +23,7 @@ import { createLogger, normalizeError } from '@/lib/utils/logger';
 
 const logger = createLogger('billing-signup-grant');
 
-/** One-time free allowance per verified user (≈ $0.40). Enough for six
+/** One-time free allowance per verified user (≈ $0.40). Enough for five
  *  complete Guard workflows (2x C3 + 1x C4). */
 const TRIAL_CREDITS = 400;
 

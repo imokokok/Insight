@@ -8,12 +8,9 @@ import {
 
 import type { MppMcpCallHandler } from '@/lib/api/mpp/mcp';
 import type { CreditBillingHeaderInput } from '@/lib/billing/billingHeaders';
-import { precheckCredits } from '@/lib/billing/creditWallet';
-import { isNoUsableDataResult } from '@/lib/billing/exemptions';
-import {
-  countMcpBatchSuccessItems,
-  getMcpToolBillableItems,
-} from '@/lib/billing/metering';
+import { makeMeteringKey, precheckCredits, recordWaivedCredit } from '@/lib/billing/creditWallet';
+import { isNoUsableDataResult, isUpstreamTimeoutError } from '@/lib/billing/exemptions';
+import { countMcpBatchSuccessItems, getMcpToolBillableItems } from '@/lib/billing/metering';
 import { getMcpToolCreditCostForCall } from '@/lib/billing/productPricing';
 import {
   getCachedMcpResult,
@@ -25,12 +22,37 @@ import { createLogger } from '@/lib/utils/logger';
 
 import packageJson from '../../package.json';
 
-import { consumeMcpQuota, precheckMcpToolQuota, recordMcpToolUsage } from './middleware';
+import {
+  consumeMcpQuota,
+  precheckMcpToolQuota,
+  recordMcpToolUsage,
+  type McpConsumeOutcome,
+} from './middleware';
 import { executeTool, getToolDefinitions } from './tools';
 
 import type { McpAuthContext } from './auth';
 
 const logger = createLogger('mcp-server');
+
+/**
+ * Map a consume outcome to its receipt status. Kept out of the tool handler so
+ * the handler's branching stays within the complexity budget.
+ */
+function resolveMcpChargeReceipt(charge: McpConsumeOutcome): {
+  status: CreditBillingHeaderInput['status'];
+  zeroReason?: string;
+} {
+  if (charge.source === 'unmetered' || charge.cost === 0) {
+    return { status: 'free', zeroReason: 'free' };
+  }
+  if (charge.confirmed === false) {
+    return { status: 'degraded', zeroReason: 'unconfirmed' };
+  }
+  if (charge.idempotent) {
+    return { status: 'replayed', zeroReason: 'replay' };
+  }
+  return charge.charged > 0 ? { status: 'charged' } : { status: 'not_charged' };
+}
 
 export interface McpServerOptions {
   mppPaymentEnabled?: boolean;
@@ -112,10 +134,12 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
           if (receipt) {
             const replayBalance = (await precheckCredits(auth.apiKey.keyId, 0)).balance;
             Object.assign(receipt, {
-              costCredits: cached.priceCredits,
+              // A replay debits nothing: report 0, not the original price.
+              costCredits: 0,
               balance: replayBalance ?? null,
               balanceAfter: replayBalance ?? null,
               status: 'replayed',
+              zeroReason: 'replay',
               receipt: cached.receipt ?? cached.rest?.receipt ?? null,
             });
           }
@@ -128,6 +152,25 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
           };
         }
       }
+
+      /**
+       * Write a 0-delta `waiver` ledger row for a zero-charge outcome. Uses the
+       * same deterministic request key as the charge path, so a retried free
+       * outcome records exactly one row and never blocks a later real charge.
+       */
+      const recordWaiver = async (reason: 'insufficient_data' | 'timeout') => {
+        if (auth?.type !== 'apikey') return;
+        const meteringKey =
+          requestKey !== null
+            ? idempotencyMeteringKey(requestKey)
+            : makeMeteringKey(`mcp:waiver:${auth.apiKey.keyId}:${name}`);
+        await recordWaivedCredit({
+          keyId: auth.apiKey.keyId,
+          meteringKey,
+          ref: `/mcp/tools/${name}`,
+          reason,
+        });
+      };
 
       const runBusiness = async () => {
         if (receipt) {
@@ -171,16 +214,26 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
           // upstream/chain timeouts, and `insufficient_data` results are NOT
           // metered — mirroring the REST API which only charges delivered data.
           if (result.isError) {
+            const insufficient = /INSUFFICIENT_DATA/.test(resultText);
+            const timedOut = !insufficient && isUpstreamTimeoutError(resultText);
             if (receipt) {
               Object.assign(receipt, {
                 costCredits: 0,
-                status: /INSUFFICIENT_DATA/.test(resultText) ? 'waived' : 'not_charged',
+                status: insufficient ? 'waived' : 'not_charged',
+                zeroReason: insufficient ? 'insufficient_data' : timedOut ? 'timeout' : undefined,
               });
             }
+            if (insufficient) await recordWaiver('insufficient_data');
+            else if (timedOut) await recordWaiver('timeout');
           } else if (isNoUsableDataResult(resultText)) {
             if (receipt) {
-              Object.assign(receipt, { costCredits: 0, status: 'waived' });
+              Object.assign(receipt, {
+                costCredits: 0,
+                status: 'waived',
+                zeroReason: 'insufficient_data',
+              });
             }
+            await recordWaiver('insufficient_data');
             logger.info(`MCP tool returned no usable data; not billed: ${name}`);
           } else {
             // Batch tools can partially succeed. Bill only the items that
@@ -189,8 +242,13 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
             const successfulItems = countMcpBatchSuccessItems(name, args, resultText);
             if (successfulItems === 0) {
               if (receipt) {
-                Object.assign(receipt, { costCredits: 0, status: 'waived' });
+                Object.assign(receipt, {
+                  costCredits: 0,
+                  status: 'waived',
+                  zeroReason: 'insufficient_data',
+                });
               }
+              await recordWaiver('insufficient_data');
               logger.info(`MCP batch returned no usable items; not billed: ${name}`);
             } else {
               const requestedItems = getMcpToolBillableItems(name, args);
@@ -237,21 +295,13 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
                   balanceAfter !== null && charge.charged > 0
                     ? balanceAfter + charge.charged
                     : balanceAfter;
-                const status =
-                  charge.source === 'unmetered' || charge.cost === 0
-                    ? 'free'
-                    : charge.confirmed === false
-                      ? 'degraded'
-                      : charge.idempotent
-                        ? 'replayed'
-                        : charge.charged > 0
-                          ? 'charged'
-                          : 'not_charged';
+                const { status, zeroReason } = resolveMcpChargeReceipt(charge);
                 Object.assign(receipt, {
                   costCredits: charge.cost,
                   balance: balanceBefore,
                   balanceAfter,
                   status,
+                  zeroReason,
                   receipt: charge.receipt ?? null,
                 });
               }
@@ -260,10 +310,14 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
               // when a 40-credit debit could not be confirmed. A pending
               // settlement row has already been queued by consumeCredits.
               if (charge.confirmed === false && charge.cost >= 40) {
-                logger.error('MCP C4 debit unconfirmed — withholding result', new Error('C4_SETTLEMENT_UNCONFIRMED'), {
-                  apiKeyId: auth.type === 'apikey' ? auth.apiKey.keyId : null,
-                  cost: charge.cost,
-                });
+                logger.error(
+                  'MCP C4 debit unconfirmed — withholding result',
+                  new Error('C4_SETTLEMENT_UNCONFIRMED'),
+                  {
+                    apiKeyId: auth.type === 'apikey' ? auth.apiKey.keyId : null,
+                    cost: charge.cost,
+                  }
+                );
                 recordMcpToolUsage(auth, name, 503, Date.now() - startTime);
                 return {
                   content: [

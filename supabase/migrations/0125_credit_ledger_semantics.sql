@@ -28,20 +28,16 @@ ALTER TABLE "public"."credit_ledger"
   ADD COLUMN IF NOT EXISTS "meta" jsonb;
 
 -- `source` is a closed set; NULL is allowed for historical rows written
--- before 0125 (a CHECK passes on NULL).
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_constraint WHERE conname = 'credit_ledger_source_check'
-  ) THEN
-    ALTER TABLE "public"."credit_ledger"
-      ADD CONSTRAINT "credit_ledger_source_check"
-      CHECK ("source" IS NULL OR "source" IN ('signup','x402','subscription','wallet'));
-  END IF;
-END $$;
+-- before 0125 (a CHECK passes on NULL). `free` covers waived / zero-priced
+-- calls: a 0-delta row that proves the request delivered no billable value.
+ALTER TABLE "public"."credit_ledger"
+  DROP CONSTRAINT IF EXISTS "credit_ledger_source_check";
+ALTER TABLE "public"."credit_ledger"
+  ADD CONSTRAINT "credit_ledger_source_check"
+  CHECK ("source" IS NULL OR "source" IN ('signup','x402','subscription','wallet','free'));
 
 COMMENT ON COLUMN "public"."credit_ledger"."source" IS
-  'Funding source: signup | x402 | subscription | wallet.';
+  'Funding source: signup | x402 | subscription | wallet | free (waived/zero-priced).';
 COMMENT ON COLUMN "public"."credit_ledger"."reason" IS
   'Free-text billed SKU or outcome (e.g. prices.batch, batch_partial, insufficient_data, upstream_empty, timeout, monthly_grant, signup_grant). Not constrained by a CHECK so new SKUs do not require a migration; the documented vocabulary lives here.';
 COMMENT ON COLUMN "public"."credit_ledger"."request_id" IS
@@ -51,6 +47,15 @@ COMMENT ON COLUMN "public"."credit_ledger"."meta" IS
 
 CREATE INDEX IF NOT EXISTS "credit_ledger_request_id_idx"
   ON "public"."credit_ledger" ("request_id");
+
+-- `waiver` is a 0-delta audit row for zero-charge outcomes (insufficient_data,
+-- timeout, no usable data). It is deliberately a distinct kind so it can
+-- never be mistaken for a usage debit and never participates in budget sums.
+ALTER TABLE "public"."credit_ledger"
+  DROP CONSTRAINT IF EXISTS "credit_ledger_kind_check";
+ALTER TABLE "public"."credit_ledger"
+  ADD CONSTRAINT "credit_ledger_kind_check"
+  CHECK ("kind" IN ('topup','usage','refund','grant','waiver'));
 
 -- ============================================================================
 -- 2. Pending settlements: written when the charge RPC fails, replayed by cron.
@@ -394,5 +399,59 @@ END;
 $$;
 
 ALTER FUNCTION "public"."add_monthly_credits"() OWNER TO "postgres";
+
+-- ============================================================================
+-- 8. Waived credits: append a 0-delta audit row without touching the wallet.
+--    Used for insufficient_data / timeout / no-usable-data outcomes so the bill
+--    itself proves the request was free. A separate kind (`waiver`) and a
+--    `waive:`-prefixed metering key keep it out of the usage idempotency space:
+--    a later real charge for the same logical request is not blocked.
+-- ============================================================================
+CREATE OR REPLACE FUNCTION "public"."record_waived_credit"(
+    p_key_id uuid,
+    p_metering_key text,
+    p_ref text DEFAULT NULL,
+    p_source text DEFAULT 'free',
+    p_reason text DEFAULT NULL,
+    p_request_id text DEFAULT NULL,
+    p_meta jsonb DEFAULT NULL
+)
+RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public
+AS $$
+DECLARE
+  v_user uuid;
+  v_balance numeric;
+BEGIN
+  SELECT "user_id" INTO v_user FROM "public"."api_keys" WHERE "id" = p_key_id;
+  IF v_user IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'reason', 'KEY_NOT_FOUND');
+  END IF;
+
+  PERFORM "public"."ensure_credit_wallet"(v_user);
+  SELECT "balance" INTO v_balance FROM "public"."credit_wallet" WHERE "user_id" = v_user;
+  IF v_balance IS NULL THEN v_balance := 0; END IF;
+
+  -- Idempotent on the waiver key: a retried free outcome writes one row.
+  IF EXISTS (SELECT 1 FROM "public"."credit_ledger" WHERE "metering_key" = p_metering_key) THEN
+    RETURN jsonb_build_object('ok', true, 'idempotent', true, 'balance', v_balance);
+  END IF;
+
+  INSERT INTO "public"."credit_ledger"
+    ("user_id","api_key_id","delta","balance_after","metering_key","kind","ref_id",
+     "period_month","source","reason","request_id","meta")
+  VALUES (v_user, p_key_id, 0, v_balance, p_metering_key, 'waiver', p_ref,
+     date_trunc('month', now())::date, COALESCE(p_source, 'free'), p_reason,
+     p_request_id, p_meta);
+
+  RETURN jsonb_build_object('ok', true, 'balance', v_balance, 'waived', true);
+END;
+$$;
+
+ALTER FUNCTION "public"."record_waived_credit"(uuid, text, text, text, text, text, jsonb)
+  OWNER TO "postgres";
+
+COMMENT ON FUNCTION "public"."record_waived_credit"(uuid, text, text, text, text, text, jsonb) IS
+  'Append a 0-delta waiver ledger row (kind=waiver, source=free) for insufficient_data/timeout/no-data outcomes. Never changes the wallet or budget.';
 
 COMMIT;

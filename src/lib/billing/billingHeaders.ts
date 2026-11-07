@@ -23,6 +23,12 @@ export interface CreditBillingHeaderInput {
   /** Post-request wallet balance. Present after a confirmed debit. */
   balanceAfter?: number | null;
   status?: CreditBillingStatus;
+  /**
+   * Why this request cost zero credits: `insufficient_data`, `timeout`,
+   * `free`, `replay`, `unconfirmed`. Emitted only for zero-charge outcomes so
+   * a caller can tell "free because there was no data" from "free by price".
+   */
+  zeroReason?: string;
   /** Deterministic ledger metering key for this logical request. */
   receipt?: string | null;
 }
@@ -32,6 +38,7 @@ export const CREDIT_BILLING_HEADER_NAMES = [
   'X-Credit-Balance',
   'X-Credit-Balance-After',
   'X-Credit-Status',
+  'X-Credit-Zero-Reason',
   'X-Credit-Receipt',
 ] as const;
 
@@ -47,6 +54,9 @@ export function applyCreditBillingHeaders(headers: Headers, input: CreditBilling
   }
   if (input.status) {
     headers.set('X-Credit-Status', input.status);
+  }
+  if (input.zeroReason) {
+    headers.set('X-Credit-Zero-Reason', input.zeroReason);
   }
   if (input.receipt) {
     headers.set('X-Credit-Receipt', input.receipt);

@@ -703,10 +703,7 @@ export async function handleMcpPaidToolCall({
   const paymentScope = x402PaymentScopeForMcpTool(toolName, args);
   const paymentConfig = paymentScope ? x402ConfigForPaymentScope(cfg, paymentScope) : null;
   if (!paymentConfig) {
-    return attachRequestId(
-      noEligibleChainResponse(toolName, paymentScope, priceAtomic),
-      requestId
-    );
+    return attachRequestId(noEligibleChainResponse(toolName, paymentScope, priceAtomic), requestId);
   }
 
   // HyperCore Core-USDC has its own verify/settle lifecycle; it must never be

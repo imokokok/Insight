@@ -15,25 +15,47 @@
  * (or deliberately serve for free) enter the cache.
  */
 
-import { createHmac } from 'node:crypto';
+import { createHmac, scryptSync } from 'node:crypto';
 
 export const IDEMPOTENCY_WINDOW_MS = 10 * 60 * 1000;
 
 /**
- * Server-side key for the caller tag. A keyed MAC (not a plain digest) keeps
- * the API-key identity out of a reversible-looking hash; CodeQL's
- * js/insufficient-password-hash flagged the previous `createHash` use. The
- * fallback keeps fingerprints stable when the variable is unset, and the
- * value only scopes idempotency — it protects no secret material.
+ * Server-side salt for the caller tag. The fallback keeps fingerprints stable
+ * when the variable is unset; this value only scopes idempotency, it protects
+ * no secret material.
  */
 const FINGERPRINT_SECRET =
   process.env.IDEMPOTENCY_FINGERPRINT_SECRET?.trim() ||
   process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ||
   'insight-request-fingerprint-v1';
 
-/** Keyed digest over already-canonical parts; the caller identity is MACed. */
+/**
+ * Irreversible caller tag. The auth layer hands us the API-key identity and
+ * CodeQL treats that value as a password source, so it goes through a strong
+ * password KDF (scrypt) rather than a fast digest. The KDF is deliberately
+ * expensive, so the result is cached per process (bounded) instead of being
+ * recomputed on every request.
+ */
+const MAX_CALLER_TAGS = 2_000;
+const callerTagCache = new Map<string, string>();
+
+function callerTag(identity: string): string {
+  const cached = callerTagCache.get(identity);
+  if (cached) return cached;
+  const tag = scryptSync(identity, FINGERPRINT_SECRET, 16).toString('hex');
+  if (callerTagCache.size >= MAX_CALLER_TAGS) callerTagCache.clear();
+  callerTagCache.set(identity, tag);
+  return tag;
+}
+
+/**
+ * Keyed digest over already-canonical parts. The caller identity only reaches
+ * the digest through its scrypt tag; the remaining parts are request content.
+ */
 function keyedDigest(parts: readonly string[]): string {
-  return createHmac('sha256', FINGERPRINT_SECRET).update(parts.join('\n')).digest('hex').slice(0, 32);
+  const [identity, ...rest] = parts;
+  const joined = [callerTag(identity), ...rest].join('\n');
+  return createHmac('sha256', FINGERPRINT_SECRET).update(joined).digest('hex').slice(0, 32);
 }
 
 /** Upper bound on cached responses; the process is shared across callers. */

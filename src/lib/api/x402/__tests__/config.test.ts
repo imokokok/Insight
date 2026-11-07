@@ -565,9 +565,9 @@ describe('per-network minimum quote', () => {
       ...solanaEnv,
       X402_NETWORK_MIN_AMOUNT: `${SOLANA_DEVNET_CAIP2}=100000`,
     });
-    expect(
-      getX402PaymentOptions(floored).filter((option) => option.family === 'svm')
-    ).toHaveLength(0);
+    expect(getX402PaymentOptions(floored).filter((option) => option.family === 'svm')).toHaveLength(
+      0
+    );
 
     const under = parseX402Config({
       ...solanaEnv,

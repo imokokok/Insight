@@ -1,14 +1,15 @@
 import { NextResponse } from 'next/server';
 
-import { consumeCredits, precheckCredits } from '@/lib/billing/creditWallet';
+import { consumeCredits, precheckCredits, recordWaivedCredit } from '@/lib/billing/creditWallet';
 import { clearMcpRequestCache } from '@/lib/billing/requestIdempotency';
 
 import { createApiHandler } from '../handler';
-import { createAuthMiddleware, createQuotaMiddleware } from '../middleware';
+import { createAuthMiddleware, createErrorMiddleware, createQuotaMiddleware } from '../middleware';
 
 jest.mock('@/lib/billing/creditWallet', () => ({
   consumeCredits: jest.fn(),
   precheckCredits: jest.fn(),
+  recordWaivedCredit: jest.fn().mockResolvedValue(true),
 }));
 jest.mock('../apiKey', () => ({ logApiKeyUsage: jest.fn() }));
 jest.mock('../middleware', () => ({
@@ -23,6 +24,9 @@ jest.mock('../middleware', () => ({
 describe('REST billing receipt boundary', () => {
   beforeEach(() => {
     clearMcpRequestCache();
+    (createErrorMiddleware as jest.Mock).mockImplementation(
+      () => async () => NextResponse.json({}, { status: 500 })
+    );
     (precheckCredits as jest.Mock).mockResolvedValue({ ok: true, balance: 15 });
     (createAuthMiddleware as jest.Mock).mockReturnValue(async () => ({
       success: true,
@@ -106,10 +110,105 @@ describe('REST billing receipt boundary', () => {
     expect(consumeCredits).toHaveBeenCalledTimes(1);
     expect(replay.status).toBe(200);
     expect(replay.headers.get('X-Credit-Status')).toBe('replayed');
-    expect(replay.headers.get('X-Credit-Cost')).toBe('5');
+    // A replay is free: the header reports 0, not the original price.
+    expect(replay.headers.get('X-Credit-Cost')).toBe('0');
+    expect(replay.headers.get('X-Credit-Zero-Reason')).toBe('replay');
     expect(replay.headers.get('X-Credit-Balance-After')).toBe('15');
     expect(replay.headers.get('X-Credit-Receipt')).toBe(receipt);
     expect(await replay.json()).toEqual({ result: 'fixture' });
+  });
+
+  function batchRoute(body: unknown) {
+    (createQuotaMiddleware as jest.Mock).mockImplementation((_options, context) => async () => ({
+      success: true,
+      quotaInfo: {
+        creditCost: 6,
+        creditUnitCost: 2,
+        creditBalance: 20,
+        billableItems: 3,
+        pendingCharge: {
+          apiKeyId: 'key-fixture',
+          cost: 6,
+          meteringKey: `rest:key-fixture:${context.requestId}`,
+        },
+      },
+    }));
+    return createApiHandler(async () => NextResponse.json(body), {
+      middlewares: { auth: { required: true, requireApiKey: true }, quota: true, cors: true },
+    });
+  }
+
+  it('bills a partial batch per successful item and echoes the settlement', async () => {
+    (consumeCredits as jest.Mock).mockResolvedValue({
+      ok: true,
+      confirmed: true,
+      balance: 16,
+    });
+    const route = batchRoute({
+      data: [{ error: null }, { error: null }, { error: 'no data' }],
+    });
+
+    const response = await route(
+      {
+        method: 'POST',
+        nextUrl: new URL('https://example.test/api/v1/prices/batch'),
+        headers: new Headers(),
+      } as never,
+      { params: Promise.resolve({}) }
+    );
+
+    // 3 requested, 2 usable → 2 credits × 2 = 4.
+    expect(consumeCredits).toHaveBeenCalledWith(
+      'key-fixture',
+      4,
+      expect.any(String),
+      '/api/v1/prices/batch',
+      expect.objectContaining({
+        source: 'wallet',
+        reason: 'batch_partial',
+        meta: { requested: 3, charged: 2 },
+      })
+    );
+    expect(response.headers.get('X-Credit-Cost')).toBe('4');
+    expect(response.headers.get('X-Credit-Status')).toBe('charged');
+    expect((await response.json()).billing).toEqual({
+      itemsRequested: 3,
+      itemsCharged: 2,
+      unitCredits: 2,
+      costCredits: 4,
+      status: 'batch_partial',
+    });
+  });
+
+  it('waives a batch with no usable rows and records a 0-delta ledger row', async () => {
+    const route = batchRoute({ data: [{ error: 'timeout' }, { error: 'no data' }] });
+
+    const response = await route(
+      {
+        method: 'POST',
+        nextUrl: new URL('https://example.test/api/v1/prices/batch'),
+        headers: new Headers(),
+      } as never,
+      { params: Promise.resolve({}) }
+    );
+
+    expect(consumeCredits).not.toHaveBeenCalled();
+    expect(recordWaivedCredit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        keyId: 'key-fixture',
+        reason: 'insufficient_data',
+      })
+    );
+    expect(response.headers.get('X-Credit-Cost')).toBe('0');
+    expect(response.headers.get('X-Credit-Status')).toBe('waived');
+    expect(response.headers.get('X-Credit-Zero-Reason')).toBe('insufficient_data');
+    expect((await response.json()).billing).toEqual({
+      itemsRequested: 3,
+      itemsCharged: 0,
+      unitCredits: 2,
+      costCredits: 0,
+      status: 'waived',
+    });
   });
 
   it('treats different client idempotency keys as different logical requests', async () => {
