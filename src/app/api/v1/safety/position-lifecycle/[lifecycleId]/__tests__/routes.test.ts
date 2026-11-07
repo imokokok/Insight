@@ -249,4 +249,13 @@ describe('close route', () => {
 
     expect(response.status).toBe(401);
   });
+
+  it('never turns an embedded-window token rejection into a 500', async () => {
+    const { OracleWatchWindowError } = await import('@/lib/api/services/oracleWatchWindowService');
+    mockClose.mockRejectedValue(new OracleWatchWindowError('INVALID_TOKEN'));
+
+    const response = await closePost(makeRequest({ authorization: `Bearer ${TOKEN}` }), context());
+
+    expect(response.status).toBe(401);
+  });
 });
