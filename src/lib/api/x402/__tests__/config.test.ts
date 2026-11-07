@@ -166,9 +166,9 @@ describe('x402 config', () => {
       ...BASE_ENV,
       X402_EVM_NETWORKS: 'eip155:8453,eip155:56',
     });
-    // 4000 micro-USDC canonical units (4 credits at $0.001 each).
-    const bnb = getX402PaymentOptions(cfg, '4000').find((option) => option.network === 'eip155:56');
-    expect(bnb?.amountAtomic).toBe('4000000000000000');
+    // 4861 micro-USDC canonical units (BNB's 50% gross-margin floor).
+    const bnb = getX402PaymentOptions(cfg, '4861').find((option) => option.network === 'eip155:56');
+    expect(bnb?.amountAtomic).toBe('4861000000000000');
   });
 
   it('defaults X402_BNB_ASSETS to usdc only', () => {
@@ -600,32 +600,139 @@ describe('per-network minimum quote', () => {
     ]);
   });
 
-  it('never lists BNB C1: the hard 4000 micro floor keeps C1 off shelf', () => {
+  it('applies the built-in Base/HyperEVM/Solana floors without X402_NETWORK_MIN_AMOUNT', () => {
+    const cfg = parseX402Config({
+      ...BASE_ENV,
+      X402_EVM_NETWORKS: 'eip155:8453,eip155:999',
+      X402_SOLANA_ENABLED: 'true',
+      X402_SOLANA_NETWORK: SOLANA_MAINNET_CAIP2,
+      X402_SOLANA_PAY_TO: 'seFkxFkXEY9JGEpCyPfCWTuPZG9WK6ucf95zvKCfsRX',
+    });
+    expect(cfg.networkMinAmountAtomic).toBeUndefined();
+    // Base 1800 / HyperEVM 1100 / Solana mainnet 900 apply out of the box.
+    expect(getX402PaymentOptions(cfg, '800')).toEqual([]);
+    expect(getX402PaymentOptions(cfg, '900').map((option) => option.network)).toEqual([
+      SOLANA_MAINNET_CAIP2,
+    ]);
+    expect(getX402PaymentOptions(cfg, '1100').map((option) => option.network)).toEqual([
+      'eip155:999',
+      SOLANA_MAINNET_CAIP2,
+    ]);
+    expect(getX402PaymentOptions(cfg, '1800').map((option) => option.network)).toEqual([
+      'eip155:8453',
+      'eip155:999',
+      SOLANA_MAINNET_CAIP2,
+    ]);
+  });
+
+  it('lets X402_NETWORK_MIN_AMOUNT override the built-in floor per network', () => {
+    const cfg = parseX402Config({
+      ...BASE_ENV,
+      X402_EVM_NETWORKS: 'eip155:8453',
+      X402_NETWORK_MIN_AMOUNT: 'eip155:8453=500',
+    });
+    // Without the override the built-in 1800 floor would drop this quote.
+    expect(
+      getX402PaymentOptions(
+        parseX402Config({ ...BASE_ENV, X402_EVM_NETWORKS: 'eip155:8453' }),
+        '1000'
+      )
+    ).toEqual([]);
+    expect(getX402PaymentOptions(cfg, '1000').map((option) => option.network)).toEqual([
+      'eip155:8453',
+    ]);
+  });
+
+  it('treats an empty X402_NETWORK_MIN_AMOUNT as unset and keeps built-in floors', () => {
+    const cfg = parseX402Config({
+      ...BASE_ENV,
+      X402_EVM_NETWORKS: 'eip155:8453',
+      X402_NETWORK_MIN_AMOUNT: '',
+    });
+    expect(cfg.networkMinAmountAtomic).toBeUndefined();
+    // Built-in Base floor (1800) still filters a 1000 micro quote.
+    expect(getX402PaymentOptions(cfg, '1000')).toEqual([]);
+  });
+
+  it('ignores dirty floor values with a warning and keeps built-in floors', () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      for (const dirty of ['0', '-5', '0.004', '4.2USDC', 'abc', '1e3', 'garbage']) {
+        const cfg = parseX402Config({
+          ...BASE_ENV,
+          X402_EVM_NETWORKS: 'eip155:8453',
+          X402_NETWORK_MIN_AMOUNT: `eip155:8453=${dirty}`,
+        });
+        expect(cfg.networkMinAmountAtomic).toBeUndefined();
+        expect(getX402PaymentOptions(cfg, '1000')).toEqual([]);
+      }
+      expect(warn).toHaveBeenCalled();
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
+  it('warns once when an env floor overrides the built-in default', () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      const cfg = parseX402Config({
+        ...BASE_ENV,
+        X402_EVM_NETWORKS: 'eip155:8453',
+        X402_NETWORK_MIN_AMOUNT: 'eip155:8453=5000',
+      });
+      getX402PaymentOptions(cfg, '4000');
+      getX402PaymentOptions(cfg, '4000');
+      const calls = warn.mock.calls.filter((call) =>
+        String(call[1]).includes('overrides the built-in floor')
+      );
+      expect(calls).toHaveLength(1);
+      expect(calls[0][2]).toMatchObject({
+        network: 'eip155:8453',
+        builtinFloorAtomic: '1800',
+        effectiveFloorAtomic: '5000',
+      });
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
+  it('keeps BNB C1 and C2 off shelf: the built-in 4861 micro floor', () => {
     const cfg = parseX402Config({
       ...BASE_ENV,
       X402_EVM_NETWORKS: 'eip155:56',
     });
     expect(cfg.networkMinAmountAtomic).toBeUndefined();
-    // 2000 micro-USDC = C1 at $0.002, below the BNB 50% margin floor.
+    // C1 ($0.002) and C2 ($0.004) both sit below the BNB 50% margin floor.
     expect(getX402PaymentOptions(cfg, '2000')).toEqual([]);
-    expect(getX402PaymentOptions(cfg, '4000').map((option) => option.network)).toEqual([
+    expect(getX402PaymentOptions(cfg, '4000')).toEqual([]);
+    expect(getX402PaymentOptions(cfg, '4861').map((option) => option.network)).toEqual([
+      'eip155:56',
+    ]);
+    expect(getX402PaymentOptions(cfg, '20000').map((option) => option.network)).toEqual([
       'eip155:56',
     ]);
   });
 
-  it('accepts a JSON object and rejects malformed values', () => {
-    const cfg = parseX402Config({
-      ...BASE_ENV,
-      X402_NETWORK_MIN_AMOUNT: '{"eip155:999":"100000"}',
-    });
-    expect(cfg.networkMinAmountAtomic).toEqual({ 'eip155:999': '100000' });
+  it('accepts a JSON object and ignores malformed values with a warning', () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      const cfg = parseX402Config({
+        ...BASE_ENV,
+        X402_NETWORK_MIN_AMOUNT: '{"eip155:999":"100000"}',
+      });
+      expect(cfg.networkMinAmountAtomic).toEqual({ 'eip155:999': '100000' });
 
-    expect(() => parseX402Config({ ...BASE_ENV, X402_NETWORK_MIN_AMOUNT: 'eip155:999=0' })).toThrow(
-      /positive integer/
-    );
-    expect(() =>
-      parseX402Config({ ...BASE_ENV, X402_NETWORK_MIN_AMOUNT: 'not-a-network=1000' })
-    ).toThrow();
+      const zero = parseX402Config({ ...BASE_ENV, X402_NETWORK_MIN_AMOUNT: 'eip155:999=0' });
+      expect(zero.networkMinAmountAtomic).toBeUndefined();
+      const unknown = parseX402Config({
+        ...BASE_ENV,
+        X402_NETWORK_MIN_AMOUNT: 'not-a-network=1000',
+      });
+      expect(unknown.networkMinAmountAtomic).toBeUndefined();
+      expect(warn).toHaveBeenCalled();
+    } finally {
+      warn.mockRestore();
+    }
   });
 });
 

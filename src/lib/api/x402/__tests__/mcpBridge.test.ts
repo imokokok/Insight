@@ -422,6 +422,57 @@ describe('handleMcpPaidToolCall settlement gating', () => {
     expect(fakeServer.processSettlement).not.toHaveBeenCalled();
   });
 
+  it('reports a built-in BNB floor exclusion as floor_excluded', async () => {
+    const bnbCfg = {
+      ...cfg,
+      enabled: true,
+      evmEnabled: true,
+      network: 'eip155:56',
+      evmNetworks: ['eip155:56'],
+      payTo: '0xAbC0000000000000000000000000000000000001',
+      facilitatorUrl: 'https://bnb.example',
+      facilitatorUrls: { 'eip155:56': 'https://bnb.example' },
+    } as X402Config;
+    const request = new Request('http://x/api/mcp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'tools/call',
+        params: {
+          name: 'get_pancakeswap_v3_market',
+          arguments: { profileId: 'bnb-reviewed' },
+        },
+      }),
+    });
+
+    const response = await handleMcpPaidToolCall({
+      request,
+      cfg: bnbCfg,
+      toolName: 'get_pancakeswap_v3_market',
+      runBusiness: async () =>
+        jsonRpcResult({ content: [{ type: 'text', text: 'must not execute' }] }),
+    });
+
+    expect(response.status).toBe(402);
+    const body = (await response.json()) as {
+      error: string;
+      accepts: unknown[];
+      extensions: Record<string, { excluded: Array<Record<string, unknown>> }>;
+    };
+    expect(body.error).toBe('no_eligible_chain');
+    expect(body.accepts).toEqual([]);
+    expect(body.extensions['insight.chain-policy'].excluded).toEqual([
+      {
+        scope: 'BNB Smart Chain',
+        reason: 'floor_excluded',
+        floorAtomic: '4861',
+        priceAtomic: '2000',
+      },
+    ]);
+  });
+
   it('returns an explicit unavailable response when the matching facilitator cannot initialize', async () => {
     mockedServerFactory.mockRejectedValueOnce(new Error('facilitator unavailable'));
 

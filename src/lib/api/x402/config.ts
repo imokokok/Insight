@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { BASE_USDC_ADDRESS, SOLANA_USDC_MINT } from '@/lib/constants/tokenAddresses';
+import { createLogger } from '@/lib/utils/logger';
 
 import {
   isCdpFacilitatorUrl,
@@ -447,8 +448,9 @@ function parsePriceUsd(raw: string | undefined): number {
 
 /**
  * Parse `X402_NETWORK_MIN_AMOUNT`: a JSON object or comma-separated list of
- * `network=microUSDC` pairs. Default (unset) applies no floor. Invalid input
- * fails loudly at startup rather than silently dropping a payment rail.
+ * `network=microUSDC` pairs. Unset or empty means "use the built-in floors".
+ * Malformed entries are ignored with a warning so the built-in default stays
+ * in force: an env write must never silently remove a rail's floor.
  */
 function parseNetworkMinAmounts(
   raw: string | undefined
@@ -457,22 +459,39 @@ function parseNetworkMinAmounts(
   if (!trimmed) return undefined;
   const entries: Array<[string, string]> = [];
   if (trimmed.startsWith('{')) {
-    const parsed = JSON.parse(trimmed) as Record<string, unknown>;
-    for (const [key, value] of Object.entries(parsed)) entries.push([key, String(value)]);
+    try {
+      const parsed = JSON.parse(trimmed) as Record<string, unknown>;
+      for (const [key, value] of Object.entries(parsed)) entries.push([key, String(value)]);
+    } catch {
+      logger.warn('X402_NETWORK_MIN_AMOUNT ignored: not valid JSON', { raw: trimmed });
+      return undefined;
+    }
   } else {
     for (const pair of trimmed.split(',')) {
       const [key, value] = pair.split('=');
-      if (key && value) entries.push([key.trim(), value.trim()]);
+      if (!key?.trim() || !value?.trim()) {
+        logger.warn('X402_NETWORK_MIN_AMOUNT ignored: incomplete entry', { entry: pair });
+        continue;
+      }
+      entries.push([key.trim(), value.trim()]);
     }
   }
   const result: Partial<Record<X402PaymentNetworkId, string>> = {};
   for (const [key, value] of entries) {
-    const network = PaymentNetworkSchema.parse(key);
-    const amount = Number(value);
-    if (!Number.isInteger(amount) || amount <= 0) {
-      throw new Error(`X402_NETWORK_MIN_AMOUNT for ${key} must be a positive integer`);
+    const network = PaymentNetworkSchema.safeParse(key);
+    if (!network.success) {
+      logger.warn('X402_NETWORK_MIN_AMOUNT ignored: unknown network', { network: key, value });
+      continue;
     }
-    result[network] = String(amount);
+    // Digits only: rejects 0, negatives, decimals, units and exponents.
+    if (!/^[0-9]+$/.test(value) || BigInt(value) <= 0n) {
+      logger.warn('X402_NETWORK_MIN_AMOUNT ignored: value must be a positive integer', {
+        network: key,
+        value,
+      });
+      continue;
+    }
+    result[network.data] = BigInt(value).toString();
   }
   return Object.keys(result).length === 0 ? undefined : result;
 }
@@ -903,21 +922,61 @@ export function atomicUnitsForNetwork(network: X402NetworkId, microUsdAtomic: st
 }
 
 /**
- * BNB C1 is not listed: at $0.002 the 50% gross-margin floor ($0.0042 from
- * $0.0021 settlement gas) is violated (−5%). C2 ($0.004) and above stay on
- * shelf, so the cut-off is 4000 micro-USDC rather than the full BNB floor.
- * A deployment-set `X402_NETWORK_MIN_AMOUNT` floor still applies on top.
+ * BNB C1 ($0.002) and C2 ($0.004) are not listed: both sit below the 50%
+ * gross-margin floor ($0.00486 at the 2026-11-07 BNB price of $694.48).
+ * C3 ($0.02) and above stay on shelf.
  */
-const BNB_MIN_LISTED_MICRO_ATOMIC = '4000';
+const BNB_MIN_LISTED_MICRO_ATOMIC = '4861';
 
-/** Effective micro-USDC floor for a network, combining the hard product floor
- *  with the optional `X402_NETWORK_MIN_AMOUNT` deployment override. */
+/**
+ * Built-in per-network floors at the 50% gross-margin target (2026-11-07),
+ * applied by default so no deployment has to set `X402_NETWORK_MIN_AMOUNT` to
+ * enforce the documented floors. An explicit per-network
+ * `X402_NETWORK_MIN_AMOUNT` entry overrides the built-in value for that
+ * network; networks without an entry keep the built-in floor.
+ *
+ * Solana's default is keyed to mainnet only: devnet settlement has no real
+ * gas cost, so it stays unfenced unless a floor is configured explicitly.
+ *
+ * Floors change through these constants. `X402_NETWORK_MIN_AMOUNT` is for
+ * temporary acceptance runs and emergency rollbacks only; clear it once the
+ * run is over so the code constant is the single source of truth.
+ */
+const DEFAULT_NETWORK_MIN_AMOUNT_ATOMIC: Partial<Record<X402PaymentNetworkId, string>> = {
+  'eip155:8453': '1800', // Base
+  'eip155:999': '1100', // HyperEVM
+  [SOLANA_MAINNET_CAIP2]: '900',
+  'eip155:56': BNB_MIN_LISTED_MICRO_ATOMIC, // BNB Smart Chain
+};
+
+const logger = createLogger('x402-config');
+/** Warn once per distinct override so quoting does not flood the logs. */
+const reportedFloorOverrides = new Set<string>();
+
+/** Effective micro-USDC floor: deployment override first, built-in default second. */
 function microFloorForNetwork(cfg: X402Config, network: string): bigint | null {
-  const configured = cfg.networkMinAmountAtomic?.[network as X402PaymentNetworkId];
-  const hard = network === 'eip155:56' ? BNB_MIN_LISTED_MICRO_ATOMIC : undefined;
-  if (configured === undefined && hard === undefined) return null;
-  const values = [configured, hard].filter((value): value is string => value !== undefined);
-  return values.reduce((max, value) => (BigInt(value) > max ? BigInt(value) : max), 0n);
+  const id = network as X402PaymentNetworkId;
+  const builtin = DEFAULT_NETWORK_MIN_AMOUNT_ATOMIC[id];
+  const override = cfg.networkMinAmountAtomic?.[id];
+  if (override === undefined) {
+    return builtin === undefined ? null : BigInt(builtin);
+  }
+  const warnKey = `${id}=${override}`;
+  if (!reportedFloorOverrides.has(warnKey)) {
+    reportedFloorOverrides.add(warnKey);
+    logger.warn('X402_NETWORK_MIN_AMOUNT overrides the built-in floor', {
+      network: id,
+      builtinFloorAtomic: builtin ?? null,
+      effectiveFloorAtomic: override,
+    });
+  }
+  return BigInt(override);
+}
+
+/** Effective floor as an atomic string, including built-in defaults and overrides. */
+export function effectiveNetworkMinAmountAtomic(cfg: X402Config, network: string): string | null {
+  const floor = microFloorForNetwork(cfg, network);
+  return floor === null ? null : floor.toString();
 }
 
 /** Build the network-specific payment options advertised by REST and MCP. */

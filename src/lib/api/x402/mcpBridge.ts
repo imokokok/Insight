@@ -19,9 +19,9 @@ import {
   type X402PaymentScope,
 } from './capabilityPayment';
 import {
+  effectiveNetworkMinAmountAtomic,
   getX402PaymentOptions,
   type X402Config,
-  type X402PaymentNetworkId,
   usdToAtomicUnits,
   X402_CREDIT_USD,
   X402_MCP_ROUTE,
@@ -268,7 +268,7 @@ function floorExclusionForScope(
           ? cfg.network
           : null;
   if (!network) return null;
-  const floor = cfg.networkMinAmountAtomic?.[network as X402PaymentNetworkId];
+  const floor = effectiveNetworkMinAmountAtomic(cfg, network);
   if (!floor) return null;
   try {
     if (BigInt(priceAtomic) < BigInt(floor)) {
