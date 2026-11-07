@@ -220,6 +220,136 @@ describe('MCP zero-charge reason', () => {
     expect(recordWaivedCreditMock).not.toHaveBeenCalled();
   });
 
+  it('charges a rejected product outcome whether it is returned or thrown', async () => {
+    consumeQuotaMock.mockResolvedValue({
+      allowed: true,
+      cost: 10,
+      items: 1,
+      charged: 10,
+      confirmed: true,
+      source: 'credits',
+      receipt: 'key-test-1:test',
+    });
+
+    const results = [
+      {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              decision: 'rejected',
+              evidence: {
+                reason_code: 'SLIPPAGE_LIMIT_EXCEEDED',
+                input_digest: 'a'.repeat(64),
+                triggered_threshold: { rule_id: 'slippage', threshold: 50, observed: 120 },
+                data_sources: [
+                  {
+                    source_id: 'jupiter',
+                    value: 'quote',
+                    read_at: '2026-11-08T00:00:00Z',
+                    block_number: 1,
+                  },
+                ],
+                risk_ruleset_version: 'v2.1',
+              },
+            }),
+          },
+        ],
+      },
+      {
+        content: [
+          {
+            type: 'text',
+            text: 'Error executing prepare_perp_order: [rejected:invalid_request] venue solana_drift: slippage exceeded',
+          },
+        ],
+        isError: true,
+      },
+    ];
+
+    for (const [index, result] of results.entries()) {
+      jest.clearAllMocks();
+      precheckCreditsMock.mockResolvedValue({ ok: true, balance: 100 });
+      recordWaivedCreditMock.mockResolvedValue(undefined);
+      precheckQuotaMock.mockResolvedValue({ allowed: true, balance: 100 });
+      consumeQuotaMock.mockResolvedValue({
+        allowed: true,
+        cost: 10,
+        items: 1,
+        charged: 10,
+        confirmed: true,
+        source: 'credits',
+        receipt: 'key-test-1:test',
+      });
+      executeToolMock.mockResolvedValue(result);
+
+      const receipt = await callTool('prepare_perp_order', {
+        venue: index === 0 ? 'solana_drift' : 'synthetix-perps-v3-base',
+      });
+
+      expect(receipt.status).toBe('charged');
+      expect(receipt.costCredits).toBe(10);
+      expect(consumeQuotaMock).toHaveBeenCalledTimes(1);
+      expect(recordWaivedCreditMock).not.toHaveBeenCalled();
+    }
+  });
+
+  it('waives an unavailable product outcome whether it is returned or thrown', async () => {
+    const results = [
+      {
+        content: [
+          { type: 'text', text: JSON.stringify({ decision: 'unavailable', chargeable: false }) },
+        ],
+      },
+      {
+        content: [
+          {
+            type: 'text',
+            text: 'Error executing prepare_perp_order: [unavailable:upstream_unavailable] venue solana_drift: rpc down',
+          },
+        ],
+        isError: true,
+      },
+    ];
+
+    for (const [index, result] of results.entries()) {
+      jest.clearAllMocks();
+      precheckCreditsMock.mockResolvedValue({ ok: true, balance: 100 });
+      recordWaivedCreditMock.mockResolvedValue(undefined);
+      precheckQuotaMock.mockResolvedValue({ allowed: true, balance: 100 });
+      executeToolMock.mockResolvedValue(result);
+
+      const receipt = await callTool('prepare_perp_order', {
+        venue: index === 0 ? 'solana_drift' : 'synthetix-perps-v3-base',
+      });
+
+      const headers = new Headers();
+      applyCreditBillingHeaders(headers, receipt);
+      expect(receipt.status).toBe('waived');
+      expect(receipt.costCredits).toBe(0);
+      expect(headers.get('X-Credit-Status')).toBe('waived');
+      expect(headers.get('X-Credit-Zero-Reason')).toBe('upstream_failed');
+      expect(consumeQuotaMock).not.toHaveBeenCalled();
+      expect(recordWaivedCreditMock).toHaveBeenCalledTimes(1);
+      expect(recordWaivedCreditMock.mock.calls[0][0]).toMatchObject({
+        reason: 'upstream_failed',
+      });
+    }
+  });
+
+  it('keeps unclassified execution errors unbilled and preserves isError', async () => {
+    executeToolMock.mockResolvedValue({
+      content: [{ type: 'text', text: 'Error executing prepare_perp_order: boom' }],
+      isError: true,
+    });
+
+    const receipt = await callTool('prepare_perp_order', { venue: 'solana_drift' });
+
+    expect(receipt.status).toBe('not_charged');
+    expect(receipt.costCredits).toBe(0);
+    expect(consumeQuotaMock).not.toHaveBeenCalled();
+  });
+
   it('keeps the three documented surfaces on the same vocabulary', () => {
     const files = [
       'src/lib/billing/billingHeaders.ts',
