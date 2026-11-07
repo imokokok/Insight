@@ -16,6 +16,7 @@ import { createLogger } from '@/lib/utils/logger';
 import {
   x402ConfigForPaymentScope,
   x402PaymentScopeForMcpTool,
+  X402_PAYMENT_SCOPE,
   type X402PaymentScope,
 } from './capabilityPayment';
 import {
@@ -172,7 +173,12 @@ export function priceAtomicForTool(toolName: string, args?: unknown): string {
 export async function handleMcpIndexerQuote(request: Request, cfg: X402Config): Promise<Response> {
   const requestId = newRequestId();
   const price = priceAtomicForTool(MCP_INDEXER_QUOTE_TOOL);
-  const httpServer = await getMcpX402HttpServer(cfg, price, MCP_INDEXER_QUOTE_TOOL);
+  // The directory's bare GET is the x402 Bazaar shelf, not a tools/call for
+  // `check_trade_safety`: with no arguments there is no per-chain scope to
+  // derive, so the quote advertises every configured rail the price clears.
+  // Per-network floors still drop rails that cannot settle this amount.
+  const quoteConfig = x402ConfigForPaymentScope(cfg, X402_PAYMENT_SCOPE.multichain) ?? cfg;
+  const httpServer = await getMcpX402HttpServer(quoteConfig, price, MCP_INDEXER_QUOTE_TOOL);
   const result = await httpServer.processHTTPRequest({
     adapter: new PlainRequestAdapter(request),
     path: X402_MCP_ROUTE,
@@ -215,27 +221,59 @@ async function isMcpToolFailure(response: Response): Promise<boolean> {
   }
 }
 
-/** ERC-8004 reputation opt-in declared in the tool arguments (pre-trade tool only). */
-const REPUTATION_OPT_IN_TOOL = 'pre_trade_safety_check';
+/**
+ * Tools whose arguments carry the ERC-8004 reputation opt-in: the unified
+ * `check_trade_safety` tool and its legacy `pre_trade_safety_check` alias.
+ */
+const REPUTATION_OPT_IN_TOOLS: ReadonlySet<string> = new Set([
+  'check_trade_safety',
+  'pre_trade_safety_check',
+]);
+
+type ReputationOptInArguments = {
+  reputation_opt_in?: unknown;
+  reputation_agent_id?: unknown;
+  reputationOptIn?: unknown;
+  reputationAgentId?: unknown;
+};
+
+/**
+ * Read one reputation field from either spelling. Unified tools send
+ * snake_case; the legacy alias keeps its camelCase compatibility shape. When
+ * a caller sends both, the unified snake_case field wins so the outcome is
+ * deterministic rather than order-dependent.
+ */
+function reputationArgument(
+  args: ReputationOptInArguments,
+  unified: 'reputation_opt_in' | 'reputation_agent_id',
+  legacy: 'reputationOptIn' | 'reputationAgentId'
+): unknown {
+  const unifiedValue = args[unified];
+  return unifiedValue !== undefined ? unifiedValue : args[legacy];
+}
 
 /**
  * Read the caller's ERC-8004 reputation opt-in from the JSON-RPC arguments
  * without consuming the original request (the transport still needs the body,
- * hence the clone). Returns a no-op result for every other tool, a missing or
- * invalid agentId, or an unparseable body — anchoring then never happens.
+ * hence the clone). Returns a no-op result for every other tool, an opt-in that
+ * is absent or not literally `true`, a missing or invalid agentId, or an
+ * unparseable body — anchoring then never happens.
  */
 async function extractReputationOptIn(
   request: Request,
   toolName: string
 ): Promise<{ optedIn: boolean; agentId: number | null }> {
-  if (toolName !== REPUTATION_OPT_IN_TOOL) return { optedIn: false, agentId: null };
+  if (!REPUTATION_OPT_IN_TOOLS.has(toolName)) return { optedIn: false, agentId: null };
   try {
     const body = (await request.clone().json()) as {
-      params?: { arguments?: { reputationOptIn?: unknown; reputationAgentId?: unknown } };
+      params?: { arguments?: ReputationOptInArguments };
     };
     const args = body?.params?.arguments;
-    if (!args || args.reputationOptIn !== true) return { optedIn: false, agentId: null };
-    const agentId = Number(args.reputationAgentId);
+    if (!args) return { optedIn: false, agentId: null };
+    if (reputationArgument(args, 'reputation_opt_in', 'reputationOptIn') !== true) {
+      return { optedIn: false, agentId: null };
+    }
+    const agentId = Number(reputationArgument(args, 'reputation_agent_id', 'reputationAgentId'));
     if (!Number.isInteger(agentId) || agentId <= 0) return { optedIn: false, agentId: null };
     return { optedIn: true, agentId };
   } catch {

@@ -1,8 +1,11 @@
+import { enqueueReputationAnchor } from '@/lib/erc8004/reputationAnchor';
+
 import { type X402Config } from '../config';
 import { recordX402Settlement } from '../guard';
 import {
   handleMcpIndexerQuote,
   handleMcpPaidToolCall,
+  priceAtomicForTool,
   toResponse,
   type McpPaidCallInput,
 } from '../mcpBridge';
@@ -46,6 +49,17 @@ jest.mock('../guard', () => ({
       .replace(/0+$/, '');
     return fraction ? `${whole}.${fraction}` : String(whole);
   },
+}));
+
+// The anchor persists to Supabase; the bridge only has to enqueue it.
+jest.mock('@/lib/erc8004/reputationAnchor', () => ({
+  enqueueReputationAnchor: jest.fn(),
+}));
+
+// mcpBridge → guard imports next/server for `after()`; run the deferred
+// callback immediately so settlement side effects are observable.
+jest.mock('next/server', () => ({
+  after: (callback: () => unknown) => void callback(),
 }));
 
 const fakeServer = {
@@ -661,6 +675,22 @@ describe('unsigned MCP 402 onboarding hints', () => {
     expect(res.headers.get('X-Request-Id')).toMatch(/^req_/);
   });
 
+  it('advertises every configured rail on the bare GET indexer quote', async () => {
+    await handleMcpIndexerQuote(new Request('http://x/api/mcp'), cfg);
+
+    const [quoteConfig, price, toolName] = mockedServerFactory.mock.calls[0] as [
+      X402Config,
+      string,
+      string,
+    ];
+    expect(price).toBe(priceAtomicForTool('check_trade_safety'));
+    expect(toolName).toBe('check_trade_safety');
+    // The bare GET carries no arguments, so the quote must not be narrowed to
+    // the argv-derived single-chain scope of `check_trade_safety`.
+    expect(quoteConfig.evmNetworks?.slice().sort()).toEqual(['eip155:56', 'eip155:8453']);
+    expect(quoteConfig.solana).toBeUndefined();
+  });
+
   it('advertises the launcher on an unsigned POST tools/call quote', async () => {
     const res = await handleMcpPaidToolCall(
       input(async () => jsonRpcResult({ content: [] }), { 'content-type': 'application/json' })
@@ -683,5 +713,122 @@ describe('unsigned MCP 402 onboarding hints', () => {
     expect(mockedRecord).toHaveBeenCalledWith(
       expect.objectContaining({ status: 'payment_rejected' })
     );
+  });
+});
+
+describe('ERC-8004 reputation opt-in extraction', () => {
+  const anchored = enqueueReputationAnchor as jest.MockedFunction<typeof enqueueReputationAnchor>;
+  const baseCfg = {
+    ...cfg,
+    enabled: true,
+    evmEnabled: true,
+    network: 'eip155:8453',
+    evmNetworks: ['eip155:8453'],
+    payTo: '0xAbC0000000000000000000000000000000000001',
+    facilitatorUrl: 'https://base.example',
+  } as unknown as X402Config;
+
+  beforeEach(() => {
+    mockedServerFactory
+      .mockReset()
+      .mockResolvedValue(fakeServer as unknown as Awaited<ReturnType<typeof getMcpX402HttpServer>>);
+    fakeServer.processHTTPRequest.mockReset().mockResolvedValue({
+      type: 'payment-verified',
+      paymentPayload: { x402Version: 2 },
+      paymentRequirements: {
+        network: 'eip155:8453',
+        asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+        amount: '20000',
+      },
+    });
+    fakeServer.processSettlement.mockReset().mockResolvedValue({
+      success: true,
+      transaction: `0x${'a'.repeat(64)}`,
+      payer: `0x${'b'.repeat(40)}`,
+      amount: '20000',
+      headers: {},
+    });
+  });
+
+  function toolCallRequest(toolName: string, args: Record<string, unknown>): Request {
+    return new Request('http://x/api/mcp', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'tools/call',
+        params: { name: toolName, arguments: args },
+      }),
+    });
+  }
+
+  async function run(toolName: string, args: Record<string, unknown>): Promise<Response> {
+    return handleMcpPaidToolCall({
+      request: toolCallRequest(toolName, args),
+      cfg: baseCfg,
+      toolName,
+      runBusiness: async () => jsonRpcResult({ content: [{ type: 'text', text: 'ok' }] }),
+    });
+  }
+
+  it('anchors when the unified tool sends snake_case arguments', async () => {
+    await run('check_trade_safety', {
+      chain_id: 8453,
+      action: 'swap',
+      asset: 'USDC',
+      reputation_opt_in: true,
+      reputation_agent_id: 7,
+    });
+
+    expect(anchored).toHaveBeenCalledWith(expect.objectContaining({ agentId: 7 }));
+  });
+
+  it('anchors when the legacy alias sends camelCase arguments', async () => {
+    await run('pre_trade_safety_check', {
+      chainId: 8453,
+      action: 'swap',
+      asset: 'USDC',
+      tradeAmountUsd: 100,
+      reputationOptIn: true,
+      reputationAgentId: 9,
+    });
+
+    expect(anchored).toHaveBeenCalledWith(expect.objectContaining({ agentId: 9 }));
+  });
+
+  it('prefers the unified snake_case pair when both spellings are present', async () => {
+    await run('check_trade_safety', {
+      chain_id: 8453,
+      action: 'swap',
+      asset: 'USDC',
+      reputation_opt_in: true,
+      reputation_agent_id: 7,
+      reputationOptIn: true,
+      reputationAgentId: 99,
+    });
+
+    expect(anchored).toHaveBeenCalledTimes(1);
+    expect(anchored).toHaveBeenCalledWith(expect.objectContaining({ agentId: 7 }));
+  });
+
+  it('does not anchor when the opt-in is absent, false, or the agentId is invalid', async () => {
+    await run('check_trade_safety', { chain_id: 8453, action: 'swap', asset: 'USDC' });
+    await run('check_trade_safety', {
+      chain_id: 8453,
+      action: 'swap',
+      asset: 'USDC',
+      reputation_opt_in: false,
+      reputation_agent_id: 7,
+    });
+    await run('check_trade_safety', {
+      chain_id: 8453,
+      action: 'swap',
+      asset: 'USDC',
+      reputation_opt_in: true,
+      reputation_agent_id: 0,
+    });
+
+    expect(anchored).not.toHaveBeenCalled();
   });
 });
