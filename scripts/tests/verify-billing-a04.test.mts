@@ -9,7 +9,7 @@ import {
   type AuditSnapshot,
 } from '../lib/billing-a04-check';
 
-const OPTIONS = { repositoryHead: '0129', ledgerBaseline: DEFAULT_LEDGER_BASELINE };
+const OPTIONS = { repositoryHead: '0130', ledgerBaseline: DEFAULT_LEDGER_BASELINE };
 
 function red(snapshot: AuditSnapshot): string[] {
   return evaluateBillingAudit(snapshot, OPTIONS)
@@ -37,11 +37,14 @@ test('a missing migration names the exact version', () => {
 
 test('a database head behind the repository head goes red', () => {
   const snapshot = greenSnapshot();
-  snapshot.migrations = snapshot.migrations.filter((version) => version !== '0129');
+  snapshot.migrations = snapshot.migrations.filter((version) => version !== '0130');
   const checks = evaluateBillingAudit(snapshot, OPTIONS);
   const head = checks.find((check) => check.id === 'migrations.head');
   assert.equal(head?.ok, false);
-  assert.match(head?.detail ?? '', /behind repository head 0129/);
+  assert.match(head?.detail ?? '', /behind repository head 0130/);
+  const required = checks.find((check) => check.id === 'migrations.required');
+  assert.equal(required?.ok, false);
+  assert.match(required?.detail ?? '', /missing 0130/);
 });
 
 test('a ledger below the baseline reports deletion, not a warning', () => {
