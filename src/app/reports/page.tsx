@@ -18,6 +18,10 @@ export const metadata: Metadata = {
 // for five minutes to retain ISR-like response speed across requests.
 export const dynamic = 'force-dynamic';
 
+// Bound the worst case so a slow Supabase read cannot hold a 2 GB Fluid
+// instance for the 300s Hobby default.
+export const maxDuration = 60;
+
 const getReportSummariesCached = unstable_cache(
   () => reportService.listReportSummaries(365),
   ['report-summaries'],
