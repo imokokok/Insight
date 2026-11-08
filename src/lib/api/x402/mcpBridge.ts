@@ -13,9 +13,9 @@ import {
 import { isFreeVerifyCall } from '@/lib/billing/freeVerify';
 import { getMcpToolBillableItems } from '@/lib/billing/metering';
 import {
-  getMcpToolCreditCostForCall,
-  getMcpToolUsdPrice,
   isEntitlementCoveredMcpTool,
+  resolveMcpCallPrice,
+  type McpCallPrice,
 } from '@/lib/billing/productPricing';
 import { recordRejectedOutcome } from '@/lib/billing/rejectedOutcomeMonitor';
 import { enqueueReputationAnchor } from '@/lib/erc8004/reputationAnchor';
@@ -147,22 +147,24 @@ export function toResponse(instructions: HTTPResponseInstructions): Response {
  * factor, floored onto the micro-dollar grid with integer math. A zero/negative
  * result can only come from a zero cost, which the metering table never
  * produces (C1 = 2); still guarded so a misconfigured table can never mint a
- * free-quote.
+ * free-quote. Free-by-design verification kinds quote zero explicitly.
  */
-export function priceAtomicForTool(toolName: string, args?: unknown): string {
-  if (isFreeVerifyCall(toolName, args)) return '0';
-  const productUsd = getMcpToolUsdPrice(toolName, args);
-  if (productUsd !== undefined) {
+export function atomicFromMcpPrice(price: McpCallPrice): string {
+  if (price.free) return '0';
+  if (price.usd !== undefined) {
     // Product purchases quote the plan's USD list price directly — the same
     // value the REST begin route charges — never a per-call class price.
-    return usdToAtomicUnits(productUsd);
+    return usdToAtomicUnits(price.usd);
   }
   // Batch tools charge per requested item, so the quote must scale with the
   // item count carried in the arguments. Non-batch tools are one item.
-  const microUsd = Math.round(
-    getMcpToolCreditCostForCall(toolName, args) * X402_CREDIT_USD * 1_000_000
-  );
+  const microUsd = Math.round(price.credits * X402_CREDIT_USD * 1_000_000);
   return String(Math.max(1, microUsd));
+}
+
+/** Quote one call; canonicalizes the alias once for both the USD and credit sides. */
+export function priceAtomicForTool(toolName: string, args?: unknown): string {
+  return atomicFromMcpPrice(resolveMcpCallPrice(toolName, args));
 }
 
 /**
@@ -900,8 +902,9 @@ export async function handleMcpPaidToolCall({
     }
     return attachRequestId(await runBusiness(), requestId);
   }
-  const priceAtomic = priceAtomicForTool(toolName, args);
-  const priceCredits = getMcpToolCreditCostForCall(toolName, args);
+  const quote = resolveMcpCallPrice(toolName, args);
+  const priceAtomic = atomicFromMcpPrice(quote);
+  const priceCredits = quote.credits;
   const billableItems = getMcpToolBillableItems(toolName, args);
   const paymentScope = x402PaymentScopeForMcpTool(toolName, args);
   const paymentConfig = paymentScope ? x402ConfigForPaymentScope(cfg, paymentScope) : null;

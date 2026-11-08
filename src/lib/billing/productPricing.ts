@@ -156,17 +156,41 @@ const PRODUCT_MCP_TOOL_OP_USD_PRICES: Readonly<Record<string, number>> = {
   'position_lifecycle:begin': POSITION_LIFECYCLE_PLAN.priceUsd,
 };
 
+/** A call canonicalized once, before any price lookup. */
+interface CanonicalCall {
+  /** Product tool name after alias resolution; the input name when not an alias. */
+  name: string;
+  /** Effective op, explicit or the product's representative default. */
+  op: string | undefined;
+}
+
+function canonicalCall(toolName: string, args?: unknown): CanonicalCall {
+  const canonical = canonicalizeAlias(toolName, args);
+  const name = canonical?.name ?? toolName;
+  const op = callOp(canonical?.args ?? args) ?? DEFAULT_PRODUCT_OP[name];
+  return { name, op };
+}
+
+function lookupProductUsd(toolName: string, call: CanonicalCall): number | undefined {
+  const direct = PRODUCT_MCP_TOOL_USD_PRICES[toolName];
+  if (direct !== undefined) return direct;
+  return PRODUCT_MCP_TOOL_OP_USD_PRICES[`${call.name}:${call.op}`];
+}
+
+function lookupProductCredits(toolName: string, call: CanonicalCall): number | undefined {
+  const opCost =
+    call.op === undefined ? undefined : PRODUCT_MCP_TOOL_OP_CREDIT_COSTS[call.name]?.[call.op];
+  if (opCost !== undefined) return opCost;
+  // Control/step aliases may omit an op; their product-level price covers them.
+  return PRODUCT_MCP_TOOL_CREDIT_COSTS[toolName];
+}
+
 /**
  * USD list price for a call, if the tool is product-priced. Deprecated names,
  * canonical product names and raw op arguments all resolve to the same entry.
  */
 export function getMcpToolUsdPrice(toolName: string, args?: unknown): number | undefined {
-  const direct = PRODUCT_MCP_TOOL_USD_PRICES[toolName];
-  if (direct !== undefined) return direct;
-  const canonical = canonicalizeAlias(toolName, args);
-  const name = canonical?.name ?? toolName;
-  const op = callOp(canonical?.args ?? args) ?? DEFAULT_PRODUCT_OP[name];
-  return PRODUCT_MCP_TOOL_OP_USD_PRICES[`${name}:${op}`];
+  return lookupProductUsd(toolName, canonicalCall(toolName, args));
 }
 
 /**
@@ -175,14 +199,7 @@ export function getMcpToolUsdPrice(toolName: string, args?: unknown): number | u
  * of the same op always charge the same price.
  */
 function productOpCreditCost(toolName: string, args?: unknown): number | undefined {
-  const canonical = canonicalizeAlias(toolName, args);
-  const name = canonical?.name ?? toolName;
-  const effectiveArgs = canonical?.args ?? args;
-  const op = callOp(effectiveArgs) ?? DEFAULT_PRODUCT_OP[name];
-  const opCost = PRODUCT_MCP_TOOL_OP_CREDIT_COSTS[name]?.[op];
-  if (opCost !== undefined) return opCost;
-  // Control/step aliases may omit an op; their product-level price covers them.
-  return PRODUCT_MCP_TOOL_CREDIT_COSTS[toolName];
+  return lookupProductCredits(toolName, canonicalCall(toolName, args));
 }
 
 /**
@@ -199,20 +216,47 @@ export function getMcpToolCreditCost(toolName: string, args?: unknown): number {
 }
 
 /**
+ * Price of one MCP call, resolved in a single pass. Callers that need both the
+ * x402 USD quote and the credit figure (the payment quote and the settlement
+ * ledger) must use this instead of calling {@link getMcpToolUsdPrice} and
+ * {@link getMcpToolCreditCostForCall} in turn: each of those canonicalizes the
+ * alias independently, so composing them prices the same call twice.
+ */
+export interface McpCallPrice {
+  /** Credits charged for a per-call call; 0 when free or covered by a purchase. */
+  credits: number;
+  /** Product list price in USD; when present it supersedes `credits`. */
+  usd?: number;
+  /** True for offline verification calls that are free by design. */
+  free: boolean;
+}
+
+export function resolveMcpCallPrice(toolName: string, args?: unknown): McpCallPrice {
+  if (isFreeVerifyCall(toolName, args)) return { credits: 0, free: true };
+  const call = canonicalCall(toolName, args);
+  const usd = lookupProductUsd(toolName, call);
+  const productCredits = lookupProductCredits(toolName, call);
+  if (usd !== undefined) return { credits: productCredits ?? 0, usd, free: false };
+  // Batch tools are priced at the C1 rate per successful item (2 credits),
+  // not the flat C2 class price: see §7.2 of the pricing review.
+  if (isMcpBatchCall(toolName, args)) {
+    return {
+      credits: BATCH_UNIT_CREDITS * getMcpToolBillableItems(toolName, args),
+      free: false,
+    };
+  }
+  const unitCost = productCredits ?? getToolCreditCost(toolName);
+  if (unitCost === 0) return { credits: 0, free: false };
+  return { credits: unitCost * getMcpToolBillableItems(toolName, args), free: false };
+}
+
+/**
  * Per-call cost that knows the tool arguments. Offline verification kinds are
  * free; batch tools charge per requested item; everything else falls back to
  * the tool's static class price.
  */
 export function getMcpToolCreditCostForCall(toolName: string, args?: unknown): number {
-  if (isFreeVerifyCall(toolName, args)) return 0;
-  // Batch tools are priced at the C1 rate per successful item (2 credits),
-  // not the flat C2 class price: see §7.2 of the pricing review.
-  if (isMcpBatchCall(toolName, args)) {
-    return BATCH_UNIT_CREDITS * getMcpToolBillableItems(toolName, args);
-  }
-  const unitCost = getMcpToolCreditCost(toolName, args);
-  if (unitCost === 0) return 0;
-  return unitCost * getMcpToolBillableItems(toolName, args);
+  return resolveMcpCallPrice(toolName, args).credits;
 }
 
 /** True when a tool's per-call cost is covered by a prior product purchase. */
