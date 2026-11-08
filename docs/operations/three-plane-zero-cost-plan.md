@@ -115,8 +115,8 @@ C1–C4 档位基数与地板数值、运行时判词字面量均不在本计划
 ### 3.1 机制（代码事实）
 
 `archive_snapshot_day` 每天把**早于 7 天、晚于 120 天**的 `price_snapshots` / `hourly_price_snapshots` 行按 (day, provider, symbol, chain) 打包进 `snapshot_archives`，同事务校验 `checksum` 后按精确 ID 集删除源行；行数不一致则整体回滚。
-`maintain_snapshot_archives` 每天 19:07 UTC 运行，**只归档「最老的一个未归档日」**。
-**没有「有活跃写入就跳过」的逻辑**：`archive_snapshot_day` 只有 `pg_try_advisory_xact_lock(192736,64)`，抢不到锁直接抛异常，不会静默跳过；`maintain_snapshot_archives` 也没有跳过分支。
+`maintain_snapshot_archives` 在 0134/0135/0136 之前每天 19:07 UTC 运行，**只归档「最老的一个未归档日」**。
+`archive_snapshot_day` 只有 `pg_try_advisory_xact_lock(192736,64)`，抢不到锁直接抛异常，不会静默跳过；`maintain_snapshot_archives` 外层另有**瞬时采样护栏**：同一瞬间活跃客户端 ≥3 时返回 0（0135 恢复），不是「有写入就跳过」。
 
 ### 3.2 实测（2026-11-08，只读查询生产库）
 
@@ -149,7 +149,7 @@ C1–C4 档位基数与地板数值、运行时判词字面量均不在本计划
 3. **余量**：整库 438 MB / 500 MB，当前余量约 **62 MB**。此前记录的 452 MB / 40.9 MB 余量已被归档消耗掉一部分，说明其它表也在缓慢增长，仍需盯。
 4. **修 job 的最小动作（2026-11-08 已执行，见 §3.6）**：
    - 把 `maintain_snapshot_archives` 从「每次 1 天」改为「循环到积压清空（带上限与 `statement_timeout`）」；
-   - 给 `snapshot-archive-maintenance` 增加 1 次补跑（例如 05:07 UTC），失败后当天还有第二次机会；
+   - 给 `snapshot-archive-maintenance-early` 增加 1 次补跑（最终定在 21:07 UTC），失败后当天还有第二次机会；
    - 把 13 个 dispatcher 的分钟分布拉开（现在 `0,15,30,45` / `3,18,33,48` / `7,22,37,52` / `10,25,40,55` / `12,27,42,57` 已经很密）；清理 job 合并在 0133 已完成，不再重复。
 
 ### 3.5 保留期：现在有一项可直接推进
@@ -163,10 +163,10 @@ C1–C4 档位基数与地板数值、运行时判词字面量均不在本计划
 
 ### 3.6 2026-11-08 执行记录（已落生产，未回滚）
 
-迁移 `0134_archive_catchup_bound.sql` 与 `0135_archive_guard_alignment.sql` 已应用：
+迁移 `0134_archive_catchup_bound.sql`、`0135_archive_guard_alignment.sql` 与 `0136_archive_slot_shift.sql` 已应用：
 
-- `maintain_snapshot_archives(p_max_days, p_max_seconds)`：单次最多 **3 天 / 45 秒**，两天各跑一次 → 容量 6 天/日 对 到达 1 天/日，3 倍余量；零参数包装保留，cron 命令不变。
-- 新增 `snapshot-archive-maintenance-early` @ **05:07 UTC**；`0135` 撤销了 `0134` 重建的 **19:07** 独立 job，归档调用点从 3 个降为 2 个：05:07 独立补跑 + 19:16 `nightly-retention-cleanup` 内，19:07 / 19:16 的 advisory lock 冲突消除。
+- `maintain_snapshot_archives(p_max_days, p_max_seconds)`：单次最多 **3 天 / 45 秒**，每天两次 → 容量 6 天/日 对 到达 1 天/日，3 倍余量；零参数包装保留，cron 命令不变。
+- 新增 `snapshot-archive-maintenance-early`；`0135` 撤销了 `0134` 重建的 **19:07** 独立 job；`0136` 把早班从 05:07 挪到 **21:07 UTC**（05:07 北京时间），避开 13:07 北京时间的业务高峰。归档调用点为两个：**21:07 独立补跑 + 19:16 `nightly-retention-cleanup` 内**，19:07 / 19:16 的 advisory lock 冲突消除。
 - `0135` 恢复 0098 的**活跃客户端 ≥3 跳过**（真正的 I/O 护栏，对常规与追赶运行都生效），删除「在途派发」判定（归档只搬 ≥7 天前数据，与当前采集无正确性冲突，并发归档已由 advisory lock 防护，且该判定与派发时刻结构性重叠，等于永久禁用）。
 - advisory lock 语义不变（抢不到锁仍抛异常）；同一天重复归档由 `ON CONFLICT` + 时间戳去重合并保证不产生重复行。
 
@@ -178,7 +178,7 @@ C1–C4 档位基数与地板数值、运行时判词字面量均不在本计划
 | 手工跑 1 天 | 440 MB | 140,540 / 7   | 87,573 / 15    | 108 / 112 MB      | 7        |
 
 手工跑返回 `moved_price=18,155`、`moved_hourly=5,501`、`archive_rows=23,656`；重复 archive 行检查 = **0**。
-剩余 7 天积压由 19:07 + 05:07 两次 3 天配额清空，最迟 **2026-11-09 19:07 UTC** 后归零；稳态 archive 约 **1 MB/日**，113 天上限约 115–120 MB。
+剩余积压由 19:16 nightly 与 21:07 独立补跑各 3 天配额清空（0135/0136 之后一天两次）；稳态 archive 约 **1 MB/日**，113 天上限约 115–120 MB。
 **整库大小不会因此下降**：`DELETE` 只释放页内空间，`price_snapshots` 文件大小保持 75 MB，直到这些空闲页被新数据复用。
 
 ACK payload 读取方审计（`30 → 7` 前置）：
@@ -219,11 +219,11 @@ ACK payload 读取方审计（`30 → 7` 前置）：
 
 ### 批次 2：归档追赶（已执行）+ dispatcher 分钟重排（待做）
 
-归档部分已于 2026-11-08 执行（`0134_archive_catchup_bound.sql`，见 §3.6），保留期一律不动。
+归档部分已于 2026-11-08 执行（`0134` / `0135` / `0136`，见 §3.6），保留期一律不动。
 
 待做：**13 个 dispatcher 的分钟重排**。清理 job 已由 0133 合并为 `nightly-retention-cleanup`（active 31 → 17），再合并清理没有收益；现在的竞争源是 dispatcher 挤在 `0,15,30,45` / `3,18,33,48` / `7,22,37,52` / `10,25,40,55` / `12,27,42,57` 这几组分钟上。
 
-- 目标：同一分钟最多 2 个 dispatch job；避开 `05:07` / `19:07` 归档跑和 `07:00` 快照写入。
+- 目标：同一分钟最多 2 个 dispatch job；避开 `21:07` / `19:16` 归档跑和 `07:00` 快照写入。
 - 不合并 dispatcher：它们的 command 与 workflow 一一对应，合并会把“单次 dispatch 失败”放大成“多条线路一起失败”。
 
 验收指标：
