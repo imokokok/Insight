@@ -27,7 +27,12 @@ export const bnbAsterPerpAdapter: ExecutionAdapter<
   supportsObservation: false,
   async preflight(request) {
     const native = await prepareBnbPerpOrderEnvelope(request);
-    const state = native.verdict === 'READY_TO_SIGN' ? 'READY' : 'BLOCK';
+    // Aster is a centralized venue: the decision can stand while the artifact is
+    // still not directly signable, because submission needs user-held venue
+    // credentials. REQUIRES_COMPLETION carries that state until the readiness
+    // layer can map it to requires-venue-credentials.
+    const state =
+      native.verdict === 'BLOCK' ? 'BLOCK' : 'REQUIRES_COMPLETION';
     const expiresAt = new Date(native.quote.validUntil * 1_000).toISOString();
     const order = native.unsignedOrderEnvelope;
     return createPreparedExecution({

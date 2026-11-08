@@ -155,6 +155,19 @@ export interface SolanaJupiterSwapResult {
   caveats: string[];
 }
 
+/**
+ * A quote that already passed this module's validation. Splitting quote
+ * retrieval from transaction building lets the swap guard assess the exact
+ * quote that will be built, instead of a second quote fetched later.
+ */
+export interface SolanaJupiterPreparedQuote {
+  quote: SolanaJupiterSwapQuote;
+  /** Exact validated Jupiter quote body consumed by `buildSwapTransaction`. */
+  raw: unknown;
+  finalizedSlot: number;
+  quoteTtlSeconds: number;
+}
+
 export interface SolanaJupiterSwapOptions {
   apiKey?: string;
   endpoints?: readonly string[];
@@ -162,6 +175,8 @@ export interface SolanaJupiterSwapOptions {
   nowMs?: number;
   timeoutMs?: number;
   signal?: AbortSignal;
+  /** Build from this already-validated quote instead of fetching a new one. */
+  preparedQuote?: SolanaJupiterPreparedQuote;
 }
 
 type JsonRecord = Record<string, unknown>;
@@ -754,6 +769,75 @@ async function buildSwapTransaction(
 }
 
 /**
+ * Fetch and validate the Jupiter quote a swap would be built from.
+ *
+ * Exposed separately so a guard can assess the exact quote the builder
+ * consumes; passing the result back through `options.preparedQuote` guarantees
+ * the assessed quote and the built transaction describe the same route.
+ */
+export async function quoteSolanaJupiterSwap(
+  request: SolanaJupiterSwapRequest,
+  options: SolanaJupiterSwapOptions = {}
+): Promise<SolanaJupiterPreparedQuote> {
+  const { quoteTtlSeconds } = assertRequest(request);
+  const nowMs = options.nowMs ?? Date.now();
+  const timeoutMs = Math.min(options.timeoutMs ?? DEFAULT_TIMEOUT_MS, MAX_TIMEOUT_MS);
+  if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 100) {
+    throw new SolanaJupiterSwapError(
+      'UNSUPPORTED',
+      'Solana swap timeoutMs must be an integer >= 100.'
+    );
+  }
+  const apiKey = (options.apiKey ?? process.env.JUPITER_API_KEY)?.trim();
+  if (!apiKey) {
+    throw new SolanaJupiterSwapError(
+      'UPSTREAM_UNAVAILABLE',
+      'Jupiter swap execution is not configured (JUPITER_API_KEY is missing).'
+    );
+  }
+  const endpoints = options.endpoints ?? httpsEndpoints();
+  if (endpoints.length === 0) {
+    throw new SolanaJupiterSwapError(
+      'UPSTREAM_UNAVAILABLE',
+      'No Solana mainnet RPC endpoint is configured.'
+    );
+  }
+  const fetcher = options.fetcher ?? fetch;
+
+  const [finalizedSlot, inputDecimals, outputDecimals] = await Promise.all([
+    verifiedFinalizedSlot(endpoints, fetcher, timeoutMs, options.signal),
+    readMintDecimals(endpoints, request.inputMint, 'input', fetcher, timeoutMs, options.signal),
+    readMintDecimals(endpoints, request.outputMint, 'output', fetcher, timeoutMs, options.signal),
+  ]);
+
+  const amountInRaw = decimalToRaw(request.amount, inputDecimals, 'amount');
+
+  const { quote, raw } = await fetchQuote({
+    inputMint: request.inputMint,
+    outputMint: request.outputMint,
+    amountInRaw,
+    slippageBps: request.slippageBps,
+    inputDecimals,
+    outputDecimals,
+    quoteTtlSeconds,
+    apiKey,
+    timeoutMs,
+    nowMs,
+    signal: options.signal,
+    fetcher,
+  });
+
+  if (quote.contextSlot + MAX_CONTEXT_SLOT_LAG < finalizedSlot) {
+    throw new SolanaJupiterSwapError(
+      'UPSTREAM_UNAVAILABLE',
+      'Jupiter quote context is too far behind finalized Solana state.'
+    );
+  }
+
+  return { quote, raw, finalizedSlot, quoteTtlSeconds };
+}
+
+/**
  * Build one signable Jupiter exact-input swap.
  *
  * The returned transaction is only produced when every static check, RPC read,
@@ -829,27 +913,17 @@ export async function prepareSolanaJupiterSwap(
   }
   const fetcher = options.fetcher ?? fetch;
 
-  const [finalizedSlot, inputDecimals, outputDecimals] = await Promise.all([
-    verifiedFinalizedSlot(endpoints, fetcher, timeoutMs, options.signal),
-    readMintDecimals(endpoints, request.inputMint, 'input', fetcher, timeoutMs, options.signal),
-    readMintDecimals(endpoints, request.outputMint, 'output', fetcher, timeoutMs, options.signal),
-  ]);
-  const amountInRaw = decimalToRaw(request.amount, inputDecimals, 'amount');
-
-  const { quote, raw: quoteResponse } = await fetchQuote({
-    inputMint: request.inputMint,
-    outputMint: request.outputMint,
-    amountInRaw,
-    slippageBps: request.slippageBps,
-    inputDecimals,
-    outputDecimals,
-    quoteTtlSeconds,
-    apiKey,
-    timeoutMs,
-    nowMs,
-    signal: options.signal,
-    fetcher,
-  });
+  const prepared =
+    options.preparedQuote ??
+    (await quoteSolanaJupiterSwap(request, {
+      apiKey,
+      endpoints,
+      fetcher,
+      nowMs,
+      timeoutMs,
+      signal: options.signal,
+    }));
+  const { quote, raw: quoteResponse, finalizedSlot } = prepared;
 
   if (quote.contextSlot + MAX_CONTEXT_SLOT_LAG < finalizedSlot) {
     throw new SolanaJupiterSwapError(

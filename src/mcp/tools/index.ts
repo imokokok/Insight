@@ -96,10 +96,18 @@ const logger = createLogger(`mcp-tools`);
 /**
  * Default `core` lists the 16 consolidated tools. `MCP_TOOL_PROFILE=legacy`
  * re-exposes the 81 legacy tools for rollback only until
- * LEGACY_TOOL_REMOVAL_DATE. Legacy names are always callable by name in both
- * profiles.
+ * LEGACY_TOOL_REMOVAL_DATE.
  */
-const TOOL_PROFILE = process.env.MCP_TOOL_PROFILE === `legacy` ? `legacy` : `core`;
+const BUNDLE_TOOL_NAMES: ReadonlySet<string> = new Set([
+  'oracle_watch_window_begin',
+  'oracle_watch_window_control',
+  'position_lifecycle_begin',
+  'position_lifecycle_step',
+]);
+
+function toolProfile(): 'core' | 'legacy' {
+  return process.env.MCP_TOOL_PROFILE === `legacy` ? `legacy` : `core`;
+}
 
 const JSON_SCHEMA_MAP: Record<
   string,
@@ -561,19 +569,41 @@ for (const tool of LEGACY_MCP_TOOLS) {
   assertX402PaymentScopeDeclaredForMcpTool(tool.name);
 }
 
+/**
+ * Which registry serves a tool name under the current profile. `legacy`
+ * rollback wins for names the legacy registry actually implements, except the
+ * bundled product tools: their unified implementation is canonical in every
+ * profile and their control/step tools have no legacy equivalent.
+ */
+export function resolveToolSource(name: string): 'unified' | 'legacy' | 'unknown' {
+  const legacy = LEGACY_TOOL_BY_NAME.get(name);
+  if (toolProfile() === 'legacy' && legacy && !BUNDLE_TOOL_NAMES.has(name) && !legacyToolsExpired()) {
+    return 'legacy';
+  }
+  if (UNIFIED_TOOL_BY_NAME.has(name)) return 'unified';
+  if (legacy && !legacyToolsExpired()) return 'legacy';
+  return 'unknown';
+}
+
 export function getToolDefinitions() {
-  if (TOOL_PROFILE === 'legacy') {
-    return LEGACY_MCP_TOOLS.map((tool) => ({
+  const tools = toolProfile() === 'legacy' ? LEGACY_MCP_TOOLS : UNIFIED_MCP_TOOLS;
+  return tools.map((tool) => {
+    // Advertise the schema the dispatcher will validate with, so tools/list and
+    // execution never describe different input shapes for the same name.
+    if (resolveToolSource(tool.name) === 'unified') {
+      const unified = UNIFIED_TOOL_BY_NAME.get(tool.name)!;
+      return {
+        name: tool.name,
+        description: unified.description,
+        inputSchema: unified.inputSchema,
+      };
+    }
+    return {
       name: tool.name,
       description: tool.description,
       inputSchema: JSON_SCHEMA_MAP[tool.name],
-    }));
-  }
-  return UNIFIED_MCP_TOOLS.map((tool) => ({
-    name: tool.name,
-    description: tool.description,
-    inputSchema: tool.inputSchema,
-  }));
+    };
+  });
 }
 
 export async function executeTool(
@@ -581,8 +611,24 @@ export async function executeTool(
   args: unknown,
   context?: McpToolCallContext
 ): Promise<McpToolCallResult> {
-  const unified = UNIFIED_TOOL_BY_NAME.get(name);
+  const source = resolveToolSource(name);
+  const unified = source === 'unified' ? UNIFIED_TOOL_BY_NAME.get(name) : undefined;
   if (unified) {
+    // HyperEVM is not part of this surface's chain set, so name it explicitly
+    // before schema validation: otherwise the caller sees a malformed-request
+    // error instead of the ecosystem boundary.
+    const hyperevmField = refusedHyperevmChain(args);
+    if (hyperevmField) {
+      return {
+        content: [
+          {
+            type: `text`,
+            text: `[unavailable:ecosystem_absent] ${name}: HyperEVM (chain 999) is not wired into this tool's chain model ("${hyperevmField}"). This surface serves HyperEVM as a data-plane reference chain only; no other chain's data or execution model is substituted.`,
+          },
+        ],
+        isError: true,
+      };
+    }
     try {
       const validatedArgs = unified.parameters.parse(args);
       const result = await unified.handler(validatedArgs, context);
@@ -592,8 +638,8 @@ export async function executeTool(
     }
   }
 
-  const legacy = LEGACY_TOOL_BY_NAME.get(name);
-  if (legacy && !legacyToolsExpired()) {
+  const legacy = source === 'legacy' ? LEGACY_TOOL_BY_NAME.get(name) : undefined;
+  if (legacy) {
     try {
       const validatedArgs = legacy.parameters.parse(args);
       const result = await legacy.handler(validatedArgs, context);
@@ -604,11 +650,27 @@ export async function executeTool(
   }
 
   const removalHint =
-    legacy && legacyToolsExpired() ? ` (legacy name removed on ${LEGACY_TOOL_REMOVAL_DATE})` : ``;
+    LEGACY_TOOL_BY_NAME.has(name) && legacyToolsExpired()
+      ? ` (legacy name removed on ${LEGACY_TOOL_REMOVAL_DATE})`
+      : ``;
   return {
     content: [{ type: `text`, text: `Unknown tool: ${name}${removalHint}` }],
     isError: true,
   };
+}
+
+/**
+ * The unified chain schema (`SafeChainSchema`) does not carry HyperEVM, so a
+ * caller naming it would otherwise get a schema validation error. Detect it
+ * first so every entry returns the same structured ecosystem boundary.
+ */
+function refusedHyperevmChain(args: unknown): string | null {
+  if (!args || typeof args !== 'object') return null;
+  const record = args as Record<string, unknown>;
+  for (const field of ['chain', 'base_chain']) {
+    if (record[field] === 'hyperevm') return field;
+  }
+  return null;
 }
 
 function toolError(name: string, error: unknown): McpToolCallResult {

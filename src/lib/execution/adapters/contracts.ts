@@ -279,16 +279,27 @@ export function createPreparedExecution<Native>(
   }
   // A caller-completed payload may never be presented as ready to sign, and an
   // incomplete payload must not masquerade as READY/CAUTION.
-  if (value.state === 'REQUIRES_COMPLETION' && value.payload?.kind !== 'solana-instruction') {
+  const incompletePayloadKinds: ReadonlySet<string> = new Set([
+    'venue-rest-order',
+    'solana-instruction',
+  ]);
+  if (
+    value.state === 'REQUIRES_COMPLETION' &&
+    value.payload !== null &&
+    !incompletePayloadKinds.has(value.payload.kind)
+  ) {
     throw new TypeError(
-      'Execution REQUIRES_COMPLETION must pair with a solana-instruction payload.'
+      'Execution REQUIRES_COMPLETION must pair with a venue-rest-order or solana-instruction payload.'
     );
   }
   if (
     (value.state === 'READY' || value.state === 'CAUTION') &&
-    value.payload?.kind === 'solana-instruction'
+    value.payload !== null &&
+    incompletePayloadKinds.has(value.payload.kind)
   ) {
-    throw new TypeError('An incomplete solana-instruction payload cannot be READY or CAUTION.');
+    throw new TypeError(
+      'A venue-rest-order or solana-instruction payload cannot be READY or CAUTION.'
+    );
   }
   return value;
 }
