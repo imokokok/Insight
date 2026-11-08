@@ -364,7 +364,10 @@ const SolanaDriftPerpOrderInputSchema = z.object({
   size_usd: z.number().finite().positive(),
   margin_value_usd: z.number().finite().positive(),
   size_base: z.string().min(1).optional(),
-  wallet: z.string().regex(/^[1-9A-HJ-NP-Za-km-z]{32,44}$/).describe('Drift order authority / fee payer'),
+  wallet: z
+    .string()
+    .regex(/^[1-9A-HJ-NP-Za-km-z]{32,44}$/)
+    .describe('Drift order authority / fee payer'),
   user_index: z.number().int().min(0).max(0xffff).optional(),
   expires_after_seconds: z.number().int().min(1).max(300).optional(),
 });

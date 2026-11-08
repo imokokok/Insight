@@ -363,9 +363,7 @@ const PAID_TOOLS_RATE_LIMIT = { windowMs: 60_000, maxRequests: 60 };
  * without consuming the request. Returns null for batches, other methods, or a
  * missing/unnamed tool — the caller then falls through.
  */
-async function probeToolCall(
-  request: Request
-): Promise<{ name: string; args: unknown } | null> {
+async function probeToolCall(request: Request): Promise<{ name: string; args: unknown } | null> {
   try {
     if (request.method !== 'POST') return null;
     const contentType = (request.headers.get('content-type') ?? '').toLowerCase();

@@ -96,41 +96,40 @@ const C4 = getToolCreditCost('begin_trade_evidence');
  * stay C1 while `prepare_swap` must stay C3. Product purchases keep their
  * product credit price; covered in-window ops are 0.
  */
-const PRODUCT_MCP_TOOL_OP_CREDIT_COSTS: Readonly<
-  Record<string, Readonly<Record<string, number>>>
-> = {
-  trade_guard: {
-    oracle_price: C1,
-    price_analytics: C2,
-    // The original broad rule (`get_(feed|oracle)_(health|freshness|uptime|
-    // prices_batch)` → C2) already covered the deprecated spelling. Derive it
-    // instead of pinning a literal: no price change is part of a rename.
-    oracle_health: getToolCreditCost('get_oracle_health'),
-    search_registry: C1,
-    market_quote: C1,
-    check_safety: C3,
-    prepare_swap: C3,
-    prepare_perp_order: C3,
-  },
-  trade_proof: {
-    begin_evidence: C4,
-    issue_receipt: C4,
-    verify_evidence: C4,
-  },
-  oracle_watch_window: {
-    snapshot: C3,
-    history: C3,
-    begin: ORACLE_WATCH_WINDOW_CREDIT_COST,
-    poll: 0,
-    close: 0,
-  },
-  position_lifecycle: {
-    begin: POSITION_LIFECYCLE_CREDIT_COST,
-    guard: 0,
-    receipt: 0,
-    close: 0,
-  },
-};
+const PRODUCT_MCP_TOOL_OP_CREDIT_COSTS: Readonly<Record<string, Readonly<Record<string, number>>>> =
+  {
+    trade_guard: {
+      oracle_price: C1,
+      price_analytics: C2,
+      // The original broad rule (`get_(feed|oracle)_(health|freshness|uptime|
+      // prices_batch)` → C2) already covered the deprecated spelling. Derive it
+      // instead of pinning a literal: no price change is part of a rename.
+      oracle_health: getToolCreditCost('get_oracle_health'),
+      search_registry: C1,
+      market_quote: C1,
+      check_safety: C3,
+      prepare_swap: C3,
+      prepare_perp_order: C3,
+    },
+    trade_proof: {
+      begin_evidence: C4,
+      issue_receipt: C4,
+      verify_evidence: C4,
+    },
+    oracle_watch_window: {
+      snapshot: C3,
+      history: C3,
+      begin: ORACLE_WATCH_WINDOW_CREDIT_COST,
+      poll: 0,
+      close: 0,
+    },
+    position_lifecycle: {
+      begin: POSITION_LIFECYCLE_CREDIT_COST,
+      guard: 0,
+      receipt: 0,
+      close: 0,
+    },
+  };
 
 /** Representative op when a bare product name is priced without arguments. */
 const DEFAULT_PRODUCT_OP: Readonly<Record<string, string>> = {

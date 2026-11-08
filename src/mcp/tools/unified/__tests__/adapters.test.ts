@@ -2,6 +2,7 @@
  * @jest-environment node
  */
 
+import { routeCheckTradeSafety, routeMarketQuote, routePrepareSwap } from '../adapters';
 import {
   CheckTradeSafetyInputSchema,
   GetMarketQuoteInputSchema,
@@ -36,8 +37,6 @@ const mockAssessSolanaJupiterSwapGuard = jest.fn();
 jest.mock('@/lib/dex/solanaJupiterSwapGuard', () => ({
   assessSolanaJupiterSwapGuard: (...args: unknown[]) => mockAssessSolanaJupiterSwapGuard(...args),
 }));
-
-import { routeCheckTradeSafety, routeMarketQuote, routePrepareSwap } from '../adapters';
 
 const BASE58_WALLET = '11111111111111111111111111111111';
 
@@ -108,7 +107,9 @@ describe('routeCheckTradeSafety chain gate', () => {
 
 describe('get_market_quote venue routing', () => {
   it('routes base_uniswap_v3 to its real legacy implementation', async () => {
-    const text = await routeMarketQuote(GetMarketQuoteInputSchema.parse({ venue: 'base_uniswap_v3' }));
+    const text = await routeMarketQuote(
+      GetMarketQuoteInputSchema.parse({ venue: 'base_uniswap_v3' })
+    );
     expect(text).toBe('legacy:get_base_dex_market');
     expect(mockCallLegacy).toHaveBeenCalledWith('get_base_dex_market', {}, undefined);
   });

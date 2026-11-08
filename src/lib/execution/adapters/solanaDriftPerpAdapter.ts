@@ -39,9 +39,7 @@ export const solanaDriftPerpAdapter: ExecutionAdapter<
     // Blocked orders carry no instruction, so the intent binds the refusal.
     const digest =
       instruction?.dataHash ??
-      sha256Hex(
-        JSON.stringify({ adapterId: this.id, state, reasons: native.blockingReasons })
-      );
+      sha256Hex(JSON.stringify({ adapterId: this.id, state, reasons: native.blockingReasons }));
     return createPreparedExecution({
       schema: 'insight.prepared-execution.v1',
       adapterId: this.id,

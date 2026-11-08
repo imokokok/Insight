@@ -25,10 +25,7 @@ export const ALIAS_MCP_TOOLS: McpToolDefinition[] = [
   };
 });
 
-export const UNIFIED_MCP_TOOLS: McpToolDefinition[] = [
-  ...PRODUCT_MCP_TOOLS,
-  ...ALIAS_MCP_TOOLS,
-];
+export const UNIFIED_MCP_TOOLS: McpToolDefinition[] = [...PRODUCT_MCP_TOOLS, ...ALIAS_MCP_TOOLS];
 
 export const UNIFIED_TOOL_BY_NAME: ReadonlyMap<string, McpToolDefinition> = new Map(
   UNIFIED_MCP_TOOLS.map((tool) => [tool.name, tool])
