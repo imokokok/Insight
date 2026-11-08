@@ -75,9 +75,9 @@ const CAPABILITIES = [
   },
   {
     icon: Terminal,
-    title: '40+ MCP Tools',
+    title: 'Four MCP Product Tools',
     description:
-      'Prices, consensus, risk summaries, position stress tests, Peg Risk, RWA diagnostics and issuer context, reputation rankings, feed health — all callable by any MCP-compatible client.',
+      'trade_guard, trade_proof, oracle_watch_window and position_lifecycle cover prices, consensus, risk summaries, position stress tests, Peg Risk, RWA diagnostics, reputation rankings and feed health — all callable by any MCP-compatible client. The 16 pre-consolidation names remain as deprecated aliases until 2027-01-06.',
     accent: 'text-blue-600 bg-blue-50',
   },
   {
@@ -593,13 +593,13 @@ when the verdict turns DANGER.`}
             <div>
               <h2 className="text-3xl font-bold text-slate-900 mb-4">MCP Tool Playground</h2>
               <p className="max-w-2xl text-lg text-slate-600">
-                Test any of the 40+ tools — including{' '}
+                Test any of the four product tools — for example{' '}
                 <code className="px-1.5 py-0.5 bg-white border border-slate-200 rounded font-mono text-sm text-slate-700">
-                  pre_trade_safety_check
+                  trade_guard
                 </code>{' '}
-                and{' '}
+                with op check_safety, or{' '}
                 <code className="px-1.5 py-0.5 bg-white border border-slate-200 rounded font-mono text-sm text-slate-700">
-                  oracle_watch
+                  oracle_watch_window
                 </code>{' '}
                 — without leaving the browser.
               </p>
