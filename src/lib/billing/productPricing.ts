@@ -91,10 +91,11 @@ const C4 = getToolCreditCost('begin_trade_evidence');
 
 /**
  * Per-op credit cost for the consolidated product tools. The op branch keeps
- * the class each deprecated name had before consolidation, which is why a
- * single product name cannot carry one flat price: `get_oracle_price` must
- * stay C1 while `prepare_swap` must stay C3. Product purchases keep their
- * product credit price; covered in-window ops are 0.
+ * the class each op had before consolidation, except the canonical trade-safety
+ * ops, which are deliberately priced at C4 (40 credits) while their deprecated
+ * alias spellings stay at C3 (20 credits) until 2027-01-06. That split is why
+ * billing must branch on the requested spelling, not only on the op. Product
+ * purchases keep their product credit price; covered in-window ops are 0.
  */
 const PRODUCT_MCP_TOOL_OP_CREDIT_COSTS: Readonly<Record<string, Readonly<Record<string, number>>>> =
   {
@@ -107,9 +108,9 @@ const PRODUCT_MCP_TOOL_OP_CREDIT_COSTS: Readonly<Record<string, Readonly<Record<
       oracle_health: getToolCreditCost('get_oracle_health'),
       search_registry: C1,
       market_quote: C1,
-      check_safety: C3,
-      prepare_swap: C3,
-      prepare_perp_order: C3,
+      check_safety: C4,
+      prepare_swap: C4,
+      prepare_perp_order: C4,
     },
     trade_proof: {
       begin_evidence: C4,
@@ -165,15 +166,20 @@ export function getMcpToolUsdPrice(toolName: string, args?: unknown): number | u
 }
 
 /**
- * Resolve a product call to its op cost. Deprecated names are canonicalized
- * first, so a direct `get_price_analytics` lookup and a canonical
- * `trade_guard` + `price_analytics` lookup land on the same tier.
+ * Resolve a product call to its op cost. The requested spelling decides first:
+ * a deprecated alias keeps its original metering class, while the canonical
+ * product name uses the per-op table. This is the deliberate canonical/alias
+ * price split for the trade-safety ops (canonical C4, alias C3).
  */
 function productOpCreditCost(toolName: string, args?: unknown): number | undefined {
   const canonical = canonicalizeAlias(toolName, args);
-  const name = canonical?.name ?? toolName;
-  const op = callOp(canonical?.args ?? args) ?? DEFAULT_PRODUCT_OP[name];
-  return PRODUCT_MCP_TOOL_OP_CREDIT_COSTS[name]?.[op];
+  if (canonical) {
+    const product = PRODUCT_MCP_TOOL_CREDIT_COSTS[toolName];
+    if (product !== undefined) return product;
+    return getToolCreditCost(toolName);
+  }
+  const op = callOp(args) ?? DEFAULT_PRODUCT_OP[toolName];
+  return PRODUCT_MCP_TOOL_OP_CREDIT_COSTS[toolName]?.[op];
 }
 
 /**

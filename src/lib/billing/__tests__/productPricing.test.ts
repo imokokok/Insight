@@ -6,6 +6,7 @@
  * other path must keep its class price unchanged.
  */
 
+import { getMcpToolCreditCharge } from '../channelCostPolicy';
 import { CREDIT_COST, getCreditCost, getToolCreditCost } from '../metering';
 import {
   ORACLE_WATCH_WINDOW_BEGIN_PATH,
@@ -114,5 +115,58 @@ describe('getMcpToolCreditCost', () => {
     // Canonical product calls with the same op land on the same tier.
     expect(getMcpToolCreditCost('trade_guard', { op: 'oracle_health' })).toBe(CREDIT_COST.C2);
     expect(getMcpToolCreditCost('trade_guard', { op: 'price_analytics' })).toBe(CREDIT_COST.C2);
+  });
+
+  it('prices canonical trade-safety ops at C4 while their alias spellings stay at C3', () => {
+    // Plan A: the canonical product name is repriced to 40 credits / $0.040.
+    for (const op of ['check_safety', 'prepare_swap', 'prepare_perp_order']) {
+      expect(getMcpToolCreditCost('trade_guard', { op })).toBe(CREDIT_COST.C4);
+      expect(getMcpToolCreditCost('trade_guard', { op })).toBe(40);
+      expect(getMcpToolCreditCharge('trade_guard', { op })).toBe(40);
+    }
+    // The other canonical trade_guard ops keep their existing tiers.
+    expect(getMcpToolCreditCost('trade_guard', { op: 'oracle_price' })).toBe(2);
+    expect(getMcpToolCreditCost('trade_guard', { op: 'market_quote' })).toBe(2);
+    expect(getMcpToolCreditCost('trade_guard', { op: 'search_registry' })).toBe(2);
+    expect(getMcpToolCreditCost('trade_guard', { op: 'price_analytics' })).toBe(4);
+    expect(getMcpToolCreditCost('trade_guard', { op: 'oracle_health' })).toBe(4);
+    // The compatibility window keeps each deprecated spelling on its tier.
+    for (const alias of ['check_trade_safety', 'prepare_swap', 'prepare_perp_order']) {
+      expect(getMcpToolCreditCost(alias, {})).toBe(CREDIT_COST.C3);
+      expect(getMcpToolCreditCost(alias, {})).toBe(20);
+    }
+    // Same op, different spelling → different tier. This proves the spelling
+    // branch exists instead of being masked by op-only resolution.
+    expect(getMcpToolCreditCost('trade_guard', { op: 'check_safety' })).toBe(40);
+    expect(getMcpToolCreditCost('check_trade_safety', { op: 'check_safety' })).toBe(20);
+    expect(getMcpToolCreditCost('trade_guard', { op: 'prepare_swap' })).toBe(40);
+    expect(getMcpToolCreditCost('prepare_swap', { op: 'prepare_swap' })).toBe(20);
+    expect(getMcpToolCreditCost('trade_guard', { op: 'prepare_perp_order' })).toBe(40);
+    expect(getMcpToolCreditCost('prepare_perp_order', { op: 'prepare_perp_order' })).toBe(20);
+  });
+
+  it('keeps every deprecated alias on its original hardcoded tier', () => {
+    const aliasTiers: Record<string, number> = {
+      get_oracle_price: 2,
+      get_price_analytics: 4,
+      get_oracle_health: 4,
+      search_oracle_registry: 2,
+      get_market_quote: 2,
+      check_trade_safety: 20,
+      prepare_swap: 20,
+      prepare_perp_order: 20,
+      begin_trade_evidence: 40,
+      issue_execution_receipt: 40,
+      verify_evidence: 40,
+      oracle_watch: 20,
+      oracle_watch_window_begin: 500,
+      oracle_watch_window_control: 0,
+      position_lifecycle_begin: 550,
+      position_lifecycle_step: 0,
+    };
+    for (const [alias, credits] of Object.entries(aliasTiers)) {
+      expect(getMcpToolCreditCost(alias, {})).toBe(credits);
+      expect(getMcpToolCreditCharge(alias, {})).toBe(credits);
+    }
   });
 });
