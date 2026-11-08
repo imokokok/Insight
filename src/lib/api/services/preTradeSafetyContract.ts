@@ -40,7 +40,7 @@ export interface PreTradeSafetyInput {
    * The verdict itself differs only in that v2/v3 escalate <3 independent
    * providers to BLOCK (INSUFFICIENT_COVERAGE).
    */
-  schemaVersion?: 1 | 2 | 3;
+  schemaVersion?: 1 | 2 | 3 | 4;
   /**
    * Optional destination asset symbol (the other leg of a swap). v2 binds it as
    * destinationAssetId (CAIP-19) but does NOT evaluate it (evaluationScope =

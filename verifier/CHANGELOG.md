@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Verify `OracleSafetyCheck` v4 (31 fields = v3's 27 + four signed asset-proxy fields: `sourceAssetProxyStatus`, `sourceAssetProxyRelation`, `sourceAssetUnderlyingId`, `sourceAssetProxyNominalRatioBps`), routed by `schemaVersion: 4` with domain version `'4'`.
+- Verify `OracleSafetyRecheck` v4 (33 fields) via the distinct `OracleSafetyRecheck` primary type.
+- Echo the signed relationship as `assetProxy` and add `warnings: ['asset_proxy_unknown']` when the issuer signed `UNKNOWN`; `nominalRatioBps: 0` is never treated as 1:1.
+- Reject a correctly-signed but self-contradicting proxy record (`asset_proxy_inconsistent`) instead of letting an empty underlying id pass as `ASSESSED`.
+- v1/v2/v3 and their rechecks remain unchanged and keep verifying.
+
 ## 0.5.0 — 2026-10-13
 
 - Verify signed Context Attestation V2 envelopes and bind them to the exact normalized token-security view.

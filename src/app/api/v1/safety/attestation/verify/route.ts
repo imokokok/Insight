@@ -15,6 +15,11 @@
  *   - v1 (schemaVersion=1) → v1 domain/types (11 signed fields)
  *   - v2 (schemaVersion=2) → v2 domain/types (26 signed fields, CAIP-19 pair
  *     binding, requestHash, providerObservationsHash, quorum gate)
+ *   - v3 (schemaVersion=3) → v3 domain/types (27 signed fields)
+ *   - v4 (schemaVersion=4) → v4 domain/types (31 signed fields = v3's 27 + 4
+ *     asset-proxy relationship fields; the response echoes those fields under
+ *     `assetProxy` and warns with `asset_proxy_unknown` when the signed status is
+ *     UNKNOWN, so a missing relationship is visible rather than defaulted to 1:1)
  * v1 and v2 use different EIP-712 domain `version` strings ('1' vs '2'), so
  * selecting the wrong domain would fail signature recovery. The attestation's
  * own `schemaVersion` is the authoritative router — the embedded `eip712`
@@ -65,6 +70,12 @@ import {
   V3_SCHEMA_VERSION,
 } from '@/lib/attestations/oracleSafetyAttestationV3';
 import {
+  V4_DOMAIN,
+  V4_TYPES,
+  V4_PRIMARY_TYPE,
+  V4_SCHEMA_VERSION,
+} from '@/lib/attestations/oracleSafetyAttestationV4';
+import {
   RECHECK_DOMAIN,
   RECHECK_TYPES,
   RECHECK_PRIMARY_TYPE,
@@ -74,6 +85,11 @@ import {
   RECHECK_V3_TYPES,
   RECHECK_V3_PRIMARY_TYPE,
 } from '@/lib/attestations/oracleSafetyRecheckV3';
+import {
+  RECHECK_V4_DOMAIN,
+  RECHECK_V4_TYPES,
+  RECHECK_V4_PRIMARY_TYPE,
+} from '@/lib/attestations/oracleSafetyRecheckV4';
 import {
   verifyAttestationBySchema,
   type UnifiedVerificationResult,
@@ -167,6 +183,13 @@ interface AttestationStatus {
        *  'OracleSafetyRecheck'. */
       recheck: SchemaDescriptor;
     };
+    4: SchemaDescriptor & {
+      canonicalRequest: Eip712Descriptor;
+      /** Recheck type (v4 family, 33 fields = v4's 31 + originalUid +
+       *  originalRequestHash, both bytes32). Distinct primaryType
+       *  'OracleSafetyRecheck'. */
+      recheck: SchemaDescriptor;
+    };
   };
 }
 
@@ -240,7 +263,7 @@ export const GET = createApiHandler<
           attester,
           attesterLabel: ATTESTER_LABEL,
           attestationEnabled: attester !== null,
-          latestSchemaVersion: V3_SCHEMA_VERSION,
+          latestSchemaVersion: V4_SCHEMA_VERSION,
           // Backward-compat top-level fields (v1). New consumers use `schemas`.
           schemaVersion: ATTESTATION_SCHEMA_VERSION,
           eip712: {
@@ -296,6 +319,27 @@ export const GET = createApiHandler<
                   domain: RECHECK_V3_DOMAIN,
                   types: RECHECK_V3_TYPES,
                   primaryType: RECHECK_V3_PRIMARY_TYPE,
+                },
+              },
+            },
+            4: {
+              schemaVersion: V4_SCHEMA_VERSION,
+              eip712: {
+                domain: V4_DOMAIN,
+                types: V4_TYPES,
+                primaryType: V4_PRIMARY_TYPE,
+              },
+              canonicalRequest: {
+                domain: CANONICAL_REQUEST_DOMAIN,
+                types: CANONICAL_REQUEST_TYPES,
+                primaryType: CANONICAL_REQUEST_PRIMARY_TYPE,
+              },
+              recheck: {
+                schemaVersion: V4_SCHEMA_VERSION,
+                eip712: {
+                  domain: RECHECK_V4_DOMAIN,
+                  types: RECHECK_V4_TYPES,
+                  primaryType: RECHECK_V4_PRIMARY_TYPE,
                 },
               },
             },

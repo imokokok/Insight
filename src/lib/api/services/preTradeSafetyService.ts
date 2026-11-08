@@ -35,6 +35,10 @@ import {
   signAttestationV3,
   type OracleSafetyAttestationV3,
 } from '@/lib/attestations/oracleSafetyAttestationV3';
+import {
+  signAttestationV4,
+  type OracleSafetyAttestationV4,
+} from '@/lib/attestations/oracleSafetyAttestationV4';
 import { selectPreTradeValidity } from '@/lib/attestations/preTradeValidityPolicy';
 import type { ProviderObservationEntry } from '@/lib/attestations/providerObservationsHash';
 import { nonDerivedGroupCount } from '@/lib/attestations/sourceGroups';
@@ -284,6 +288,7 @@ export interface PreTradeSafetyResult {
     | OracleSafetyAttestation
     | OracleSafetyAttestationV2
     | OracleSafetyAttestationV3
+    | OracleSafetyAttestationV4
     | null;
   evaluatedAt: string;
   latencyMs: number;
@@ -1326,9 +1331,15 @@ async function issueAttestation(
   result: PreTradeSafetyResult,
   consensus: ConsensusPriceResponse,
   aggregates: { maxAge: number; worstDepegPct: number; meta?: AuditMeta }
-): Promise<OracleSafetyAttestation | OracleSafetyAttestationV2 | OracleSafetyAttestationV3 | null> {
+): Promise<
+  | OracleSafetyAttestation
+  | OracleSafetyAttestationV2
+  | OracleSafetyAttestationV3
+  | OracleSafetyAttestationV4
+  | null
+> {
   // v1 path (default) — unchanged behavior.
-  if (input.schemaVersion !== 2 && input.schemaVersion !== 3) {
+  if (input.schemaVersion !== 2 && input.schemaVersion !== 3 && input.schemaVersion !== 4) {
     return signAttestation({
       verdict: result.verdict,
       asset: input.asset,
@@ -1385,6 +1396,20 @@ async function issueAttestation(
     contributingFactors: result.contributingFactors,
     providerObservations: buildProviderObservations(consensus),
   };
+
+  // v4 = the same evidence and gates as v3, plus the signed asset-proxy
+  // relationship of the evaluated (source) asset. The relationship is derived
+  // inside buildMessageV4 from the already-signed CAIP-19 id (with the raw
+  // symbol only as a fallback for `unresolved:` markers), so a caller cannot
+  // inject a "1:1" claim that the signed evidence does not support. No joint-run
+  // 1800s exception here: that window is bound to the v3 contract and v4 keeps
+  // the standard 600s validity.
+  if (input.schemaVersion === 4) {
+    return signAttestationV4({
+      ...attestationInput,
+      sourceAssetSymbol: input.asset,
+    });
+  }
 
   // v2 and v3 take the same evidence and the same gates. v3 additionally signs
   // the independence threshold, so a holder of the receipt can check the gate
