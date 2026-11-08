@@ -138,7 +138,27 @@ var DEFAULT_TURSO_PRICE_POLICIES=[{policyKey:"__default__",resolution:"adaptive"
     signature TEXT,
     grade TEXT NOT NULL CHECK (grade IN ('consistent', 'inconsistent', 'insufficient_data')),
     created_at_ms INTEGER NOT NULL
-  )`],migrationStatements={3:["ALTER TABLE snapshot_slots ADD COLUMN projection_attempts INTEGER NOT NULL DEFAULT 0","ALTER TABLE snapshot_slots ADD COLUMN projection_last_error TEXT","ALTER TABLE snapshot_slots ADD COLUMN projection_retry_after_ms INTEGER","ALTER TABLE snapshot_slots ADD COLUMN projection_quarantined_at_ms INTEGER","CREATE INDEX IF NOT EXISTS snapshot_slots_pending_retry_idx ON snapshot_slots(supabase_acknowledged_at_ms, projection_quarantined_at_ms, projection_retry_after_ms, slot_ms)"],4:[`CREATE TABLE IF NOT EXISTS snapshot_ingest_leases (
+  )`,`CREATE TABLE IF NOT EXISTS price_records (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    provider TEXT NOT NULL,
+    symbol TEXT NOT NULL,
+    chain TEXT,
+    price_e8 TEXT NOT NULL,
+    timestamp_ms INTEGER NOT NULL,
+    confidence_e4 INTEGER,
+    source TEXT,
+    created_at_ms INTEGER NOT NULL,
+    ttl_ms INTEGER NOT NULL,
+    failure_mode TEXT,
+    signal_vector_json TEXT,
+    decimals INTEGER,
+    verification_json TEXT,
+    ingestion_timestamp_ms INTEGER,
+    metadata_fallback INTEGER CHECK (metadata_fallback IN (0, 1))
+  )`,`CREATE INDEX IF NOT EXISTS price_records_latest_idx
+    ON price_records(provider, symbol, chain, timestamp_ms DESC)`,`CREATE INDEX IF NOT EXISTS price_records_ttl_idx
+    ON price_records(ttl_ms)`,`CREATE INDEX IF NOT EXISTS price_records_timestamp_idx
+    ON price_records(timestamp_ms DESC)`],migrationStatements={3:["ALTER TABLE snapshot_slots ADD COLUMN projection_attempts INTEGER NOT NULL DEFAULT 0","ALTER TABLE snapshot_slots ADD COLUMN projection_last_error TEXT","ALTER TABLE snapshot_slots ADD COLUMN projection_retry_after_ms INTEGER","ALTER TABLE snapshot_slots ADD COLUMN projection_quarantined_at_ms INTEGER","CREATE INDEX IF NOT EXISTS snapshot_slots_pending_retry_idx ON snapshot_slots(supabase_acknowledged_at_ms, projection_quarantined_at_ms, projection_retry_after_ms, slot_ms)"],4:[`CREATE TABLE IF NOT EXISTS snapshot_ingest_leases (
       slot_ms INTEGER PRIMARY KEY,
       lease_id TEXT NOT NULL,
       lease_expires_at_ms INTEGER NOT NULL,
@@ -192,8 +212,25 @@ var DEFAULT_TURSO_PRICE_POLICIES=[{policyKey:"__default__",resolution:"adaptive"
       signature TEXT,
       grade TEXT NOT NULL CHECK (grade IN ('consistent', 'inconsistent', 'insufficient_data')),
       created_at_ms INTEGER NOT NULL
-    )`]},initializedClients=new WeakSet;async function applyAdditiveMigration(client,statements){for(let statement of statements)try{await client.execute(statement)}catch(error){let sql=typeof statement=="string"?statement:statement.sql,message=error instanceof Error?error.message:String(error);if(/^ALTER TABLE\s+snapshot_slots\s+ADD COLUMN/i.test(sql)&&/duplicate column name/i.test(message))continue;throw error}}async function ensureTursoPriceSchema(client,nowMs=Date.now()){if(initializedClients.has(client))return;let versionResult,initialized=!1;try{versionResult=await client.execute("SELECT max(version) AS version FROM _insight_schema_migrations")}catch(error){let message=error instanceof Error?error.message:String(error);if(!/no such table|does not exist/i.test(message))throw error;await client.batch(ddl,"write"),initialized=!0,versionResult=await client.execute("SELECT max(version) AS version FROM _insight_schema_migrations")}let rawVersion=versionResult.rows[0]?.version,version=rawVersion==null?0:Number(rawVersion);if(!Number.isInteger(version)||version>6)throw new Error("Turso price schema version is unsupported");if(version===6){initializedClients.add(client);return}if(!initialized&&version>0)for(let migration=version+1;migration<=6;migration++){let statements=migrationStatements[migration];statements?.length&&await applyAdditiveMigration(client,statements)}await client.batch(ddl,"write");let seedStatements=DEFAULT_TURSO_PRICE_POLICIES.map(policy=>({sql:`INSERT OR IGNORE INTO persistence_policies(
+    )`],7:[`CREATE TABLE IF NOT EXISTS price_records (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      provider TEXT NOT NULL,
+      symbol TEXT NOT NULL,
+      chain TEXT,
+      price_e8 TEXT NOT NULL,
+      timestamp_ms INTEGER NOT NULL,
+      confidence_e4 INTEGER,
+      source TEXT,
+      created_at_ms INTEGER NOT NULL,
+      ttl_ms INTEGER NOT NULL,
+      failure_mode TEXT,
+      signal_vector_json TEXT,
+      decimals INTEGER,
+      verification_json TEXT,
+      ingestion_timestamp_ms INTEGER,
+      metadata_fallback INTEGER CHECK (metadata_fallback IN (0, 1))
+    )`,"CREATE INDEX IF NOT EXISTS price_records_latest_idx ON price_records(provider, symbol, chain, timestamp_ms DESC)","CREATE INDEX IF NOT EXISTS price_records_ttl_idx ON price_records(ttl_ms)","CREATE INDEX IF NOT EXISTS price_records_timestamp_idx ON price_records(timestamp_ms DESC)"]},initializedClients=new WeakSet;async function applyAdditiveMigration(client,statements){for(let statement of statements)try{await client.execute(statement)}catch(error){let sql=typeof statement=="string"?statement:statement.sql,message=error instanceof Error?error.message:String(error);if(/^ALTER TABLE\s+snapshot_slots\s+ADD COLUMN/i.test(sql)&&/duplicate column name/i.test(message))continue;throw error}}async function ensureTursoPriceSchema(client,nowMs=Date.now()){if(initializedClients.has(client))return;let versionResult,initialized=!1;try{versionResult=await client.execute("SELECT max(version) AS version FROM _insight_schema_migrations")}catch(error){let message=error instanceof Error?error.message:String(error);if(!/no such table|does not exist/i.test(message))throw error;await client.batch(ddl,"write"),initialized=!0,versionResult=await client.execute("SELECT max(version) AS version FROM _insight_schema_migrations")}let rawVersion=versionResult.rows[0]?.version,version=rawVersion==null?0:Number(rawVersion);if(!Number.isInteger(version)||version>7)throw new Error("Turso price schema version is unsupported");if(version===7){initializedClients.add(client);return}if(!initialized&&version>0)for(let migration=version+1;migration<=7;migration++){let statements=migrationStatements[migration];statements?.length&&await applyAdditiveMigration(client,statements)}await client.batch(ddl,"write");let seedStatements=DEFAULT_TURSO_PRICE_POLICIES.map(policy=>({sql:`INSERT OR IGNORE INTO persistence_policies(
       policy_key,resolution,price_change_bps,deviation_change_bps,
       data_age_change_seconds,confidence_change_e4,updated_at_ms
     ) VALUES(?,?,?,?,?,?,?)`,args:[policy.policyKey,policy.resolution,policy.priceChangeBps,policy.deviationChangeBps,policy.dataAgeChangeSeconds,policy.confidenceChangeE4,nowMs]}));seedStatements.push({sql:`INSERT INTO _insight_schema_migrations(version,applied_at_ms) VALUES(?,?)
-      ON CONFLICT(version) DO UPDATE SET applied_at_ms=excluded.applied_at_ms`,args:[6,nowMs]}),await client.batch(seedStatements,"write"),initializedClients.add(client)}export{ensureTursoPriceSchema};
+      ON CONFLICT(version) DO UPDATE SET applied_at_ms=excluded.applied_at_ms`,args:[7,nowMs]}),await client.batch(seedStatements,"write"),initializedClients.add(client)}export{ensureTursoPriceSchema};

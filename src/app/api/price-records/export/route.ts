@@ -4,6 +4,11 @@ import { createApiHandler } from '@/lib/api/handler';
 import { getBlockchainByChainId } from '@/lib/oracles/constants/chainMapping';
 import { createServiceRoleClient, createUserClient } from '@/lib/supabase/server';
 import { loadSnapshotHistoryPage } from '@/lib/supabase/snapshotHistory';
+import {
+  readTursoPriceRecordsFallbackOnMiss,
+  readTursoPriceRecordsMode,
+} from '@/lib/turso/price/client';
+import { loadTursoPriceRecords } from '@/lib/turso/price/recordsQuery';
 
 function extractBearerToken(request: NextRequest): string | null {
   const authHeader = request.headers.get('authorization');
@@ -35,16 +40,31 @@ export const GET = createApiHandler(
       Number.isFinite(parsedLimit) && parsedLimit > 0 ? Math.min(parsedLimit, 10000) : 10000;
 
     const supabase = createUserClient(accessToken);
+
+    const loadRecords = async () => {
+      if (readTursoPriceRecordsMode() === 'turso') {
+        const records = await loadTursoPriceRecords({ limit });
+        if (records !== null && (records.length > 0 || !readTursoPriceRecordsFallbackOnMiss())) {
+          return records;
+        }
+        if (records === null && !readTursoPriceRecordsFallbackOnMiss()) {
+          throw new Error('Turso price_records unavailable');
+        }
+      }
+      const { data, error } = await supabase
+        .from('price_records')
+        .select('provider, symbol, chain, price, timestamp, confidence, source')
+        .order('timestamp', { ascending: false })
+        .limit(limit);
+      if (error) throw error;
+      return data ?? [];
+    };
+
     let data;
-    let error;
     let snapshotRows;
     try {
-      [{ data, error }, snapshotRows] = await Promise.all([
-        supabase
-          .from('price_records')
-          .select('provider, symbol, chain, price, timestamp, confidence, source')
-          .order('timestamp', { ascending: false })
-          .limit(limit),
+      [data, snapshotRows] = await Promise.all([
+        loadRecords(),
         loadSnapshotHistoryPage(
           createServiceRoleClient(),
           'price',
@@ -67,16 +87,6 @@ export const GET = createApiHandler(
         {
           success: false,
           error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch price snapshot history' },
-        },
-        { status: 500 }
-      );
-    }
-
-    if (error) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch price records' },
         },
         { status: 500 }
       );

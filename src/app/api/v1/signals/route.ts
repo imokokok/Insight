@@ -11,6 +11,11 @@ import {
 import { createCachedJsonResponse } from '@/lib/api/utils';
 import { SafeProviderSchema, SafeSymbolSchema } from '@/lib/security/validation';
 import { createServiceRoleClient } from '@/lib/supabase/server';
+import {
+  readTursoPriceRecordsFallbackOnMiss,
+  readTursoPriceRecordsMode,
+} from '@/lib/turso/price/client';
+import { loadTursoPriceRecords } from '@/lib/turso/price/recordsQuery';
 import { get7dAgoUtc, getTodayUtc, addDay } from '@/lib/utils/date';
 import { roundTo } from '@/lib/utils/format';
 
@@ -39,33 +44,7 @@ export const GET = createApiHandler(
 
     const supabase = createServiceRoleClient();
 
-    let query = supabase
-      .from('price_records')
-      .select(
-        'provider, symbol, timestamp, price, confidence, failure_mode, signal_vector, metadata'
-      )
-      .gte('timestamp', fromOrDefault)
-      .lt('timestamp', addDay(toOrDefault))
-      .order('timestamp', { ascending: false })
-      .range(offset, offset + limit - 1);
-
-    if (provider) {
-      query = query.eq('provider', provider);
-    }
-    if (symbol) {
-      query = query.eq('symbol', symbol);
-    }
-
-    const { data, error } = await query;
-
-    if (error) {
-      return ApiResponseBuilder.serverError(
-        'Failed to fetch signal vector data',
-        context.requestId
-      );
-    }
-
-    const records = (data ?? []) as Array<{
+    type SignalRecord = {
       provider: string;
       symbol: string;
       timestamp: string;
@@ -74,7 +53,59 @@ export const GET = createApiHandler(
       failure_mode: string | null;
       signal_vector: Record<string, number> | null;
       metadata: Record<string, unknown> | null;
-    }>;
+    };
+
+    const loadRecords = async (): Promise<SignalRecord[]> => {
+      if (readTursoPriceRecordsMode() === 'turso') {
+        const records = await loadTursoPriceRecords({
+          provider,
+          symbol,
+          startTime: Date.parse(fromOrDefault),
+          endTime: Date.parse(addDay(toOrDefault)) - 1,
+          limit,
+          offset,
+        });
+        if (records !== null && (records.length > 0 || !readTursoPriceRecordsFallbackOnMiss())) {
+          return records.map((record) => ({
+            provider: record.provider,
+            symbol: record.symbol,
+            timestamp: record.timestamp,
+            price: record.price,
+            confidence: record.confidence ?? null,
+            failure_mode: record.failure_mode ?? null,
+            signal_vector: (record.signal_vector ?? null) as Record<string, number> | null,
+            metadata: null,
+          }));
+        }
+        if (records === null && !readTursoPriceRecordsFallbackOnMiss()) {
+          throw new Error('Turso price_records unavailable');
+        }
+      }
+      let query = supabase
+        .from('price_records')
+        .select(
+          'provider, symbol, timestamp, price, confidence, failure_mode, signal_vector, metadata'
+        )
+        .gte('timestamp', fromOrDefault)
+        .lt('timestamp', addDay(toOrDefault))
+        .order('timestamp', { ascending: false })
+        .range(offset, offset + limit - 1);
+      if (provider) query = query.eq('provider', provider);
+      if (symbol) query = query.eq('symbol', symbol);
+      const { data, error } = await query;
+      if (error) throw error;
+      return (data ?? []) as SignalRecord[];
+    };
+
+    let records: SignalRecord[];
+    try {
+      records = await loadRecords();
+    } catch {
+      return ApiResponseBuilder.serverError(
+        'Failed to fetch signal vector data',
+        context.requestId
+      );
+    }
 
     // Filter to only records that have signal_vector data
     const withSignals = records.filter((r) => r.signal_vector !== null);

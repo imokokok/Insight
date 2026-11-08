@@ -399,4 +399,53 @@ describe('Turso price-slot repository', () => {
       else process.env.TURSO_PRICE_RAW_RETENTION_DAYS = previous;
     }
   });
+
+  it('compacts ACKed payloads with the shorter window while keeping raw rows', async () => {
+    const day = 24 * 60 * 60 * 1000;
+    const now = 100 * day;
+    const rows = [
+      { slot: now - 40 * day, label: 'raw-expired' },
+      { slot: now - 10 * day, label: 'acked-old' },
+      { slot: now - 3 * day, label: 'acked-recent' },
+    ];
+    for (const row of rows) {
+      await client.execute({
+        sql: `INSERT INTO snapshot_slots(
+          slot_ms,input_hash,raw_digest,canonical_payload,policy_version,
+          received_count,candidate_count,persisted_count,summary_json,
+          supabase_acknowledged_at_ms,created_at_ms
+        ) VALUES(?,?,?,?,?,?,?,?,?,?,?)`,
+        args: [
+          row.slot,
+          `hash-${row.label}`,
+          `digest-${row.label}`,
+          `{"slotMs":${row.slot},"inputs":[{"provider":"dia"}]}`,
+          1,
+          1,
+          1,
+          1,
+          '{}',
+          now - day,
+          row.slot,
+        ],
+      });
+    }
+
+    await expect(
+      pruneExpiredTursoPriceEvents(client, now, { ackedPayloadRetentionDays: 7 })
+    ).resolves.toEqual({
+      rawEventsPruned: 0,
+      acknowledgedPayloadsCompacted: 2,
+    });
+
+    const stored = await client.execute(
+      'SELECT slot_ms, canonical_payload FROM snapshot_slots ORDER BY slot_ms'
+    );
+    const payloads = new Map(
+      stored.rows.map((row) => [Number(row.slot_ms), String(row.canonical_payload)])
+    );
+    expect(payloads.get(now - 40 * day)).toBe(`{"slotMs":${now - 40 * day},"inputs":[]}`);
+    expect(payloads.get(now - 10 * day)).toBe(`{"slotMs":${now - 10 * day},"inputs":[]}`);
+    expect(payloads.get(now - 3 * day)).toContain('"provider":"dia"');
+  });
 });

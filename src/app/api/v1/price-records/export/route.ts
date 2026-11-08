@@ -13,6 +13,11 @@ import { getBlockchainByChainId } from '@/lib/oracles/constants/chainMapping';
 import { SafeProviderSchema, SafeSymbolSchema } from '@/lib/security/validation';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { loadSnapshotHistoryPage } from '@/lib/supabase/snapshotHistory';
+import {
+  readTursoPriceRecordsFallbackOnMiss,
+  readTursoPriceRecordsMode,
+} from '@/lib/turso/price/client';
+import { loadTursoPriceRecords } from '@/lib/turso/price/recordsQuery';
 import { getDaysAgoUtc, getTodayUtc, addDay } from '@/lib/utils/date';
 
 const ExportQuerySchema = z.object({
@@ -43,27 +48,42 @@ export const GET = createApiHandler(
 
     const supabase = createServiceRoleClient();
 
-    let query = supabase
-      .from('price_records')
-      .select('provider, symbol, chain, price, timestamp, confidence, source, verification')
-      .gte('timestamp', fromOrDefault)
-      .lt('timestamp', addDay(toOrDefault))
-      .order('timestamp', { ascending: false })
-      .range(offset, offset + limit - 1);
-
-    if (symbol) {
-      query = query.eq('symbol', symbol);
-    }
-    if (provider) {
-      query = query.eq('provider', provider);
-    }
+    const loadRecords = async () => {
+      if (readTursoPriceRecordsMode() === 'turso') {
+        const records = await loadTursoPriceRecords({
+          provider,
+          symbol,
+          startTime: Date.parse(fromOrDefault),
+          endTime: Date.parse(addDay(toOrDefault)) - 1,
+          limit,
+          offset,
+        });
+        if (records !== null && (records.length > 0 || !readTursoPriceRecordsFallbackOnMiss())) {
+          return records;
+        }
+        if (records === null && !readTursoPriceRecordsFallbackOnMiss()) {
+          throw new Error('Turso price_records unavailable');
+        }
+      }
+      let query = supabase
+        .from('price_records')
+        .select('provider, symbol, chain, price, timestamp, confidence, source, verification')
+        .gte('timestamp', fromOrDefault)
+        .lt('timestamp', addDay(toOrDefault))
+        .order('timestamp', { ascending: false })
+        .range(offset, offset + limit - 1);
+      if (symbol) query = query.eq('symbol', symbol);
+      if (provider) query = query.eq('provider', provider);
+      const { data, error } = await query;
+      if (error) throw error;
+      return data ?? [];
+    };
 
     let data;
-    let error;
     let snapshotRows;
     try {
-      [{ data, error }, snapshotRows] = await Promise.all([
-        query,
+      [data, snapshotRows] = await Promise.all([
+        loadRecords(),
         loadSnapshotHistoryPage(
           supabase,
           'price',
@@ -93,10 +113,6 @@ export const GET = createApiHandler(
         'Failed to fetch price snapshot history',
         context.requestId
       );
-    }
-
-    if (error) {
-      return ApiResponseBuilder.serverError('Failed to fetch price records', context.requestId);
     }
 
     const response = NextResponse.json(
