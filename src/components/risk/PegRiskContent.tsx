@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
@@ -142,6 +142,10 @@ export function PegRiskContent({
       ? Date.parse(initialAsOf)
       : getLatestTimestamp(initialStablecoins, initialWrappedAssets)
   );
+  // Captured once so the polling effect can anchor its first tick without
+  // taking `lastUpdatedAt` as a dependency (which would restart the timers on
+  // every refresh).
+  const initialLastUpdatedRef = useRef<number | null>(lastUpdatedAt);
 
   const allSnapshots = useMemo(
     () => sortByRisk([...toStablecoinSnapshots(stablecoins), ...toWrappedSnapshots(wrappedAssets)]),
@@ -175,7 +179,7 @@ export function PegRiskContent({
     [categorySnapshots, selectedSymbol]
   );
 
-  const fetchData = useCallback(async (background = false) => {
+  const fetchData = useCallback(async (background = false): Promise<number | null> => {
     if (background) setRefreshing(true);
     else setLoading(true);
     setError(null);
@@ -202,36 +206,73 @@ export function PegRiskContent({
     }
 
     if (failures.length > 0) setError(failures.join(' · '));
+    let resolvedAsOf: number | null = null;
     if (asOfCandidates.length > 0) {
       // Show the staler half rather than the newest timestamp, and prefer the
       // server's `asOf` over the local clock so a cache hit is visible as an
       // unchanged label instead of a misleadingly fresh one.
       const refreshedAsOf = oldestIsoTimestamp(asOfCandidates);
-      setLastUpdatedAt(refreshedAsOf ? Date.parse(refreshedAsOf) : Date.now());
+      resolvedAsOf = refreshedAsOf ? Date.parse(refreshedAsOf) : Date.now();
+      setLastUpdatedAt(resolvedAsOf);
     }
 
     setLoading(false);
     setRefreshing(false);
+    return resolvedAsOf;
   }, []);
 
   useEffect(() => {
-    let initialFetchTimer: number | null = null;
+    const ttlMs = PEG_SNAPSHOT_TTL_SECONDS * 1000;
+    let cancelled = false;
+    let firstPollTimer: number | null = null;
+    let interval: number | null = null;
+
+    const startFixedCadence = () => {
+      if (cancelled) return;
+      interval = window.setInterval(() => {
+        if (!document.hidden) void fetchData(true);
+      }, ttlMs);
+    };
+
+    /**
+     * Anchor the first poll to the age of the data the server already gave us.
+     * Waiting a full TTL on top of a snapshot that is already ~3 minutes old is
+     * what made the label reach ~6 minutes; polling at `180s − age` keeps the
+     * first on-screen window at one TTL. Every later poll uses the plain 180s
+     * cadence, so the request rate does not change.
+     */
+    const scheduleFirstPoll = (asOfMs: number | null) => {
+      if (cancelled) return;
+      const ageMs = asOfMs ? Math.max(0, Date.now() - asOfMs) : 0;
+      firstPollTimer = window.setTimeout(
+        () => {
+          if (!document.hidden) void fetchData(true);
+          startFixedCadence();
+        },
+        Math.max(0, ttlMs - ageMs)
+      );
+    };
+
     if (initialStablecoins.length === 0 || initialWrappedAssets.length === 0) {
-      initialFetchTimer = window.setTimeout(() => fetchData(), 0);
+      // The server rendered no snapshots, so fetch now and anchor the first
+      // poll to what that response reports. Deferred out of the effect body so
+      // the fetch's state updates do not run as part of the commit.
+      firstPollTimer = window.setTimeout(() => {
+        void fetchData().then((asOfMs) => scheduleFirstPoll(asOfMs));
+      }, 0);
+    } else {
+      scheduleFirstPoll(initialLastUpdatedRef.current);
     }
 
-    const interval = window.setInterval(() => {
-      if (!document.hidden) fetchData(true);
-    }, PEG_SNAPSHOT_TTL_SECONDS * 1000);
-
     const handleVisibilityChange = () => {
-      if (!document.hidden) fetchData(true);
+      if (!document.hidden) void fetchData(true);
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
-      if (initialFetchTimer !== null) window.clearTimeout(initialFetchTimer);
-      window.clearInterval(interval);
+      cancelled = true;
+      if (firstPollTimer !== null) window.clearTimeout(firstPollTimer);
+      if (interval !== null) window.clearInterval(interval);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [fetchData, initialStablecoins.length, initialWrappedAssets.length]);
