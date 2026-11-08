@@ -148,6 +148,9 @@ const TOOL_RULES: Array<[RegExp, MeteringClass]> = [
   // documented class regardless of later broad-regex changes.
   [/^get_price_analytics$/, 'C2'],
   [/^search_oracle_registry$/, 'C1'],
+  // The consolidation merges health into trade_guard op oracle_health at C1.
+  // Pin the deprecated spelling too so the compatibility window keeps its tier.
+  [/^get_oracle_health$/, 'C1'],
   [/^check_trade_safety$/, 'C3'],
   [/^prepare_swap$/, 'C3'],
   [/^prepare_perp_order$/, 'C3'],
@@ -249,11 +252,18 @@ function clampItems(count: number): number {
  * structurally invalid request still prechecks as one item — the tool handler
  * rejects it before any charge is applied.
  */
+function isPriceAnalyticsBatch(toolName: string, record: Record<string, unknown>): boolean {
+  return (
+    toolName === 'get_price_analytics' ||
+    (toolName === 'trade_guard' && record.op === 'price_analytics')
+  );
+}
+
 export function getMcpToolBillableItems(toolName: string, args?: unknown): number {
   if (args === null || typeof args !== 'object') return 1;
   const record = args as Record<string, unknown>;
 
-  if (toolName === 'get_price_analytics' && record.mode === 'batch') {
+  if (isPriceAnalyticsBatch(toolName, record) && record.mode === 'batch') {
     const count = arrayLength(record.assets);
     return count > 0 ? clampItems(count) : 1;
   }
@@ -283,12 +293,10 @@ export function getRestBillableItems(path: string, body?: unknown): number {
 /** True when this tool call is a batch call priced per requested item. */
 export function isMcpBatchCall(toolName: string, args?: unknown): boolean {
   if (toolName === 'get_oracle_prices_batch') return true;
-  if (toolName === 'get_price_analytics') {
-    return (
-      args !== null &&
-      typeof args === 'object' &&
-      (args as Record<string, unknown>).mode === 'batch'
-    );
+  if (args !== null && typeof args === 'object') {
+    if (isPriceAnalyticsBatch(toolName, args as Record<string, unknown>)) {
+      return (args as Record<string, unknown>).mode === 'batch';
+    }
   }
   return false;
 }

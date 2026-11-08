@@ -52,6 +52,7 @@ const executeToolMock = jest.fn();
 
 jest.mock('../tools', () => ({
   executeTool: (...args: unknown[]) => executeToolMock(...(args as [])),
+  canonicalizeToolCall: (name: unknown, args: unknown) => ({ name, args }),
   getToolDefinitions: () => [
     {
       name: 'get_oracle_prices_batch',

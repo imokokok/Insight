@@ -2,8 +2,20 @@
  * @jest-environment node
  */
 
-import { executeTool, getToolDefinitions, resolveToolSource } from '../tools';
-import { CORE_MCP_TOOLS, PRODUCT_MCP_TOOLS, UNIFIED_MCP_TOOLS } from '../tools/unified';
+import {
+  executeTool,
+  getToolDefinitions,
+  resolveDispatchedTool,
+  resolveToolSource,
+} from '../tools';
+import {
+  ALIAS_MCP_TOOLS,
+  CORE_MCP_TOOLS,
+  LEGACY_PRODUCT_MCP_TOOLS,
+  PRODUCT_MCP_TOOLS,
+  UNIFIED_MCP_TOOLS,
+} from '../tools/unified';
+import { ALIAS_TOOL_NAMES } from '../tools/unified/aliases';
 import { LEGACY_TOOL_BY_NAME, LEGACY_TOOL_REMOVAL_DATE } from '../tools/unified/runtime';
 
 jest.mock('@/lib/oracles/utils/dynamicFeedResolver', () => ({
@@ -34,21 +46,50 @@ const OVERLAP_TOOL_NAMES = new Set(
 );
 
 describe('consolidated MCP surface', () => {
-  it('exposes exactly 11 core + 5 product tools with unique names', () => {
+  it('exposes exactly 4 product tools plus 16 deprecated aliases', () => {
     expect(CORE_MCP_TOOLS).toHaveLength(11);
-    expect(PRODUCT_MCP_TOOLS).toHaveLength(5);
-    expect(UNIFIED_MCP_TOOLS).toHaveLength(16);
+    expect(LEGACY_PRODUCT_MCP_TOOLS).toHaveLength(5);
+    expect(ALIAS_MCP_TOOLS).toHaveLength(16);
+    expect(PRODUCT_MCP_TOOLS).toHaveLength(4);
+    expect(UNIFIED_MCP_TOOLS).toHaveLength(20);
 
     const names = UNIFIED_MCP_TOOLS.map((tool) => tool.name);
-    expect(new Set(names).size).toBe(16);
+    expect(new Set(names).size).toBe(20);
 
     const advertised = getToolDefinitions();
-    expect(advertised).toHaveLength(16);
+    expect(advertised).toHaveLength(20);
     expect(advertised.map((tool) => tool.name)).toEqual(names);
+    // Canonical products lead; the 16 deprecated names follow.
+    expect(names.slice(0, 4)).toEqual([
+      'trade_guard',
+      'trade_proof',
+      'oracle_watch_window',
+      'position_lifecycle',
+    ]);
+    expect(names.slice(4)).toEqual(
+      expect.arrayContaining([
+        'get_oracle_price',
+        'check_trade_safety',
+        'begin_trade_evidence',
+        'position_lifecycle_step',
+      ])
+    );
     for (const tool of advertised) {
       expect(tool.inputSchema?.type).toBe('object');
       expect(tool.inputSchema?.properties).toBeDefined();
     }
+  });
+
+  it('keeps aliases out of the legacy registry so neither gets an expiry date', () => {
+    // The legacy registry is removed wholesale on LEGACY_TOOL_REMOVAL_DATE;
+    // aliases must not inherit that date, so they live in their own table.
+    expect(LEGACY_TOOL_BY_NAME.size).toBe(81);
+    const aliasOnly = [...ALIAS_TOOL_NAMES].filter((name) => !LEGACY_TOOL_BY_NAME.has(name));
+    const overlap = [...ALIAS_TOOL_NAMES].filter((name) => LEGACY_TOOL_BY_NAME.has(name));
+    expect(aliasOnly).toHaveLength(11);
+    expect(overlap).toHaveLength(5);
+    const union = new Set([...LEGACY_TOOL_BY_NAME.keys(), ...ALIAS_TOOL_NAMES]);
+    expect(union.size).toBe(LEGACY_TOOL_BY_NAME.size + aliasOnly.length);
   });
 
   it('describes when to use, when not to use and what each tool returns', () => {
@@ -56,6 +97,35 @@ describe('consolidated MCP surface', () => {
       expect(tool.description).toContain('Use ');
       expect(tool.description).toContain('Do not use');
       expect(tool.description).toContain('Returns');
+    }
+  });
+
+  it('names the deprecated tools each product absorbs', () => {
+    const absorbed: Record<string, string[]> = {
+      trade_guard: [
+        'get_oracle_price',
+        'get_price_analytics',
+        'get_oracle_health',
+        'search_oracle_registry',
+        'get_market_quote',
+        'check_trade_safety',
+        'prepare_swap',
+        'prepare_perp_order',
+      ],
+      trade_proof: ['begin_trade_evidence', 'issue_execution_receipt', 'verify_evidence'],
+      oracle_watch_window: [
+        'oracle_watch',
+        'oracle_watch_window_begin',
+        'oracle_watch_window_control',
+      ],
+      position_lifecycle: ['position_lifecycle_begin', 'position_lifecycle_step'],
+    };
+    for (const tool of PRODUCT_MCP_TOOLS) {
+      const legacyNames = absorbed[tool.name];
+      expect(legacyNames).toBeDefined();
+      for (const legacy of legacyNames) {
+        expect(tool.description).toContain(legacy);
+      }
     }
   });
 
@@ -171,26 +241,39 @@ describe('profile-aware dispatch', () => {
 
   it('resolves each name to the registry the profile says serves it', () => {
     delete process.env.MCP_TOOL_PROFILE;
-    for (const name of ['get_oracle_price', 'get_oracle_health', 'prepare_swap']) {
+    for (const name of [
+      'trade_guard',
+      'trade_proof',
+      'get_oracle_price',
+      'get_oracle_health',
+      'prepare_swap',
+      'position_lifecycle_step',
+    ]) {
       expect(resolveToolSource(name)).toBe('unified');
     }
 
     process.env.MCP_TOOL_PROFILE = 'legacy';
     // Legacy rollback must actually reach the legacy implementation.
-    for (const name of ['get_oracle_price', 'get_oracle_health', 'oracle_watch', 'get_symbols']) {
+    for (const name of [
+      'get_oracle_price',
+      'get_oracle_health',
+      'oracle_watch',
+      'oracle_watch_window_begin',
+      'position_lifecycle_begin',
+      'get_symbols',
+    ]) {
       expect(resolveToolSource(name)).toBe('legacy');
     }
-    // Bundled products stay on the unified implementation in every profile.
+    // Aliases with no legacy implementation stay unified and canonicalize onto
+    // the product tool; canonical product names are always unified.
     for (const name of [
-      'oracle_watch_window_begin',
+      'prepare_swap',
       'oracle_watch_window_control',
-      'position_lifecycle_begin',
       'position_lifecycle_step',
+      'trade_guard',
     ]) {
       expect(resolveToolSource(name)).toBe('unified');
     }
-    // Unified-only names still work when the legacy profile is on.
-    expect(resolveToolSource('prepare_swap')).toBe('unified');
   });
 
   it('validates tools/list minimal inputs with the dispatched schema in both profiles', () => {
@@ -205,16 +288,6 @@ describe('profile-aware dispatch', () => {
         // they cannot diverge. Coverage here is the unified-served names plus
         // the names both registries implement, where dispatch picks the schema.
         if (source !== 'unified' && !OVERLAP_TOOL_NAMES.has(advertised.name)) continue;
-        const dispatched =
-          source === 'legacy'
-            ? LEGACY_TOOL_BY_NAME.get(advertised.name)
-            : UNIFIED_MCP_TOOLS.find((tool) => tool.name === advertised.name) ??
-              LEGACY_TOOL_BY_NAME.get(advertised.name);
-        if (!dispatched) {
-          failures.push({ profile: profile ?? 'core', tool: advertised.name, issues: 'not dispatched' });
-          continue;
-        }
-
         // Build every required field from the advertised JSON schema, then let
         // the fixture supply domain-constrained values the JSON schema cannot
         // express (e.g. provider allow-lists).
@@ -222,7 +295,15 @@ describe('profile-aware dispatch', () => {
           ...minimalArgsFromSchema(advertised.inputSchema),
           ...(MINIMAL_INPUT_OVERRIDES[advertised.name] ?? {}),
         };
-        const parsed = dispatched.parameters.safeParse(minimal);
+        // Resolve first: a deprecated alias canonicalizes onto its product tool
+        // and gains the op selector before validation.
+        const dispatched = resolveDispatchedTool(advertised.name, minimal);
+        if (!dispatched) {
+          failures.push({ profile: profile ?? 'core', tool: advertised.name, issues: 'not dispatched' });
+          continue;
+        }
+
+        const parsed = dispatched.definition.parameters.safeParse(dispatched.args);
         if (!parsed.success) {
           failures.push({
             profile: profile ?? 'core',

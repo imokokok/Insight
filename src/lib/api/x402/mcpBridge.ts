@@ -14,8 +14,8 @@ import { isFreeVerifyCall } from '@/lib/billing/freeVerify';
 import { getMcpToolBillableItems } from '@/lib/billing/metering';
 import {
   getMcpToolCreditCostForCall,
+  getMcpToolUsdPrice,
   isEntitlementCoveredMcpTool,
-  PRODUCT_MCP_TOOL_USD_PRICES,
 } from '@/lib/billing/productPricing';
 import { recordRejectedOutcome } from '@/lib/billing/rejectedOutcomeMonitor';
 import { enqueueReputationAnchor } from '@/lib/erc8004/reputationAnchor';
@@ -151,7 +151,7 @@ export function toResponse(instructions: HTTPResponseInstructions): Response {
  */
 export function priceAtomicForTool(toolName: string, args?: unknown): string {
   if (isFreeVerifyCall(toolName, args)) return '0';
-  const productUsd = PRODUCT_MCP_TOOL_USD_PRICES[toolName];
+  const productUsd = getMcpToolUsdPrice(toolName, args);
   if (productUsd !== undefined) {
     // Product purchases quote the plan's USD list price directly — the same
     // value the REST begin route charges — never a per-call class price.
@@ -180,11 +180,13 @@ export function priceAtomicForTool(toolName: string, args?: unknown): string {
  */
 export async function handleMcpIndexerQuote(request: Request, cfg: X402Config): Promise<Response> {
   const requestId = newRequestId();
-  const price = priceAtomicForTool(MCP_INDEXER_QUOTE_TOOL);
+  // Quote the product's flagship pre-trade op so the bare shelf price stays
+  // the C3 safety-gate price rather than an oracle-read C1 price.
+  const price = priceAtomicForTool(MCP_INDEXER_QUOTE_TOOL, { op: 'check_safety' });
   // The directory's bare GET is the x402 Bazaar shelf, not a tools/call for
-  // `check_trade_safety`: with no arguments there is no per-chain scope to
-  // derive, so the quote advertises every configured rail the price clears.
-  // Per-network floors still drop rails that cannot settle this amount.
+  // `trade_guard`: with no arguments there is no per-chain scope to derive, so
+  // the quote advertises every configured rail the price clears. Per-network
+  // floors still drop rails that cannot settle this amount.
   const quoteConfig = x402ConfigForPaymentScope(cfg, X402_PAYMENT_SCOPE.multichain) ?? cfg;
   const httpServer = await getMcpX402HttpServer(quoteConfig, price, MCP_INDEXER_QUOTE_TOOL);
   const result = await httpServer.processHTTPRequest({
@@ -317,6 +319,7 @@ async function assessMcpBusinessResponse(response: Response): Promise<McpBusines
  * `check_trade_safety` tool and its legacy `pre_trade_safety_check` alias.
  */
 const REPUTATION_OPT_IN_TOOLS: ReadonlySet<string> = new Set([
+  'trade_guard',
   'check_trade_safety',
   'pre_trade_safety_check',
 ]);
@@ -847,6 +850,8 @@ export interface McpPaidCallInput {
   request: Request;
   cfg: X402Config;
   toolName: string;
+  /** Canonicalized tool arguments from the same JSON-RPC probe. */
+  toolArgs?: unknown;
   /** Dispatch the JSON-RPC body through the MCP transport. */
   runBusiness: () => Promise<Response>;
 }
@@ -861,17 +866,18 @@ export async function handleMcpPaidToolCall({
   request,
   cfg,
   toolName,
+  toolArgs,
   runBusiness,
 }: McpPaidCallInput): Promise<Response> {
   const requestId = newRequestId();
+  const args = toolArgs ?? (await extractMcpToolArguments(request));
   // In-window product tools (poll/close/guard/receipt/close-summary) are
   // covered by the purchase that returned their one-time token; the token in
   // the tool arguments is the entitlement check and fails closed without it.
   // No x402 lifecycle runs, so a window buyer is never re-charged per call.
-  if (isEntitlementCoveredMcpTool(toolName)) {
+  if (isEntitlementCoveredMcpTool(toolName, args)) {
     return attachRequestId(await runBusiness(), requestId);
   }
-  const args = await extractMcpToolArguments(request);
   // Offline verification kinds need no upstream read, so they are free. A
   // caller that still attaches a payment signature is rejected explicitly
   // instead of silently settling a zero-value transfer.

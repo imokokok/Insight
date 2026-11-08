@@ -1,3 +1,12 @@
+import { z } from 'zod';
+
+import {
+  ORACLE_WATCH_WINDOW_OPS,
+  POSITION_LIFECYCLE_OPS,
+  TRADE_GUARD_OPS,
+  TRADE_PROOF_OPS,
+} from './aliases';
+import { CORE_MCP_TOOLS } from './coreTools';
 import { callLegacy } from './runtime';
 import {
   OracleWatchInputSchema,
@@ -8,10 +17,14 @@ import {
 } from './schemas';
 import { defineTool, jsonSchema } from './tool';
 
-import type { McpToolDefinition } from '../types';
+import type { McpToolCallContext, McpToolDefinition } from '../types';
 
-/** 5 product state-machine tools: one-off read, paid window, bundled lifecycle. */
-export const PRODUCT_MCP_TOOLS: McpToolDefinition[] = [
+/**
+ * The five pre-consolidation product state-machine tools. They remain the
+ * implementation behind the deprecated alias names and the new product tools;
+ * they are no longer advertised as canonical names.
+ */
+export const LEGACY_PRODUCT_MCP_TOOLS: McpToolDefinition[] = [
   defineTool({
     name: 'oracle_watch',
     description:
@@ -106,5 +119,180 @@ export const PRODUCT_MCP_TOOLS: McpToolDefinition[] = [
         context
       );
     },
+  }),
+];
+
+/** Every implementation the product dispatchers delegate to, by canonical name. */
+const IMPLEMENTATION_BY_NAME: ReadonlyMap<string, McpToolDefinition> = new Map(
+  [...CORE_MCP_TOOLS, ...LEGACY_PRODUCT_MCP_TOOLS].map((tool) => [tool.name, tool])
+);
+
+function implementationFor(name: string): McpToolDefinition {
+  const implementation = IMPLEMENTATION_BY_NAME.get(name);
+  if (!implementation) {
+    throw new Error(`Product dispatch target "${name}" is not registered.`);
+  }
+  return implementation;
+}
+
+/**
+ * Thin dispatch: run the canonical implementation for one op. The implementation
+ * keeps ownership of schema validation and business logic, so the product tool
+ * never carries a second copy of either.
+ */
+async function runOp(
+  implementationName: string,
+  args: unknown,
+  context?: McpToolCallContext
+): Promise<string> {
+  const implementation = implementationFor(implementationName);
+  const validated = implementation.parameters.parse(args);
+  return implementation.handler(validated, context);
+}
+
+/** One audit/availability note per op, so a product tool behaves like its op. */
+function jsonShapeKey(value: unknown): string {
+  if (value === null || typeof value !== 'object') return JSON.stringify(value);
+  const { description: _description, ...rest } = value as Record<string, unknown>;
+  return JSON.stringify(rest);
+}
+
+/**
+ * Advertise every branch field once. Fields shared by several ops collapse to
+ * one definition; fields whose constraints genuinely differ (e.g. `mode` in
+ * price analytics vs the safety gate) become an `anyOf` so a client-side
+ * validator never rejects a valid op.
+ */
+function mergeJsonProperty(existing: unknown, next: unknown): unknown {
+  if (existing === undefined) return next;
+  const previous = Array.isArray((existing as { anyOf?: unknown }).anyOf)
+    ? ((existing as { anyOf: unknown[] }).anyOf as unknown[])
+    : [existing];
+  const incoming = Array.isArray((next as { anyOf?: unknown }).anyOf)
+    ? ((next as { anyOf: unknown[] }).anyOf as unknown[])
+    : [next];
+  const merged = [...previous];
+  for (const candidate of incoming) {
+    if (!merged.some((value) => jsonShapeKey(value) === jsonShapeKey(candidate))) {
+      merged.push(candidate);
+    }
+  }
+  return merged.length === 1 ? merged[0] : { anyOf: merged };
+}
+
+function productInputSchema(
+  ops: readonly string[],
+  branchNames: readonly string[]
+): NonNullable<McpToolDefinition['inputSchema']> {
+  const properties: Record<string, unknown> = {
+    op: { type: 'string', enum: [...ops] },
+  };
+  for (const name of branchNames) {
+    const branch = implementationFor(name).inputSchema;
+    for (const [field, definition] of Object.entries(branch?.properties ?? {})) {
+      if (field === 'op') continue;
+      properties[field] = mergeJsonProperty(properties[field], definition);
+    }
+  }
+  return { type: 'object', properties, required: ['op'] };
+}
+
+/** Runtime validator: the op selector is authoritative; each branch is parsed
+ *  by its own implementation, which owns the domain constraints. */
+function productParameters(ops: readonly string[]) {
+  return z.looseObject({ op: z.enum(ops as [string, ...string[]]) });
+}
+
+const TRADE_GUARD_IMPLEMENTATION: Readonly<Record<string, string>> = {
+  oracle_price: 'get_oracle_price',
+  price_analytics: 'get_price_analytics',
+  oracle_health: 'get_oracle_health',
+  search_registry: 'search_oracle_registry',
+  market_quote: 'get_market_quote',
+  check_safety: 'check_trade_safety',
+  prepare_swap: 'prepare_swap',
+  prepare_perp_order: 'prepare_perp_order',
+};
+
+const TRADE_PROOF_IMPLEMENTATION: Readonly<Record<string, string>> = {
+  begin_evidence: 'begin_trade_evidence',
+  issue_receipt: 'issue_execution_receipt',
+  verify_evidence: 'verify_evidence',
+};
+
+const ORACLE_WATCH_WINDOW_IMPLEMENTATION: Readonly<Record<string, string>> = {
+  snapshot: 'oracle_watch',
+  history: 'oracle_watch',
+  begin: 'oracle_watch_window_begin',
+  poll: 'oracle_watch_window_control',
+  close: 'oracle_watch_window_control',
+};
+
+const POSITION_LIFECYCLE_IMPLEMENTATION: Readonly<Record<string, string>> = {
+  begin: 'position_lifecycle_begin',
+  guard: 'position_lifecycle_step',
+  receipt: 'position_lifecycle_step',
+  close: 'position_lifecycle_step',
+};
+
+async function dispatchByOp(
+  productName: string,
+  routes: Readonly<Record<string, string>>,
+  args: { op: string } & Record<string, unknown>,
+  context?: McpToolCallContext
+): Promise<string> {
+  const implementation = routes[args.op];
+  if (implementation === undefined) {
+    throw new Error(`${productName}: unsupported op "${args.op}".`);
+  }
+  return runOp(implementation, args, context);
+}
+
+/**
+ * The four consolidated product tools. Each one is a thin op dispatcher over
+ * the implementations above — no business logic is duplicated here.
+ */
+export const PRODUCT_MCP_TOOLS: McpToolDefinition[] = [
+  defineTool({
+    name: 'trade_guard',
+    description:
+      'Use it for every pre-execution trust decision: one oracle price, price analytics, oracle health, oracle registry search, a venue market quote, or the pre-trade safety gate including prepare_swap and prepare_perp_order. Each call selects the branch with "op". Do not use it to prove execution after the fact (use trade_proof), to poll a prepaid monitoring window (use oracle_watch_window), or to manage a position bundle (use position_lifecycle). Returns the op payload: price and analytics rows for read ops, a venue quote for market_quote, a READY/CAUTION/BLOCK verdict with reasons for check_safety, and an unsigned prepared transaction, Solana message, venue order or instruction for prepare_* ops. Absorbs the deprecated names get_oracle_price, get_price_analytics, get_oracle_health, search_oracle_registry, get_market_quote, check_trade_safety, prepare_swap and prepare_perp_order.',
+    parameters: productParameters(TRADE_GUARD_OPS),
+    inputSchema: productInputSchema(TRADE_GUARD_OPS, Object.values(TRADE_GUARD_IMPLEMENTATION)),
+    handler: async (args, context) =>
+      dispatchByOp('trade_guard', TRADE_GUARD_IMPLEMENTATION, args, context),
+  }),
+  defineTool({
+    name: 'trade_proof',
+    description:
+      'Use it to open a trade-evidence session, issue an execution receipt, or verify an evidence artifact after a trade. Each call selects the branch with "op": begin_evidence, issue_receipt or verify_evidence. Do not use it to decide whether a trade is safe before signing (use trade_guard) and do not use it to settle a swap guard (use the venue guard tools). Returns the evidence session handle, the signed receipt, or the verification verdict, digest and matched evidence. Absorbs the deprecated names begin_trade_evidence, issue_execution_receipt and verify_evidence.',
+    parameters: productParameters(TRADE_PROOF_OPS),
+    inputSchema: productInputSchema(TRADE_PROOF_OPS, Object.values(TRADE_PROOF_IMPLEMENTATION)),
+    handler: async (args, context) =>
+      dispatchByOp('trade_proof', TRADE_PROOF_IMPLEMENTATION, args, context),
+  }),
+  defineTool({
+    name: 'oracle_watch_window',
+    description:
+      'Oracle Watch for monitored trust signals. Use it to read one trust snapshot or history series, buy a 24h monitored window, or poll/close an already purchased window. Each call selects the branch with "op": snapshot, history, begin, poll or close. Do not use it for pre-trade safety (use trade_guard op check_safety), do not buy a second window for the same subject, and never reuse a token after close. Returns the trust signal or history series, the windowId plus one-time oww_ token and expiry for begin, and the poll signal or combined close summary for window ops. Absorbs the deprecated names oracle_watch, oracle_watch_window_begin and oracle_watch_window_control.',
+    parameters: productParameters(ORACLE_WATCH_WINDOW_OPS),
+    inputSchema: productInputSchema(
+      ORACLE_WATCH_WINDOW_OPS,
+      Object.values(ORACLE_WATCH_WINDOW_IMPLEMENTATION)
+    ),
+    handler: async (args, context) =>
+      dispatchByOp('oracle_watch_window', ORACLE_WATCH_WINDOW_IMPLEMENTATION, args, context),
+  }),
+  defineTool({
+    name: 'position_lifecycle',
+    description:
+      'Use it to buy a 24h Position Lifecycle bundle and run the guard, receipt and close steps inside it. Each call selects the branch with "op": begin, guard, receipt or close. Do not use it for a single pre-trade guard (use trade_guard op check_safety), for unrelated positions, or with a token after close. Returns the lifecycleId plus one-time plc_ token and expiry for begin, and the guard verdict, signed execution receipt or combined lifecycle summary for the in-window steps. Absorbs the deprecated names position_lifecycle_begin and position_lifecycle_step.',
+    parameters: productParameters(POSITION_LIFECYCLE_OPS),
+    inputSchema: productInputSchema(
+      POSITION_LIFECYCLE_OPS,
+      Object.values(POSITION_LIFECYCLE_IMPLEMENTATION)
+    ),
+    handler: async (args, context) =>
+      dispatchByOp('position_lifecycle', POSITION_LIFECYCLE_IMPLEMENTATION, args, context),
   }),
 ];

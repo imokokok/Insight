@@ -1,3 +1,4 @@
+import { canonicalizeAlias } from '@/mcp/tools/unified/aliases';
 import { isEntitlementCoveredMcpTool } from '@/lib/billing/productPricing';
 import { CHAIN_ID } from '@/lib/constants/tokenAddresses';
 
@@ -192,6 +193,11 @@ const X402_CHAIN_NEUTRAL_MCP_PAYMENT_SCOPE_BY_TOOL = {
   // configured rail (Base and BNB included) subject to each network's floor.
   oracle_watch_window_begin: X402_PAYMENT_SCOPE.multichain,
   position_lifecycle_begin: X402_PAYMENT_SCOPE.multichain,
+  // Canonical product names. trade_guard/trade_proof derive their realm from
+  // the op selector and are therefore dynamic; the window/lifecycle products
+  // are chain-neutral for their paid begin path (in-window ops are covered).
+  oracle_watch_window: X402_PAYMENT_SCOPE.multichain,
+  position_lifecycle: X402_PAYMENT_SCOPE.multichain,
   pre_trade_safety_check: X402_PAYMENT_SCOPE.configured,
   recommend_oracle_setup: X402_PAYMENT_SCOPE.configured,
   search_oracle_registry: X402_PAYMENT_SCOPE.multichain,
@@ -440,6 +446,55 @@ export function x402PaymentScopeForMcpTool(
   toolName: string,
   argumentsValue: unknown
 ): X402PaymentScope | null {
+  // Deprecated aliases canonicalize onto the product tool + op before any
+  // scope is resolved, so a legacy spelling can never mint an independent
+  // Bazaar resource or a conflicting rail.
+  const canonical = canonicalizeAlias(toolName, argumentsValue);
+  if (canonical) {
+    return x402PaymentScopeForMcpTool(canonical.name, canonical.args);
+  }
+
+  if (
+    toolName === 'trade_guard' && isRecord(argumentsValue)
+  ) {
+    const op = argumentsValue.op;
+    if (op === 'check_safety') {
+      const chain = argumentsValue.chain_id;
+      if (chain === 'solana') return X402_PAYMENT_SCOPE.solana;
+      if (chain === 'hyperliquid') return X402_PAYMENT_SCOPE.hypercore;
+      return x402PaymentScopeForEvmChainId(chain);
+    }
+    if (op === 'prepare_swap' || op === 'market_quote') {
+      return venueMcpPaymentScope(argumentsValue.venue, argumentsValue.profile_id);
+    }
+    if (op === 'prepare_perp_order') {
+      return preparePerpOrderMcpPaymentScope(argumentsValue);
+    }
+    // oracle_price, price_analytics, oracle_health, search_registry: the
+    // assessed data is portable across chains.
+    return X402_PAYMENT_SCOPE.multichain;
+  }
+
+  if (toolName === 'trade_proof' && isRecord(argumentsValue)) {
+    const op = argumentsValue.op;
+    if (op === 'issue_receipt') {
+      if (argumentsValue.mode === 'settle_solana_swap') return X402_PAYMENT_SCOPE.solana;
+      if (argumentsValue.mode === 'settle_base_agent_swap') {
+        return evmScopeFromChainId(signedEvidenceChainId(argumentsValue.decision));
+      }
+      return X402_PAYMENT_SCOPE.configured;
+    }
+    if (op === 'verify_evidence') {
+      if (argumentsValue.kind === 'solana_swap') return X402_PAYMENT_SCOPE.solana;
+      if (argumentsValue.kind === 'hyperliquid_perp') return X402_PAYMENT_SCOPE.hypercore;
+      if (argumentsValue.kind === 'base_agent_swap') {
+        return evmScopeFromChainId(signedEvidenceChainId(argumentsValue.settlement));
+      }
+      return X402_PAYMENT_SCOPE.configured;
+    }
+    return X402_PAYMENT_SCOPE.multichain;
+  }
+
   if (
     toolName === 'multichain_evm_lending_guard' ||
     toolName === 'multichain_evm_lending_guard_exact_call'
@@ -506,6 +561,8 @@ const X402_DYNAMIC_MCP_PAYMENT_SCOPE_TOOLS = new Set([
   'get_pancakeswap_v3_market',
   'prepare_pancakeswap_v3_swap',
   'prepare_perp_order',
+  'trade_guard',
+  'trade_proof',
   'check_trade_safety',
   'prepare_swap',
   'get_market_quote',

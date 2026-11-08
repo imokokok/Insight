@@ -661,7 +661,7 @@ const MCP_DISCOVERY_TOOL_BY_NAME: ReadonlyMap<string, McpCatalogTool> = new Map(
 );
 
 /** Tool named by the bare GET indexer probe, where the caller declares no tool. */
-export const MCP_INDEXER_QUOTE_TOOL = 'check_trade_safety';
+export const MCP_INDEXER_QUOTE_TOOL = 'trade_guard';
 
 const MCP_DISCOVERY_FALLBACK_INPUT_SCHEMA: Record<string, unknown> = {
   type: 'object',

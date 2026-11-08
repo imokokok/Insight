@@ -400,10 +400,10 @@ describe('x402 SVM resource-server registration', () => {
       return bazaar.info.input.toolName;
     }
 
-    it('declares exactly the 16 catalog tools, each once and none legacy', () => {
-      expect(catalog).toHaveLength(16);
+    it('declares exactly the 20 catalog tools, each once and none legacy', () => {
+      expect(catalog).toHaveLength(20);
       const declared = catalog.map((tool) => declaredToolName(tool.name));
-      expect(new Set(declared).size).toBe(16);
+      expect(new Set(declared).size).toBe(20);
       expect(new Set(declared)).toEqual(new Set(catalog.map((tool) => tool.name)));
       expect(declared).not.toContain('pre_trade_safety_check');
       expect(declared).not.toContain('prepare_base_agent_swap_guard');

@@ -39,7 +39,7 @@ import {
   recordMcpToolUsage,
   type McpConsumeOutcome,
 } from './middleware';
-import { executeTool, getToolDefinitions } from './tools';
+import { executeTool, canonicalizeToolCall, getToolDefinitions } from './tools';
 
 import type { McpAuthContext } from './auth';
 
@@ -220,7 +220,12 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
       isError?: boolean;
       _meta?: Record<string, unknown>;
     }> => {
-      const { name, arguments: args } = request.params;
+      // The single point where the JSON-RPC layer reads the tool name. Every
+      // downstream step (pricing, payment scope, audit, settlement, dispatch)
+      // uses the canonical product name and the op selector injected here.
+      const canonical = canonicalizeToolCall(request.params.name, request.params.arguments);
+      const name = canonical.name;
+      const args = canonical.args;
       const startTime = Date.now();
       logger.info(`MCP tool called: ${name}`, { args });
 

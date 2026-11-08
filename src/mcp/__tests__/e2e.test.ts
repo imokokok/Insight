@@ -46,9 +46,9 @@ describe('MCP Server end-to-end', () => {
     await client.close();
   });
 
-  it('lists exactly the 16 consolidated tools', async () => {
+  it('lists exactly the 20 consolidated tools', async () => {
     const tools = await client.listTools();
-    expect(tools.tools.length).toBe(16);
+    expect(tools.tools.length).toBe(20);
 
     const names = tools.tools.map((t) => t.name);
     expect(names).toEqual(UNIFIED_TOOL_NAMES);
