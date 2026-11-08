@@ -981,12 +981,12 @@ export async function buildX402HttpServer(
     ),
     [X402_ORACLE_WATCH_WINDOW_ROUTE]: routeConfigWithoutDiscovery(
       cfg,
-      'Oracle Watch Monitored Window (24h): one settlement pre-pays continuous Oracle Watch halt/proceed signal coverage for one (symbol, chain) position for 24 hours. The purchase returns a one-time window token; in-window signal polls are token-authenticated and never charged per call. Assessment and evidence only — no custody, no execution authority.',
+      'Oracle Watch Monitored Window (24h): one settlement pre-pays Oracle Watch halt/proceed signal coverage for one (symbol, chain) position for 24 hours — 48 signal evaluations on a 30-minute cadence, each reading up to 6 providers. A detected jump escalates that evaluation to a full provider sweep. The purchase returns a one-time window token; in-window signal polls are token-authenticated and never charged per call. Assessment and evidence only — no custody, no execution authority.',
       paidRestRouteAmountOverride(X402_ORACLE_WATCH_WINDOW_ROUTE)!
     ),
     [X402_POSITION_LIFECYCLE_ROUTE]: routeConfigWithoutDiscovery(
       cfg,
-      'Position Lifecycle Bundle (24h): one settlement pre-pays a full monitored lifecycle for one (symbol, chain) position — an embedded Oracle Watch window (300 free signal polls), 4 bundled guard assessments across any position-guard family, and 1 attested execution receipt. The purchase returns a one-time lifecycle token; bundled calls are token-authenticated and never charged per call. Assessment and evidence only — no custody, no execution authority.',
+      'Position Lifecycle Bundle (24h): one settlement pre-pays a full monitored lifecycle for one (symbol, chain) position — an embedded Oracle Watch window (48 free signal polls), 4 bundled guard assessments across any position-guard family, and 1 attested execution receipt. The purchase returns a one-time lifecycle token; bundled calls are token-authenticated and never charged per call. Assessment and evidence only — no custody, no execution authority.',
       paidRestRouteAmountOverride(X402_POSITION_LIFECYCLE_ROUTE)!
     ),
   };
