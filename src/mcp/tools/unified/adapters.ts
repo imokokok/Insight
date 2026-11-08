@@ -1,12 +1,20 @@
 import { type z } from 'zod';
 
 import { x402PaymentScopeForMcpTool } from '@/lib/api/x402/capabilityPayment';
+import {
+  missingRejectedEvidenceItems,
+  type RejectedVerdictEvidence,
+} from '@/lib/billing/exemptions';
 import { CHAIN_ID } from '@/lib/constants/tokenAddresses';
 import {
   isReviewedPancakeSwapV3ProfileId,
   reviewedPancakeSwapV3Profile,
   type ReviewedPancakeSwapV3ProfileId,
 } from '@/lib/dex/pancakeSwapV3';
+import {
+  type SolanaDriftPerpOrderPayload,
+  type SolanaDriftPerpOrderRequest,
+} from '@/lib/dex/solanaDriftPerpOrder';
 import {
   prepareSolanaJupiterSwap,
   quoteSolanaJupiterSwap,
@@ -20,10 +28,6 @@ import {
   type SolanaJupiterSwapGuardResult,
 } from '@/lib/dex/solanaJupiterSwapGuard';
 import {
-  type SolanaDriftPerpOrderPayload,
-  type SolanaDriftPerpOrderRequest,
-} from '@/lib/dex/solanaDriftPerpOrder';
-import {
   executionAdapterRegistry,
   type PreparedExecution,
   type PreparedExecutionPayload,
@@ -32,11 +36,11 @@ import {
   type BasePerpOrderEnvelope,
   type BasePerpOrderEnvelopeRequest,
 } from '@/lib/perps/basePerpOrderEnvelope';
+import { BNB_PERP_GUARD_ASTER_PROTOCOL_ID } from '@/lib/perps/bnbPerpGuard';
 import {
   type BnbPerpOrderEnvelope,
   type BnbPerpOrderEnvelopeRequest,
 } from '@/lib/perps/bnbPerpOrderEnvelope';
-import { BNB_PERP_GUARD_ASTER_PROTOCOL_ID } from '@/lib/perps/bnbPerpGuard';
 import { PerpOrderAdapterError } from '@/lib/perps/perpOrderEnvelope';
 import { STABLECOINS } from '@/lib/stablecoins/config';
 import { WRAPPED_ASSETS } from '@/lib/wrapped-assets/config';
@@ -668,9 +672,7 @@ function resolvePancakeProfile(
 ): ReviewedPancakeSwapV3ProfileId {
   const profileId = requested ?? DEFAULT_PANCAKE_QUOTE_PROFILE[venue];
   if (!isReviewedPancakeSwapV3ProfileId(profileId)) {
-    throw new Error(
-      `${toolName}: "${profileId}" is not a reviewed PancakeSwap V3 profile id.`
-    );
+    throw new Error(`${toolName}: "${profileId}" is not a reviewed PancakeSwap V3 profile id.`);
   }
   const dataChainId = reviewedPancakeSwapV3Profile(profileId).chainId;
   const scope = x402PaymentScopeForMcpTool(toolName, {
@@ -877,7 +879,8 @@ export async function routePrepareSwap(
         );
       }
 
-      const reasons = verdict.reasons.length > 0 ? verdict.reasons.join(' | ') : 'no reasons reported';
+      const reasons =
+        verdict.reasons.length > 0 ? verdict.reasons.join(' | ') : 'no reasons reported';
       if (verdict.productOutcome === 'unavailable') {
         throw new Error(
           `[unavailable:${jupiterCoverageReason(verdict.reasons)}] prepare_swap venue solana_jupiter: the Jupiter swap guard cannot review this route: ${reasons}`
@@ -980,6 +983,41 @@ function requireJupiterField<T>(value: T | undefined | null, field: string): T {
   return value;
 }
 
+/**
+ * A typed adapter failure that carries every reproducibility item is a
+ * delivered rejection, not a transport error. Surface it as structured JSON so
+ * the billing gate can charge it. Only `outcome === 'rejected'` qualifies:
+ * coverage gaps, invalid parameters and upstream failures keep their error
+ * shape even when their evidence object looks complete.
+ */
+function completeRejectedEvidence(error: unknown): RejectedVerdictEvidence | null {
+  if (!(error instanceof PerpOrderAdapterError)) return null;
+  if (error.outcome !== 'rejected') return null;
+  const evidence = error.evidence;
+  if (!evidence) return null;
+  return missingRejectedEvidenceItems(evidence).length === 0 ? evidence : null;
+}
+
+function rejectedVerdictResult(venue: string, evidence: RejectedVerdictEvidence): string {
+  return JSON.stringify(
+    {
+      decision: 'rejected',
+      productOutcome: 'rejected',
+      chargeable: true,
+      tool: 'prepare_perp_order',
+      venue,
+      reason_code: evidence.reason_code,
+      input_digest: evidence.input_digest,
+      triggered_threshold: evidence.triggered_threshold,
+      data_sources: evidence.data_sources,
+      risk_ruleset_version: evidence.risk_ruleset_version,
+      evidence,
+    },
+    null,
+    2
+  );
+}
+
 function mapPerpAdapterFailure(toolName: string, venue: string, error: unknown): Error {
   const code =
     error instanceof PerpOrderAdapterError
@@ -987,16 +1025,15 @@ function mapPerpAdapterFailure(toolName: string, venue: string, error: unknown):
       : typeof (error as { code?: unknown })?.code === 'string'
         ? (error as { code: string }).code
         : null;
-  if (code === 'INVALID_INPUT' || code === 'SLIPPAGE_EXCEEDED') {
-    return describeWireFailure('rejected', 'invalid_request', toolName, venue, error);
-  }
   if (code === 'UNSUPPORTED_MARKET' || code === 'MARKET_NOT_FOUND' || code === 'UNSUPPORTED') {
     return describeWireFailure('unavailable', 'market_not_found', toolName, venue, error);
   }
   if (code === 'UPSTREAM_UNAVAILABLE') {
     return describeWireFailure('unavailable', 'upstream_unavailable', toolName, venue, error);
   }
-  return describeWireFailure('rejected', 'invalid_request', toolName, venue, error);
+  // Invalid parameters and rejections whose evidence did not survive fall
+  // closed: no reproducibility package means no billable verdict.
+  return describeWireFailure('unavailable', 'invalid_request', toolName, venue, error);
 }
 
 type PerpOrderVenue = 'synthetix-perps-v3-base' | 'aster-perps-bnb-mainnet' | 'solana_drift';
@@ -1045,10 +1082,7 @@ const PERP_ARTIFACT_SPEC: Record<PerpOrderVenue, PerpArtifactSpec> = {
   },
 };
 
-function renderPerpArtifact(
-  venue: PerpOrderVenue,
-  prepared: PreparedExecution<unknown>
-): string {
+function renderPerpArtifact(venue: PerpOrderVenue, prepared: PreparedExecution<unknown>): string {
   const spec = PERP_ARTIFACT_SPEC[venue];
   const payload = prepared.payload;
   if (payload !== null && payload.kind !== spec.payloadKind) {
@@ -1140,6 +1174,8 @@ export async function routePreparePerpOrder(
         >(PERP_ORDER_ADAPTER_ID[args.venue], request);
         return renderPerpArtifact(args.venue, prepared);
       } catch (error) {
+        const rejected = completeRejectedEvidence(error);
+        if (rejected) return rejectedVerdictResult(args.venue, rejected);
         throw mapPerpAdapterFailure('prepare_perp_order', args.venue, error);
       }
     }
@@ -1163,6 +1199,8 @@ export async function routePreparePerpOrder(
         >(PERP_ORDER_ADAPTER_ID[args.venue], request);
         return renderPerpArtifact(args.venue, prepared);
       } catch (error) {
+        const rejected = completeRejectedEvidence(error);
+        if (rejected) return rejectedVerdictResult(args.venue, rejected);
         throw mapPerpAdapterFailure('prepare_perp_order', args.venue, error);
       }
     }
@@ -1184,6 +1222,8 @@ export async function routePreparePerpOrder(
         >(PERP_ORDER_ADAPTER_ID[args.venue], request);
         return renderPerpArtifact(args.venue, prepared);
       } catch (error) {
+        const rejected = completeRejectedEvidence(error);
+        if (rejected) return rejectedVerdictResult(args.venue, rejected);
         throw mapPerpAdapterFailure('prepare_perp_order', args.venue, error);
       }
     }
