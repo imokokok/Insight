@@ -7,6 +7,10 @@ import type { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
 
+// Bound the worst case so a slow Supabase read cannot hold a 2 GB Fluid
+// instance for the 300s Hobby default.
+export const maxDuration = 60;
+
 export const metadata: Metadata = {
   title: 'Prediction-Market Settlement Evidence — Insight',
   description:

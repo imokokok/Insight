@@ -19,6 +19,10 @@ export const metadata: Metadata = {
 // `calculating`/`nextRecalcAt` state after hydration.
 export const dynamic = 'force-dynamic';
 
+// Bound the worst case so a slow Supabase read cannot hold a 2 GB Fluid
+// instance for the 300s Hobby default.
+export const maxDuration = 60;
+
 const getReputationsCached = unstable_cache(
   () => reputationService.getReputations(),
   ['reputation-directory'],
