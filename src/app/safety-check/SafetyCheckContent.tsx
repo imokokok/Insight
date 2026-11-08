@@ -270,7 +270,10 @@ export default function SafetyCheckContent() {
     }
   }, [lastPosition, isRefreshing, result, calculate]);
 
-  // Auto-refresh every 45s while a result is on screen (paused when tab hidden).
+  // Auto-refresh every 90s while a result is on screen (paused when tab hidden).
+  // 90s halves the per-session request volume versus the old 45s cadence; the
+  // user still sees a fresh verdict within one and a half minutes and can force
+  // a refresh manually at any time.
   const handleRefreshRef = useRef(handleRefresh);
   useEffect(() => {
     handleRefreshRef.current = handleRefresh;
@@ -278,7 +281,7 @@ export default function SafetyCheckContent() {
 
   useEffect(() => {
     if (step !== 3 || !lastPosition) return;
-    const AUTO_REFRESH_MS = 45 * 1000;
+    const AUTO_REFRESH_MS = 90 * 1000;
     const id = setInterval(() => {
       if (!document.hidden) handleRefreshRef.current();
     }, AUTO_REFRESH_MS);

@@ -74,7 +74,9 @@ export function PortfolioDashboard({ detections, onReset }: PortfolioDashboardPr
     }
   }, [isRefreshing, combined, refresh]);
 
-  // Auto-refresh every 45s while mounted (paused when the tab is hidden).
+  // Auto-refresh every 90s while mounted (paused when the tab is hidden).
+  // Matches the safety-check page cadence so one screen does not poll twice as
+  // often as the other; the local "now" clock below is display-only and stays 5s.
   const handleRefreshRef = useRef(handleRefresh);
   useEffect(() => {
     handleRefreshRef.current = handleRefresh;
@@ -84,7 +86,7 @@ export function PortfolioDashboard({ detections, onReset }: PortfolioDashboardPr
     if (!combined) return;
     const id = setInterval(() => {
       if (!document.hidden) handleRefreshRef.current();
-    }, 45 * 1000);
+    }, 90 * 1000);
     return () => clearInterval(id);
   }, [combined]);
 
