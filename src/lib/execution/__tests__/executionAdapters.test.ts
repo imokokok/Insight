@@ -145,7 +145,7 @@ describe('execution adapter core', () => {
           transaction: { to: `0x${'1'.repeat(40)}`, data: '0x', value: '0x0' },
         },
       })
-    ).toThrow('must pair with a solana-instruction');
+    ).toThrow('must pair with a venue-rest-order or solana-instruction');
     expect(
       createPreparedExecution({ ...base, state: 'REQUIRES_COMPLETION', payload: incomplete }).state
     ).toBe('REQUIRES_COMPLETION');

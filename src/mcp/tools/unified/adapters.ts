@@ -8,6 +8,18 @@ import {
   type ReviewedPancakeSwapV3ProfileId,
 } from '@/lib/dex/pancakeSwapV3';
 import {
+  prepareSolanaJupiterSwap,
+  quoteSolanaJupiterSwap,
+  SolanaJupiterSwapError,
+  type SolanaJupiterPreparedQuote,
+  type SolanaJupiterSwapRequest,
+} from '@/lib/dex/solanaJupiterSwap';
+import {
+  assessSolanaJupiterSwapGuard,
+  type SolanaJupiterSwapGuardInput,
+  type SolanaJupiterSwapGuardResult,
+} from '@/lib/dex/solanaJupiterSwapGuard';
+import {
   type SolanaDriftPerpOrderPayload,
   type SolanaDriftPerpOrderRequest,
 } from '@/lib/dex/solanaDriftPerpOrder';
@@ -95,6 +107,39 @@ function lendingProtocolFamily(args: CheckTradeSafetyArgs): 'base' | 'monad' | '
   if (args.chain_id === 143) return 'monad';
   if (isEvmChain(args.chain_id) && args.chain_id !== 8453) return 'multichain';
   return 'base';
+}
+
+/**
+ * Chains that carry a lending position surface on this plan. `check_position`
+ * and `check_liquidation` are lending inspections, so any chain outside this
+ * set must be refused instead of inheriting a protocol model it never had.
+ */
+const POSITION_INSPECTION_CHAIN_IDS: ReadonlySet<number> = new Set([
+  CHAIN_ID.BASE,
+  CHAIN_ID.BSC,
+  CHAIN_ID.POLYGON,
+  CHAIN_ID.ARBITRUM,
+  CHAIN_ID.MONAD,
+]);
+
+function assertPositionInspectionChain(args: CheckTradeSafetyArgs): void {
+  const chain = args.chain_id;
+  const action = args.action;
+  if (!isEvmChain(chain)) {
+    throw new Error(
+      `[unavailable:not_integrated] check_trade_safety action=${action}: chain "${String(chain)}" has no lending position or liquidation surface on this MCP surface; refusing to serve another chain's protocol model.`
+    );
+  }
+  if (chain === CHAIN_ID.HYPEREVM) {
+    throw new Error(
+      `[unavailable:ecosystem_absent] check_trade_safety action=${action}: HyperEVM (chain 999) has no lending position or liquidation surface in its ecosystem; this surface serves HyperEVM as a data-plane chain only. No Base position model is substituted.`
+    );
+  }
+  if (!POSITION_INSPECTION_CHAIN_IDS.has(chain)) {
+    throw new Error(
+      `[unavailable:not_integrated] check_trade_safety action=${action}: chain ${chain} is not an integrated lending position surface; refusing to fall back to the Base protocol model.`
+    );
+  }
 }
 
 function buildLendingGuard(args: CheckTradeSafetyArgs, chainId: number) {
@@ -213,6 +258,12 @@ export async function routeCheckTradeSafety(
   args: CheckTradeSafetyArgs,
   context?: McpToolCallContext
 ): Promise<string> {
+  if (args.action === 'check_position' || args.action === 'check_liquidation') {
+    // Position and liquidation inspection is lending-scoped. Decide the chain
+    // before any protocol branch runs: otherwise an absent chain silently
+    // inherits the Base protocol model and returns plausible wrong data.
+    assertPositionInspectionChain(args);
+  }
   const inspection = routePositionInspection(args, context);
   if (inspection) return inspection;
 
@@ -642,6 +693,8 @@ export async function routeMarketQuote(
   switch (args.venue) {
     case 'base_aerodrome':
       return callLegacy('get_aerodrome_slipstream_market', {}, context);
+    case 'base_uniswap_v3':
+      return callLegacy('get_base_dex_market', {}, context);
     case 'base_pancakeswap_v3':
     case 'bnb_pancakeswap_v3': {
       const profileId = resolvePancakeProfile('get_market_quote', args.venue, args.profile_id);
@@ -763,10 +816,106 @@ export async function routePrepareSwap(
         context
       );
     }
-    case 'solana_jupiter':
-      throw new Error(
-        '[unavailable:in_progress] prepare_swap venue solana_jupiter: the Jupiter transaction adapter is delivered, but the Solana swap guard is still being built on another lane; refusing to return an unguarded versioned transaction. No Orca pool-level verdict is substituted.'
+    case 'solana_jupiter': {
+      const inputMint = requireJupiterField(args.input_mint, 'input_mint');
+      const outputMint = requireJupiterField(args.output_mint, 'output_mint');
+      const amount = requireJupiterField(args.amount_in, 'amount_in');
+      const userPublicKey = requireJupiterField(args.wallet, 'wallet');
+      const slippageBps = requireJupiterField(args.max_slippage_bps, 'max_slippage_bps');
+      const inputPriceUsd = requireJupiterField(
+        args.source_decision_price_usd,
+        'source_decision_price_usd'
       );
+      const notionalUsd = Number(amount) * inputPriceUsd;
+      if (!Number.isFinite(notionalUsd) || notionalUsd <= 0) {
+        throw new Error(
+          '[rejected:invalid_request] prepare_swap venue solana_jupiter: amount_in and source_decision_price_usd must describe a positive USD notional.'
+        );
+      }
+
+      const request: SolanaJupiterSwapRequest = {
+        inputMint,
+        outputMint,
+        amount,
+        slippageBps,
+        userPublicKey,
+      };
+
+      // The swap guard assesses the exact quote the builder will consume, so
+      // the verdict and the built transaction describe the same route.
+      let preparedQuote: SolanaJupiterPreparedQuote;
+      try {
+        preparedQuote = await quoteSolanaJupiterSwap(request);
+      } catch (error) {
+        throw mapJupiterSwapFailure('prepare_swap', 'solana_jupiter', error);
+      }
+
+      const guardInput: SolanaJupiterSwapGuardInput = {
+        inputMint,
+        outputMint,
+        amountInRaw: preparedQuote.quote.amountInRaw,
+        amountOutRaw: preparedQuote.quote.amountOutRaw,
+        minimumOutRaw: preparedQuote.quote.minimumOutRaw,
+        priceImpactPct: preparedQuote.quote.priceImpactPct,
+        slippageBps: preparedQuote.quote.slippageBps,
+        quoteContextSlot: preparedQuote.quote.contextSlot,
+        quotedAt: preparedQuote.quote.quotedAt,
+        tradeAmountUsd: notionalUsd,
+        routePlan: preparedQuote.quote.route,
+      };
+
+      let verdict: SolanaJupiterSwapGuardResult;
+      try {
+        verdict = await assessSolanaJupiterSwapGuard(guardInput);
+      } catch (error) {
+        throw describeWireFailure(
+          'unavailable',
+          'upstream_unavailable',
+          'prepare_swap',
+          'solana_jupiter',
+          error
+        );
+      }
+
+      const reasons = verdict.reasons.length > 0 ? verdict.reasons.join(' | ') : 'no reasons reported';
+      if (verdict.productOutcome === 'unavailable') {
+        throw new Error(
+          `[unavailable:${jupiterCoverageReason(verdict.reasons)}] prepare_swap venue solana_jupiter: the Jupiter swap guard cannot review this route: ${reasons}`
+        );
+      }
+      if (!verdict.executable || verdict.productOutcome !== 'approved') {
+        throw new Error(
+          `[rejected:invalid_request] prepare_swap venue solana_jupiter: ${verdict.verdict}: ${reasons}`
+        );
+      }
+
+      let result;
+      try {
+        result = await prepareSolanaJupiterSwap(
+          { ...request, riskVerdict: verdict.riskVerdictRef },
+          { preparedQuote }
+        );
+      } catch (error) {
+        throw mapJupiterSwapFailure('prepare_swap', 'solana_jupiter', error);
+      }
+
+      return JSON.stringify(
+        {
+          venue: 'solana_jupiter',
+          state: 'READY',
+          guard: {
+            verdict: verdict.verdict,
+            product_outcome: verdict.productOutcome,
+            executable: verdict.executable,
+            reasons: verdict.reasons,
+            risk_verdict_ref: verdict.riskVerdictRef,
+          },
+          swap: result,
+        },
+        null,
+        2
+      );
+    }
     case 'base_aerodrome_slipstream':
       return callLegacy(
         'prepare_aerodrome_slipstream_swap',
@@ -794,6 +943,41 @@ function describeWireFailure(
 ): Error {
   const detail = error instanceof Error ? error.message : String(error);
   return new Error(`[${outcome}:${reason}] ${toolName} venue ${venue}: ${detail}`);
+}
+
+function mapJupiterSwapFailure(toolName: string, venue: string, error: unknown): Error {
+  if (error instanceof SolanaJupiterSwapError) {
+    if (error.code === 'MARKET_NOT_FOUND' || error.code === 'UNSUPPORTED') {
+      return describeWireFailure('unavailable', 'market_not_found', toolName, venue, error);
+    }
+    if (error.code === 'UPSTREAM_UNAVAILABLE') {
+      return describeWireFailure('unavailable', 'upstream_unavailable', toolName, venue, error);
+    }
+  }
+  return describeWireFailure('rejected', 'invalid_request', toolName, venue, error);
+}
+
+/** The guard reports a coverage class per route, so surface its code verbatim. */
+function jupiterCoverageReason(reasons: readonly string[]): string {
+  if (reasons.some((reason) => reason.startsWith('COVERAGE_INTEGRATED_NOT_REVIEWED'))) {
+    return 'integrated_not_reviewed';
+  }
+  if (reasons.some((reason) => reason.startsWith('COVERAGE_ECOSYSTEM_UNKNOWN'))) {
+    return 'ecosystem_unknown';
+  }
+  if (reasons.some((reason) => reason.startsWith('COVERAGE_EXISTS_NOT_INTEGRATED'))) {
+    return 'not_integrated';
+  }
+  return 'upstream_unavailable';
+}
+
+function requireJupiterField<T>(value: T | undefined | null, field: string): T {
+  if (value === undefined || value === null || value === '') {
+    throw new Error(
+      `[rejected:invalid_request] prepare_swap venue solana_jupiter: "${field}" is required.`
+    );
+  }
+  return value;
 }
 
 function mapPerpAdapterFailure(toolName: string, venue: string, error: unknown): Error {

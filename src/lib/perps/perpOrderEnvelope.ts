@@ -17,7 +17,7 @@ import { getRpcEndpoints } from '@/lib/execution/rpcEndpoints';
 import { canonicalJsonString } from '@/lib/utils/canonicalJson';
 
 /** Readiness of an unsigned order envelope. Mirrors prepare_perp_order. */
-export type PerpOrderVerdict = 'READY_TO_SIGN' | 'BLOCK';
+export type PerpOrderVerdict = 'READY_TO_SIGN' | 'REQUIRES_VENUE_CREDENTIALS' | 'BLOCK';
 
 /**
  * Typed failures let callers distinguish an unsupported venue market from an

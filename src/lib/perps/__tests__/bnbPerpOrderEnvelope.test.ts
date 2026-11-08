@@ -147,7 +147,7 @@ describe('prepareBnbPerpOrderEnvelope', () => {
   it('builds the exact Aster order payload on the reviewed market', async () => {
     const result = await prepareBnbPerpOrderEnvelope(REQUEST, dependencies());
 
-    expect(result.verdict).toBe('READY_TO_SIGN');
+    expect(result.verdict).toBe('REQUIRES_VENUE_CREDENTIALS');
     expect(result.market.venueSymbol).toBe('ETHUSDT');
     expect(result.observation.blockNumber).toBe(45_678_901);
     expect(result.quote.referencePriceUsd).toBe(3_000);

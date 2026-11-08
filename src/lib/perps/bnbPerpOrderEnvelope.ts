@@ -274,7 +274,11 @@ export async function prepareBnbPerpOrderEnvelope(
     guard.verdict === 'BLOCK'
       ? [`Perp guard returned BLOCK for ${assetSymbol} ${request.side}.`, ...guard.reasons]
       : [];
-  const verdict: PerpOrderVerdict = guard.verdict === 'BLOCK' ? 'BLOCK' : 'READY_TO_SIGN';
+  // Aster is a centralized venue: the guard decision stands, but the artifact
+  // can only be submitted with user-held venue credentials, so it is never
+  // labelled as ready to sign.
+  const verdict: PerpOrderVerdict =
+    guard.verdict === 'BLOCK' ? 'BLOCK' : 'REQUIRES_VENUE_CREDENTIALS';
   const quoteValidUntil = Math.floor(now.getTime() / 1000) + request.validForSeconds;
 
   const observation: PerpOrderObservation = {
@@ -331,8 +335,9 @@ export async function prepareBnbPerpOrderEnvelope(
     risk,
     blockingReasons,
     unsignedOrderEnvelope:
-      verdict === 'READY_TO_SIGN'
-        ? {
+      verdict === 'BLOCK'
+        ? null
+        : {
             venue: 'aster',
             transport: 'venue-rest-order-payload',
             endpoint: { host: ASTER_FAPI_URL, method: 'POST', path: ASTER_ORDER_PATH },
@@ -341,8 +346,7 @@ export async function prepareBnbPerpOrderEnvelope(
             bindingSurface: 'centralized-order-payload-canonical-serialization',
             provesOnchainExecution: false,
             signing: 'USER_HELD_VENUE_CREDENTIALS_REQUIRED',
-          }
-        : null,
+          },
     caveats: [
       'Insight did not create venue credentials, a signature, or a submission. Sign and submit this payload only in the user-controlled Aster client.',
       'This is a canonical venue REST order payload, not EVM calldata; it proves binding to the exact order, not on-chain execution.',

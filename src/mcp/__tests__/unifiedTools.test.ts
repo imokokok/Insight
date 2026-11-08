@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 
-import { executeTool, getToolDefinitions } from '../tools';
+import { executeTool, getToolDefinitions, resolveToolSource } from '../tools';
 import { CORE_MCP_TOOLS, PRODUCT_MCP_TOOLS, UNIFIED_MCP_TOOLS } from '../tools/unified';
 import { LEGACY_TOOL_BY_NAME, LEGACY_TOOL_REMOVAL_DATE } from '../tools/unified/runtime';
 
@@ -27,6 +27,11 @@ function textOf(result: { content: Array<{ type: string; text?: string }> }): st
     .map((c) => c.text ?? '')
     .join('\n');
 }
+
+/** Names both registries implement — the only place dispatch can diverge. */
+const OVERLAP_TOOL_NAMES = new Set(
+  UNIFIED_MCP_TOOLS.map((tool) => tool.name).filter((name) => LEGACY_TOOL_BY_NAME.has(name))
+);
 
 describe('consolidated MCP surface', () => {
   it('exposes exactly 11 core + 5 product tools with unique names', () => {
@@ -141,4 +146,192 @@ describe('consolidated MCP surface', () => {
   it('records the 60-day legacy removal date', () => {
     expect(LEGACY_TOOL_REMOVAL_DATE).toBe('2027-01-06');
   });
+
+  it('refuses HyperEVM with a structured ecosystem boundary, not a schema error', async () => {
+    for (const [name, args] of [
+      ['oracle_watch', { symbol: 'ETH', chain: 'hyperevm' }],
+      ['get_oracle_price', { provider: 'chainlink', asset: 'ETH', chain: 'hyperevm' }],
+      ['position_lifecycle_begin', { symbol: 'ETH', chain: 'hyperevm' }],
+    ] as const) {
+      const result = await executeTool(name, args);
+      expect(result.isError).toBe(true);
+      expect(textOf(result)).toContain('[unavailable:ecosystem_absent]');
+      expect(textOf(result)).not.toContain('validation');
+    }
+  });
 });
+
+describe('profile-aware dispatch', () => {
+  const originalProfile = process.env.MCP_TOOL_PROFILE;
+
+  afterEach(() => {
+    if (originalProfile === undefined) delete process.env.MCP_TOOL_PROFILE;
+    else process.env.MCP_TOOL_PROFILE = originalProfile;
+  });
+
+  it('resolves each name to the registry the profile says serves it', () => {
+    delete process.env.MCP_TOOL_PROFILE;
+    for (const name of ['get_oracle_price', 'get_oracle_health', 'prepare_swap']) {
+      expect(resolveToolSource(name)).toBe('unified');
+    }
+
+    process.env.MCP_TOOL_PROFILE = 'legacy';
+    // Legacy rollback must actually reach the legacy implementation.
+    for (const name of ['get_oracle_price', 'get_oracle_health', 'oracle_watch', 'get_symbols']) {
+      expect(resolveToolSource(name)).toBe('legacy');
+    }
+    // Bundled products stay on the unified implementation in every profile.
+    for (const name of [
+      'oracle_watch_window_begin',
+      'oracle_watch_window_control',
+      'position_lifecycle_begin',
+      'position_lifecycle_step',
+    ]) {
+      expect(resolveToolSource(name)).toBe('unified');
+    }
+    // Unified-only names still work when the legacy profile is on.
+    expect(resolveToolSource('prepare_swap')).toBe('unified');
+  });
+
+  it('validates tools/list minimal inputs with the dispatched schema in both profiles', () => {
+    const failures: Array<{ profile: string; tool: string; issues: unknown }> = [];
+    for (const profile of [undefined, 'legacy'] as const) {
+      if (profile === undefined) delete process.env.MCP_TOOL_PROFILE;
+      else process.env.MCP_TOOL_PROFILE = profile;
+
+      for (const advertised of getToolDefinitions()) {
+        const source = resolveToolSource(advertised.name);
+        // Legacy-only names are advertised and served by the same registry, so
+        // they cannot diverge. Coverage here is the unified-served names plus
+        // the names both registries implement, where dispatch picks the schema.
+        if (source !== 'unified' && !OVERLAP_TOOL_NAMES.has(advertised.name)) continue;
+        const dispatched =
+          source === 'legacy'
+            ? LEGACY_TOOL_BY_NAME.get(advertised.name)
+            : UNIFIED_MCP_TOOLS.find((tool) => tool.name === advertised.name) ??
+              LEGACY_TOOL_BY_NAME.get(advertised.name);
+        if (!dispatched) {
+          failures.push({ profile: profile ?? 'core', tool: advertised.name, issues: 'not dispatched' });
+          continue;
+        }
+
+        // Build every required field from the advertised JSON schema, then let
+        // the fixture supply domain-constrained values the JSON schema cannot
+        // express (e.g. provider allow-lists).
+        const minimal = {
+          ...minimalArgsFromSchema(advertised.inputSchema),
+          ...(MINIMAL_INPUT_OVERRIDES[advertised.name] ?? {}),
+        };
+        const parsed = dispatched.parameters.safeParse(minimal);
+        if (!parsed.success) {
+          failures.push({
+            profile: profile ?? 'core',
+            tool: advertised.name,
+            issues: parsed.error.issues,
+          });
+        }
+      }
+    }
+    expect(failures.length === 0 ? 'ok' : JSON.stringify(failures)).toBe('ok');
+  });
+});
+
+type JsonSchemaNode = {
+  type?: string | string[];
+  const?: unknown;
+  enum?: unknown[];
+  anyOf?: JsonSchemaNode[];
+  oneOf?: JsonSchemaNode[];
+  properties?: Record<string, JsonSchemaNode>;
+  required?: string[];
+  items?: JsonSchemaNode | JsonSchemaNode[];
+  minItems?: number;
+  minLength?: number;
+  maxLength?: number;
+  minimum?: number;
+  exclusiveMinimum?: number;
+  pattern?: string;
+  format?: string;
+  additionalProperties?: unknown;
+};
+
+/**
+ * Values the advertised JSON schema cannot constrain but the validator does
+ * (allow-listed providers, venue enums that render as plain strings).
+ */
+const MINIMAL_INPUT_OVERRIDES: Record<string, Record<string, unknown>> = {
+  get_oracle_price: { provider: 'chainlink' },
+  // prepare_perp_order requires either an EVM sender or a Solana wallet; the
+  // JSON schema cannot express the base58 constraint.
+  prepare_perp_order: { wallet: '11111111111111111111111111111111' },
+};
+
+const VALUE_CANDIDATES = [
+  'ETH',
+  'BTC',
+  'USDC',
+  '1',
+  '0x' + '1'.repeat(40),
+  '0x' + '1'.repeat(64),
+  'eip155:8453/erc20:0x' + '1'.repeat(40),
+  '2026-11-08',
+  '2026-11-08T00:00:00.000Z',
+  'vvv',
+  'test',
+];
+
+function pickString(schema: JsonSchemaNode): string {
+  const minLength = schema.minLength ?? 1;
+  const maxLength = schema.maxLength ?? Number.POSITIVE_INFINITY;
+  const pattern = schema.pattern ? new RegExp(schema.pattern) : null;
+  for (const candidate of VALUE_CANDIDATES) {
+    if (candidate.length < minLength || candidate.length > maxLength) continue;
+    if (pattern && !pattern.test(candidate)) continue;
+    return candidate;
+  }
+  const filler = 'a'.repeat(Math.min(Math.max(minLength, 1), 64));
+  return filler;
+}
+
+function minimalValue(schema: JsonSchemaNode | undefined): unknown {
+  if (!schema) return 'x';
+  if (schema.const !== undefined) return schema.const;
+  if (schema.enum && schema.enum.length > 0) return schema.enum[0];
+  const branches = schema.anyOf ?? schema.oneOf;
+  if (branches && branches.length > 0) {
+    for (const branch of branches) {
+      if (branch.type === 'object' || branch.properties) continue;
+      const value = minimalValue(branch);
+      if (value !== undefined) return value;
+    }
+    return minimalValue(branches[branches.length - 1]);
+  }
+  const type = Array.isArray(schema.type) ? schema.type[0] : schema.type;
+  switch (type) {
+    case 'object': {
+      const out: Record<string, unknown> = {};
+      for (const key of schema.required ?? []) {
+        out[key] = minimalValue(schema.properties?.[key]);
+      }
+      return out;
+    }
+    case 'array': {
+      const count = schema.minItems ?? 0;
+      const item = Array.isArray(schema.items) ? schema.items[0] : schema.items;
+      return Array.from({ length: count }, () => minimalValue(item ?? { type: 'string' }));
+    }
+    case 'integer':
+    case 'number':
+      return schema.minimum ?? (schema.exclusiveMinimum !== undefined ? schema.exclusiveMinimum + 1 : 1);
+    case 'boolean':
+      return true;
+    case 'string':
+      return pickString(schema);
+    default:
+      return {};
+  }
+}
+
+function minimalArgsFromSchema(schema: unknown): Record<string, unknown> {
+  return minimalValue(schema as JsonSchemaNode) as Record<string, unknown>;
+}
