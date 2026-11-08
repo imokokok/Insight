@@ -163,6 +163,8 @@ window because the envelope's `validForSeconds` metadata was not signed.
 | 2             | `OracleSafetyRecheck` | 28 (v2 + `originalUid` + `originalRequestHash`) |
 | 3             | `OracleSafetyCheck`   | 27 (v2 + `requiredSourceGroupCount`)            |
 | 3             | `OracleSafetyRecheck` | 29 (v3 + `originalUid` + `originalRequestHash`) |
+| 4             | `OracleSafetyCheck`   | 31 (v3 + four signed asset-proxy fields)        |
+| 4             | `OracleSafetyRecheck` | 33 (v4 + `originalUid` + `originalRequestHash`) |
 | 1             | `ExecutionReceipt`    | 30                                              |
 | 2             | `ExecutionReceipt`    | 32                                              |
 | 3             | `ExecutionReceipt`    | 43                                              |
@@ -183,21 +185,30 @@ verdict as globally canonical. Insight production issuance and the active
 Headless production policy accept v5 only; sample-role conformance endpoints
 may still emit retired layouts so historical parsers can be tested.
 
-`originalUid` is typed `string` in the v2 recheck and `bytes32` in the v3
-recheck. That asymmetry is deliberate and preserved: a UID is a 32-byte hash, so
+`originalUid` is typed `string` in the v2 recheck and `bytes32` in the v3 and v4
+rechecks. That asymmetry is deliberate and preserved: a UID is a 32-byte hash, so
 `bytes32` is its honest type, but v2 already committed to `keccak256(ascii)` and
 changing it there would invalidate every v2 recheck ever issued.
 
-A recheck carries `schemaVersion: 2` (or 3) but a distinct `primaryType`, so it
-is routed before the plain-check branch. Routing it after would hash it against
+A recheck carries `schemaVersion: 2`, `3` or `4` but a distinct `primaryType`, so
+it is routed before the plain-check branch. Routing it after would hash it against
 the 26-field layout, silently ignoring the two reference fields, and every
 recheck would fail UID recovery.
+
+v4 adds four signed scalars to `OracleSafetyCheck`: `sourceAssetProxyStatus` (`ASSESSED` / `UNKNOWN` /
+`NOT_APPLICABLE`), `sourceAssetProxyRelation`, `sourceAssetUnderlyingId`, and
+`sourceAssetProxyNominalRatioBps` (10000 = nominal 1:1; 0 = not assessed, never
+1:1). They name what the evaluated symbol is a claim on, starting with WBTC →
+BTC. When the issuer has no reviewed relationship the fields are signed as an
+explicit `UNKNOWN` and returned as `assetProxy` plus
+`warnings: ['asset_proxy_unknown']`; a self-contradicting signed record fails
+with `asset_proxy_inconsistent`.
 
 `OracleScenarioRun` is routed the same way, with a sharper edge: it carries
 `schemaVersion: 1`, the SAME number as the v1 `OracleSafetyCheck` receipt. The
 `primaryType` is therefore the only discriminator between the two — there is no
 version-number test that can tell them apart. Verify returns
-`kind: 'test'` for this family (and `'check'` for v1–v3 assessments), so branch
+`kind: 'test'` for this family (and `'check'` for v1–v4 assessments), so branch
 on `kind` rather than assuming `'check'`. The result's `checkedAt` is
 populated from the receipt's `ranAt` field, which is how this line anchors its
 start time.
