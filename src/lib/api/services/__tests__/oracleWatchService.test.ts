@@ -622,6 +622,62 @@ describe('getOracleWatchSignal — caching', () => {
   });
 });
 
+describe('getOracleWatchSignal — snapshot cache and provider breadth', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2026-11-08T00:00:00.000Z'));
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('serves a 30-minute-later poll and expires the snapshot after 35 minutes', async () => {
+    mockGetConsensusPrice.mockResolvedValue(makeResponse());
+
+    const first = await getOracleWatchSignal('ETH', 'ethereum');
+    jest.advanceTimersByTime(30 * 60_000);
+    const second = await getOracleWatchSignal('ETH', 'ethereum');
+
+    expect(mockGetConsensusPrice).toHaveBeenCalledTimes(1);
+    expect(second.evaluatedAt).toBe(first.evaluatedAt);
+
+    jest.advanceTimersByTime(5 * 60_000 + 1);
+    const third = await getOracleWatchSignal('ETH', 'ethereum');
+
+    expect(mockGetConsensusPrice).toHaveBeenCalledTimes(2);
+    expect(third.evaluatedAt).not.toBe(first.evaluatedAt);
+  });
+
+  it('reads six providers by default and escalates to all on a signal jump', async () => {
+    mockGetConsensusPrice.mockResolvedValue(makeResponse());
+    await getOracleWatchSignal('ETH', 'ethereum');
+    expect(mockGetConsensusPrice).toHaveBeenLastCalledWith(
+      'ETH',
+      'ethereum',
+      undefined,
+      undefined,
+      { maxProviders: 6 }
+    );
+
+    jest.advanceTimersByTime(35 * 60_000 + 1);
+    mockGetConsensusPrice.mockResolvedValue(makeResponse({ consensusPrice: 3200 }));
+    await getOracleWatchSignal('ETH', 'ethereum');
+
+    expect(mockGetConsensusPrice).toHaveBeenCalledTimes(3);
+    expect(mockGetConsensusPrice.mock.calls[1][4]).toEqual({ maxProviders: 6 });
+    expect(mockGetConsensusPrice.mock.calls[2][4]).toEqual({ maxProviders: undefined });
+  });
+
+  it('stamps evaluatedAt on the response instead of silently returning a stale value', async () => {
+    mockGetConsensusPrice.mockResolvedValue(makeResponse());
+
+    const signal = await getOracleWatchSignal('ETH', 'ethereum');
+
+    expect(signal.evaluatedAt).toBe('2026-11-08T00:00:00.000Z');
+  });
+});
+
 describe('getOracleWatchSignal — independence gate', () => {
   it('counts TWAP toward quorum but never toward independence', async () => {
     mockGetConsensusPrice.mockResolvedValueOnce(

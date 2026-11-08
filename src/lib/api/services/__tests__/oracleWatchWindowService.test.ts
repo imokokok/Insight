@@ -140,6 +140,9 @@ const ROW = {
   expires_at: '2026-11-04T00:00:00.000Z',
   closed_at: null,
   poll_count: 0,
+  // Terms snapshotted by the pre-0131 plan; legacy windows keep them.
+  poll_cap: 300,
+  min_poll_interval_seconds: 30,
 };
 
 beforeEach(() => {
@@ -183,7 +186,12 @@ describe('beginOracleWatchWindow', () => {
     queueFrom([
       builder({ count: 0 }), // open windows for this key
       builder({
-        value: { ...ROW, token_hash: 'stored-hash' },
+        value: {
+          ...ROW,
+          token_hash: 'stored-hash',
+          poll_cap: 48,
+          min_poll_interval_seconds: 1800,
+        },
         onMethod: (method, args) => {
           if (method === 'insert') captured = args[0] as Record<string, unknown>;
         },
@@ -214,7 +222,10 @@ describe('beginOracleWatchWindow', () => {
     expect(result.windowToken).not.toContain(storedHash);
     // 24h window ending at 2026-11-04T06:00Z, persisted and echoed from the row.
     expect(captured.expires_at).toBe('2026-11-04T06:00:00.000Z');
+    expect(captured.poll_cap).toBe(48);
+    expect(captured.min_poll_interval_seconds).toBe(1800);
     expect(result.window.expiresAt).toBe(ROW.expires_at);
+    expect(result.window.pollCap).toBe(48);
     expect(result.window.status).toBe('active');
   });
 
@@ -252,6 +263,78 @@ describe('pollOracleWatchWindow', () => {
     // The budget bump is conditional on poll_count < cap.
     const lt = updateCalls.find(([method]) => method === 'lt');
     expect(lt?.[1]).toEqual(['poll_count', 300]);
+  });
+
+  it('keeps legacy windows on their 300-poll / 30-second terms', async () => {
+    const updateCalls: Array<[string, unknown[]]> = [];
+    queueFrom([
+      builder({
+        value: { ...ROW, poll_count: 5, last_poll_at: '2026-11-03T05:59:20.000Z' },
+      }),
+      builder({ value: { ...ROW, poll_count: 6 }, onMethod: (m, a) => updateCalls.push([m, a]) }),
+    ]);
+
+    const result = await pollOracleWatchWindow(ROW.id, `oww_${RAW_TOKEN}`);
+
+    expect(result.window.pollCap).toBe(300);
+    const lt = updateCalls.find(([method]) => method === 'lt');
+    expect(lt?.[1]).toEqual(['poll_count', 300]);
+  });
+
+  it('applies 48 polls / 30-minute interval to newly purchased windows', async () => {
+    const updateCalls: Array<[string, unknown[]]> = [];
+    queueFrom([
+      builder({
+        value: {
+          ...ROW,
+          poll_count: 1,
+          last_poll_at: '2026-11-03T05:30:00.000Z',
+          poll_cap: 48,
+          min_poll_interval_seconds: 1800,
+        },
+      }),
+      builder({
+        value: { ...ROW, poll_count: 2, poll_cap: 48 },
+        onMethod: (m, a) => updateCalls.push([m, a]),
+      }),
+    ]);
+
+    const result = await pollOracleWatchWindow(ROW.id, `oww_${RAW_TOKEN}`);
+
+    expect(result.window.pollCap).toBe(48);
+    const lt = updateCalls.find(([method]) => method === 'lt');
+    expect(lt?.[1]).toEqual(['poll_count', 48]);
+  });
+
+  it('enforces the 30-minute interval on new windows', async () => {
+    queueFrom([
+      builder({
+        value: {
+          ...ROW,
+          poll_count: 1,
+          last_poll_at: '2026-11-03T05:31:00.000Z',
+          poll_cap: 48,
+          min_poll_interval_seconds: 1800,
+        },
+      }),
+    ]);
+
+    await expect(pollOracleWatchWindow(ROW.id, `oww_${RAW_TOKEN}`)).rejects.toMatchObject({
+      code: 'POLL_TOO_SOON',
+      retryAfterSeconds: 60,
+    });
+  });
+
+  it('refuses a new window at its 48-poll budget', async () => {
+    queueFrom([
+      builder({
+        value: { ...ROW, poll_count: 48, poll_cap: 48, min_poll_interval_seconds: 1800 },
+      }),
+    ]);
+
+    await expect(pollOracleWatchWindow(ROW.id, `oww_${RAW_TOKEN}`)).rejects.toMatchObject({
+      code: 'POLL_CAP_REACHED',
+    });
   });
 
   it('treats a malformed token as invalid without touching the database', async () => {

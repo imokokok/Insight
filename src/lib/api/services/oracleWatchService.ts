@@ -206,12 +206,23 @@ const ML_LEVEL_HIGH = 0.6;
 // Evidence only — never a verdict input.
 const MARKET_DIVERGENCE_ADVISORY_PCT = 2.0;
 
-// Short-TTL in-memory cache keyed by symbol|chain. Oracle Watch fetches live
-// cross-oracle providers (expensive) on every uncached call, so agents that
-// poll frequently are amortized by this bounded cache. Same cost discipline as
-// the safety-check live-consensus cache.
-const ORACLE_WATCH_CACHE_TTL_MS = 15_000;
+// The 30-minute minimum poll interval means a snapshot must survive at least
+// one full interval to avoid a boundary miss; 35 minutes leaves 5 minutes of
+// slack. Clients see the age through `evaluatedAt`, so a cached snapshot is
+// never silently presented as fresh.
+const ORACLE_WATCH_CACHE_TTL_MS = 35 * 60_000;
+
+/** Baseline providers read per refresh; a jumping signal escalates to all. */
+const ORACLE_WATCH_MAX_PROVIDERS_PER_REFRESH = 6;
+
+/** A verdict flip, ≥1% price move or ≥1pt deviation move counts as a jump. */
+const ORACLE_WATCH_JUMP_PRICE_PCT = 1;
+const ORACLE_WATCH_JUMP_DEVIATION_PCT = 1;
+
 const oracleWatchCache = new TTLCache({ maxSize: 500 });
+// Last computed signal per key, retained beyond the response cache TTL so a
+// refresh after the TTL can still detect a jump and escalate provider breadth.
+const lastSignals = new Map<string, OracleWatchResult>();
 const pendingSignals = new Map<string, Promise<OracleWatchResult>>();
 let cacheGeneration = 0;
 
@@ -219,6 +230,7 @@ let cacheGeneration = 0;
 export function clearOracleWatchCache(): void {
   cacheGeneration++;
   oracleWatchCache.clear();
+  lastSignals.clear();
   pendingSignals.clear();
 }
 
@@ -321,6 +333,19 @@ function computeMlRisk(
   };
 }
 
+function signalJumped(previous: OracleWatchResult, next: OracleWatchResult): boolean {
+  if (previous.verdict !== next.verdict) return true;
+  const previousPrice = previous.consensusPrice;
+  const nextPrice = next.consensusPrice;
+  if (previousPrice !== null && nextPrice !== null && previousPrice > 0) {
+    const movePct = (Math.abs(nextPrice - previousPrice) / previousPrice) * 100;
+    if (movePct >= ORACLE_WATCH_JUMP_PRICE_PCT) return true;
+  }
+  const previousDeviation = previous.maxDeviationPct ?? 0;
+  const nextDeviation = next.maxDeviationPct ?? 0;
+  return Math.abs(nextDeviation - previousDeviation) >= ORACLE_WATCH_JUMP_DEVIATION_PCT;
+}
+
 export async function getOracleWatchSignal(
   symbol: string,
   chain?: string
@@ -332,7 +357,29 @@ export async function getOracleWatchSignal(
   if (pending) return pending;
 
   const generation = cacheGeneration;
-  const read = computeOracleWatchSignal(symbol, chain)
+  const read = (async () => {
+    const previous = lastSignals.get(key);
+    const baseline = await computeOracleWatchSignal(symbol, chain, {
+      maxProviders: ORACLE_WATCH_MAX_PROVIDERS_PER_REFRESH,
+    });
+    // A steady snapshot is served from the 6-provider pass. Only a material
+    // change pays for the full provider set; coverage semantics are unchanged.
+    // A read invalidated by clearOracleWatchCache must not escalate or overwrite
+    // the newer generation's state.
+    const final =
+      generation === cacheGeneration && previous && signalJumped(previous, baseline)
+        ? await computeOracleWatchSignal(symbol, chain)
+        : baseline;
+    if (generation === cacheGeneration) {
+      lastSignals.delete(key);
+      lastSignals.set(key, final);
+      if (lastSignals.size > 500) {
+        const oldest = lastSignals.keys().next().value;
+        if (oldest !== undefined) lastSignals.delete(oldest);
+      }
+    }
+    return final;
+  })()
     .then((result) => {
       if (generation === cacheGeneration) {
         oracleWatchCache.set(key, result, ORACLE_WATCH_CACHE_TTL_MS);
@@ -348,13 +395,16 @@ export async function getOracleWatchSignal(
 
 async function computeOracleWatchSignal(
   symbol: string,
-  chain?: string
+  chain?: string,
+  options: { maxProviders?: number } = {}
 ): Promise<OracleWatchResult> {
   const evaluatedAt = new Date().toISOString();
 
   let result: ConsensusPriceResponse;
   try {
-    result = await getConsensusPrice(symbol, chain);
+    result = await getConsensusPrice(symbol, chain, undefined, undefined, {
+      maxProviders: options.maxProviders,
+    });
   } catch (error) {
     // No cross-oracle coverage is the most dangerous state for a dependent
     // agent: there is nothing to cross-check against. Gracefully degrade to a
