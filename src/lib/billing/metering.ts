@@ -148,9 +148,6 @@ const TOOL_RULES: Array<[RegExp, MeteringClass]> = [
   // documented class regardless of later broad-regex changes.
   [/^get_price_analytics$/, 'C2'],
   [/^search_oracle_registry$/, 'C1'],
-  // The consolidation merges health into trade_guard op oracle_health at C1.
-  // Pin the deprecated spelling too so the compatibility window keeps its tier.
-  [/^get_oracle_health$/, 'C1'],
   [/^check_trade_safety$/, 'C3'],
   [/^prepare_swap$/, 'C3'],
   [/^prepare_perp_order$/, 'C3'],

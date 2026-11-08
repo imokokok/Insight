@@ -106,11 +106,13 @@ describe('getMcpToolCreditCost', () => {
     // Hard requirement: the compatibility window must not reprice these names
     // onto the canonical product tier.
     expect(getMcpToolCreditCost('get_oracle_price', {})).toBe(CREDIT_COST.C1);
-    expect(getMcpToolCreditCost('get_oracle_health', {})).toBe(CREDIT_COST.C1);
+    // C2 comes from the broad get_(feed|oracle)_(health|freshness|uptime|
+    // prices_batch) rule, not from a missing explicit rule.
+    expect(getMcpToolCreditCost('get_oracle_health', {})).toBe(CREDIT_COST.C2);
     expect(getMcpToolCreditCost('search_oracle_registry', {})).toBe(CREDIT_COST.C1);
     expect(getMcpToolCreditCost('get_price_analytics', {})).toBe(CREDIT_COST.C2);
     // Canonical product calls with the same op land on the same tier.
-    expect(getMcpToolCreditCost('trade_guard', { op: 'oracle_health' })).toBe(CREDIT_COST.C1);
+    expect(getMcpToolCreditCost('trade_guard', { op: 'oracle_health' })).toBe(CREDIT_COST.C2);
     expect(getMcpToolCreditCost('trade_guard', { op: 'price_analytics' })).toBe(CREDIT_COST.C2);
   });
 });
