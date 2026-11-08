@@ -80,7 +80,7 @@ const PRODUCT_PRICES = [
     price: '$0.040',
     unit: 'per call',
     detail:
-      'Signed evidence: begin the trade record, issue the execution receipt, or verify execution-pair and offline evidence offline.',
+      'Signed evidence: begin the trade record, issue the execution receipt, or verify evidence offline. verify_evidence is free for the three offline kinds (execution_pair, base_agent_swap, solana_swap); live reads are 40 credits / $0.040.',
     credits: '40 credits',
   },
   {
