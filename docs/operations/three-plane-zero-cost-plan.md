@@ -28,22 +28,22 @@ C1–C4 档位基数与地板数值、运行时判词字面量均不在本计划
 
 ### 1.1 Supabase
 
-| 库/表/任务                                          | 写入方                                                 | 读取方                             | 更新频率                       | 保留期                                         | 失败回退                                                          | 为什么在这一侧（判据）                                                                                                                                                             |
-| --------------------------------------------------- | ------------------------------------------------------ | ---------------------------------- | ------------------------------ | ---------------------------------------------- | ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `oracle_feeds` + feed registry                      | 每周 discovery、后台管理                               | 采集器（经 Turso 镜像）、目录 API  | 每周/人工                      | 无上限                                         | Turso `feed_registry_snapshots` 最近一次 last-known-good（≤24 h） | 关系型权威 + RLS + 人工管理；不能因为边缘故障丢失管理意图                                                                                                                          |
-| `price_records`（保持 Supabase，不迁 Turso）        | 快照采集器（每小时批量）、少量 opt-in 写入             | 价格 API 热路径、导出、signals     | 每小时批量                     | 24 h TTL                                       | 无跨库回落：读写都在 Supabase（`TURSO_PRICE_RECORDS_MODE` 不设）  | 实测仅 **14 MB**、约 250 行/小时；9 个索引（含 **1 个 GIN**：`idx_price_records_signal_vector`）+ 每 30 分钟清理。留在权威库，迁 Turso 只会给价格 API 增加一个活读依赖（§9.1）     |
-| `hourly_price_snapshots`                            | GitHub Actions 投影器 → `project_turso_price_slot` RPC | 历史 API、日报、UI                 | 每小时（由 15 分钟 slot 投影） | 120 天（7 天后转 archive）                     | 回读 Turso `price_snapshots` 原始 slot 重投影；receipt 幂等       | 业务投影 + RPC + JSONB + receipt 审计。**实测 2026-11-08：92,747 行 / 36 MB，只覆盖 2026-10-24 → 11-08（约 15 天）**；7 天以前已在 archive。不是容量主源，也不再做保留期以外的动作 |
-| `price_snapshots`（Supabase 旧 15 分钟历史）        | 仅 Turso 主模式之前的存量；切换后不再新增              | 归档、历史回放                     | 冻结                           | 120 天                                         | 无新增，读到存量为止                                              | 历史连续性；到期后归档并停止读取，属于“技术上能搬但没必要”                                                                                                                         |
-| `snapshot_archives`                                 | `archive_snapshot_day`（库内，日更）                   | 历史视图/导出（SQL 内 JSONB 展开） | 每天                           | 120 天（**已批准 120 → 90**，迁移待落地，§10） | 归档事务失败则源行保留（同事务）                                  | **唯一的冷存层，不外置**。实测 110 MB（heap 39 MB + 索引 6 MB + TOAST ≈ 71 MB）；hourly 107 天、price 84 天，区间内零缺口。R2 已取消，见 §3                                        |
-| `market_reference_snapshots`                        | `snapshot-collect.yml` 的 market-reference 作业        | 行情参考 API、coverage             | 15 分钟批次内，受采样门控      | 120 天                                         | 返回上一有效快照并标注年龄                                        | 关系型 join + 权利门控 + JSONB 元数据；当前不是最大写入方，暂不搬                                                                                                                  |
-| `dex_market_swap_events`                            | `monad-dex-market.yml`（每 10 分钟）                   | `get_dex_market_volume_window` RPC | 每 10 分钟                     | 35 天（目标值待拍板）                          | 返回上一窗口并标注不完整                                          | 追加写 + SQL 聚合；**不搬 Turso，只调保留期**（§9.1、§4 批次 3）                                                                                                                   |
-| `feed_health_snapshots`                             | feed 健康评估（采集器/API）                            | 可信度趋势、SLA                    | 每日/批次                      | 90 天（**已批准 90 → 60**，迁移待落地）        | 返回最近一次健康状态                                              | 与 `oracle_feeds` 关系 join；不搬库，只缩保留期（§10）                                                                                                                             |
-| `oracle_watch_checks`                               | API 检查 + 每小时采集                                  | 审计、导出、计费凭证               | 按调用/每小时                  | 180 天                                         | 保留上次结果并标注                                                | 签名审计、RLS、与 entitlement/计费耦合；**不该搬**                                                                                                                                 |
-| `oracle_watch_windows`                              | `oracle-watch-collect.yml`                             | 窗口交付、审计                     | 每小时                         | 180 天                                         | 保留上次结果                                                      | 同上；行很小，搬走收益可忽略                                                                                                                                                       |
-| `turso_price_slot_receipts`                         | 投影器 RPC                                             | 补偿探针、完整性审计               | 每 15 分钟 slot                | 随 slot（量小）                                | 无 receipt 则触发补偿                                             | 跨库投影完整性的锚；必须与小时投影同事务，**不能搬**                                                                                                                               |
-| `cron_dispatch_runs`                                | dispatcher                                             | 运维看板                           | 每次派发                       | 30 天                                          | 无                                                                | 派发账本；搬走只会多一个跨库失败点                                                                                                                                                 |
-| 计费/额度/API key/`execution_receipts`              | API、billing worker                                    | API、后台                          | 实时                           | 90–180 天                                      | 事务回滚                                                          | `FOR UPDATE`、序列、RLS、签名审计；**技术上搬不了**                                                                                                                                |
-| `coverage_slo_samples`、`manip_cost_pool_snapshots` | 采集/评估                                              | 运维看板                           | 15 分钟/日                     | 90/365 天                                      | 无                                                                | 观测数据，量小；暂留                                                                                                                                                               |
+| 库/表/任务                                          | 写入方                                                 | 读取方                             | 更新频率                       | 保留期                                                    | 失败回退                                                          | 为什么在这一侧（判据）                                                                                                                                                             |
+| --------------------------------------------------- | ------------------------------------------------------ | ---------------------------------- | ------------------------------ | --------------------------------------------------------- | ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `oracle_feeds` + feed registry                      | 每周 discovery、后台管理                               | 采集器（经 Turso 镜像）、目录 API  | 每周/人工                      | 无上限                                                    | Turso `feed_registry_snapshots` 最近一次 last-known-good（≤24 h） | 关系型权威 + RLS + 人工管理；不能因为边缘故障丢失管理意图                                                                                                                          |
+| `price_records`（保持 Supabase，不迁 Turso）        | 快照采集器（每小时批量）、少量 opt-in 写入             | 价格 API 热路径、导出、signals     | 每小时批量                     | 24 h TTL                                                  | 无跨库回落：读写都在 Supabase（`TURSO_PRICE_RECORDS_MODE` 不设）  | 实测仅 **14 MB**、约 250 行/小时；9 个索引（含 **1 个 GIN**：`idx_price_records_signal_vector`）+ 每 30 分钟清理。留在权威库，迁 Turso 只会给价格 API 增加一个活读依赖（§9.1）     |
+| `hourly_price_snapshots`                            | GitHub Actions 投影器 → `project_turso_price_slot` RPC | 历史 API、日报、UI                 | 每小时（由 15 分钟 slot 投影） | 120 天（7 天后转 archive）                                | 回读 Turso `price_snapshots` 原始 slot 重投影；receipt 幂等       | 业务投影 + RPC + JSONB + receipt 审计。**实测 2026-11-08：92,747 行 / 36 MB，只覆盖 2026-10-24 → 11-08（约 15 天）**；7 天以前已在 archive。不是容量主源，也不再做保留期以外的动作 |
+| `price_snapshots`（Supabase 旧 15 分钟历史）        | 仅 Turso 主模式之前的存量；切换后不再新增              | 归档、历史回放                     | 冻结                           | 120 天                                                    | 无新增，读到存量为止                                              | 历史连续性；到期后归档并停止读取，属于“技术上能搬但没必要”                                                                                                                         |
+| `snapshot_archives`                                 | `archive_snapshot_day`（库内，日更）                   | 历史视图/导出（SQL 内 JSONB 展开） | 每天                           | 120 天（**已批准 120 → 90**，迁移 `0137` 已落 main，§10） | 归档事务失败则源行保留（同事务）                                  | **唯一的冷存层，不外置**。实测 110 MB（heap 39 MB + 索引 6 MB + TOAST ≈ 71 MB）；hourly 107 天、price 84 天，区间内零缺口。R2 已取消，见 §3                                        |
+| `market_reference_snapshots`                        | `snapshot-collect.yml` 的 market-reference 作业        | 行情参考 API、coverage             | 15 分钟批次内，受采样门控      | 120 天                                                    | 返回上一有效快照并标注年龄                                        | 关系型 join + 权利门控 + JSONB 元数据；当前不是最大写入方，暂不搬                                                                                                                  |
+| `dex_market_swap_events`                            | `monad-dex-market.yml`（每 10 分钟）                   | `get_dex_market_volume_window` RPC | 每 10 分钟                     | 35 天（目标值待拍板）                                     | 返回上一窗口并标注不完整                                          | 追加写 + SQL 聚合；**不搬 Turso，只调保留期**（§9.1、§4 批次 3）                                                                                                                   |
+| `feed_health_snapshots`                             | feed 健康评估（采集器/API）                            | 可信度趋势、SLA                    | 每日/批次                      | 90 天（**已批准 90 → 60**，迁移 `0137` 已落 main）        | 返回最近一次健康状态                                              | 与 `oracle_feeds` 关系 join；不搬库，只缩保留期（§10）                                                                                                                             |
+| `oracle_watch_checks`                               | API 检查 + 每小时采集                                  | 审计、导出、计费凭证               | 按调用/每小时                  | 180 天                                                    | 保留上次结果并标注                                                | 签名审计、RLS、与 entitlement/计费耦合；**不该搬**                                                                                                                                 |
+| `oracle_watch_windows`                              | `oracle-watch-collect.yml`                             | 窗口交付、审计                     | 每小时                         | 180 天                                                    | 保留上次结果                                                      | 同上；行很小，搬走收益可忽略                                                                                                                                                       |
+| `turso_price_slot_receipts`                         | 投影器 RPC                                             | 补偿探针、完整性审计               | 每 15 分钟 slot                | 随 slot（量小）                                           | 无 receipt 则触发补偿                                             | 跨库投影完整性的锚；必须与小时投影同事务，**不能搬**                                                                                                                               |
+| `cron_dispatch_runs`                                | dispatcher                                             | 运维看板                           | 每次派发                       | 30 天                                                     | 无                                                                | 派发账本；搬走只会多一个跨库失败点                                                                                                                                                 |
+| 计费/额度/API key/`execution_receipts`              | API、billing worker                                    | API、后台                          | 实时                           | 90–180 天                                                 | 事务回滚                                                          | `FOR UPDATE`、序列、RLS、签名审计；**技术上搬不了**                                                                                                                                |
+| `coverage_slo_samples`、`manip_cost_pool_snapshots` | 采集/评估                                              | 运维看板                           | 15 分钟/日                     | 90/365 天                                                 | 无                                                                | 观测数据，量小；暂留                                                                                                                                                               |
 
 ### 1.2 Turso
 
@@ -160,8 +160,8 @@ C1–C4 档位基数与地板数值、运行时判词字面量均不在本计划
 | 项                                                 | 状态                                            | 理由                                                                                                                 |
 | -------------------------------------------------- | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
 | `TURSO_PRICE_ACKED_PAYLOAD_RETENTION_DAYS` 保持 30 | **已决定保持 30**：仓库变量已从 `7` 回退为 `30` | **ACK 之后仍需超过 `rawRetentionDays`（30 天）才压缩，不是 ACK 即时压缩**；设 7 只是把阈值提前，且压缩不可逆（§9.3） |
-| `feed_health_snapshots` 90 → 60                    | **已批准**（另一会话正在写成迁移）              | 31 MB 的运维趋势表，60 天足够定位回归；决策见 §10                                                                    |
-| `snapshot_archives` 120 → 90                       | **已批准**（另一会话正在写成迁移）              | 90 天窗口减去 7 天热区后稳态 83 天；决策见 §10                                                                       |
+| `feed_health_snapshots` 90 → 60                    | **已批准**（迁移 `0137` 已落 main）             | 31 MB 的运维趋势表，60 天足够定位回归；决策见 §10                                                                    |
+| `snapshot_archives` 120 → 90                       | **已批准**（迁移 `0137` 已落 main）             | 90 天窗口减去 7 天热区后稳态 83 天；决策见 §10                                                                       |
 | `hourly_price_snapshots` 120 → 90                  | **暂不动**                                      | 现表只保留约 15 天，改窗口不省现表空间；等积压清零后单独评估                                                         |
 | `market_reference_snapshots` 120 → 90              | **待评估**（与归档无关）                        | 37 MB，可独立做，但需先确认读取方窗口                                                                                |
 
@@ -216,7 +216,7 @@ ACK payload 读取方审计（阈值保持 30 天；`7` 只作为假设上限）
 
 ### 批次 2：归档追赶（已执行）+ dispatcher 分钟重排（待做）
 
-归档部分已于 2026-11-08 执行（`0134` / `0135` / `0136`，见 §3.6）；保留期决策见 §10（`feed_health_snapshots` 90→60、`snapshot_archives` 120→90 已批准，由另一会话写成迁移）。
+归档部分已于 2026-11-08 执行（`0134` / `0135` / `0136`，见 §3.6）；保留期决策见 §10（`feed_health_snapshots` 90→60、`snapshot_archives` 120→90 已批准，迁移 `0137` 已落 main）。
 
 待做：**13 个 dispatcher 的分钟重排**。清理 job 已由 0133 合并为 `nightly-retention-cleanup`（active 31 → 17），再合并清理没有收益；现在的竞争源是 dispatcher 挤在 `0,15,30,45` / `3,18,33,48` / `7,22,37,52` / `10,25,40,55` / `12,27,42,57` 这几组分钟上。
 
@@ -232,12 +232,12 @@ ACK payload 读取方审计（阈值保持 30 天；`7` 只作为假设上限）
 
 回滚：dispatcher 恢复原 schedule 即可；归档函数回退见 `0135_archive_guard_alignment.sql` 与 `0134_archive_catchup_bound.sql` 末尾的 ROLLBACK 说明（恢复两参数旧版本并重建 19:07，或退回单天函数）。已归档数据不会自动回退。
 
-保留期：`feed_health_snapshots` 90→60 与 `snapshot_archives` 120→90 已批准（§10），由另一会话写成迁移；`hourly_price_snapshots` 120→90 仍不放在本批，等积压清零、`price_snapshots` 行数归零后再单独评估。
+保留期：`feed_health_snapshots` 90→60 与 `snapshot_archives` 120→90 已批准（§10），迁移 `0137` 已落 main；`hourly_price_snapshots` 120→90 仍不放在本批，等积压清零、`price_snapshots` 行数归零后再单独评估。
 
 ### 批次 3：`dex_market_swap_events` 不搬库，只调保留期
 
 - `dex_market_swap_events` **保持 Supabase，不搬 Turso**（§9.1）：聚合继续走库内 `get_dex_market_volume_window` RPC，只调整保留期（现状 35 天；目标值另行拍板，候选 14 天）。
-- `feed_health_snapshots` **不搬库**；90 → 60 天已批准，由另一会话写成迁移（§10）。
+- `feed_health_snapshots` **不搬库**；90 → 60 天已批准，迁移 `0137` 已落 main（§10）。
 
 验收：保留期生效后两表稳态行数下降（用 `count(*)`）；同一窗口的聚合结果与改造前完全一致；导出/看板无回归。
 回滚：保留期改回原值即可；无跨库切换，无需回滚开关。
@@ -289,7 +289,7 @@ ACK payload 读取方审计（阈值保持 30 天；`7` 只作为假设上限）
 已拍板（详见 §9–§10）：
 
 - `TURSO_PRICE_ACKED_PAYLOAD_RETENTION_DAYS` **保持 30**：ACK 之后仍需超过 `rawRetentionDays`（30 天）才压缩，不是 ACK 即时压缩；7 天只是把阈值提前，压缩不可逆，不启用。
-- `feed_health_snapshots` 90 → 60、`snapshot_archives` 120 → 90：**已批准**，由另一会话写成迁移（§10）。
+- `feed_health_snapshots` 90 → 60、`snapshot_archives` 120 → 90：**已批准**，迁移 `0137` 已落 main（§10）。
 - `price_records` 保持 Supabase、不迁 Turso（§9.2）；`dex_market_swap_events` 不搬库、只调保留期（§4 批次 3）。
 
 仍需拍板：
@@ -392,12 +392,12 @@ ACK payload 读取方审计（阈值保持 30 天；`7` 只作为假设上限）
 
 ## 10. 保留期与运维数据清理（2026-11-08 批准）
 
-| 对象                         | 变更            | 状态                             |
-| ---------------------------- | --------------- | -------------------------------- |
-| `feed_health_snapshots`      | 90 → **60 天**  | **已批准**，另一会话正在写成迁移 |
-| `snapshot_archives`          | 120 → **90 天** | **已批准**，另一会话正在写成迁移 |
-| `hourly_price_snapshots`     | 120 → 90 天     | 暂不动，等积压清零后再评估       |
-| `market_reference_snapshots` | 120 → 90 天     | 待评估（需先确认读取方窗口）     |
+| 对象                         | 变更            | 状态                              |
+| ---------------------------- | --------------- | --------------------------------- |
+| `feed_health_snapshots`      | 90 → **60 天**  | **已批准**，迁移 `0137` 已落 main |
+| `snapshot_archives`          | 120 → **90 天** | **已批准**，迁移 `0137` 已落 main |
+| `hourly_price_snapshots`     | 120 → 90 天     | 暂不动，等积压清零后再评估        |
+| `market_reference_snapshots` | 120 → 90 天     | 待评估（需先确认读取方窗口）      |
 
 运维类表**允许定期清理、不必永久保留**：
 
