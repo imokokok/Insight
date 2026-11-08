@@ -3,6 +3,11 @@ import { NextResponse } from 'next/server';
 import { createApiHandler, createOptionsHandler } from '@/lib/api/handler';
 import { ApiResponseBuilder } from '@/lib/api/response';
 import { CACHE_PRESETS } from '@/lib/api/utils';
+import {
+  readCaptureContinuity,
+  type CaptureContinuityCheck,
+  type CaptureContinuityDetails,
+} from '@/lib/supabase/captureContinuity';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { loadSnapshotHistoryPage } from '@/lib/supabase/snapshotHistory';
 import { getTursoPriceClient, readTursoPriceWriteMode } from '@/lib/turso/price/client';
@@ -101,6 +106,8 @@ export const GET = createApiHandler(
       let supabase: DependencyCheck = 'unknown';
       let latestSnapshotAt: number | null = null;
       let projection: ReturnType<typeof describeProjection> | undefined;
+      let continuity: CaptureContinuityCheck | undefined;
+      let continuityDetails: CaptureContinuityDetails | undefined;
 
       if (tursoPrimary) {
         try {
@@ -128,8 +135,19 @@ export const GET = createApiHandler(
         try {
           await withTimeout(checkSupabaseQueryLiveness(), CHECK_TIMEOUT_MS);
           supabase = 'ok';
+          // The newest-slot age above cannot see a dead capture window that
+          // already ended: zero pending slots plus a fresh latest slot looks
+          // healthy while a run of interior slots was never captured. Compare
+          // the Supabase receipt ledger against the 15-minute grid instead.
+          const continuityResult = await withTimeout(
+            readCaptureContinuity(createServiceRoleClient(), Date.now()),
+            CHECK_TIMEOUT_MS
+          );
+          continuity = continuityResult.check;
+          continuityDetails = continuityResult.details;
         } catch {
           supabase = 'unavailable';
+          continuity = 'unknown';
         }
       } else {
         // Legacy mode has only Supabase-backed history, so retain the bounded
@@ -164,11 +182,14 @@ export const GET = createApiHandler(
 
       const projectionReady =
         projection === undefined || projection.check === 'ok' || projection.check === 'catching_up';
+      const continuityReady =
+        continuity === undefined || continuity === 'ok' || continuity === 'unknown';
       const ready =
         rawCapture === 'ok' &&
         (tursoPrimary ? scheduler === 'ok' : true) &&
         supabase === 'ok' &&
-        projectionReady;
+        projectionReady &&
+        continuityReady;
 
       const response = NextResponse.json(
         ready
@@ -181,10 +202,12 @@ export const GET = createApiHandler(
                   scheduler,
                   supabase,
                   ...(projection ? { projection: projection.check } : {}),
+                  ...(continuity ? { captureContinuity: continuity } : {}),
                 },
                 latestSnapshotAt:
                   latestSnapshotAt === null ? null : new Date(latestSnapshotAt).toISOString(),
                 ...(projection?.details ? { projection: projection.details } : {}),
+                ...(continuityDetails ? { captureContinuity: continuityDetails } : {}),
                 latencyMs: Date.now() - startedAt,
               },
               { requestId: context.requestId }
@@ -199,10 +222,12 @@ export const GET = createApiHandler(
                   scheduler,
                   supabase,
                   ...(projection ? { projection: projection.check } : {}),
+                  ...(continuity ? { captureContinuity: continuity } : {}),
                 },
                 latestSnapshotAt:
                   latestSnapshotAt === null ? null : new Date(latestSnapshotAt).toISOString(),
                 ...(projection?.details ? { projection: projection.details } : {}),
+                ...(continuityDetails ? { captureContinuity: continuityDetails } : {}),
               },
             }),
         { status: ready ? 200 : 503 }
@@ -220,6 +245,7 @@ export const GET = createApiHandler(
               tursoRawCapture: 'unavailable',
               scheduler: 'unknown',
               supabase: 'unknown',
+              captureContinuity: 'unknown',
             },
           },
         }),

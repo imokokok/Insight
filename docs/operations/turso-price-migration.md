@@ -174,14 +174,15 @@ older than its lag threshold fails the workflow for alerting. In primary mode,
 signal does not make fresh Turso-backed price reads unavailable merely because
 the independent Supabase projection is catching up.
 
-The readiness endpoint now reports four independent checks in primary mode:
-`tursoRawCapture`, `scheduler`, `supabase`, and `projection`. This separates
-a fresh raw data plane from a degraded Supabase query/control plane instead of
-labeling both simply as `database: ok`. `projection` can be `catching_up`,
-`lagging`, or `quarantined`; retryable failures back off from one minute to a
-15-minute maximum and do not block later slots. A quarantined slot preserves
-its original payload and hash for review. To explicitly replay a reviewed
-slot, use the exact identifiers from Turso (never edit a slot payload):
+The readiness endpoint now reports five independent checks in primary mode:
+`tursoRawCapture`, `scheduler`, `supabase`, `projection`, and
+`captureContinuity`. This separates a fresh raw data plane from a degraded
+Supabase query/control plane instead of labeling both simply as `database: ok`.
+`projection` can be `catching_up`, `lagging`, or `quarantined`; retryable
+failures back off from one minute to a 15-minute maximum and do not block
+later slots. A quarantined slot preserves its original payload and hash for
+review. To explicitly replay a reviewed slot, use the exact identifiers from
+Turso (never edit a slot payload):
 
 ```bash
 TURSO_PRICE_REQUEUE_SLOT_MS=<epoch-ms> \
@@ -189,8 +190,34 @@ TURSO_PRICE_REQUEUE_INPUT_HASH=<64-hex-input-hash> \
 npm run turso:price:requeue
 ```
 
-The `Turso Control Plane Alert` GitHub workflow checks this readiness endpoint
-at minutes `12,27,42,57`. A failing check opens one deduplicated GitHub Issue
-and comments on it while the incident remains open; the first healthy check
-comments with recovery evidence and closes it. This alert is intentionally
-outside the Supabase scheduler failure domain.
+`captureContinuity` covers the blind spot in the newest-slot age check: a dead
+capture window that has already ended leaves zero pending slots and a fresh
+latest slot, while a run of interior slots was never captured (2026-11-08 UTC
+14:45-17:45 lost 14 slots this way). The check compares the Supabase receipt
+ledger against the 15-minute slot grid: the 8 grid slots immediately before
+the newest (in-flight) grid slot must have at least 7 receipts. One missing
+slot is tolerated while the receipt-gated fallback recovers it; two or more
+consecutive missing receipts flip readiness to 503 so the alert workflow
+pages. A broken receipt read reports `unknown` and does not block readiness;
+the Supabase liveness check owns that failure surface.
+
+Run the weekly continuity baseline with:
+
+```bash
+npm run turso:observe:capture-continuity [days]
+```
+
+It reports captured slots per day against the nominal 96, receipt gaps with
+recovery lag, per-day projection lag, dispatcher-ledger failures, and
+`job startup timeout` counts, and needs no new tables.
+
+The `Turso Control Plane Alert` GitHub workflow is dispatched by Supabase
+`pg_cron` at minutes `10,25,40,55` (migration `0142`) and stays manually
+dispatchable. GitHub's native `schedule:` was removed: it dropped most
+high-frequency runs (8 runs in 2 days against the nominal cadence) and the
+2026-11-08 outage produced zero issues. A failing check opens one
+deduplicated GitHub Issue and comments on it while the incident remains open;
+the first healthy check comments with recovery evidence and closes it. This
+moves the alert inside the Supabase dispatcher failure domain; a truly
+independent read-only edge probe remains a separate decision (see the
+three-plane plan, §5 re-verdict pending).
