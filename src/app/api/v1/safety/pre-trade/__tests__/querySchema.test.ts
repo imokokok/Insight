@@ -21,7 +21,7 @@ describe('PreTradeQuerySchema targetProviders', () => {
   });
 
   it('rejects unsupported schemas and unsafe workflow tags', () => {
-    expect(() => PreTradeQuerySchema.parse({ ...base, schemaVersion: '4' })).toThrow();
+    expect(() => PreTradeQuerySchema.parse({ ...base, schemaVersion: '5' })).toThrow();
     expect(() => PreTradeQuerySchema.parse({ ...base, workflowTag: 'account/<script>' })).toThrow();
     expect(() => PreTradeQuerySchema.parse({ ...base, baselineVerdict: 'safe_forever' })).toThrow();
   });
