@@ -9,15 +9,16 @@
  * agents, credits for API-key users). This contrasts with the per-call `C3`
  * cost every standalone oracle-watch call pays (see ./metering.ts).
  *
- * Pricing rationale: a per-call C3 x402 list price is $0.02. A position-holding
- * agent gating a 24 h strategy on 15-minute snapshots issues ~96 calls
- * (~$1.92/call-priced). The window is priced at $0.50 — cheaper than ~26 C3
- * calls — while capping abuse with a poll budget and a minimum poll interval.
+ * Pricing rationale: the window is priced at $0.50 and allows 48 polls (one
+ * per 30 minutes across 24 h). A per-call C3 x402 list price is $0.02, so the
+ * window is cheaper than ~26 call-priced snapshots while keeping upstream cost
+ * bounded. A refresh reads at most 6 providers unless the signal jumps.
  * Credit buyers pay the same value converted at {@link usdToCredits}.
  *
- * Scope note: data freshness is bounded by the platform snapshot cadence
- * (~15 minutes, see ./plans.ts); polling faster than the minimum interval
- * cannot observe a fresher signal.
+ * Scope note: the platform signal snapshot is cached for 35 minutes, longer
+ * than the 30-minute minimum poll interval so a boundary poll does not miss.
+ * Every response carries `evaluatedAt` so a buyer can tell when the snapshot
+ * was computed instead of silently receiving an old value.
  */
 
 import { usdToCredits } from './plans';
@@ -30,10 +31,10 @@ export const ORACLE_WATCH_WINDOW_PLAN = {
   durationHours: 24,
   /** x402 list price in USD for one window. */
   priceUsd: 0.5,
-  /** Maximum signal polls per window (≈ one per 5 minutes across 24 h). */
-  pollCap: 300,
-  /** Minimum seconds between two polls of the same window. */
-  minPollIntervalSeconds: 30,
+  /** Maximum signal polls per window (one per 30 minutes across 24 h). */
+  pollCap: 48,
+  /** Minimum seconds between two polls of the same window (30 minutes). */
+  minPollIntervalSeconds: 1800,
 } as const;
 
 /** Credit cost of one monitored window for API-key (wallet) buyers. */

@@ -401,7 +401,16 @@ export async function getConsensusPrice(
   chain?: string,
   method?: ConsensusMethod,
   targetProviders?: readonly OracleProvider[],
-  options: { allowUnavailable?: boolean; signal?: AbortSignal } = {}
+  options: {
+    allowUnavailable?: boolean;
+    signal?: AbortSignal;
+    /**
+     * Cap the number of providers read in this call. Used by monitored
+     * Oracle Watch refreshes to bound upstream spend; callers that need the
+     * full breadth (or a jump escalation) leave it undefined.
+     */
+    maxProviders?: number;
+  } = {}
 ): Promise<ConsensusPriceResponse> {
   const baseSymbol = normalizeSymbol(symbol);
   const resolvedChain = resolveChain(chain);
@@ -425,12 +434,16 @@ export async function getConsensusPrice(
       const providers = requestedProviders
         ? resolvedProviders.filter((provider) => requestedProviders.has(provider))
         : resolvedProviders;
+      const boundedProviders =
+        options.maxProviders !== undefined && options.maxProviders > 0
+          ? providers.slice(0, options.maxProviders)
+          : providers;
       const fetchResults = await mapWithConcurrency(
-        providers,
+        boundedProviders,
         CONSENSUS_FETCH_CONCURRENCY,
         (provider) => fetchProviderPrice(provider, baseSymbol, resolvedChain, options.signal)
       );
-      return { providers, fetchResults };
+      return { providers: boundedProviders, fetchResults };
     })(),
     // Pyth Core's verification and freshness are embedded in PriceData. A
     // reputation lookup cannot turn this one-provider fast path into quorum,

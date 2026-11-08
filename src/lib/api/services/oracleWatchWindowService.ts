@@ -163,7 +163,13 @@ interface WindowRow {
   poll_count: number;
   last_poll_at: string | null;
   api_key_id: string | null;
+  /** Terms snapshotted at purchase; existing windows keep their original cap. */
+  poll_cap: number;
+  min_poll_interval_seconds: number;
 }
+
+const WINDOW_ROW_COLUMNS =
+  'id, symbol, chain, status, payment_method, token_hash, created_at, expires_at, closed_at, poll_count, last_poll_at, api_key_id, poll_cap, min_poll_interval_seconds';
 
 function toView(row: WindowRow): OracleWatchWindowView {
   return {
@@ -176,7 +182,7 @@ function toView(row: WindowRow): OracleWatchWindowView {
     expiresAt: row.expires_at,
     closedAt: row.closed_at,
     pollCount: row.poll_count,
-    pollCap: ORACLE_WATCH_WINDOW_PLAN.pollCap,
+    pollCap: row.poll_cap,
   };
 }
 
@@ -205,10 +211,10 @@ export async function beginOracleWatchWindow(input: BeginWindowInput): Promise<B
       expires_at: expiresAt,
       payment_method: input.paymentMethod,
       api_key_id: input.apiKeyId ?? null,
+      poll_cap: ORACLE_WATCH_WINDOW_PLAN.pollCap,
+      min_poll_interval_seconds: ORACLE_WATCH_WINDOW_PLAN.minPollIntervalSeconds,
     })
-    .select(
-      'id, symbol, chain, status, payment_method, token_hash, created_at, expires_at, closed_at, poll_count, last_poll_at, api_key_id'
-    )
+    .select(WINDOW_ROW_COLUMNS)
     .single();
 
   if (error || !data) {
@@ -251,9 +257,7 @@ async function loadWindow(
 
   const { data, error } = await client
     .from('oracle_watch_windows')
-    .select(
-      'id, symbol, chain, status, payment_method, token_hash, created_at, expires_at, closed_at, poll_count, last_poll_at, api_key_id'
-    )
+    .select(WINDOW_ROW_COLUMNS)
     .eq('id', windowId)
     .maybeSingle();
 
@@ -290,17 +294,17 @@ export async function pollOracleWatchWindow(
   const row = await loadWindow(client, windowId, presentedToken);
   assertOpen(row);
 
-  if (row.poll_count >= ORACLE_WATCH_WINDOW_PLAN.pollCap) {
+  if (row.poll_count >= row.poll_cap) {
     throw new OracleWatchWindowError('POLL_CAP_REACHED');
   }
 
   const now = Date.now();
   if (row.last_poll_at) {
     const elapsedSeconds = (now - Date.parse(row.last_poll_at)) / 1000;
-    if (elapsedSeconds < ORACLE_WATCH_WINDOW_PLAN.minPollIntervalSeconds) {
+    if (elapsedSeconds < row.min_poll_interval_seconds) {
       throw new OracleWatchWindowError(
         'POLL_TOO_SOON',
-        Math.ceil(ORACLE_WATCH_WINDOW_PLAN.minPollIntervalSeconds - elapsedSeconds)
+        Math.ceil(row.min_poll_interval_seconds - elapsedSeconds)
       );
     }
   }
@@ -313,7 +317,7 @@ export async function pollOracleWatchWindow(
     .from('oracle_watch_windows')
     .update({ poll_count: row.poll_count + 1, last_poll_at: new Date(now).toISOString() })
     .eq('id', row.id)
-    .lt('poll_count', ORACLE_WATCH_WINDOW_PLAN.pollCap)
+    .lt('poll_count', row.poll_cap)
     .select('poll_count')
     .maybeSingle();
 
@@ -353,7 +357,7 @@ export async function pollOracleWatchWindow(
     window: {
       windowId: row.id,
       pollCount,
-      pollCap: ORACLE_WATCH_WINDOW_PLAN.pollCap,
+      pollCap: row.poll_cap,
       expiresAt: row.expires_at,
     },
   };
@@ -434,7 +438,7 @@ export async function closeOracleWatchWindow(
     closedAt: closedAt ?? new Date().toISOString(),
     expiresAt: row.expires_at,
     pollsIssued: checks?.length ?? 0,
-    pollCap: ORACLE_WATCH_WINDOW_PLAN.pollCap,
+    pollCap: row.poll_cap,
     verdictCounts,
     recommendationCounts,
     haltCount: recommendationCounts.halt,
