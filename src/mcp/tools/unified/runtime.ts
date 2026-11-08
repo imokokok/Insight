@@ -1,7 +1,8 @@
 /**
  * Legacy MCP tool registry kept for the 60-day compatibility window.
  *
- * `tools/list` exposes only the 16 unified tools. Callers that hardcode an old
+ * `tools/list` exposes the four product tools plus their 16 deprecated aliases
+ * (20 names). Callers that hardcode an old
  * tool name keep working through `callLegacy` until the removal date recorded
  * in `LEGACY_TOOL_REMOVAL_DATE`. Legacy calls run the original handler with the
  * original validator, so behaviour and pricing are unchanged.

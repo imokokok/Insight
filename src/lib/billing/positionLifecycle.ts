@@ -8,10 +8,10 @@
  * six position-guard families, and one bundled attested execution receipt.
  * This is the roadmap C2 answer to "four separate calls per position".
  *
- * Pricing rationale: buying the pieces separately costs 155 credits on the
- * API-key rail (125 window + 4 × 5 guard + 10 receipt) or $0.60 across x402
+ * Pricing rationale: buying the pieces separately costs 620 credits on the
+ * API-key rail (500 window + 4 × 20 guard + 40 receipt) or $0.60 across x402
  * settlements ($0.50 window + 4 × $0.02 + $0.02). The bundle is priced at
- * $0.55 (138 credits at the canonical {@link usdToCredits} rate) — ~11% below
+ * $0.55 (550 credits at the canonical {@link usdToCredits} rate) — ~11% below
  * à la carte on both rails, and only $0.05 above the window alone.
  *
  * Scope note: bundled guard calls are assessment-only. Exact-call decision
