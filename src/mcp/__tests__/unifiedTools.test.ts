@@ -5,6 +5,7 @@
 import {
   executeTool,
   getToolDefinitions,
+  refusedHyperevmChain,
   resolveDispatchedTool,
   resolveToolSource,
 } from '../tools';
@@ -219,17 +220,42 @@ describe('consolidated MCP surface', () => {
     expect(LEGACY_TOOL_REMOVAL_DATE).toBe('2027-01-06');
   });
 
-  it('refuses HyperEVM with a structured ecosystem boundary, not a schema error', async () => {
+  it('refuses HyperEVM on execution branches with a structured boundary, not a schema error', async () => {
     for (const [name, args] of [
-      ['oracle_watch', { symbol: 'ETH', chain: 'hyperevm' }],
-      ['get_oracle_price', { provider: 'chainlink', asset: 'ETH', chain: 'hyperevm' }],
       ['position_lifecycle_begin', { symbol: 'ETH', chain: 'hyperevm' }],
+      ['trade_guard', { op: 'check_safety', chain: 'hyperevm' }],
+      ['prepare_perp_order', { venue: 'synthetix-perps-v3-base', chain: 'hyperevm' }],
     ] as const) {
       const result = await executeTool(name, args);
       expect(result.isError).toBe(true);
       expect(textOf(result)).toContain('[unavailable:ecosystem_absent]');
       expect(textOf(result)).not.toContain('validation');
     }
+  });
+
+  it('lets data-plane branches name HyperEVM so chain 999 reaches the services', () => {
+    expect(refusedHyperevmChain('oracle_watch_window', { chain: 'hyperevm' })).toBeNull();
+    expect(
+      refusedHyperevmChain('trade_guard', { op: 'price_analytics', chain: 'hyperevm' })
+    ).toBeNull();
+    expect(
+      refusedHyperevmChain('trade_guard', { op: 'oracle_price', base_chain: 'hyperevm' })
+    ).toBeNull();
+    expect(
+      refusedHyperevmChain('trade_proof', { op: 'verify_evidence', chain: 'hyperevm' })
+    ).toBeNull();
+
+    // Execution branches keep the boundary, and other chains are untouched.
+    expect(refusedHyperevmChain('trade_guard', { op: 'check_safety', chain: 'hyperevm' })).toBe(
+      'chain'
+    );
+    expect(refusedHyperevmChain('trade_proof', { op: 'issue_receipt', chain: 'hyperevm' })).toBe(
+      'chain'
+    );
+    expect(refusedHyperevmChain('position_lifecycle', { op: 'begin', chain: 'hyperevm' })).toBe(
+      'chain'
+    );
+    expect(refusedHyperevmChain('oracle_watch_window', { chain: 'base' })).toBeNull();
   });
 });
 
