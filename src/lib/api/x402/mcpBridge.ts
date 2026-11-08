@@ -852,6 +852,12 @@ export interface McpPaidCallInput {
   toolName: string;
   /** Canonicalized tool arguments from the same JSON-RPC probe. */
   toolArgs?: unknown;
+  /**
+   * Requested spelling, used only to resolve billing. A deprecated alias keeps
+   * its original metering class while the canonical product name uses the
+   * per-op table; payment scope and settlement still use `toolName`.
+   */
+  pricingToolName?: string;
   /** Dispatch the JSON-RPC body through the MCP transport. */
   runBusiness: () => Promise<Response>;
 }
@@ -867,21 +873,23 @@ export async function handleMcpPaidToolCall({
   cfg,
   toolName,
   toolArgs,
+  pricingToolName,
   runBusiness,
 }: McpPaidCallInput): Promise<Response> {
   const requestId = newRequestId();
   const args = toolArgs ?? (await extractMcpToolArguments(request));
+  const billableToolName = pricingToolName ?? toolName;
   // In-window product tools (poll/close/guard/receipt/close-summary) are
   // covered by the purchase that returned their one-time token; the token in
   // the tool arguments is the entitlement check and fails closed without it.
   // No x402 lifecycle runs, so a window buyer is never re-charged per call.
-  if (isEntitlementCoveredMcpTool(toolName, args)) {
+  if (isEntitlementCoveredMcpTool(billableToolName, args)) {
     return attachRequestId(await runBusiness(), requestId);
   }
   // Offline verification kinds need no upstream read, so they are free. A
   // caller that still attaches a payment signature is rejected explicitly
   // instead of silently settling a zero-value transfer.
-  if (isFreeVerifyCall(toolName, args)) {
+  if (isFreeVerifyCall(billableToolName, args)) {
     if (request.headers.has('payment-signature')) {
       return attachRequestId(
         new Response(
@@ -900,9 +908,9 @@ export async function handleMcpPaidToolCall({
     }
     return attachRequestId(await runBusiness(), requestId);
   }
-  const priceAtomic = priceAtomicForTool(toolName, args);
-  const priceCredits = getMcpToolCreditCostForCall(toolName, args);
-  const billableItems = getMcpToolBillableItems(toolName, args);
+  const priceAtomic = priceAtomicForTool(billableToolName, args);
+  const priceCredits = getMcpToolCreditCostForCall(billableToolName, args);
+  const billableItems = getMcpToolBillableItems(billableToolName, args);
   const paymentScope = x402PaymentScopeForMcpTool(toolName, args);
   const paymentConfig = paymentScope ? x402ConfigForPaymentScope(cfg, paymentScope) : null;
   if (!paymentConfig) {

@@ -363,7 +363,9 @@ const PAID_TOOLS_RATE_LIMIT = { windowMs: 60_000, maxRequests: 60 };
  * without consuming the request. Returns null for batches, other methods, or a
  * missing/unnamed tool — the caller then falls through.
  */
-async function probeToolCall(request: Request): Promise<{ name: string; args: unknown } | null> {
+async function probeToolCall(
+  request: Request
+): Promise<{ name: string; args: unknown; pricingName: string } | null> {
   try {
     if (request.method !== 'POST') return null;
     const contentType = (request.headers.get('content-type') ?? '').toLowerCase();
@@ -381,11 +383,13 @@ async function probeToolCall(request: Request): Promise<{ name: string; args: un
     const params = (body as { params?: { name?: unknown; arguments?: unknown } }).params;
     const name = params?.name;
     if (typeof name !== 'string' || name.length === 0) return null;
-    // Canonicalize once at the JSON-RPC boundary: pricing, payment scope,
-    // Bazaar discovery and settlement then all name the product tool instead
-    // of a deprecated alias.
+    // Canonicalize once at the JSON-RPC boundary for payment scope, Bazaar
+    // discovery and settlement. Pricing keeps the requested spelling so a
+    // deprecated alias retains its own metering class.
     const canonical = canonicalizeAlias(name, params?.arguments);
-    return canonical ?? { name, args: params?.arguments };
+    return canonical
+      ? { name: canonical.name, args: canonical.args, pricingName: name }
+      : { name, args: params?.arguments, pricingName: name };
   } catch {
     return null;
   }
@@ -412,7 +416,7 @@ async function tryPaidToolCall(request: Request): Promise<McpHttpHandlerResult |
   if (!call) {
     return null;
   }
-  const { name: toolName, args: toolArgs } = call;
+  const { name: toolName, args: toolArgs, pricingName } = call;
 
   const identity = `mcp:x402:${getClientIp(request)}`;
   const rate = await rateLimitStore.increment(identity, PAID_TOOLS_RATE_LIMIT.windowMs);
@@ -449,11 +453,13 @@ async function tryPaidToolCall(request: Request): Promise<McpHttpHandlerResult |
   };
 
   try {
+    const pricingToolName = pricingName;
     const response = await handleMcpPaidToolCall({
       request,
       cfg,
       toolName,
       toolArgs,
+      pricingToolName,
       runBusiness: async () => {
         const raw = await transport.handleRequest(request);
         return new Response(raw.body, {

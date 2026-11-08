@@ -583,6 +583,21 @@ describe('product-priced tools (monitored window / position lifecycle)', () => {
     expect(priceAtomicForTool('position_lifecycle_begin')).toBe('550000');
   });
 
+  it('quotes canonical trade-safety ops at $0.040 while alias spellings stay at $0.020', async () => {
+    const { priceAtomicForTool } = await import('../mcpBridge');
+    const pairs = [
+      ['check_safety', 'check_trade_safety'],
+      ['prepare_swap', 'prepare_swap'],
+      ['prepare_perp_order', 'prepare_perp_order'],
+    ] as const;
+    for (const [canonicalOp, alias] of pairs) {
+      // Same resolver as the charge path: the quote must never disagree with
+      // the debit for either spelling.
+      expect(priceAtomicForTool('trade_guard', { op: canonicalOp })).toBe('40000');
+      expect(priceAtomicForTool(alias, {})).toBe('20000');
+    }
+  });
+
   it('dispatches an in-window tool without any x402 lifecycle', async () => {
     const res = await handleMcpPaidToolCall(
       input(
