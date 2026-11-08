@@ -24,7 +24,7 @@
 
 ## Product prices
 
-- **Trade Guard** — $0.002–$0.040 per call, op-priced. Read-only ops (`oracle_price`, `market_quote`, `search_registry`) are 2 credits / $0.002 and `price_analytics` / `oracle_health` are 4 credits / $0.004. The trade-safety set (`check_safety`, `prepare_swap`, `prepare_perp_order`) is **40 credits / $0.040 per call**, which is both the per-call price and the product ceiling.
+- **Trade Guard** — $0.002–$0.040 per call, op-priced. Read-only ops (`oracle_price`, `market_quote`, `search_registry`) are 2 credits / $0.002 and `price_analytics` / `oracle_health` are 4 credits / $0.004. The trade-safety ops (`check_safety`, `prepare_swap`, `prepare_perp_order`) are **40 credits / $0.040 each**, which is both the per-op price and the product ceiling.
 - **Trade Proof** — 40 credits / $0.040 per call (`begin_evidence`, `issue_receipt`). `verify_evidence` is free for the three offline kinds (`execution_pair`, `base_agent_swap`, `solana_swap`); only verification that reads a live upstream is 40 credits / $0.040.
 - **Oracle Watch** — 500 credits / $0.500 per 24h window.
 - **Position Lifecycle** — 550 credits / $0.550 per position (embedded window, 4 guards and 1 receipt).

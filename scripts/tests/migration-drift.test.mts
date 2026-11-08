@@ -72,6 +72,22 @@ test('flags a reused version whose name changed', () => {
   assert.equal(driftIsBlocking(drift), true);
 });
 
+test('does not mistake digits inside a migration name for the version prefix', () => {
+  const bare = compareMigrationLedger(
+    ['0092_erc8004_reputation_anchor.sql'],
+    [{ version: '0092', name: 'erc8004_reputation_anchor' }]
+  );
+  assert.deepEqual(bare.nameMismatches, []);
+  assert.equal(driftIsBlocking(bare), false);
+
+  const stem = compareMigrationLedger(
+    ['0092_erc8004_reputation_anchor.sql'],
+    [{ version: '0092', name: '0092_erc8004_reputation_anchor' }]
+  );
+  assert.deepEqual(stem.nameMismatches, []);
+  assert.equal(driftIsBlocking(stem), false);
+});
+
 test('normalizes numbers, drops invalid rows, and sorts by version', () => {
   assert.deepEqual(
     normalizeLedgerRows(['0132', { version: 130 }, { name: 'missing-version' }, 'not-a-number']),

@@ -73,7 +73,7 @@ const PRODUCT_PRICES = [
     unit: 'per call, op-priced',
     detail:
       'Read-only ops cost 2–4 credits ($0.002–$0.004). The trade-safety ops (check_safety, prepare_swap, prepare_perp_order) cost 40 credits ($0.040), which is both the per-call price and the product ceiling; the 16 deprecated alias spellings are callable at the same price until 2027-01-06.',
-    credits: '2–40 credits (40 = ceiling)',
+    credits: '2–40 credits (40 = per trade-safety op, also the ceiling)',
   },
   {
     name: 'Trade Proof',
@@ -191,7 +191,9 @@ export default function PricingPage() {
               <p className="mt-4 max-w-2xl text-lg leading-relaxed text-slate-600">
                 Trade Guard dispatches across metering classes, so it is priced by operation rather
                 than a single flat rate. The other three products carry one product price. Every
-                price below is also available through the credit wallet and x402.
+                price below is also available through the credit wallet and x402. The catalog
+                exposes 4 products + 16 deprecated aliases = 20 discoverable names; aliases are
+                callable at their product price until 2027-01-06.
               </p>
             </div>
           </div>
@@ -230,10 +232,15 @@ export default function PricingPage() {
               <p className="mt-4 max-w-2xl text-lg leading-relaxed text-slate-600">
                 <code className="font-mono text-base">GET /api/v1/safety/pre-trade</code> speaks the
                 x402 and optional MPP protocols. A request without credentials receives an HTTP 402
-                quote; the agent pays the quoted USDC price on Base — $0.02 for the pre-trade safety
-                check, from $0.002 for read-only Trade Guard ops, and up to $0.040 for the full
-                trade-safety set — and retries with a signed payment to receive the full result.
-                Humans and teams with ongoing volume should use the credit plans above instead.
+                quote; the agent pays the quoted USDC price on Base — $0.02 for the REST pre-trade
+                safety check (C3) — and retries with a signed payment to receive the full result. On
+                the MCP surface, the <code className="font-mono text-base">trade_guard</code>{' '}
+                trade-safety ops (<code className="font-mono text-base">check_safety</code>,{' '}
+                <code className="font-mono text-base">prepare_swap</code>,{' '}
+                <code className="font-mono text-base">prepare_perp_order</code>) are $0.040 each;
+                read-only Trade Guard ops start at $0.002, and the 16 deprecated alias spellings are
+                charged the same as their canonical op. Humans and teams with ongoing volume should
+                use the credit plans above instead.
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link

@@ -2,9 +2,10 @@
  * @fileoverview Deprecated-name aliases for the four consolidated product tools.
  *
  * Deliberately kept OUT of `LEGACY_MCP_TOOLS` in ./runtime.ts: that registry is
- * removed wholesale on `LEGACY_TOOL_REMOVAL_DATE` (2027-01-06), and folding the
- * alias names into it would hand permanent compatibility names an expiry date.
- * Aliases here carry no removal date; they are a stable convenience surface.
+ * removed wholesale on `LEGACY_TOOL_REMOVAL_DATE` (2027-01-06) and carries the
+ * `MCP_TOOL_PROFILE=legacy` rollback switch. Aliases are advertised as
+ * deprecated entries with the same sunset (see ./index.ts), so they do not need
+ * the legacy registry's rollback machinery.
  *
  * Every alias canonicalizes onto one product tool plus an `op` selector, so a
  * single dispatch path, price lookup, payment scope, audit row and settlement
