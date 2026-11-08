@@ -198,7 +198,7 @@ describe('handleMcpPaidToolCall settlement gating', () => {
       amountAtomic: '2000',
       payTo: '0xAbC0000000000000000000000000000000000001',
       facilitatorUrl: 'https://hyperevm.example',
-      networkMinAmountAtomic: { 'eip155:999': '30000' },
+      networkMinAmountAtomic: { 'eip155:999': '50000' },
     } as X402Config;
 
     const res = await handleMcpPaidToolCall({
@@ -233,8 +233,8 @@ describe('handleMcpPaidToolCall settlement gating', () => {
       {
         scope: 'HyperEVM',
         reason: 'floor_excluded',
-        floorAtomic: '30000',
-        priceAtomic: '20000',
+        floorAtomic: '50000',
+        priceAtomic: '40000',
       },
     ]);
   });
@@ -258,7 +258,7 @@ describe('handleMcpPaidToolCall settlement gating', () => {
         priceUsd: 0.002,
         rpcUrl: null,
       },
-      networkMinAmountAtomic: { [solanaNetwork]: '30000' },
+      networkMinAmountAtomic: { [solanaNetwork]: '50000' },
     } as X402Config;
 
     const res = await handleMcpPaidToolCall({
@@ -293,8 +293,8 @@ describe('handleMcpPaidToolCall settlement gating', () => {
       {
         scope: 'Solana',
         reason: 'floor_excluded',
-        floorAtomic: '30000',
-        priceAtomic: '20000',
+        floorAtomic: '50000',
+        priceAtomic: '40000',
       },
     ]);
   });
@@ -583,7 +583,7 @@ describe('product-priced tools (monitored window / position lifecycle)', () => {
     expect(priceAtomicForTool('position_lifecycle_begin')).toBe('550000');
   });
 
-  it('quotes canonical trade-safety ops at $0.040 while alias spellings stay at $0.020', async () => {
+  it('quotes trade-safety ops at $0.040 for both canonical and alias spellings', async () => {
     const { priceAtomicForTool } = await import('../mcpBridge');
     const pairs = [
       ['check_safety', 'check_trade_safety'],
@@ -594,7 +594,7 @@ describe('product-priced tools (monitored window / position lifecycle)', () => {
       // Same resolver as the charge path: the quote must never disagree with
       // the debit for either spelling.
       expect(priceAtomicForTool('trade_guard', { op: canonicalOp })).toBe('40000');
-      expect(priceAtomicForTool(alias, {})).toBe('20000');
+      expect(priceAtomicForTool(alias, {})).toBe('40000');
     }
   });
 

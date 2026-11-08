@@ -72,7 +72,7 @@ const PRODUCT_PRICES = [
     price: '$0.002–$0.040',
     unit: 'per call, op-priced',
     detail:
-      'Read-only ops cost 2–4 credits ($0.002–$0.004). The canonical trade-safety ops (check_safety, prepare_swap, prepare_perp_order) cost 40 credits ($0.040), which is the product ceiling; deprecated alias spellings keep their original tiers until 2027-01-06.',
+      'Read-only ops cost 2–4 credits ($0.002–$0.004). The trade-safety ops (check_safety, prepare_swap, prepare_perp_order) cost 40 credits ($0.040), which is both the per-call price and the product ceiling; the 16 deprecated alias spellings are callable at the same price until 2027-01-06.',
     credits: '2–40 credits (40 = ceiling)',
   },
   {

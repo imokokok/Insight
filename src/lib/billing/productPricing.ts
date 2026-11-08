@@ -91,11 +91,10 @@ const C4 = getToolCreditCost('begin_trade_evidence');
 
 /**
  * Per-op credit cost for the consolidated product tools. The op branch keeps
- * the class each op had before consolidation, except the canonical trade-safety
- * ops, which are deliberately priced at C4 (40 credits) while their deprecated
- * alias spellings stay at C3 (20 credits) until 2027-01-06. That split is why
- * billing must branch on the requested spelling, not only on the op. Product
- * purchases keep their product credit price; covered in-window ops are 0.
+ * the class each op had before consolidation, except the trade-safety ops,
+ * which are priced at C4 (40 credits). Deprecated alias spellings canonicalize
+ * onto the same product op, so they charge the same price. Product purchases
+ * keep their product credit price; covered in-window ops are 0.
  */
 const PRODUCT_MCP_TOOL_OP_CREDIT_COSTS: Readonly<Record<string, Readonly<Record<string, number>>>> =
   {
@@ -166,20 +165,19 @@ export function getMcpToolUsdPrice(toolName: string, args?: unknown): number | u
 }
 
 /**
- * Resolve a product call to its op cost. The requested spelling decides first:
- * a deprecated alias keeps its original metering class, while the canonical
- * product name uses the per-op table. This is the deliberate canonical/alias
- * price split for the trade-safety ops (canonical C4, alias C3).
+ * Resolve a product call to its op cost. Deprecated aliases canonicalize onto
+ * their product tool and injected op first, so alias and canonical spellings
+ * of the same op always charge the same price.
  */
 function productOpCreditCost(toolName: string, args?: unknown): number | undefined {
   const canonical = canonicalizeAlias(toolName, args);
-  if (canonical) {
-    const product = PRODUCT_MCP_TOOL_CREDIT_COSTS[toolName];
-    if (product !== undefined) return product;
-    return getToolCreditCost(toolName);
-  }
-  const op = callOp(args) ?? DEFAULT_PRODUCT_OP[toolName];
-  return PRODUCT_MCP_TOOL_OP_CREDIT_COSTS[toolName]?.[op];
+  const name = canonical?.name ?? toolName;
+  const effectiveArgs = canonical?.args ?? args;
+  const op = callOp(effectiveArgs) ?? DEFAULT_PRODUCT_OP[name];
+  const opCost = PRODUCT_MCP_TOOL_OP_CREDIT_COSTS[name]?.[op];
+  if (opCost !== undefined) return opCost;
+  // Control/step aliases may omit an op; their product-level price covers them.
+  return PRODUCT_MCP_TOOL_CREDIT_COSTS[toolName];
 }
 
 /**
