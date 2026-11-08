@@ -213,11 +213,15 @@ describe('trade_guard prepare_perp_order rejected-evidence chain', () => {
 
     const { receipt, result } = await callToolWithResult('trade_guard', BASE_ARGS);
 
-    expect(result.isError).toBe(true);
+    // The gate returns a downgraded `unavailable` envelope, so the transport
+    // error flag is cleared even though the refusal never formed a verdict.
+    expect(result.isError).toBe(false);
     expect(receipt.status).toBe('waived');
     expect(receipt.costCredits).toBe(0);
     expect(recordWaivedCreditMock).toHaveBeenCalledTimes(1);
-    expect(getRejectedOutcomeCounts()).toEqual({ billable: 0, downgraded: 0 });
+    // The producer keeps its verdict literal; the gate is what turns an
+    // incomplete package into an unavailable, zero-charge call.
+    expect(getRejectedOutcomeCounts()).toEqual({ billable: 0, downgraded: 1 });
     expect(assessProductOutcome(textOf(result)).outcome).toBe('unavailable');
   });
 
@@ -229,7 +233,7 @@ describe('trade_guard prepare_perp_order rejected-evidence chain', () => {
     expect(receipt.status).toBe('waived');
     expect(receipt.costCredits).toBe(0);
     expect(recordWaivedCreditMock).toHaveBeenCalledTimes(1);
-    expect(getRejectedOutcomeCounts()).toEqual({ billable: 0, downgraded: 0 });
+    expect(getRejectedOutcomeCounts()).toEqual({ billable: 0, downgraded: 1 });
   });
 
   it('keeps a Drift failure unavailable even when evidence-shaped fields exist', async () => {
@@ -244,7 +248,7 @@ describe('trade_guard prepare_perp_order rejected-evidence chain', () => {
 
     expect(receipt.status).toBe('waived');
     expect(receipt.costCredits).toBe(0);
-    expect(getRejectedOutcomeCounts()).toEqual({ billable: 0, downgraded: 0 });
+    expect(getRejectedOutcomeCounts()).toEqual({ billable: 0, downgraded: 1 });
   });
 
   it('still downgrades a bare rejected marker without evidence', () => {

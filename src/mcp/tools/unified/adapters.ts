@@ -1025,15 +1025,16 @@ function mapPerpAdapterFailure(toolName: string, venue: string, error: unknown):
       : typeof (error as { code?: unknown })?.code === 'string'
         ? (error as { code: string }).code
         : null;
+  if (code === 'INVALID_INPUT' || code === 'SLIPPAGE_EXCEEDED') {
+    return describeWireFailure('rejected', 'invalid_request', toolName, venue, error);
+  }
   if (code === 'UNSUPPORTED_MARKET' || code === 'MARKET_NOT_FOUND' || code === 'UNSUPPORTED') {
     return describeWireFailure('unavailable', 'market_not_found', toolName, venue, error);
   }
   if (code === 'UPSTREAM_UNAVAILABLE') {
     return describeWireFailure('unavailable', 'upstream_unavailable', toolName, venue, error);
   }
-  // Invalid parameters and rejections whose evidence did not survive fall
-  // closed: no reproducibility package means no billable verdict.
-  return describeWireFailure('unavailable', 'invalid_request', toolName, venue, error);
+  return describeWireFailure('rejected', 'invalid_request', toolName, venue, error);
 }
 
 type PerpOrderVenue = 'synthetix-perps-v3-base' | 'aster-perps-bnb-mainnet' | 'solana_drift';
