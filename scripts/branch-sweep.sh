@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Squash-aware branch sweeper.
+# Rebase-aware branch sweeper.
 #
-# Squash merges break git ancestry, so merged work stays "unmerged" forever and
+# Rebase merges rewrite SHAs, so merged work stays "unmerged" by ancestry and
 # branches pile up. This tool decides, for every branch except the base, whether
 # its work is already accounted for and deletes it when safe:
 #   1. an associated PR was merged (any time)             -> delete

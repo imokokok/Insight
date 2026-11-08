@@ -1,6 +1,6 @@
 name: Branch hygiene
 
-# Squash merges break git ancestry, so merged work stays "unmerged" forever and
+# Rebase merges rewrite SHAs, so merged work stays "unmerged" by ancestry and
 # abandoned branches accumulate. This scheduled sweep deletes branches whose
 # work is provably landed (merged PR, patch-contained commits, identical tree)
 # and reports everything it could not prove, leaving the judgement to a human.

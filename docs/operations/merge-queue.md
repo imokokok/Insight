@@ -25,7 +25,10 @@ without touching the workflows.
    10 minutes as a safety net). It updates the oldest auto-merge-enabled pull
    request that is `behind` the current `main`.
 3. The update triggers the normal pull-request checks on the new head SHA.
-   Auto-merge waits for those checks and only then squash-merges.
+   Auto-merge waits for those checks and only then **rebase-merges**. Branch
+   protection requires linear history, so merge commits are rejected and squash
+   is policy-forbidden. Rebase rewrites the branch's SHAs; the original head is
+   no longer an ancestor of `main` after it lands.
 
 This preserves the property the native queue provides: the tree that lands on
 `main` was tested against the `main` it lands on. A pull request that is already
@@ -68,7 +71,7 @@ merge.
 
 1. Transfer the repository to an organization (public repositories qualify).
 2. Create a branch ruleset for `refs/heads/main` with a `merge_queue` rule
-   (`merge_method: SQUASH`, `grouping_strategy: ALLGREEN`,
+   (`merge_method: REBASE`, `grouping_strategy: ALLGREEN`,
    `min_entries_to_merge: 1`, `min_entries_to_merge_wait_minutes: 0`).
 3. Delete `.github/workflows/merge-train.yml`; the `merge_group` triggers in
    `ci.yml` and `codeql.yml` become active automatically.

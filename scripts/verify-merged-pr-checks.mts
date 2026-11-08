@@ -175,7 +175,7 @@ if (failures.length > 0) {
 }
 
 console.log(
-  `Deploy gate OK: ${deployedSha} is the squash merge of PR #${pull.number}, ` +
+  `Deploy gate OK: ${deployedSha} is the last rebased commit of PR #${pull.number}, ` +
     `whose head ${headSha} passed ${REQUIRED_CHECKS.map((check) => check.name).join(', ')} ` +
     `from ${REQUIRED_CHECKS.map((check) => check.workflowPath).join(', ')}.`
 );

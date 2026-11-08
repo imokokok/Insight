@@ -10,7 +10,7 @@
  * request whose branch is behind `main`. This script restores the missing half:
  * once main advances, it updates the oldest auto-merge-enabled pull request onto
  * the new base. The updated branch triggers the normal required checks and
- * auto-merge only proceeds when they pass, so every squash merge is tested
+ * auto-merge only proceeds when they pass, so every rebase merge is tested
  * against the main it lands on.
  *
  * It deliberately updates at most one pull request per invocation. Runs are
