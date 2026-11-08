@@ -644,12 +644,12 @@ export default function X402QuickstartPage() {
                 <code className="font-mono text-base">trade_proof</code>,{' '}
                 <code className="font-mono text-base">oracle_watch_window</code> and{' '}
                 <code className="font-mono text-base">position_lifecycle</code>, plus 16 deprecated
-                aliases that keep their original metering class until 2027-01-06. Unauthenticated{' '}
+                aliases that are callable at the same price until 2027-01-06. Unauthenticated{' '}
                 <code className="font-mono text-base">tools/call</code> is priced by the tool&apos;s
                 metering class and settles through the same x402 rail. Product prices: Trade Guard
-                is op-priced at $0.002–$0.040 per call ($0.040 is the product price ceiling for the
-                full trade-safety set, not a flat per-call price); Trade Proof is $0.040; Oracle
-                Watch is $0.500 per 24h window; Position Lifecycle is $0.550. With an{' '}
+                is op-priced at $0.002–$0.040 per call ($0.040 is both the trade-safety per-call
+                price and the product ceiling); Trade Proof is $0.040; Oracle Watch is $0.500 per
+                24h window; Position Lifecycle is $0.550. With an{' '}
                 <code className="font-mono text-base">X-API-Key</code>, calls draw from the credit
                 wallet instead. New accounts receive a one-time 400-credit grant after email
                 verification, so an agent can start without a wallet. The MPP pilot at{' '}

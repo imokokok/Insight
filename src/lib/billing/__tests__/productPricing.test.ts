@@ -103,9 +103,9 @@ describe('getMcpToolCreditCost', () => {
     expect(isEntitlementCoveredMcpTool('oracle_watch')).toBe(false);
   });
 
-  it('keeps deprecated aliases on their pre-consolidation tier', () => {
-    // Hard requirement: the compatibility window must not reprice these names
-    // onto the canonical product tier.
+  it('charges deprecated aliases the same price as their canonical product op', () => {
+    // Aliases canonicalize onto the product tool before pricing, so they must
+    // never carry a separate tier of their own.
     expect(getMcpToolCreditCost('get_oracle_price', {})).toBe(CREDIT_COST.C1);
     // C2 comes from the broad get_(feed|oracle)_(health|freshness|uptime|
     // prices_batch) rule, not from a missing explicit rule.
@@ -117,8 +117,7 @@ describe('getMcpToolCreditCost', () => {
     expect(getMcpToolCreditCost('trade_guard', { op: 'price_analytics' })).toBe(CREDIT_COST.C2);
   });
 
-  it('prices canonical trade-safety ops at C4 while their alias spellings stay at C3', () => {
-    // Plan A: the canonical product name is repriced to 40 credits / $0.040.
+  it('prices trade-safety ops at C4 for both canonical and alias spellings', () => {
     for (const op of ['check_safety', 'prepare_swap', 'prepare_perp_order']) {
       expect(getMcpToolCreditCost('trade_guard', { op })).toBe(CREDIT_COST.C4);
       expect(getMcpToolCreditCost('trade_guard', { op })).toBe(40);
@@ -130,31 +129,31 @@ describe('getMcpToolCreditCost', () => {
     expect(getMcpToolCreditCost('trade_guard', { op: 'search_registry' })).toBe(2);
     expect(getMcpToolCreditCost('trade_guard', { op: 'price_analytics' })).toBe(4);
     expect(getMcpToolCreditCost('trade_guard', { op: 'oracle_health' })).toBe(4);
-    // The compatibility window keeps each deprecated spelling on its tier.
+    // Alias spellings share the canonical op price.
     for (const alias of ['check_trade_safety', 'prepare_swap', 'prepare_perp_order']) {
-      expect(getMcpToolCreditCost(alias, {})).toBe(CREDIT_COST.C3);
-      expect(getMcpToolCreditCost(alias, {})).toBe(20);
+      expect(getMcpToolCreditCost(alias, {})).toBe(CREDIT_COST.C4);
+      expect(getMcpToolCreditCost(alias, {})).toBe(40);
     }
-    // Same op, different spelling → different tier. This proves the spelling
-    // branch exists instead of being masked by op-only resolution.
+    // Same op, either spelling → same tier. This guards against a reintroduced
+    // spelling-based billing branch.
     expect(getMcpToolCreditCost('trade_guard', { op: 'check_safety' })).toBe(40);
-    expect(getMcpToolCreditCost('check_trade_safety', { op: 'check_safety' })).toBe(20);
+    expect(getMcpToolCreditCost('check_trade_safety', { op: 'check_safety' })).toBe(40);
     expect(getMcpToolCreditCost('trade_guard', { op: 'prepare_swap' })).toBe(40);
-    expect(getMcpToolCreditCost('prepare_swap', { op: 'prepare_swap' })).toBe(20);
+    expect(getMcpToolCreditCost('prepare_swap', { op: 'prepare_swap' })).toBe(40);
     expect(getMcpToolCreditCost('trade_guard', { op: 'prepare_perp_order' })).toBe(40);
-    expect(getMcpToolCreditCost('prepare_perp_order', { op: 'prepare_perp_order' })).toBe(20);
+    expect(getMcpToolCreditCost('prepare_perp_order', { op: 'prepare_perp_order' })).toBe(40);
   });
 
-  it('keeps every deprecated alias on its original hardcoded tier', () => {
+  it('checks every deprecated alias against its canonical product price', () => {
     const aliasTiers: Record<string, number> = {
       get_oracle_price: 2,
       get_price_analytics: 4,
       get_oracle_health: 4,
       search_oracle_registry: 2,
       get_market_quote: 2,
-      check_trade_safety: 20,
-      prepare_swap: 20,
-      prepare_perp_order: 20,
+      check_trade_safety: 40,
+      prepare_swap: 40,
+      prepare_perp_order: 40,
       begin_trade_evidence: 40,
       issue_execution_receipt: 40,
       verify_evidence: 40,

@@ -220,20 +220,17 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
       isError?: boolean;
       _meta?: Record<string, unknown>;
     }> => {
-      // The single point where the JSON-RPC layer reads the tool name. Pricing
-      // keeps the requested spelling so deprecated aliases retain their own
-      // metering class; every other downstream step (payment scope, audit,
-      // settlement, dispatch) uses the canonical product name and injected op.
-      const requestedName = request.params.name;
-      const requestedArgs = request.params.arguments;
-      const canonical = canonicalizeToolCall(requestedName, requestedArgs);
+      // Canonicalize once at the JSON-RPC boundary: payment scope, audit,
+      // settlement, dispatch and pricing all use the product name and injected
+      // op. Deprecated aliases resolve to the same op, so they share its price.
+      const canonical = canonicalizeToolCall(request.params.name, request.params.arguments);
       const name = canonical.name;
       const args = canonical.args;
       const startTime = Date.now();
       logger.info(`MCP tool called: ${name}`, { args });
 
       const receipt = options.billingReceipt;
-      const listPrice = getMcpToolCreditCharge(requestedName, requestedArgs);
+      const listPrice = getMcpToolCreditCharge(name, args);
 
       // Request-level idempotency only applies to metered API-key calls. A
       // replay inside the 10-minute window is served from the process cache
