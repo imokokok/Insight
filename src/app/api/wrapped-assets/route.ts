@@ -4,12 +4,11 @@ import { z } from 'zod';
 
 import { createApiHandler } from '@/lib/api/handler';
 import { createCachedJsonResponse } from '@/lib/api/utils';
+import { getWrappedAssetSnapshotsCached } from '@/lib/risk/pegSnapshots';
+import { PEG_SNAPSHOT_TTL_SECONDS } from '@/lib/risk/snapshotFreshness';
 import { createLogger } from '@/lib/utils/logger';
 import { WRAPPED_ASSETS } from '@/lib/wrapped-assets/config';
-import {
-  calculateAllWrappedAssetSnapshots,
-  calculateWrappedAssetSnapshot,
-} from '@/lib/wrapped-assets/monitor';
+import { calculateWrappedAssetSnapshot } from '@/lib/wrapped-assets/monitor';
 
 const logger = createLogger('api-wrapped-assets');
 
@@ -49,15 +48,29 @@ export const GET = createApiHandler(
         return NextResponse.json({
           success: true,
           data: snapshot,
+          meta: {
+            asOf: new Date(snapshot.lastUpdated).toISOString(),
+            cacheTtlSeconds: 0,
+          },
         });
       }
 
-      const snapshots = await calculateAllWrappedAssetSnapshots();
+      // Read through the shared Data Cache so this endpoint and the
+      // `/peg-risk` page render reuse one fan-out per three-minute window. The
+      // route keeps an optional-auth middleware, and the handler forces
+      // `private, no-store` whenever one is present, so a CDN preset here would
+      // be silently overwritten — the Data Cache is the layer that actually
+      // carries the reads.
+      const cached = await getWrappedAssetSnapshotsCached();
 
       return createCachedJsonResponse(
         {
           success: true,
-          data: snapshots,
+          data: cached.snapshots,
+          meta: {
+            asOf: cached.asOf,
+            cacheTtlSeconds: PEG_SNAPSHOT_TTL_SECONDS,
+          },
         },
         { preset: 'realtime' }
       );

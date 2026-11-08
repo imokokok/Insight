@@ -4,12 +4,11 @@ import { z } from 'zod';
 
 import { createApiHandler } from '@/lib/api/handler';
 import { createCachedJsonResponse } from '@/lib/api/utils';
+import { getStablecoinSnapshotsCached } from '@/lib/risk/pegSnapshots';
+import { PEG_SNAPSHOT_TTL_SECONDS } from '@/lib/risk/snapshotFreshness';
 import { STABLECOINS } from '@/lib/stablecoins/config';
 import type { StablecoinSymbol } from '@/lib/stablecoins/config';
-import {
-  calculateAllStablecoinSnapshots,
-  calculateStablecoinDepegSnapshot,
-} from '@/lib/stablecoins/monitor';
+import { calculateStablecoinDepegSnapshot } from '@/lib/stablecoins/monitor';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('api-stablecoin-depeg');
@@ -50,15 +49,27 @@ export const GET = createApiHandler(
         return NextResponse.json({
           success: true,
           data: snapshot,
+          meta: {
+            asOf: new Date(snapshot.lastUpdated).toISOString(),
+            cacheTtlSeconds: 0,
+          },
         });
       }
 
-      const snapshots = await calculateAllStablecoinSnapshots();
+      const cached = await getStablecoinSnapshotsCached();
 
       return createCachedJsonResponse(
         {
           success: true,
-          data: snapshots,
+          data: cached.snapshots,
+          meta: {
+            // The handler forces `private, no-store` on this authenticated
+            // route, so the CDN layer never applies. The freshness here is the
+            // shared Data Cache TTL; `asOf` on a repeated read stays put while
+            // the entry is alive.
+            asOf: cached.asOf,
+            cacheTtlSeconds: PEG_SNAPSHOT_TTL_SECONDS,
+          },
         },
         { preset: 'realtime' }
       );
