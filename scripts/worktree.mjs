@@ -81,6 +81,10 @@ const BRANCH_PATTERN = /^wt\/[a-z]+-/;
 const LOCK_TTL_MS = 10 * 60 * 1000;
 const LOCK_WAIT_MS = 120 * 1000;
 const CLAIM_STALE_MS = 6 * 60 * 60 * 1000;
+// Declared before the CLI dispatch: cleanup/create/claim execute synchronously
+// and would otherwise hit the temporal dead zone for these later globals.
+let mergedPrCache = null;
+const claimLandingCache = new Map();
 const HANDOFF_STALE_MS = 60 * 60 * 1000;
 const CI_STUCK_MS = 20 * 60 * 1000;
 const NO_PROGRESS_MS = 60 * 60 * 1000;
@@ -182,6 +186,7 @@ async function createWorktree() {
         console.warn(`worktree: could not fetch origin; using the local "${base}" ref`);
       }
     }
+    releaseLandedClaims();
     const conflicts = findClaimConflicts(slug, paths);
     const unique = findUniqueClaimConflicts(slug, paths);
     if (unique.length > 0) {
@@ -529,19 +534,25 @@ async function cleanupBranches() {
       console.log('  These need a human decision; cleanup never deletes them.');
     }
 
-    const staleClaims = readClaims().filter(
-      (claim) =>
-        !inUse.has(claim.branch) && claimIsStale(claim) && !existsSync(claim.worktree ?? '')
-    );
-    if (staleClaims.length > 0) {
-      console.log('\nStale task claims (worktree gone):');
-      for (const claim of staleClaims) {
+    // Release claims whose work already landed, even when the worktree still
+    // exists. A merged PR must not keep the paths locked until the claim ages
+    // out; the worktree itself is removed separately.
+    const landedClaims = readClaims()
+      .map((claim) => ({ claim, reason: claimLandingReason(claim, mergedPrs) }))
+      .filter(({ reason }) => reason);
+    if (landedClaims.length > 0) {
+      console.log('\nReclaimable task claims (work already on main):');
+      for (const { claim, reason } of landedClaims) {
         console.log(
-          `  ${claim.slug}  ${claim.session}  ${claim.paths?.join(', ') ?? '(no paths)'}`
+          `  ${claim.slug}  ${claim.session}  ${reason}  ${claim.paths?.join(', ') ?? '(no paths)'}`
         );
+        if (existsSync(claim.worktree ?? '')) {
+          console.log('    worktree still exists; run `npm run wt -- remove` to free disk');
+        }
         if (apply) removeClaim(claim.slug);
       }
-      if (apply) console.log('  released stale claims');
+      if (apply) console.log('  released reclaimable claims');
+      else console.log('  Run with --apply to release them.');
     }
 
     // A directory under the managed root that git does not list as a worktree is
@@ -585,16 +596,33 @@ async function cleanupBranches() {
 // A branch is safe to delete only when main provably holds its content:
 //  1. its tip is an ancestor of main (merge/fast-forward), or
 //  2. it has no unique commits, or
-//  3. its tree is byte-identical to main (covers squash merges), or
-//  4. GitHub reports a merged PR for that head ref (squash merge + later commits).
+//  3. its tree is byte-identical to main, or
+//  4. GitHub reports a merged PR for that head ref whose merge happened after
+//     the branch tip (rebase merges rewrite SHAs, so ancestry cannot prove it).
 // Anything else is reported as unmerged and never deleted.
 function classifyBranch(name, head, mergedPrs) {
   if (isAncestorOf(name, head)) return { merged: true, reason: 'merged-into-main' };
   const ahead = commitsAhead(name, head);
   if (ahead === 0) return { merged: true, reason: 'no-unique-commits' };
   if (treesEqual(name, head)) return { merged: true, reason: 'content-identical-to-main' };
-  if (mergedPrs.has(name)) return { merged: true, reason: 'pr-merged', ahead };
+  const mergedAt = mergedPrs.get(name);
+  if (mergedAt) {
+    // A re-created branch reuses the same name. Its tip is newer than the old
+    // PR's merge time, so a stale merged-PR entry must not delete new work.
+    const tipEpoch = branchTipEpoch(name);
+    if (Number.isFinite(tipEpoch) && tipEpoch <= Date.parse(mergedAt) + 5000) {
+      return { merged: true, reason: 'pr-merged', ahead };
+    }
+  }
   return { merged: false, reason: 'unmerged', ahead };
+}
+
+function branchTipEpoch(name) {
+  try {
+    return Number(git(['log', '-1', '--format=%ct', name]).trim()) * 1000;
+  } catch {
+    return Number.NaN;
+  }
 }
 
 function readBranchRefs() {
@@ -647,19 +675,19 @@ function fetchMergedPrHeads() {
   try {
     const json = execFileSync(
       'gh',
-      ['pr', 'list', '--state', 'merged', '--json', 'headRefName', '--limit', '300'],
+      ['pr', 'list', '--state', 'merged', '--json', 'headRefName,mergedAt', '--limit', '300'],
       { cwd: primaryWorktree().path, encoding: 'utf8' }
     );
-    return new Set(
+    return new Map(
       JSON.parse(json)
-        .map((pull) => pull.headRefName)
-        .filter(Boolean)
+        .filter((pull) => pull.headRefName && pull.mergedAt)
+        .map((pull) => [pull.headRefName, pull.mergedAt])
     );
   } catch {
     console.warn(
-      'worktree: gh is unavailable; squash-merged branches are detected by tree comparison only'
+      'worktree: gh is unavailable; rebase-merged branches are detected by tree comparison only'
     );
-    return new Set();
+    return new Map();
   }
 }
 
@@ -668,6 +696,7 @@ async function updateClaim() {
   return withLock('claim', async () => {
     const current = readClaims().find((claim) => claim.slug === slug);
     if (!current) throw new Error(`no claim for "${slug}"; run create first`);
+    releaseLandedClaims({ excludeSlug: slug });
     const paths = option('paths') ? splitPaths(option('paths')) : (current.paths ?? []);
     const conflicts = findClaimConflicts(slug, paths);
     const unique = findUniqueClaimConflicts(slug, paths);
@@ -1620,7 +1649,7 @@ let autoMergeEnabled = true;
 function enableAutoMerge(pr) {
   if (pr.state === 'MERGED' || pr.state === 'CLOSED') return;
   try {
-    execFileSync('gh', ['pr', 'merge', String(pr.number), '--squash', '--auto'], {
+    execFileSync('gh', ['pr', 'merge', String(pr.number), '--rebase', '--auto'], {
       stdio: 'inherit',
       cwd: primaryWorktree().path,
     });
@@ -1703,17 +1732,19 @@ async function waitForMerge(branch) {
       return { status: 'ci-red' };
     }
     // Behind main with required up-to-date checks can never self-heal: ask for a rebase.
-    // With strict=false GitHub merges the PR as-is, so BEHIND is not fatal.
+    // With strict=true a BEHIND PR cannot merge; the merge train updates it.
+    // A DIRTY PR is different: it has a real conflict and needs a rebase.
     behindPolls = upToDateRequired && pr.mergeStateStatus === 'BEHIND' ? behindPolls + 1 : 0;
     if (behindPolls >= 3) {
       console.warn(`worktree: PR for ${branch} stayed BEHIND for ~60s; it needs a rebase`);
       return { status: 'behind' };
     }
     // Repos without native auto-merge (or with it disabled) still get a
-    // one-shot squash merge once checks are clean.
+    // one-shot rebase merge once checks are clean. Branch protection requires a
+    // linear history, so merge commits are rejected; squash is policy-forbidden.
     if (!autoMergeEnabled && !hasPendingChecks(pr.statusCheckRollup)) {
       try {
-        execFileSync('gh', ['pr', 'merge', String(pr.number), '--squash'], {
+        execFileSync('gh', ['pr', 'merge', String(pr.number), '--rebase'], {
           stdio: 'inherit',
           cwd: primaryWorktree().path,
         });
@@ -2803,7 +2834,62 @@ function claimIsStale(claim) {
   return Date.now() - updatedAt > CLAIM_STALE_MS;
 }
 
-function claimIsActive(claim) {
+function mergedPrHeads() {
+  if (!mergedPrCache) mergedPrCache = fetchMergedPrHeads();
+  return mergedPrCache;
+}
+
+// A claim can be released as soon as its work has landed on the merge target.
+// Without this, a merged PR keeps blocking the exact paths it touched until the
+// claim goes stale, which forced manual --override in multi-session runs.
+//
+// Rebase merges rewrite SHAs, so a merged PR is the only landing proof that is
+// safe for a live claim. Ancestry, tree equality and an empty commit range also
+// describe a brand-new zero-commit branch, so they count only once the worktree
+// is gone and the claim is stale.
+function claimLandingReason(claim, mergedPrs = mergedPrHeads()) {
+  if (!claim.branch) return null;
+  const key = `${claim.branch}|${claim.updatedAt ?? ''}`;
+  if (claimLandingCache.has(key)) return claimLandingCache.get(key);
+
+  let reason = null;
+  const stale = claimIsStale(claim);
+  const live = listWorktrees().some((worktree) => worktree.branch === claim.branch);
+  if (!branchExists(claim.branch)) {
+    if (mergedPrs.has(claim.branch)) reason = 'branch-gone-pr-merged';
+    else if (stale) reason = 'branch-gone-stale-claim';
+  } else {
+    const verdict = classifyBranch(claim.branch, DEFAULT_BASE, mergedPrs);
+    // A zero-commit branch has the same tree as main and may be an ancestor of
+    // main, and a brand-new worktree can look "content-identical" before any
+    // work starts. Only a merged PR proves a live task is finished; tree/range
+    // proofs are safe once the worktree is gone and the claim is stale.
+    const proofIsSafe = verdict.reason === 'pr-merged' || (!live && stale);
+    if (verdict.merged && proofIsSafe) reason = verdict.reason;
+  }
+
+  claimLandingCache.set(key, reason);
+  return reason;
+}
+
+// Called by create/claim before conflict detection and by cleanup, so a
+// finished task never needs --override. Writes are atomic and idempotent.
+function releaseLandedClaims({ excludeSlug = null } = {}) {
+  const released = [];
+  const mergedPrs = mergedPrHeads();
+  for (const claim of readClaims()) {
+    if (claim.slug === excludeSlug) continue;
+    const reason = claimLandingReason(claim, mergedPrs);
+    if (!reason) continue;
+    removeClaim(claim.slug);
+    released.push({ claim, reason });
+    console.log(`worktree: released claim ${claim.slug} (${reason})`);
+  }
+  return released;
+}
+
+function claimIsActive(claim, mergedPrs = mergedPrHeads()) {
+  if (claimLandingReason(claim, mergedPrs)) return false;
   const live = listWorktrees().some((worktree) => worktree.branch === claim.branch);
   return live || !claimIsStale(claim);
 }

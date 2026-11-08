@@ -77,11 +77,16 @@ npm run wt -- ship <slug> --message "feat: subject"
 ```
 
 `ship` commits the worktree, pushes `HEAD` to `origin`, opens a PR, enables
-auto-merge (squash), waits for the merge, then deletes the remote branch, the
+**rebase-only** auto-merge, waits for the merge, then deletes the remote branch, the
 local branch and the worktree. If the PR is not merged, it stops, keeps the
 worktree, writes a blocked `.handoff.local`, and prints the only allowed
 recovery: rebase **this branch** inside **this worktree**. It never stashes and
 never touches another checkout.
+
+Branch protection requires a linear history, so `gh pr merge --merge` is
+rejected and squash is policy-forbidden. A rebase merge rewrites every commit
+SHA: the branch tip is **not** an ancestor of `main` afterwards. Use the
+`pr-merged` proof below, not ancestor checks, to decide that a branch landed.
 
 | Outcome                                   | `ship` behaviour                                     | Elapsed (measured) |
 | ----------------------------------------- | ---------------------------------------------------- | ------------------ |
@@ -89,8 +94,7 @@ never touches another checkout.
 | Required check failed                     | exits 1 as soon as CI settles red                    | ~2 s               |
 | PR closed without merging                 | exits 1, worktree kept                               | immediate          |
 | BEHIND + `strict` branch protection       | exits 1 after ~60 s, asks for a rebase               | ~60 s              |
-| BEHIND + `strict=false` (this repo)       | keeps waiting; GitHub merges without a rebase        | normal merge       |
-| Merged                                    | removes worktree, deletes local/remote branch, claim | —                  |
+| Merged (rebase)                           | removes worktree, deletes local/remote branch, claim | —                  |
 
 Two sessions may ship the same task concurrently: `ship` re-checks the worktree
 inside the repo lock and treats an already-finished task as success (exit 0), so
@@ -105,10 +109,11 @@ npm run wt -- remove <slug> [--delete-branch]
 `remove` refuses to delete a worktree with uncommitted changes unless `--force`
 is passed, and `--delete-branch` only runs after the worktree is gone.
 
-## Cleanup after squash merges
+## Cleanup after rebase merges
 
-Squash merging creates a commit on `main` that is **not** an ancestor of the
-task branch, so the classic checks are wrong here:
+This repository rebase-merges. Rebase applies each commit onto a new base, so
+every SHA is rewritten and the original branch tip is **not** an ancestor of
+`main`. The classic checks are therefore wrong here:
 
 ```text
 git merge-base --is-ancestor <branch> origin/main   -> exit 1
@@ -116,28 +121,33 @@ git branch --merged origin/main                     -> no match
 git rev-list --count origin/main..<branch>          -> > 0
 ```
 
-Measured on this repository (`chore/fast-local-checks-2`, PR #414):
-
-```text
-merge-base --is-ancestor  exit=1
-branch --merged           (no output)
-rev-list --count          1
-gh pr list --state merged headRefName=chore/fast-local-checks-2  -> merged
-```
-
-`cleanup` therefore accepts a branch only when one of these holds, in order:
+The PR itself is still marked merged, and GitHub records the last rebased
+commit as `mergeCommit`. `cleanup` therefore accepts a branch only when one of
+these holds, in order:
 
 1. `merged-into-main` — tip is an ancestor of `origin/main`;
 2. `no-unique-commits` — `rev-list --count origin/main..<branch>` is 0;
 3. `content-identical-to-main` — `git diff --quiet origin/main <branch>` is
-   clean, i.e. the tree is byte-identical (covers a squash with no later
+   clean, i.e. the tree is byte-identical (covers a rebase with no later
    commits);
-4. `pr-merged` — `gh pr list --state merged` reports the head ref (covers a
-   squash plus later commits that changed `main`).
+4. `pr-merged` — `gh pr list --state merged` reports the head ref **and** the
+   branch tip is not newer than the PR's `mergedAt` (covers a rebase plus later
+   commits that changed `main`, while refusing a freshly re-created branch that
+   reused an old name).
 
 Anything else is `unmerged` and is **never** deleted, even with `--apply`. The
 tool only deletes branches matching `wt/<type>-*`; any branch checked out by a
 worktree is kept.
+
+Claims follow the same proofs. `create` and `claim` call `releaseLandedClaims()`
+before conflict detection, and `cleanup` reports (with `--apply`, releases)
+claims whose work has landed **even while the worktree still exists**. A merged
+PR no longer blocks the paths it touched, so `--override` is not needed for a
+finished task; the remaining worktree is removed with `remove`.
+
+> Historical note: the measurements below were collected when the repository
+> used squash merges. The classification proofs did not change; `pr-merged`
+> now covers rebase merges and additionally checks the merge timestamp.
 
 ### Hand-named branches are report-only
 
@@ -179,8 +189,13 @@ and `claim` refuse a task whose paths overlap an active claim:
   `src/*.ts` intersects `src/a.ts` and `src/app/api/cron/*` intersects
   `src/app/api/cron/route.ts`; unrelated files do not intersect;
 - active means "its branch is still checked out, or the claim is younger than 6
-  hours"; stale orphan claims are reported and released by
-  `cleanup --apply`;
+  hours", **minus** claims whose work is proven landed. For a live claim the
+  proof is a merged PR; ancestry, tree equality and an empty commit range count
+  only after the worktree is gone and the claim is stale (a zero-commit branch
+  would otherwise look finished). `create`, `claim` and `cleanup --apply`
+  release landed claims automatically; stale orphan claims are released too;
+- a merged PR never requires `--override`: if an old claim still blocks a path,
+  re-run `create` (it releases the landed claim) or `cleanup --apply`;
 - `--override` is the explicit escape hatch after coordinating with the owner;
   use it deliberately, not to silence the check.
 
@@ -395,17 +410,19 @@ hunk-a  wt/feat-hunk-a-harnes  #209  pending:1  !ci-stuck  31m       CI has not 
 hunk-c  wt/feat-hunk-c-harnes  #211  pending:1  !blocked   just now  PR #209 edits the same lines in src/shared.ts; merge it first
 ```
 
-This repository's branch protection (`strict=false`, required `validate`,
-`smoke`, `analyze`, linear history) means a PR does **not** need to be up to
-date before merging. GitHub's merge queue is not enabled (`mergeQueue: null`).
-The practical order is therefore:
+This repository's branch protection (`strict=true`, required `validate`,
+`smoke`, `analyze`, linear history) requires a PR to be up to date before
+merging. GitHub's merge queue is not enabled (`mergeQueue: null`). The practical
+order is therefore:
 
 1. merge the oldest green PR first (`queue` sorts by creation time);
-2. a PR that is green but BEHIND still auto-merges; no rebase is required;
+2. a PR that is green but BEHIND must be rebased onto `origin/main` before it
+   can merge; `ship` exits after ~60 s with `behind` instead of waiting forever;
 3. a PR with red required checks must be fixed by its owner before later PRs
    merge — otherwise `main` accumulates red;
-4. if `strict` is ever turned on, the later PR rebases **its own** branch in
-   **its own** worktree; never rebase another session's branch.
+4. each session rebases **its own** branch in **its own** worktree; never
+   rebase another session's branch. Rebase rewrites SHAs, so never force-push a
+   branch another session owns.
 
 ## Failure, handoff and takeover
 
@@ -494,7 +511,7 @@ and `resume` now honour the same flag.
   by default. With `--apply` it deletes only `wt/<type>-*` branches that are
   provably on `main` (ancestor, no unique commits, identical tree, or a merged
   PR) and are not checked out anywhere. Unmerged branches and every hand-named
-  branch are reported, never removed. See “Cleanup after squash merges”.
+  branch are reported, never removed. See “Cleanup after rebase merges”.
 - **Before a long pause or handoff:** write `npm run wt -- handoff <slug>
 --next "..." --verify "..."`. Never leave a half-done task without
   `.handoff.local`; any session may then run `npm run wt -- resume <slug>`.
@@ -558,23 +575,25 @@ them, and the single surviving commit carried all three agents' files.
 ## Measured effect (orchestration harness, 2026-11-06)
 
 A local bare remote plus a deterministic `gh` stub ran 22 assertions covering
-claims, concurrency, squash cleanup, failure paths and takeover. All 22 passed
+claims, concurrency, SHA-rewriting merge cleanup, failure paths and takeover.
+All 22 passed
 in ~60 s (two consecutive runs, same results):
 
-| Scenario                                       | Result                                                            |
-| ---------------------------------------------- | ----------------------------------------------------------------- |
-| Squash + later `main` commits → cleanup        | deleted, reason `pr-merged`                                       |
-| Squash with identical tree → cleanup           | deleted, reason `content-identical-to-main`                       |
-| Branch with unique content → cleanup `--apply` | kept, reason `unmerged`                                           |
-| 4 concurrent `create` on the same path         | 1 accepted, 3 refused before creating anything                    |
-| Same slug in 2 sessions                        | 2 isolated worktrees, 2 branches                                  |
-| `ship` with DIRTY PR                           | exit 1 in 2–3 s, worktree + blocked handoff kept                  |
-| `ship` with red required checks                | exit 1 in ~2 s, handoff says “CI failed”                          |
-| Two concurrent `ship` of one task              | both exit 0, one merge, worktree gone                             |
-| Re-create an existing task                     | reuses the worktree, no duplicate branch                          |
-| Kill → `resume` in another session → `ship`    | merged, cleaned up                                                |
-| Hand-named merged branch + `cleanup --apply`   | survives, listed as report-only                                   |
-| Final residue                                  | 0 worktrees, 0 `wt/*` branches, 0 claims, 0 lock, 0 stash entries |
+| Scenario                                             | Result                                                            |
+| ---------------------------------------------------- | ----------------------------------------------------------------- |
+| SHA-rewritten merge + later `main` commits → cleanup | deleted, reason `pr-merged`                                       |
+| SHA-rewritten merge with identical tree → cleanup    | deleted, reason `content-identical-to-main`                       |
+| Merged PR still holding a claim → next `create`      | claim released automatically; no `--override` needed              |
+| Branch with unique content → cleanup `--apply`       | kept, reason `unmerged`                                           |
+| 4 concurrent `create` on the same path               | 1 accepted, 3 refused before creating anything                    |
+| Same slug in 2 sessions                              | 2 isolated worktrees, 2 branches                                  |
+| `ship` with DIRTY PR                                 | exit 1 in 2–3 s, worktree + blocked handoff kept                  |
+| `ship` with red required checks                      | exit 1 in ~2 s, handoff says “CI failed”                          |
+| Two concurrent `ship` of one task                    | both exit 0, one merge, worktree gone                             |
+| Re-create an existing task                           | reuses the worktree, no duplicate branch                          |
+| Kill → `resume` in another session → `ship`          | merged, cleaned up                                                |
+| Hand-named merged branch + `cleanup --apply`         | survives, listed as report-only                                   |
+| Final residue                                        | 0 worktrees, 0 `wt/*` branches, 0 claims, 0 lock, 0 stash entries |
 
 ## Measured effect (hardening harness, 2026-11-06)
 

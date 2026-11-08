@@ -55,17 +55,40 @@ npm run wt -- cleanup                                 # merged agent branches on
 - Build caches (`.next`, `*.tsbuildinfo`, `.eslintcache`) are isolated because
   each worktree is its own directory. The pre-commit hook runs
   `lint-staged --no-stash` so commits never touch the shared stash stack.
-- This repository squash-merges, so `git branch --merged` and ancestor checks
-  are not reliable. `cleanup` also accepts an identical tree or a merged PR head,
-  and never deletes a branch whose content differs from `main`. Hand-named
-  branches (`perf/*`, `feat/*`, `dependabot/*`, …) are report-only. Pass
-  `--base <ref>` to `cleanup`/`resume` when the default branch is not
-  `origin/main`. `cleanup` reports orphan directories under the managed root
-  with their size, and `remove`/`ship` fail loudly (keeping the branch/claim)
-  if the directory still exists after removal.
-- Merge order: oldest green PR first. `strict=false`, so a BEHIND PR still
-  auto-merges. A PR with red required checks is fixed by its owner before later
-  PRs merge; if `strict` is enabled, rebase only your own branch.
+- Claims are released automatically as soon as their work lands on `origin/main`:
+  `create` and `claim` call `releaseLandedClaims()` before conflict detection,
+  and `cleanup` reports (and with `--apply` releases) claims whose PR is merged
+  even while the worktree still exists. A merged PR must never require
+  `--override` to unblock the paths it touched. A live claim is released only
+  when GitHub reports a merged PR whose merge time is newer than the branch tip
+  (required for rebase merges); ancestry, tree equality and an empty commit
+  range also describe a brand-new zero-commit branch, so they count only after
+  the worktree is gone and the claim is stale.
+- This repository **rebase-merges, never squashes**. Branch protection requires
+  a linear history, so `gh pr merge --merge` is rejected and squash is policy-
+  forbidden; `ship` and `waitForMerge` use `--rebase`. Rebase rewrites every
+  commit SHA: the original head SHA is not an ancestor of `main` after merge.
+  Use `cleanup`'s `pr-merged`/`content-identical-to-main` reasons, not
+  `git branch --merged` or `merge-base --is-ancestor`, to prove a branch landed.
+  `cleanup` also accepts an identical tree or a merged PR head, and never
+  deletes a branch whose content differs from `main`. Hand-named branches
+  (`perf/*`, `feat/*`, `dependabot/*`, …) are report-only. Pass `--base <ref>`
+  to `cleanup`/`resume` when the default branch is not `origin/main`. `cleanup`
+  reports orphan directories under the managed root with their size, and
+  `remove`/`ship` fail loudly (keeping the branch/claim) if the directory still
+  exists after removal.
+- Merge order: oldest green PR first. `strict=true` (require branches to be up
+  to date), so a BEHIND PR must be rebased before it can merge; never merge more
+  than one PR at a time. A PR with red required checks is fixed by its owner
+  before later PRs merge; rebase only your own branch.
+- Migration numbers are a single global sequence: four digits, one file per
+  number, no reuse. `scripts/tests/migration-numbers.test.mts` fails on a
+  duplicate or a **new** hole inside the committed range; 0076 is the only
+  documented historical gap. Before applying or writing migrations, run
+  `node --import tsx scripts/check-migration-drift.mts --linked` and reconcile
+  both directions: ledger AHEAD means the database has versions the repository
+  cannot see, ledger BEHIND means code would ship against a missing schema.
+  Details: `docs/operations/migration-ledger.md`.
 - Before a long pause or when handing off: `npm run wt -- handoff <slug>
 --next "..." --verify "..."`. Any session may take over with
   `npm run wt -- resume <slug>`.
@@ -76,6 +99,36 @@ npm run wt -- cleanup                                 # merged agent branches on
   session's branch or discard its uncommitted files.
 
 Full rules and troubleshooting: `docs/operations/parallel-agent-worktrees.md`.
+
+## Measurement provenance
+
+- Any capacity, row-count or byte-size number written into code comments, docs,
+  PR descriptions or reports must say where it came from and when: a query
+  (`count(*)`, `pg_database_size()`, `pg_total_relation_size()`,
+  `pgstatindex`/`pgstattuple`, `EXPLAIN (ANALYZE, BUFFERS)`), or an explicit
+  estimate.
+- Estimates must be labelled as estimates (`estimate`/`推算`) and state the
+  inputs and assumptions. Never present an extrapolation (for example
+  "archive adds 20–25 MB per archived day", "the database will fall back to X",
+  "hourly steady state is 300 MB") as an observed measurement.
+- A value with no source must be treated as unknown, not as a baseline. When a
+  previously published figure turns out to be an estimate, correct it in a
+  dated change record rather than silently editing it.
+- Details and query templates: `docs/operations/measurement-and-cleanup-evidence.md`.
+
+## Cleanup and retention changes
+
+- Every new or changed cleanup step must be able to prove its real impact:
+  record the affected row count from `DELETE ... RETURNING`/`GET DIAGNOSTICS`,
+  or the before/after `pg_stat_user_tables.n_tup_del` delta, plus the scheduled
+  run result. "It ran without error" is not evidence that it deleted anything.
+- Deleting zero rows is ambiguous. Distinguish **no data** from **failure**:
+  compare the predicate's `count(*)` with the measured deleted count; if due
+  rows exist but the delta is zero, inspect `cron.job`, `cron.job_run_details`
+  (`status`, `return_message`) and lock/permission errors before calling it a
+  success. A retention-window change (for example 90 → 120 days) must update
+  the rule, the verification query and the evidence in the same change.
+- Details and SQL templates: `docs/operations/measurement-and-cleanup-evidence.md`.
 
 ## Local Node.js version
 
