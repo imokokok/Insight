@@ -265,6 +265,18 @@ export async function prepareBasePerpOrderEnvelope(
     referencePrice: quote.referencePriceUsd,
     maxSlippageBps: request.maxSlippageBps,
     limitPrice: request.limitPrice,
+    rejectionContext: {
+      input_digest: perpOrderIntentHash({ schema: BASE_PERP_ORDER_SCHEMA, request: rawRequest }),
+      data_sources: [
+        {
+          source: 'insight-cross-oracle-consensus',
+          observedAt: quote.observedAt,
+          sourceFreshnessSeconds: quote.sourceFreshnessSeconds,
+          participantCount: quote.participantCount,
+        },
+      ],
+      risk_ruleset_version: `${BASE_PERP_ORDER_SCHEMA}/slippage-cap`,
+    },
   });
   const acceptablePrice = priceToUnits18(bounded.acceptablePrice, 'acceptablePrice');
   const sizeDelta = request.side === 'long' ? quantityUnits : -quantityUnits;

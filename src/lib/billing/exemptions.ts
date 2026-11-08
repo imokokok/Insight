@@ -89,6 +89,19 @@ export const REJECTED_EVIDENCE_ITEMS = [
 
 export type RejectedEvidenceItem = (typeof REJECTED_EVIDENCE_ITEMS)[number];
 
+/**
+ * Producer-side shape of a rejected verdict's reproducibility package. The
+ * billing gate still judges it with `missingRejectedEvidenceItems`; this type
+ * only keeps the producing layers honest about which fields they must supply.
+ */
+export type RejectedVerdictEvidence = {
+  reason_code: string;
+  input_digest: string;
+  triggered_threshold: Record<string, unknown>;
+  data_sources: Array<Record<string, unknown>>;
+  risk_ruleset_version: string;
+};
+
 const REJECTED_EVIDENCE_ALIASES: Readonly<Record<RejectedEvidenceItem, readonly string[]>> = {
   reason_code: ['reason_code', 'reasonCode'],
   input_digest: ['input_digest', 'inputDigest'],

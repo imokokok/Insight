@@ -31,6 +31,7 @@ import {
   preTradeSafetyCheck,
   type PreTradeSafetyResult,
 } from '@/lib/api/services/preTradeSafetyService';
+import type { RejectedVerdictEvidence } from '@/lib/billing/exemptions';
 
 import {
   REVIEWED_SOLANA_SWAP_PROFILES,
@@ -272,6 +273,11 @@ export interface SolanaJupiterSwapGuardResult {
   } | null;
   reasons: string[];
   riskVerdictRef: SolanaJupiterSwapRiskVerdictRef;
+  /**
+   * Reproducibility package for a rejected verdict. `null` for approved and
+   * unavailable outcomes, which are not billed as refusals.
+   */
+  evidence: RejectedVerdictEvidence | null;
   next: {
     execution: 'not_performed';
     priorSeal: string;
@@ -458,6 +464,51 @@ function routeDigest(input: SolanaJupiterSwapGuardInput): `0x${string}` {
   );
 }
 
+function rejectedEvidence(args: {
+  input: SolanaJupiterSwapGuardInput;
+  policy: SolanaJupiterSwapGuardResult['policy'];
+  metrics: SolanaJupiterSwapGuardMetrics;
+  reasons: string[];
+  oracleChecks: SolanaJupiterSwapGuardResult['oracleChecks'];
+  quoteDigest: `0x${string}` | null;
+}): RejectedVerdictEvidence {
+  const rules = [
+    ...new Set(args.reasons.map((reason) => reason.split(':')[0]?.trim()).filter(Boolean)),
+  ] as string[];
+  const oracleSources = args.oracleChecks
+    ? [
+        { source: 'pre-trade-oracle:source', ...args.oracleChecks.source },
+        { source: 'pre-trade-oracle:destination', ...args.oracleChecks.destination },
+      ]
+    : [];
+  return {
+    reason_code: rules[0] ?? 'POLICY_REJECTION',
+    input_digest: args.quoteDigest ?? sha256(JSON.stringify(args.input)),
+    triggered_threshold: {
+      rules,
+      maxSlippageBps: args.policy.maxSlippageBps,
+      slippageBps: args.input.slippageBps,
+      maxPriceImpactPct: args.policy.maxPriceImpactPct,
+      priceImpactPct: args.input.priceImpactPct,
+      maxRouteSteps: args.policy.maxRouteSteps,
+      routeSteps: args.input.routePlan.length,
+      maxQuoteAgeSeconds: args.policy.maxQuoteAgeSeconds,
+      quoteAgeSeconds: args.metrics.quoteAgeSeconds,
+    },
+    data_sources: [
+      {
+        source: 'jupiter-quote-and-route-plan',
+        quoteDigest: args.quoteDigest,
+        contextSlot: args.input.quoteContextSlot,
+        quotedAt: args.input.quotedAt,
+        reviewedPools: args.metrics.reviewedPools,
+      },
+      ...oracleSources,
+    ],
+    risk_ruleset_version: SOLANA_JUPITER_SWAP_GUARD_RULE_SET,
+  };
+}
+
 function buildResult(args: {
   input: SolanaJupiterSwapGuardInput | null;
   policy: SolanaJupiterSwapGuardResult['policy'];
@@ -471,6 +522,17 @@ function buildResult(args: {
   quoteDigest: `0x${string}` | null;
 }): SolanaJupiterSwapGuardResult {
   const { productOutcome, chargeable, executable } = outcomeFor(args.verdict, args.status);
+  const evidence =
+    productOutcome === 'rejected' && args.input
+      ? rejectedEvidence({
+          input: args.input,
+          policy: args.policy,
+          metrics: args.metrics,
+          reasons: args.reasons,
+          oracleChecks: args.oracleChecks,
+          quoteDigest: args.quoteDigest,
+        })
+      : null;
   const riskVerdictRef: SolanaJupiterSwapRiskVerdictRef = {
     source: 'solana_jupiter_swap_guard',
     schema: SOLANA_JUPITER_SWAP_GUARD_SCHEMA,
@@ -505,6 +567,7 @@ function buildResult(args: {
     oracleChecks: args.oracleChecks,
     reasons: args.reasons,
     riskVerdictRef,
+    evidence,
     next: {
       execution: 'not_performed',
       priorSeal:

@@ -211,6 +211,18 @@ export async function prepareBnbPerpOrderEnvelope(
     referencePrice: venueState.markPrice,
     maxSlippageBps: request.maxSlippageBps,
     limitPrice: request.limitPrice,
+    rejectionContext: {
+      input_digest: perpOrderIntentHash({ schema: BNB_PERP_ORDER_SCHEMA, request: rawRequest }),
+      data_sources: [
+        {
+          source: 'aster-fapi-mark-price',
+          symbol: venueState.symbol,
+          observedAt: venueState.observedAt,
+          sourceFreshnessSeconds: venueState.sourceFreshnessSeconds,
+        },
+      ],
+      risk_ruleset_version: `${BNB_PERP_ORDER_SCHEMA}/slippage-cap`,
+    },
   });
 
   const notionalUsd = Number(quantityText) * bounded.referencePrice;

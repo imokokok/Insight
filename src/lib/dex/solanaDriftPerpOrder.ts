@@ -63,6 +63,8 @@ export type SolanaDriftPerpOrderErrorCode =
 export class SolanaDriftPerpOrderError extends Error {
   readonly code: SolanaDriftPerpOrderErrorCode;
   readonly detail: string | null;
+  /** Drift failures are coverage/parameter/upstream gaps, never formed verdicts. */
+  readonly outcome = 'unavailable' as const;
 
   constructor(code: SolanaDriftPerpOrderErrorCode, message: string, detail: string | null = null) {
     super(message);
