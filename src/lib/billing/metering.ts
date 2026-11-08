@@ -106,6 +106,10 @@ const ENDPOINT_RULES: Array<[RegExp, MeteringClass]> = [
   // C3 — agent gates.
   [/\/safety\//, 'C3'],
   [/\/oracle-watch/, 'C3'],
+  // Settlement-evidence grading gates a release decision and is sold on the
+  // x402 rail at $0.02 (C3). Without this rule the path matched no endpoint
+  // rule and fell through to the C1 default, pricing the same call at $0.002.
+  [/\/settlement-evidence(?:\/|$)/, 'C3'],
 
   // C2 — deep analysis. Next.js route paths have NO trailing slash
   // (`/api/v1/deviation`), so each rule must match a keyword followed by
