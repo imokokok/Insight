@@ -3,6 +3,7 @@
 状态：目标架构（非探索方向）。全部账号按 **Free / Hobby** 档规划。
 存储只有三样：**Supabase、Turso、Cloudflare D1（PriorSeal 侧）**。**R2 已取消，不引入**（用户决定），本文不保留任何 R2 待办。
 2026-11-08 架构核对的定论集中在 §9–§11（七项明确不做、ACK 压缩语义、保留期与清理、迁移收敛）；旧章节若与这三节冲突，以 §9–§11 为准。
+2026-11-08 采集断档事故（14 slot 永久丢失）与已落地缓解见 §12；§9.1 第 1、7 项（CF 派发时钟）进入待重新裁决状态。
 约束：不 push、不 `--no-verify`、不 deploy、不改生产环境变量、不对生产库写入；
 C1–C4 档位基数与地板数值、运行时判词字面量均不在本计划改动范围内。
 
@@ -414,3 +415,20 @@ ACK payload 读取方审计（阈值保持 30 天；`7` 只作为假设上限）
 - **现已收敛**：PR #514 合入后，main 顶点为 `07da78c67a8c4db709f339924af43aefa9c9ff06`；`supabase/migrations` 连续包含 `0130`–`0136`、无重复编号，与生产 `schema_migrations` 的登记一致。
 - **重建风险**：若从更早的 main 重建环境，会缺 0133–0136 的效果——日清仍是 18 个、归档仍每天 19:07 单次且无追赶、`0135` 的活跃客户端护栏与 `0136` 的 21:07 时段都不存在，等于把已经修好的启动竞争与积压问题重新引入。
 - **规则**：任何环境重建必须按序应用 `0130`–`0136`；文档基线一律以 main 版为准，不以某个旧工作区或旧分支为准。
+
+## 12. 2026-11-08 采集断档事故与缓解（0142）
+
+**事故**：2026-11-08 UTC 14:45–17:45，采集连续 14 个 slot 未产出。Turso 无这些 slot（非待投影欠账），Supabase receipt 账本同窗口无行——原始价格证据永久缺失，投影无法补。当日 pg_cron `job startup timeout` 90 次（10 个 job），全部集中在该日；`max_worker_processes=6` 未变（0141 只减启动次数）。近 7 天 receipt 断档 6 次（最长 10 小时）。
+
+**监控双盲区（均已实证）**：
+
+1. readiness `tursoRawCapture` 只看最新 slot 年龄（≤45 min），测不到"已结束的采集死亡窗口"——事故期间报 ok。
+2. `Turso Control Plane Alert` 用 GitHub native `schedule:`，实测 2 天只跑 8 次（应为 96/48 次），事故全程零 issue。native cron 的不可靠正是 cron-dispatcher.md 用 Supabase 派发绕开的同一个坑。
+
+**已落地的缓解（0142 + readiness 路由）**：
+
+- readiness 新增 `captureContinuity` 检查：对最近 8 个 15 分钟网格 slot 比对 receipt 账本，≥2 个连续缺失 → 503（容忍 1 个由 receipt-gated fallback 恢复；receipt 读取失败报 `unknown` 不阻塞，由 Supabase liveness 检查兜底）。
+- alert workflow 改由 Supabase 派发（`:10,:25,:40,:55`），删除 native schedule；代价是告警进入 Supabase 派发故障域（原 native 的"独立性"实测从未生效）。
+- 观察基线：`npm run turso:observe:capture-continuity [days]`（缺槽数/断档/投影延迟/派发失败/startup timeout）。
+
+**待重新裁决（需人工拍板，未实施）**：§9.1 第 1、7 项（CF 应急派发时钟、slot 触发上边缘）的裁决依据是"没有证据表明 Supabase 时钟是故障源"。本次事故是裁决后第一次实证：单一 Supabase `pg_cron` 时钟的启动竞争足以丢失不可重放的原始证据。§5 的 CF Worker 只派发方案（1 条免费 cron、只调 `workflow_dispatch`、Turso lease + Supabase receipt 防重复、不写价格数据）是零成本消除该单点故障的候选；是否启用由人拍板，本轮不实施。

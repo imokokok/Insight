@@ -1,12 +1,12 @@
 name: Turso Control Plane Alert
 
 on:
-  schedule:
-    # Check after the GitHub Actions capture and projection windows. This is
-    # deliberately independent from the Supabase data path it watches.
-    # 30-minute cadence (was every 15 minutes): it keeps the public-probe path
-    # verified end to end while halving the probe's Vercel invocation count.
-    - cron: '7,37 * * * *'
+  # Deliberately no `schedule:`: GitHub's best-effort native cron dropped most
+  # of even this 30-minute cadence (8 runs in 2 days against the nominal 48)
+  # and the 2026-11-08 3.5h capture outage produced zero issues. Supabase
+  # pg_cron now dispatches this workflow every 15 minutes via migration 0142
+  # (`github-dispatch-turso-control-plane-alert`), on minutes spaced away from
+  # the other dispatchers. `workflow_dispatch` stays for manual runs.
   workflow_dispatch:
 
 permissions:
