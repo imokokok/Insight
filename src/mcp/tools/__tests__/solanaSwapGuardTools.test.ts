@@ -145,7 +145,9 @@ describe('solana_swap_guard MCP tool', () => {
     ).toBe(false);
     expect(getToolCreditCost('solana_swap_guard')).toBe(20);
     expect(getToolCreditCost('settle_solana_swap_guard')).toBe(40);
-    expect(getToolCreditCost('verify_solana_swap_guard_settlement')).toBe(40);
+    // The verifier checks an offline signature, so its static price is 0 —
+    // matching what the charge path actually applies.
+    expect(getToolCreditCost('verify_solana_swap_guard_settlement')).toBe(0);
   });
 
   it('requires human confirmation only for an attested ALLOW', async () => {

@@ -26,6 +26,7 @@ import { recordRejectedOutcome } from '@/lib/billing/rejectedOutcomeMonitor';
 import {
   getCachedMcpResult,
   idempotencyMeteringKey,
+  idempotencyMeteringKeys,
   mcpRequestFingerprint,
   setCachedMcpResult,
 } from '@/lib/billing/requestIdempotency';
@@ -306,6 +307,11 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
         });
       };
 
+      // One canonical key per logical request for the cache and the ledger. The
+      // previous bucket lets a window-boundary replay be detected before a
+      // second debit, instead of only after the new bucket misses.
+      const meteringKeys = requestKey === null ? null : idempotencyMeteringKeys(requestKey);
+
       const runBusiness = async () => {
         if (receipt) {
           Object.assign(receipt, { costCredits: listPrice, status: 'quote' });
@@ -442,7 +448,8 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
             } else {
               const requestedItems = getMcpToolBillableItems(name, args);
               const charge = await consumeMcpQuota(auth, name, args, {
-                meteringKey: requestKey !== null ? idempotencyMeteringKey(requestKey) : undefined,
+                meteringKey: meteringKeys?.key,
+                previousMeteringKey: meteringKeys?.previous,
                 billableItems: successfulItems ?? undefined,
                 reason:
                   successfulItems !== null

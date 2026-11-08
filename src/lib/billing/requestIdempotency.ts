@@ -132,19 +132,43 @@ export function restRequestFingerprint(input: {
 }
 
 /**
- * Deterministic ledger key for one fingerprint in its 10-minute window.
- * `consume_credits` is idempotent on this key, so concurrent or cross-instance
- * replays charge at most once.
+ * Deterministic ledger key for one fingerprint in its 10-minute window, plus
+ * the key of the immediately preceding window. `consume_credits` is idempotent
+ * on a key, so same-window replays charge at most once; the previous key lets
+ * the charge path close the bucket boundary with one primary-key read, since a
+ * retry that straddles the boundary (09:59:59 → 10:00:01) otherwise looks like
+ * a brand-new request.
  */
-export function idempotencyMeteringKey(fingerprint: string, now = Date.now()): string {
+export function idempotencyMeteringKeys(
+  fingerprint: string,
+  now = Date.now()
+): { key: string; previous: string } {
   const bucket = Math.floor(now / IDEMPOTENCY_WINDOW_MS);
-  return `mcp:req:${fingerprint}:${bucket}`;
+  return {
+    key: `mcp:req:${fingerprint}:${bucket}`,
+    previous: `mcp:req:${fingerprint}:${bucket - 1}`,
+  };
+}
+
+/** REST counterpart of {@link idempotencyMeteringKeys}. */
+export function restIdempotencyMeteringKeys(
+  fingerprint: string,
+  now = Date.now()
+): { key: string; previous: string } {
+  const bucket = Math.floor(now / IDEMPOTENCY_WINDOW_MS);
+  return {
+    key: `rest:req:${fingerprint}:${bucket}`,
+    previous: `rest:req:${fingerprint}:${bucket - 1}`,
+  };
+}
+
+export function idempotencyMeteringKey(fingerprint: string, now = Date.now()): string {
+  return idempotencyMeteringKeys(fingerprint, now).key;
 }
 
 /** REST ledger key for one logical request in its 10-minute window. */
 export function restIdempotencyMeteringKey(fingerprint: string, now = Date.now()): string {
-  const bucket = Math.floor(now / IDEMPOTENCY_WINDOW_MS);
-  return `rest:req:${fingerprint}:${bucket}`;
+  return restIdempotencyMeteringKeys(fingerprint, now).key;
 }
 
 /** Return a cached successful result, dropping expired entries lazily. */

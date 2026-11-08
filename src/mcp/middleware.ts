@@ -269,6 +269,8 @@ export async function consumeMcpQuota(
   args?: unknown,
   options?: {
     meteringKey?: string;
+    /** Previous idempotency window's key, so a boundary-straddling retry is not billed twice. */
+    previousMeteringKey?: string;
     billableItems?: number;
     /** Ledger reason override (prices.batch / batch_partial / insufficient_data / upstream_failed / timeout / tool_free / rejected_without_evidence). */
     reason?: string;
@@ -357,6 +359,7 @@ export async function consumeMcpQuota(
       reason: options?.reason ?? toolName,
       requestId: meteringKey,
       meta: options?.meta,
+      previousMeteringKey: options?.previousMeteringKey,
     }
   );
   if (!charge.ok) {

@@ -2270,6 +2270,13 @@
       }
     }
   ],
-  "resources": [],
+  "resources": [
+    {
+      "uri": "https://www.oracleinsight.xyz/api/v1/oracle-config/snapshot",
+      "name": "Oracle config snapshot",
+      "description": "Signed oracle configuration snapshot served over REST (POST). This is a REST resource, not a product: $0.50 per call, or an equivalent 500 credits with an API key.",
+      "mimeType": "application/json"
+    }
+  ],
   "prompts": []
 }

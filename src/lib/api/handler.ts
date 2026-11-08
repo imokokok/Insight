@@ -20,7 +20,7 @@ import {
 import {
   getCachedMcpResult,
   resolveClientIdempotencyKey,
-  restIdempotencyMeteringKey,
+  restIdempotencyMeteringKeys,
   restRequestFingerprint,
   setCachedMcpResult,
 } from '@/lib/billing/requestIdempotency';
@@ -281,6 +281,7 @@ async function chargeRestRequest(params: {
       reason,
       requestId: pendingCharge.meteringKey,
       meta: isBatch ? { requested: requestedItems, charged: params.chargedItems } : undefined,
+      previousMeteringKey: pendingCharge.previousMeteringKey,
     }
   );
 }
@@ -1030,10 +1031,9 @@ export function createApiHandler<
 
       // Quota middleware: credit-wallet enforcement (depends on apiKey, must run after auth)
       let restReplayKey: string | null = null;
+      let meteringKeys: { key: string; previous: string } | null = null;
       if (quotaOptions && !internal) {
         const apiKey = apiContext.auth?.apiKey;
-        let idempotencyMeteringKey: string | undefined;
-
         if (apiKey) {
           const clientKey = resolveClientIdempotencyKey(request.headers);
           restReplayKey = restRequestFingerprint({
@@ -1044,7 +1044,7 @@ export function createApiHandler<
             bodyText: await readBodyForFingerprint(request),
             clientKey,
           });
-          idempotencyMeteringKey = restIdempotencyMeteringKey(restReplayKey);
+          meteringKeys = restIdempotencyMeteringKeys(restReplayKey);
 
           // A replay of the SAME logical request within the 10-minute window
           // returns the original result without re-executing or re-charging.
@@ -1067,7 +1067,8 @@ export function createApiHandler<
               userId: apiKey.userId,
               plan: apiKey.plan,
               requestId: apiContext.requestId,
-              idempotencyMeteringKey,
+              idempotencyMeteringKey: meteringKeys?.key,
+              previousIdempotencyMeteringKey: meteringKeys?.previous,
             }
           : undefined;
 

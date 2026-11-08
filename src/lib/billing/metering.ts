@@ -17,6 +17,8 @@
  * unchanged: C1 $0.002, C2 $0.004, C3 $0.02, C4 $0.04.
  */
 
+import { isFreeVerifyCall } from './freeVerify';
+
 export type MeteringClass = 'C1' | 'C2' | 'C3' | 'C4';
 
 /** Credits charged per call for each metering class. */
@@ -167,11 +169,11 @@ const TOOL_RULES: Array<[RegExp, MeteringClass]> = [
   [/^prepare_aerodrome_slipstream_swap$/, 'C3'],
   [/^prepare_base_agent_swap_guard$/, 'C3'],
   [/^solana_swap_guard$/, 'C3'],
-  // Post-settlement guard closure / verification — C4 evidence artifacts.
+  // Post-settlement guard closure — C4 evidence artifacts. The `verify_*`
+  // settlement tools are NOT listed: they verify an offline signature, so the
+  // call is free (see freeVerify.ts) and a class price here would never apply.
   [/^settle_base_agent_swap_guard$/, 'C4'],
-  [/^verify_base_agent_swap_guard_settlement$/, 'C4'],
   [/^settle_solana_swap_guard$/, 'C4'],
-  [/^verify_solana_swap_guard_settlement$/, 'C4'],
   [/^get_pancakeswap_v3_market$/, 'C1'],
   [/^prepare_pancakeswap_v3_swap$/, 'C3'],
   [/^get_quickswap_v2_market$/, 'C1'],
@@ -225,6 +227,9 @@ export function getCreditCost(path: string): number {
  */
 export function getToolCreditCost(toolName: string): number {
   const name = toolName.toLowerCase();
+  // Offline verification tools are free on every surface, so their static
+  // price must say 0 rather than quote a C4 that the charge path never applies.
+  if (isFreeVerifyCall(name)) return 0;
   for (const [re, cls] of TOOL_RULES) {
     if (re.test(name)) return CREDIT_COST[cls];
   }

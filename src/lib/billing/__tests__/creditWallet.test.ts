@@ -62,6 +62,46 @@ it('distinguishes confirmed charges and replays from uncertain database outcomes
   expect(await consumeCredits('key', 5, 'request-4')).toEqual({ ok: true, confirmed: false });
 });
 
+it('treats a previous-window ledger row as a replay instead of debiting again', async () => {
+  // A retry that straddles the 10-minute boundary gets a new key; the previous
+  // window's row proves the logical request was already charged.
+  const rpc = jest.fn();
+  const maybeSingle = jest
+    .fn()
+    .mockResolvedValue({ data: { balance_after: '42.00' }, error: null });
+  const eq = jest.fn().mockReturnValue({ maybeSingle });
+  const select = jest.fn().mockReturnValue({ eq });
+  const from = jest.fn().mockReturnValue({ select });
+  jest.mocked(createServiceRoleClient).mockReturnValue({ rpc, from } as never);
+
+  const outcome = await consumeCredits('key', 5, 'rest:req:abc:2', '/api/v1/prices', {
+    previousMeteringKey: 'rest:req:abc:1',
+  });
+
+  expect(outcome).toEqual({ ok: true, confirmed: true, idempotent: true, balance: 42, cost: 5 });
+  expect(rpc).not.toHaveBeenCalled();
+  expect(from).toHaveBeenCalledWith('credit_ledger');
+  expect(eq).toHaveBeenCalledWith('metering_key', 'rest:req:abc:1');
+});
+
+it('charges normally when the previous window holds no matching row', async () => {
+  const rpc = jest
+    .fn()
+    .mockResolvedValue({ data: { ok: true, balance: 37, cost: 5 }, error: null });
+  const maybeSingle = jest.fn().mockResolvedValue({ data: null, error: null });
+  const eq = jest.fn().mockReturnValue({ maybeSingle });
+  const select = jest.fn().mockReturnValue({ eq });
+  const from = jest.fn().mockReturnValue({ select });
+  jest.mocked(createServiceRoleClient).mockReturnValue({ rpc, from } as never);
+
+  expect(
+    await consumeCredits('key', 5, 'rest:req:abc:2', '/api/v1/prices', {
+      previousMeteringKey: 'rest:req:abc:1',
+    })
+  ).toMatchObject({ ok: true, confirmed: true, balance: 37 });
+  expect(rpc).toHaveBeenCalledWith('consume_credits', expect.objectContaining({ p_cost: 5 }));
+});
+
 it('queues a pending settlement instead of silently giving the call away', async () => {
   const rpc = jest.fn();
   jest.mocked(createServiceRoleClient).mockReturnValue({ rpc } as never);
