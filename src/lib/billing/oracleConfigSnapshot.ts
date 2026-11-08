@@ -27,3 +27,6 @@ export const ORACLE_CONFIG_SNAPSHOT_PLAN = {
 export const ORACLE_CONFIG_SNAPSHOT_CREDIT_COST: number = usdToCredits(
   ORACLE_CONFIG_SNAPSHOT_PLAN.priceUsd
 );
+
+/** Exact x402 route that sells the signed record (POST). */
+export const ORACLE_CONFIG_SNAPSHOT_PATH = '/api/v1/oracle-config/snapshot';

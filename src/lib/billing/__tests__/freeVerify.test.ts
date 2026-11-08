@@ -38,4 +38,18 @@ describe('isFreeVerifyCall', () => {
     process.env.MCP_FREE_VERIFY_KINDS = '';
     expect(isFreeVerifyCall('verify_evidence', { kind: 'execution_pair' })).toBe(false);
   });
+
+  it('applies the same override to the legacy per-kind tool names', () => {
+    // Regression: the legacy names used to return early with `true`, so the
+    // documented kill switch could never restore billing for them.
+    process.env.MCP_FREE_VERIFY_KINDS = 'execution_pair';
+    expect(isFreeVerifyCall('verify_execution_pair')).toBe(true);
+    expect(isFreeVerifyCall('verify_base_agent_swap_guard_settlement')).toBe(false);
+    expect(isFreeVerifyCall('verify_solana_swap_guard_settlement')).toBe(false);
+
+    process.env.MCP_FREE_VERIFY_KINDS = '';
+    expect(isFreeVerifyCall('verify_execution_pair')).toBe(false);
+    expect(isFreeVerifyCall('verify_base_agent_swap_guard_settlement')).toBe(false);
+    expect(isFreeVerifyCall('verify_solana_swap_guard_settlement')).toBe(false);
+  });
 });

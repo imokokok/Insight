@@ -6,8 +6,15 @@
  * other path must keep its class price unchanged.
  */
 
+import { X402_ORACLE_CONFIG_SNAPSHOT_ROUTE } from '@/lib/api/x402/config';
+
 import { getMcpToolCreditCharge } from '../channelCostPolicy';
 import { CREDIT_COST, getCreditCost, getToolCreditCost } from '../metering';
+import {
+  ORACLE_CONFIG_SNAPSHOT_CREDIT_COST,
+  ORACLE_CONFIG_SNAPSHOT_PATH,
+  ORACLE_CONFIG_SNAPSHOT_PLAN,
+} from '../oracleConfigSnapshot';
 import {
   ORACLE_WATCH_WINDOW_BEGIN_PATH,
   ORACLE_WATCH_WINDOW_CREDIT_COST,
@@ -66,6 +73,20 @@ describe('position lifecycle plan', () => {
   it('converts its USD list price at the canonical credit rate', () => {
     expect(usdToCredits(POSITION_LIFECYCLE_PLAN.priceUsd)).toBe(550);
     expect(POSITION_LIFECYCLE_CREDIT_COST).toBe(550);
+  });
+});
+
+describe('oracle config snapshot plan', () => {
+  it('charges API-key callers the same $0.50 the x402 route quotes', () => {
+    // Regression: the snapshot was sold through the x402 resource server at
+    // $0.50 while the credits rail fell through to the C1 default (2 credits),
+    // a 250x divergence for the same endpoint and the same signed record.
+    expect(ORACLE_CONFIG_SNAPSHOT_PLAN.priceUsd).toBe(0.5);
+    expect(ORACLE_CONFIG_SNAPSHOT_CREDIT_COST).toBe(500);
+    expect(getEndpointCreditCost(ORACLE_CONFIG_SNAPSHOT_PATH)).toBe(500);
+    // The route literal in the billing registry and the x402 registry must not
+    // drift apart, otherwise the credit fix silently stops applying.
+    expect(ORACLE_CONFIG_SNAPSHOT_PATH).toBe(X402_ORACLE_CONFIG_SNAPSHOT_ROUTE);
   });
 });
 
