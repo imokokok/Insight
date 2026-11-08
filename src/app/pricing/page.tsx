@@ -72,7 +72,7 @@ const PRODUCT_PRICES = [
     price: '$0.002–$0.040',
     unit: 'per call, op-priced',
     detail:
-      'Read-only ops cost 2–4 credits ($0.002–$0.004). The trade-safety ops (check_safety, prepare_swap, prepare_perp_order) cost 40 credits ($0.040), which is both the per-call price and the product ceiling; the 16 deprecated alias spellings are callable at the same price until 2027-01-06.',
+      'Read-only ops cost 2–4 credits ($0.002–$0.004). The trade-safety ops (check_safety, prepare_swap, prepare_perp_order) cost 40 credits ($0.040), which is both the per-call price and the product ceiling; the 16 deprecated alias spellings are callable at the same price until 2027-01-06. price_analytics batch mode is billed per asset at 2 credits each: 10 assets cost 20 credits, the 20-asset cap costs 40.',
     credits: '2–40 credits (40 = per trade-safety op, also the ceiling)',
   },
   {
@@ -218,6 +218,16 @@ export default function PricingPage() {
               </div>
             ))}
           </div>
+          <p className="mt-5 max-w-3xl text-sm leading-relaxed text-slate-500">
+            REST resources are priced per call alongside the four products. The signed oracle
+            configuration snapshot —{' '}
+            <code className="font-mono text-xs text-slate-700">
+              POST /api/v1/oracle-config/snapshot
+            </code>{' '}
+            — costs <span className="font-semibold text-slate-700">$0.50 per call</span>, or an
+            equivalent <span className="font-semibold text-slate-700">500 credits</span> with an API
+            key.
+          </p>
         </div>
       </section>
 

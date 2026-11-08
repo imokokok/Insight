@@ -66,6 +66,12 @@ export interface CreditChargeContext {
   requestId?: string;
   /** Per-charge detail, e.g. { requested, charged } for batches. */
   meta?: Record<string, unknown>;
+  /**
+   * Ledger key of the request's previous idempotency window. When that row
+   * exists, this charge is a replay whose retry straddled the window boundary
+   * and must not debit again.
+   */
+  previousMeteringKey?: string;
 }
 
 /**
@@ -249,6 +255,39 @@ export async function consumeCredits(
   context: CreditChargeContext = {}
 ): Promise<CreditCharge> {
   const client = createServiceRoleClient();
+  // A retry that straddles the idempotency window boundary gets a new ledger
+  // key, so the unique constraint alone cannot see it. One primary-key lookup
+  // on the previous window closes that gap before any debit is attempted.
+  if (context.previousMeteringKey) {
+    const { data: prior, error: priorError } = await client
+      .from('credit_ledger')
+      .select('balance_after')
+      .eq('metering_key', context.previousMeteringKey)
+      .maybeSingle();
+    if (!priorError && prior) {
+      logger.info('charge treated as a window-boundary replay; not debited again', {
+        keyId,
+        meteringKey,
+        previousMeteringKey: context.previousMeteringKey,
+      });
+      return {
+        ok: true,
+        confirmed: true,
+        idempotent: true,
+        balance: Number((prior as { balance_after: number | string }).balance_after),
+        cost,
+      };
+    }
+    if (priorError) {
+      // Fail open: a broken readback must not block a legitimate charge. The
+      // unique key still prevents same-window double debits.
+      logger.warn('previous-window idempotency lookup failed', {
+        keyId,
+        meteringKey,
+        error: priorError.message,
+      });
+    }
+  }
   const attribution = await attributeCharge(client, keyId, cost, context.meta);
   try {
     const { data, error } = await client.rpc('consume_credits', {

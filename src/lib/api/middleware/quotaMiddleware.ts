@@ -28,6 +28,8 @@ interface QuotaContext {
   plan?: string;
   /** Deterministic ledger key for this logical request (see requestIdempotency). */
   idempotencyMeteringKey?: string;
+  /** Ledger key of the previous window, so a boundary-straddling retry is not billed twice. */
+  previousIdempotencyMeteringKey?: string;
 }
 
 export interface QuotaInfo {
@@ -49,7 +51,13 @@ export interface QuotaInfo {
   /** The charge to commit AFTER the handler succeeds. The handler fires
    *  consumeCredits only on a 2xx response, so a request that fails in the
    *  handler is not metered. */
-  pendingCharge?: { apiKeyId: string; meteringKey: string; cost: number };
+  pendingCharge?: {
+    apiKeyId: string;
+    meteringKey: string;
+    cost: number;
+    /** Ledger key of the previous idempotency window, for boundary replays. */
+    previousMeteringKey?: string;
+  };
 }
 
 type QuotaMiddlewareResult =
@@ -223,6 +231,7 @@ export function createQuotaMiddleware(
               ? `rest:${context.apiKeyId}:${context.requestId}`
               : makeMeteringKey(`rest:${context.apiKeyId}`)),
           cost,
+          previousMeteringKey: context.previousIdempotencyMeteringKey,
         },
       },
     };
