@@ -1,6 +1,6 @@
-import { canonicalizeAlias } from '@/mcp/tools/unified/aliases';
 import { isEntitlementCoveredMcpTool } from '@/lib/billing/productPricing';
 import { CHAIN_ID } from '@/lib/constants/tokenAddresses';
+import { canonicalizeAlias } from '@/mcp/tools/unified/aliases';
 
 import {
   facilitatorBearerTokenForNetwork,
@@ -454,9 +454,7 @@ export function x402PaymentScopeForMcpTool(
     return x402PaymentScopeForMcpTool(canonical.name, canonical.args);
   }
 
-  if (
-    toolName === 'trade_guard' && isRecord(argumentsValue)
-  ) {
+  if (toolName === 'trade_guard' && isRecord(argumentsValue)) {
     const op = argumentsValue.op;
     if (op === 'check_safety') {
       const chain = argumentsValue.chain_id;
