@@ -117,6 +117,10 @@ Integrated providers include Chainlink, Pyth Core, Stork, Chronicle, API3, RedSt
 
 REST, MCP, and SDK calls draw from the same API-key credit wallet. Plans add credit capacity rather than separate feature tiers. See [current pricing](https://www.oracleinsight.xyz/pricing) for plans and per-call costs.
 
+Product prices: **Trade Guard** is op-priced at **$0.002–$0.040** per call — the $0.040 figure is the product price ceiling for the full trade-safety set (`check_safety`, `prepare_swap`, `prepare_perp_order`), not a flat per-call price; **Trade Proof** is **40 credits / $0.040**; **Oracle Watch** is **500 credits / $0.500 per 24h window**; **Position Lifecycle** is **550 credits / $0.550 per position**. The 16 deprecated tool names keep their original metering class until 2027-01-06.
+
+Billing outcomes on the MCP surface: a `rejected` verdict that carries all five evidence items is charged normally; a `rejected` verdict missing any evidence item is downgraded to `unavailable` and is never charged. REST endpoints do not emit these outcomes; they are charged when data is delivered.
+
 ### MCP endpoint (production)
 
 The hosted MCP server is live at `https://www.oracleinsight.xyz/api/mcp` (streamable HTTP).

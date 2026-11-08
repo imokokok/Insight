@@ -30,9 +30,10 @@ const MCP_MPP_ENDPOINT = 'https://www.oracleinsight.xyz/api/mcp/mpp';
 
 const PAY_FACTS = [
   {
-    value: '$0.02',
-    label: 'Per check (C3)',
-    detail: 'USDC on configured EVM or Solana x402 networks; MPP remains EVM-only',
+    value: '$0.002–$0.040',
+    label: 'Per MCP call',
+    detail:
+      'Op-priced Trade Guard plus product prices; USDC on configured EVM or Solana x402 networks',
   },
   {
     value: '0',
@@ -645,7 +646,10 @@ export default function X402QuickstartPage() {
                 <code className="font-mono text-base">position_lifecycle</code>, plus 16 deprecated
                 aliases that keep their original metering class until 2027-01-06. Unauthenticated{' '}
                 <code className="font-mono text-base">tools/call</code> is priced by the tool&apos;s
-                metering class and settles through the same x402 rail. With an{' '}
+                metering class and settles through the same x402 rail. Product prices: Trade Guard
+                is op-priced at $0.002–$0.040 per call ($0.040 is the product price ceiling for the
+                full trade-safety set, not a flat per-call price); Trade Proof is $0.040; Oracle
+                Watch is $0.500 per 24h window; Position Lifecycle is $0.550. With an{' '}
                 <code className="font-mono text-base">X-API-Key</code>, calls draw from the credit
                 wallet instead. New accounts receive a one-time 400-credit grant after email
                 verification, so an agent can start without a wallet. The MPP pilot at{' '}
