@@ -2,7 +2,11 @@ import { createHash } from 'node:crypto';
 
 import { z } from 'zod';
 
-import { readTursoPriceRetentionPolicy } from './client';
+import {
+  readTursoPricePayloadCompactionPolicy,
+  readTursoPriceRetentionPolicy,
+  type TursoPricePayloadCompactionPolicy,
+} from './client';
 import {
   absoluteDifference,
   CONFIDENCE_SCALE,
@@ -922,7 +926,8 @@ export async function requeueQuarantinedTursoPriceSlot(
  */
 export async function pruneExpiredTursoPriceEvents(
   client: Client,
-  nowMs: number = Date.now()
+  nowMs: number = Date.now(),
+  compaction: TursoPricePayloadCompactionPolicy = readTursoPricePayloadCompactionPolicy()
 ): Promise<TursoPriceMaintenanceSummary> {
   if (!Number.isSafeInteger(nowMs) || nowMs < 0) {
     throw new Error('Invalid Turso price maintenance timestamp');
@@ -942,20 +947,21 @@ export async function pruneExpiredTursoPriceEvents(
   }
 
   const cutoffMs = nowMs - rawRetentionDays * 24 * 60 * 60 * 1000;
+  const compactCutoffMs = nowMs - compaction.ackedPayloadRetentionDays * 24 * 60 * 60 * 1000;
   let transaction: Transaction | undefined;
   try {
     transaction = await client.transaction('write');
     const compacted = await transaction.execute({
       // The payload is needed only until Supabase acknowledges the immutable
       // hand-off. Afterwards the slot's hashes, digest and summary remain as
-      // durable audit evidence; retaining hundreds of source inputs forever
-      // would erase most of the intended storage saving.
+      // durable audit evidence. ACKed payloads can be compacted earlier than
+      // the raw rows because no projection needs to replay them again.
       sql: `UPDATE snapshot_slots
         SET canonical_payload='{"slotMs":' || slot_ms || ',"inputs":[]}'
         WHERE supabase_acknowledged_at_ms IS NOT NULL
           AND slot_ms < ?
           AND canonical_payload NOT LIKE '%"inputs":[]%'`,
-      args: [cutoffMs],
+      args: [compactCutoffMs],
     });
     const deletion = await transaction.execute({
       sql: 'DELETE FROM price_snapshots WHERE slot_ms < ?',

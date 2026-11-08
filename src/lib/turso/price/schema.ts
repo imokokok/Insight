@@ -4,9 +4,11 @@ import type { Client, InStatement } from '@libsql/client';
 // the independent ingest control plane: an atomic slot lease, a mirrored feed
 // registry, and durable projection retry/quarantine state. Version 6 adds the
 // settlement-evidence tables (prediction-market watch, settlement-window
-// candles, signed evidence packs). Keep this local to Turso so a degraded
-// Supabase control plane cannot stop raw capture.
-export const TURSO_PRICE_SCHEMA_VERSION = 6;
+// candles, signed evidence packs). Version 7 adds the Turso copy of
+// `price_records`, the 24-hour cache that can be moved independently of the
+// raw stream. Keep this local to Turso so a degraded Supabase control plane
+// cannot stop raw capture.
+export const TURSO_PRICE_SCHEMA_VERSION = 7;
 
 export const DEFAULT_TURSO_PRICE_POLICIES = [
   {
@@ -227,6 +229,35 @@ const ddl: InStatement[] = [
     grade TEXT NOT NULL CHECK (grade IN ('consistent', 'inconsistent', 'insufficient_data')),
     created_at_ms INTEGER NOT NULL
   )`,
+  // --- price_records cache (schema v7) ----------------------------------------
+  // Mirrors the Supabase 24-hour cache. Prices are stored as decimal strings
+  // (the same representation as the raw stream) so no float rounding is
+  // introduced. `ttl_ms` drives cleanup; the three indexes cover the hot
+  // latest lookup, filtered history, and the export/signals ordering.
+  `CREATE TABLE IF NOT EXISTS price_records (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    provider TEXT NOT NULL,
+    symbol TEXT NOT NULL,
+    chain TEXT,
+    price_e8 TEXT NOT NULL,
+    timestamp_ms INTEGER NOT NULL,
+    confidence_e4 INTEGER,
+    source TEXT,
+    created_at_ms INTEGER NOT NULL,
+    ttl_ms INTEGER NOT NULL,
+    failure_mode TEXT,
+    signal_vector_json TEXT,
+    decimals INTEGER,
+    verification_json TEXT,
+    ingestion_timestamp_ms INTEGER,
+    metadata_fallback INTEGER CHECK (metadata_fallback IN (0, 1))
+  )`,
+  `CREATE INDEX IF NOT EXISTS price_records_latest_idx
+    ON price_records(provider, symbol, chain, timestamp_ms DESC)`,
+  `CREATE INDEX IF NOT EXISTS price_records_ttl_idx
+    ON price_records(ttl_ms)`,
+  `CREATE INDEX IF NOT EXISTS price_records_timestamp_idx
+    ON price_records(timestamp_ms DESC)`,
 ];
 
 const migrationStatements: Readonly<Record<number, readonly InStatement[]>> = {
@@ -305,6 +336,29 @@ const migrationStatements: Readonly<Record<number, readonly InStatement[]>> = {
       grade TEXT NOT NULL CHECK (grade IN ('consistent', 'inconsistent', 'insufficient_data')),
       created_at_ms INTEGER NOT NULL
     )`,
+  ],
+  7: [
+    `CREATE TABLE IF NOT EXISTS price_records (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      provider TEXT NOT NULL,
+      symbol TEXT NOT NULL,
+      chain TEXT,
+      price_e8 TEXT NOT NULL,
+      timestamp_ms INTEGER NOT NULL,
+      confidence_e4 INTEGER,
+      source TEXT,
+      created_at_ms INTEGER NOT NULL,
+      ttl_ms INTEGER NOT NULL,
+      failure_mode TEXT,
+      signal_vector_json TEXT,
+      decimals INTEGER,
+      verification_json TEXT,
+      ingestion_timestamp_ms INTEGER,
+      metadata_fallback INTEGER CHECK (metadata_fallback IN (0, 1))
+    )`,
+    'CREATE INDEX IF NOT EXISTS price_records_latest_idx ON price_records(provider, symbol, chain, timestamp_ms DESC)',
+    'CREATE INDEX IF NOT EXISTS price_records_ttl_idx ON price_records(ttl_ms)',
+    'CREATE INDEX IF NOT EXISTS price_records_timestamp_idx ON price_records(timestamp_ms DESC)',
   ],
 };
 

@@ -20,6 +20,13 @@ export interface TursoFeedRegistryPolicy {
   maxAgeMs: number;
 }
 
+export type TursoPriceRecordsMode = 'supabase' | 'shadow' | 'turso';
+
+export interface TursoPricePayloadCompactionPolicy {
+  /** ACKed slot payloads older than this are replaced with a compact summary. */
+  ackedPayloadRetentionDays: number;
+}
+
 /**
  * The raw stream is only safe to read from Turso after a recorded cutover.
  * It lets readers combine the immutable Supabase history before this instant
@@ -75,6 +82,58 @@ export function readTursoPriceRetentionPolicy(
     throw new Error('Invalid TURSO_PRICE_RAW_RETENTION_DAYS');
   }
   return { rawRetentionDays };
+}
+
+/**
+ * price_records is a 24-hour cache in front of the price API. It is the last
+ * high-write Supabase table with Postgres indexes (including two GIN indexes),
+ * so it can be moved to Turso independently of the raw price stream.
+ * `supabase` keeps today's behaviour; `shadow` writes both and reads Supabase;
+ * `turso` writes Turso and reads it first, falling back to Supabase on failure.
+ */
+export function readTursoPriceRecordsMode(
+  value: string | undefined = process.env.TURSO_PRICE_RECORDS_MODE
+): TursoPriceRecordsMode {
+  if (value === undefined || value === '' || value === 'supabase') return 'supabase';
+  if (value === 'shadow' || value === 'turso') return value;
+  throw new Error('TURSO_PRICE_RECORDS_MODE must be supabase, shadow, or turso');
+}
+
+/**
+ * During the first 24 hours after switching reads to Turso, Supabase still
+ * holds rows written before the cutover. Missing Turso rows must therefore
+ * fall back to Supabase; after one TTL the flag can be turned off.
+ */
+export function readTursoPriceRecordsFallbackOnMiss(
+  value: string | undefined = process.env.TURSO_PRICE_RECORDS_FALLBACK_ON_MISS
+): boolean {
+  if (value === undefined || value === '' || value === 'true') return true;
+  if (value === 'false') return false;
+  throw new Error('TURSO_PRICE_RECORDS_FALLBACK_ON_MISS must be true or false');
+}
+
+/**
+ * Raw slots stay for the full raw-retention window so quarantined or
+ * unacknowledged slots can still be replayed. ACKed payloads are only needed
+ * until the projector has consumed them, so their compact summary can replace
+ * the 83 KB body earlier. Defaults to the raw window to preserve today's
+ * behaviour; setting it to 7 caps payload storage at roughly 7 days.
+ */
+export function readTursoPricePayloadCompactionPolicy(
+  env: NodeJS.ProcessEnv = process.env,
+  retention: TursoPriceRetentionPolicy = readTursoPriceRetentionPolicy(env)
+): TursoPricePayloadCompactionPolicy {
+  const raw = env.TURSO_PRICE_ACKED_PAYLOAD_RETENTION_DAYS ?? String(retention.rawRetentionDays);
+  if (!/^\d+$/.test(raw)) throw new Error('Invalid TURSO_PRICE_ACKED_PAYLOAD_RETENTION_DAYS');
+  const ackedPayloadRetentionDays = Number(raw);
+  if (
+    !Number.isSafeInteger(ackedPayloadRetentionDays) ||
+    ackedPayloadRetentionDays < 1 ||
+    ackedPayloadRetentionDays > retention.rawRetentionDays
+  ) {
+    throw new Error('Invalid TURSO_PRICE_ACKED_PAYLOAD_RETENTION_DAYS');
+  }
+  return { ackedPayloadRetentionDays };
 }
 
 /**
