@@ -163,10 +163,11 @@ C1–C4 档位基数与地板数值、运行时判词字面量均不在本计划
 
 ### 3.6 2026-11-08 执行记录（已落生产，未回滚）
 
-迁移 `0134_archive_catchup_bound.sql` 已应用：
+迁移 `0134_archive_catchup_bound.sql` 与 `0135_archive_guard_alignment.sql` 已应用：
 
 - `maintain_snapshot_archives(p_max_days, p_max_seconds)`：单次最多 **3 天 / 45 秒**，两天各跑一次 → 容量 6 天/日 对 到达 1 天/日，3 倍余量；零参数包装保留，cron 命令不变。
-- 新增 `snapshot-archive-maintenance-early` @ **05:07 UTC**；原 `19:07 UTC` 保留。
+- 新增 `snapshot-archive-maintenance-early` @ **05:07 UTC**；`0135` 撤销了 `0134` 重建的 **19:07** 独立 job，归档调用点从 3 个降为 2 个：05:07 独立补跑 + 19:16 `nightly-retention-cleanup` 内，19:07 / 19:16 的 advisory lock 冲突消除。
+- `0135` 恢复 0098 的**活跃客户端 ≥3 跳过**（真正的 I/O 护栏，对常规与追赶运行都生效），删除「在途派发」判定（归档只搬 ≥7 天前数据，与当前采集无正确性冲突，并发归档已由 advisory lock 防护，且该判定与派发时刻结构性重叠，等于永久禁用）。
 - advisory lock 语义不变（抢不到锁仍抛异常）；同一天重复归档由 `ON CONFLICT` + 时间戳去重合并保证不产生重复行。
 
 执行数字：
@@ -232,7 +233,7 @@ ACK payload 读取方审计（`30 → 7` 前置）：
 3. `price_snapshots` 的 `n_live_tup` 在 8 天内从 158,695 降到 0；**整库不再增长**（`DELETE` 不释放文件空间，整库大小不会向下回落）。
 4. 15 分钟 slot 的创建率在同一窗口内恢复到应有数量；`job startup timeout` 与丢窗按同一次运行的时间戳对账。
 
-回滚：dispatcher 恢复原 schedule 即可；归档函数回退见 `0134_archive_catchup_bound.sql` 末尾的 ROLLBACK 块（恢复单天函数、删除 2 参数版本、unschedule `-early`）。已归档数据不会自动回退。
+回滚：dispatcher 恢复原 schedule 即可；归档函数回退见 `0135_archive_guard_alignment.sql` 与 `0134_archive_catchup_bound.sql` 末尾的 ROLLBACK 说明（恢复两参数旧版本并重建 19:07，或退回单天函数）。已归档数据不会自动回退。
 
 保留期（`hourly`/archive 120→90、`feed_health` 90→60）**不放在本批**：等积压清零、且 `price_snapshots` 行数归零后再单独评估，见 §3.5。
 
