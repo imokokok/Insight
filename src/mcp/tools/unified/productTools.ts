@@ -267,7 +267,7 @@ export const PRODUCT_MCP_TOOLS: McpToolDefinition[] = [
     name: 'trade_proof',
     pricing: { credits: 40, usd: '0.040' },
     description:
-      'Use it to open a trade-evidence session, issue an execution receipt, or verify an evidence artifact after a trade. Each call selects the branch with "op": begin_evidence, issue_receipt or verify_evidence. Do not use it to decide whether a trade is safe before signing (use trade_guard) and do not use it to settle a swap guard (use the venue guard tools). Returns the evidence session handle, the signed receipt, or the verification verdict, digest and matched evidence. Absorbs the deprecated names begin_trade_evidence, issue_execution_receipt and verify_evidence.',
+      'Use it to open a trade-evidence session, issue an execution receipt, or verify an evidence artifact after a trade. Each call selects the branch with "op": begin_evidence, issue_receipt or verify_evidence. Do not use it to decide whether a trade is safe before signing (use trade_guard) and do not use it to settle a swap guard (use the venue guard tools). Returns the evidence session handle, the signed receipt, or the verification verdict, digest and matched evidence. Absorbs the deprecated names begin_trade_evidence, issue_execution_receipt and verify_evidence. Metering: begin_evidence and issue_receipt are C4 (40 credits / $0.040); verify_evidence is free for the three offline kinds (execution_pair, base_agent_swap, solana_swap) and C4 for live reads.',
     parameters: productParameters(TRADE_PROOF_OPS),
     inputSchema: productInputSchema(TRADE_PROOF_OPS, Object.values(TRADE_PROOF_IMPLEMENTATION)),
     handler: async (args, context) =>
@@ -277,7 +277,7 @@ export const PRODUCT_MCP_TOOLS: McpToolDefinition[] = [
     name: 'oracle_watch_window',
     pricing: { credits: 500, usd: '0.500' },
     description:
-      'Oracle Watch for monitored trust signals. Use it to read one trust snapshot or history series, buy a 24h monitored window, or poll/close an already purchased window. Each call selects the branch with "op": snapshot, history, begin, poll or close. Do not use it for pre-trade safety (use trade_guard op check_safety), do not buy a second window for the same subject, and never reuse a token after close. Returns the trust signal or history series, the windowId plus one-time oww_ token and expiry for begin, and the poll signal or combined close summary for window ops. Absorbs the deprecated names oracle_watch, oracle_watch_window_begin and oracle_watch_window_control.',
+      'Oracle Watch for monitored trust signals. Use it to read one trust snapshot or history series, buy a 24h monitored window, or poll/close an already purchased window. Each call selects the branch with "op": snapshot, history, begin, poll or close. Do not use it for pre-trade safety (use trade_guard op check_safety), do not buy a second window for the same subject, and never reuse a token after close. Returns the trust signal or history series, the windowId plus one-time oww_ token and expiry for begin, and the poll signal or combined close summary for window ops. Absorbs the deprecated names oracle_watch, oracle_watch_window_begin and oracle_watch_window_control. Metering: begin is 500 credits / $0.500 for the 24h window; in-window poll and close are covered (0 credits); snapshot and history are C3 (20 credits / $0.020).',
     parameters: productParameters(ORACLE_WATCH_WINDOW_OPS),
     inputSchema: productInputSchema(
       ORACLE_WATCH_WINDOW_OPS,
