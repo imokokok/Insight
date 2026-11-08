@@ -66,7 +66,7 @@ Insight is an API/agent service and issues no token. Its on-chain footprint is i
 ## Features
 
 - **Pre-Trade Safety Check** — cross-oracle pre-trade verdict (PASS / CAUTION / DANGER / BLOCK) with signed EIP-712 attestation and a recommended maximum position size
-- **Oracle Watch** — continuous between-action monitoring with `proceed` / `proceed_with_caution` / `halt` recommendations
+- **Oracle Watch** — between-action monitoring in 24h windows of up to 48 polls (one full reassessment every 30 minutes, escalating to a full scan when the signal jumps), with `proceed` / `proceed_with_caution` / `halt` recommendations
 - **Agent-native payments** — x402 pay-per-call in USDC on BNB Chain (AEON mandate flow) and a hosted MCP server at `/api/mcp`; registered ERC-8004 agent #375779
 - **Verifiable evidence** — independently verifiable signed receipts, plus opt-in ERC-8004 reputation anchoring of completed checks
 
@@ -121,7 +121,7 @@ REST, MCP, and SDK calls draw from the same API-key credit wallet. Plans add cre
 
 The hosted MCP server is live at `https://www.oracleinsight.xyz/api/mcp` (streamable HTTP).
 
-- **Anonymous discovery**: `initialize`, `tools/list`, and `ping` work without credentials, so agents can browse the 16 consolidated tools before committing.
+- **Anonymous discovery**: `initialize`, `tools/list`, and `ping` work without credentials, so agents can browse the 20 advertised names before committing: the four product tools (`trade_guard`, `trade_proof`, `oracle_watch_window`, `position_lifecycle`) and their 16 deprecated aliases. Deprecated names keep their original metering class and are removed on 2027-01-06.
 - **Authenticated calls**: pass an API key and calls draw from the credit wallet.
 - **x402 pay-per-call**: a single unauthenticated `tools/call` receives an [x402 v2](https://www.x402.org) 402 quote priced by the tool's metering class (USDC on configured EVM and optional Solana networks), then verify → execute → settle. A failed tool result is never settled.
 - **One-click install (Cursor)**: [Install Insight Oracle](https://cursor.com/en/install-mcp?name=Insight+Oracle&config=eyJ1cmwiOiAiaHR0cHM6Ly93d3cub3JhY2xlaW5zaWdodC54eXovYXBpL21jcCJ9)

@@ -354,7 +354,7 @@ const GUARD_QUICKSTARTS = [
     query: '(POST body: {"symbol":"BTC","chain":"base"}; returns a one-time window token)',
     mcp: 'REST-first (token-authed in-window polls)',
     decides:
-      '24h of continuous halt/proceed signals for one position (48 polls, ≥30 min apart; 10/min and 5 open windows per key)',
+      '24h of Oracle Watch monitoring for one position: up to 48 polls at least 30 minutes apart (one full reassessment every 30 minutes, escalating to a full scan when the signal jumps); 10 polls/min and 5 open windows per key',
     price: '$0.50 per window',
   },
   {
@@ -633,12 +633,17 @@ export default function X402QuickstartPage() {
             <p className="editorial-index">06 — MCP tools/call</p>
             <div>
               <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-                40+ tools over MCP, paid per call.
+                Four product tools over MCP, paid per call.
               </h2>
               <p className="mt-4 max-w-2xl text-lg leading-relaxed text-slate-600">
                 The Model Context Protocol endpoint at{' '}
                 <code className="font-mono text-base">{MCP_ENDPOINT}</code> lets any agent browse
-                the 40+-tool catalog for free (initialize, tools/list, ping). Unauthenticated{' '}
+                the 20 advertised names for free (initialize, tools/list, ping): the four product
+                tools <code className="font-mono text-base">trade_guard</code>,{' '}
+                <code className="font-mono text-base">trade_proof</code>,{' '}
+                <code className="font-mono text-base">oracle_watch_window</code> and{' '}
+                <code className="font-mono text-base">position_lifecycle</code>, plus 16 deprecated
+                aliases that keep their original metering class until 2027-01-06. Unauthenticated{' '}
                 <code className="font-mono text-base">tools/call</code> is priced by the tool&apos;s
                 metering class and settles through the same x402 rail. With an{' '}
                 <code className="font-mono text-base">X-API-Key</code>, calls draw from the credit
@@ -825,7 +830,7 @@ export default function X402QuickstartPage() {
                 icon: KeyRound,
                 label: 'MCP server card',
                 href: 'https://www.oracleinsight.xyz/.well-known/mcp/server-card.json',
-                detail: '40+ tool catalog, no handshake needed',
+                detail: 'Four product tools plus 16 deprecated aliases, no handshake needed',
               },
               {
                 icon: Coins,
