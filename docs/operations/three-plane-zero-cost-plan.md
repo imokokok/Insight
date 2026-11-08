@@ -154,12 +154,12 @@ C1–C4 档位基数与地板数值、运行时判词字面量均不在本计划
 
 ### 3.5 保留期：现在有一项可直接推进
 
-| 项                                                      | 状态                                                            | 理由                                                                        |
-| ------------------------------------------------------- | --------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| `TURSO_PRICE_ACKED_PAYLOAD_RETENTION_DAYS` 30 → 7       | **已授权**：仓库变量已设 `7`；workflow 传参行已改，待推送后生效 | 只压缩已 ACK 的 slot payload，不删除业务历史；读取方审计见 §3.6             |
-| `hourly_price_snapshots` / `snapshot_archives` 120 → 90 | **暂不动**                                                      | archive 稳态仅 113 天，砍到 90 天省不到 20 MB；且会提前删掉本该被归档的历史 |
-| `feed_health_snapshots` 90 → 60                         | **暂不动**                                                      | 31 MB，收益不足以承担历史损失；等归档积压清空后再评估                       |
-| `market_reference_snapshots` 120 → 90                   | **待评估**（与归档无关）                                        | 37 MB，可独立做，但需先确认读取方窗口                                       |
+| 项                                                      | 状态                                                          | 理由                                                                        |
+| ------------------------------------------------------- | ------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| `TURSO_PRICE_ACKED_PAYLOAD_RETENTION_DAYS` 保持 30      | **已决定保持 30**：仓库变量已从 `7` 回退为 `30`，压缩阈值不变 | Turso 实测仅 96 MB / 5 GB，提前压缩省的几十 MB 不值得永久放弃重放能力       |
+| `hourly_price_snapshots` / `snapshot_archives` 120 → 90 | **暂不动**                                                    | archive 稳态仅 113 天，砍到 90 天省不到 20 MB；且会提前删掉本该被归档的历史 |
+| `feed_health_snapshots` 90 → 60                         | **暂不动**                                                    | 31 MB，收益不足以承担历史损失；等归档积压清空后再评估                       |
+| `market_reference_snapshots` 120 → 90                   | **待评估**（与归档无关）                                      | 37 MB，可独立做，但需先确认读取方窗口                                       |
 
 ### 3.6 2026-11-08 执行记录（已落生产，未回滚）
 
@@ -294,7 +294,7 @@ ACK payload 读取方审计（`30 → 7` 前置）：
 
 可直接推进（不涉及业务历史）：
 
-- `TURSO_PRICE_ACKED_PAYLOAD_RETENTION_DAYS` 30 → 7：已授权；仓库变量已设 `7`，workflow 传参行已改但**尚未推送**，因此生产侧此刻仍按默认 30 运行。只压缩已 ACK 的 slot payload，ACK 后 7 天以上无法重放原文，只有 hash/summary。
+- `TURSO_PRICE_ACKED_PAYLOAD_RETENTION_DAYS` **保持 30**：仓库变量已从 `7` 回退为 `30`，压缩阈值不变。理由：Turso 实测仅 96 MB / 5 GB，提前压缩省的几十 MB 不值得；7 天压缩不可逆，7 天后原文消失、只剩 `input_hash` / `summary_json`，为这点空间永久放弃重放能力不划算。代码保留读取该变量的能力，将来真有容量压力再单独决策。
 
 等归档积压清零后再决定（当前先不动）：
 
@@ -329,7 +329,7 @@ ACK payload 读取方审计（`30 → 7` 前置）：
 | -------- | ------------------------------------------------------------------------------------------------------ |
 | 开关     | `TURSO_PRICE_RECORDS_MODE=supabase`（默认）/`shadow`/`turso`                                           |
 | 开关     | `TURSO_PRICE_RECORDS_FALLBACK_ON_MISS=true`（默认）                                                    |
-| 开关     | `TURSO_PRICE_ACKED_PAYLOAD_RETENTION_DAYS=30`（默认，保持现状；建议 7）                                |
+| 开关     | `TURSO_PRICE_ACKED_PAYLOAD_RETENTION_DAYS=30`（默认，保持现状；不提前压缩）                            |
 | schema   | Turso v7：`price_records` + `(provider,symbol,chain,timestamp_ms DESC)`、`ttl_ms`、`timestamp_ms` 索引 |
 | 代码     | 采集器写入、`getPriceFromDatabase`、历史合并、两个导出路由、signals 路由均走开关                       |
 | 默认关闭 | 不设置任何环境变量时，读写仍走 Supabase，行为与现状一致                                                |
@@ -339,14 +339,14 @@ ACK payload 读取方审计（`30 → 7` 前置）：
 
 实现状态（本批）：
 
-| 项                              | 文件                                                            | 验证                                                                      |
-| ------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| Turso `price_records` 表 + 索引 | `src/lib/turso/price/schema.ts`                                 | 内存 libSQL 建表/索引，schema v7                                          |
-| 读写仓储                        | `src/lib/turso/price/recordsRepository.ts`                      | 4 个用例：去重/跳过非法价、latest、chain NULL、过滤分页、TTL 删除         |
-| API 读取封装                    | `src/lib/turso/price/recordsQuery.ts`                           | 失败返回 null，调用方决定是否回落                                         |
-| 写入/读取开关                   | `src/lib/turso/price/client.ts`                                 | 默认 `supabase`；`shadow`/`turso` 校验；压缩窗口默认 30、可设 7、拒绝 >30 |
-| 采集写入 + API 读取 + 历史      | `src/lib/oracles/utils/storage.ts`                              | 默认路径不变；Turso 失败写入回落 Supabase                                 |
-| 三个读取路由                    | `price-records/export`、`v1/price-records/export`、`v1/signals` | 仅在 `turso` 模式走冷库，`shadow`/默认仍读 Supabase                       |
-| ACK payload 提前压缩            | `src/lib/turso/price/slotRepository.ts`                         | 7 天窗口压缩 10/40 天 ACK、保留 3 天 payload                              |
+| 项                              | 文件                                                            | 验证                                                                        |
+| ------------------------------- | --------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| Turso `price_records` 表 + 索引 | `src/lib/turso/price/schema.ts`                                 | 内存 libSQL 建表/索引，schema v7                                            |
+| 读写仓储                        | `src/lib/turso/price/recordsRepository.ts`                      | 4 个用例：去重/跳过非法价、latest、chain NULL、过滤分页、TTL 删除           |
+| API 读取封装                    | `src/lib/turso/price/recordsQuery.ts`                           | 失败返回 null，调用方决定是否回落                                           |
+| 写入/读取开关                   | `src/lib/turso/price/client.ts`                                 | 默认 `supabase`；`shadow`/`turso` 校验；压缩窗口默认 30、可设 7、拒绝 >30   |
+| 采集写入 + API 读取 + 历史      | `src/lib/oracles/utils/storage.ts`                              | 默认路径不变；Turso 失败写入回落 Supabase                                   |
+| 三个读取路由                    | `price-records/export`、`v1/price-records/export`、`v1/signals` | 仅在 `turso` 模式走冷库，`shadow`/默认仍读 Supabase                         |
+| ACK payload 提前压缩            | `src/lib/turso/price/slotRepository.ts`                         | 可配置窗口压缩 ACK payload（当前 30 天，等同不提前压缩），保留 hash/summary |
 
 验证结果：`jest` 4 个套件 39 个用例通过，`tsc --noEmit` 通过，ESLint 通过。**未执行**：生产 Turso 迁移、双写切换、任何部署——这些需要人工批准与生产凭据。
