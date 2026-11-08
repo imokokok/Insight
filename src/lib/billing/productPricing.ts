@@ -102,8 +102,10 @@ const PRODUCT_MCP_TOOL_OP_CREDIT_COSTS: Readonly<
   trade_guard: {
     oracle_price: C1,
     price_analytics: C2,
-    // Hard requirement: the pre-consolidation tier for get_oracle_health was C1.
-    oracle_health: C1,
+    // The original broad rule (`get_(feed|oracle)_(health|freshness|uptime|
+    // prices_batch)` → C2) already covered the deprecated spelling. Derive it
+    // instead of pinning a literal: no price change is part of a rename.
+    oracle_health: getToolCreditCost('get_oracle_health'),
     search_registry: C1,
     market_quote: C1,
     check_safety: C3,

@@ -83,6 +83,9 @@ describe('consolidated MCP surface', () => {
   it('keeps aliases out of the legacy registry so neither gets an expiry date', () => {
     // The legacy registry is removed wholesale on LEGACY_TOOL_REMOVAL_DATE;
     // aliases must not inherit that date, so they live in their own table.
+    // 81 is this branch's measured size (main has 80; this branch adds
+    // bnb_perp_guard). The number follows the branch baseline — after merging,
+    // take the merged result as authoritative.
     expect(LEGACY_TOOL_BY_NAME.size).toBe(81);
     const aliasOnly = [...ALIAS_TOOL_NAMES].filter((name) => !LEGACY_TOOL_BY_NAME.has(name));
     const overlap = [...ALIAS_TOOL_NAMES].filter((name) => LEGACY_TOOL_BY_NAME.has(name));

@@ -116,7 +116,8 @@ import type { McpToolCallContext, McpToolDefinition } from '../types';
 export const LEGACY_TOOL_REMOVAL_DATE = '2027-01-06';
 
 /**
- * The pre-consolidation surface (80 tools). `assess_rwa_evidence` is
+ * The pre-consolidation surface (80 tools on main; 81 on this branch after
+ * `bnb_perp_guard` was added). `assess_rwa_evidence` is
  * intentionally absent: it was the only unsigned diagnostic and carried no
  * evidence value, so it was removed rather than kept for compatibility.
  */
