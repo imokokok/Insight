@@ -1,4 +1,9 @@
--- Bounded catch-up for the snapshot archive job.
+-- Migration 0134: bounded catch-up for the snapshot archive job.
+--
+-- Numbering: 0131 is `0131_hyperevm_chainlink_feeds.sql`, 0132 is
+-- `0132_oracle_watch_window_terms.sql` and 0133 is
+-- `0133_stagger_and_merge_snapshot_schedule.sql`; this takes the next free
+-- number (0134).
 --
 -- The previous maintenance wrapper archived exactly one day per run. Since cold
 -- data also ages exactly one day per day, every missed run became permanent

@@ -7,15 +7,15 @@ C1–C4 档位基数与地板数值、运行时判词字面量均不在本计划
 
 ## 0. 前提修正（先于分工表）
 
-| 事实                                                                                                                                    | 处理方式                                                                                                                                                                                                                                                 |
-| --------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Vercel 为 Hobby：Cron 每天最多 1 次、精度 ±59 分钟；当前 `crons.definitions=[]`；11/1–11/7 有 140 次生产部署并已出现 Fluid Compute 预警 | **Vercel 不进入分工表的任何“承接方”行**。只托管 Next.js 应用；后台任务、补偿任务、批处理一律不新增到 Vercel 函数                                                                                                                                         |
-| Cloudflare 账号下只有 PriorSeal 的 5 个 Worker，没有 Insight 的采集/投影 Worker                                                         | 迁移 0115/0118 描述的“Cloudflare 主时钟”在当前账号并未落地；现行权威时钟是 0121 的 Supabase `pg_cron` → GitHub `workflow_dispatch`。计划按“Cloudflare 无 Insight Worker”写                                                                               |
-| Supabase `pg_cron` 30 个 job：13 个 dispatcher 只写账本 + `pg_net` 发 HTTP；17 个是库内清理                                             | 搬定时器只省调度开销，价格明细一行不少。批次围绕**数据落点与读路径**，不围绕“把定时器搬家”                                                                                                                                                               |
-| `snapshot_slots` 的 30 天压缩与小时投影**执行**已经在 GitHub Actions 投影器里，不在数据库内                                             | 只把“触发”留在 `pg_cron`。本计划不把触发搬到边缘；理由与可选做法见 §5                                                                                                                                                                                    |
-| Cloudflare R2 当前未开通（账号接口 10042），且**用户已决定取消 R2**                                                                     | 不引入第四种存储。所有“冷存/外置”设想作废；存储压力只能在 Supabase 与 Turso 现有额度内解决                                                                                                                                                               |
-| Cloudflare Free 硬边界：Cron 5 条/账号、10 ms CPU/次、100,000 请求/日；D1 10 万行写/日、5 GB                                            | 边缘线只接“能用 5 条 cron + 10 ms CPU 完成”的轻活；15 分钟级采集不接                                                                                                                                                                                     |
-| Turso Free：100 库、5 GB、5 亿行读/月、1,000 万行写/月                                                                                  | **已确认三线中最宽松**：账号下只有 `insight-imokokok` 一个库，库内用量=账号用量；96.1 MB / 5 GB ≈ 1.9%，按 30 天线性增长约 417 MB 仍不足 10%，写入 154–214 万行/月 ≈ 15–21%。平台 token 缺口对“存储与写入”已消除；**月度行读无实测**，只能按访问模式估计 |
+| 事实                                                                                                                                                                                                                                                  | 处理方式                                                                                                                                                                                                                                                 |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Vercel 为 Hobby：Cron 每天最多 1 次、精度 ±59 分钟；当前 `crons.definitions=[]`；11/1–11/7 有 140 次生产部署并已出现 Fluid Compute 预警                                                                                                               | **Vercel 不进入分工表的任何“承接方”行**。只托管 Next.js 应用；后台任务、补偿任务、批处理一律不新增到 Vercel 函数                                                                                                                                         |
+| Cloudflare 账号下只有 PriorSeal 的 5 个 Worker，没有 Insight 的采集/投影 Worker                                                                                                                                                                       | 迁移 0115/0118 描述的“Cloudflare 主时钟”在当前账号并未落地；现行权威时钟是 0121 的 Supabase `pg_cron` → GitHub `workflow_dispatch`。计划按“Cloudflare 无 Insight Worker”写                                                                               |
+| Supabase `pg_cron` 现役 17 个 job：**13 个 dispatcher**（含第二探针）+ **4 个独立清理**（`nightly-retention-cleanup`、`price-records-cleanup`、`rate-limits-cleanup`、`api-keys-deactivation`）；0133 已把 18 个日清合并为 1 个，active 从 31 降到 17 | 搬定时器只省调度开销，价格明细一行不少。剩余启动竞争来自 dispatcher 的分钟分布，批次围绕**数据落点与读路径**，不围绕“把定时器搬家”                                                                                                                       |
+| `snapshot_slots` 的 30 天压缩与小时投影**执行**已经在 GitHub Actions 投影器里，不在数据库内                                                                                                                                                           | 只把“触发”留在 `pg_cron`。本计划不把触发搬到边缘；理由与可选做法见 §5                                                                                                                                                                                    |
+| Cloudflare R2 当前未开通（账号接口 10042），且**用户已决定取消 R2**                                                                                                                                                                                   | 不引入第四种存储。所有“冷存/外置”设想作废；存储压力只能在 Supabase 与 Turso 现有额度内解决                                                                                                                                                               |
+| Cloudflare Free 硬边界：Cron 5 条/账号、10 ms CPU/次、100,000 请求/日；D1 10 万行写/日、5 GB                                                                                                                                                          | 边缘线只接“能用 5 条 cron + 10 ms CPU 完成”的轻活；15 分钟级采集不接                                                                                                                                                                                     |
+| Turso Free：100 库、5 GB、5 亿行读/月、1,000 万行写/月                                                                                                                                                                                                | **已确认三线中最宽松**：账号下只有 `insight-imokokok` 一个库，库内用量=账号用量；96.1 MB / 5 GB ≈ 1.9%，按 30 天线性增长约 417 MB 仍不足 10%，写入 154–214 万行/月 ≈ 15–21%。平台 token 缺口对“存储与写入”已消除；**月度行读无实测**，只能按访问模式估计 |
 
 **关于 10 ms 与 PriorSeal p50 21–26 ms 的矛盾**：现有 p50 很可能来自墙钟而非计费 CPU，不能据此认定档位，也不能据此认为 10 ms 的 Worker 一定够用。任何边缘方案都必须先用一次真实调用验证计费 CPU，再决定是否上线。
 
@@ -132,7 +132,7 @@ C1–C4 档位基数与地板数值、运行时判词字面量均不在本计划
 | `snapshot-archive-maintenance` | 30 天内成功 7 次、失败 2 次（11-06、11-07），失败原因**全部是 `job startup timeout`**            |
 | `snapshot-archive-cleanup`     | 30 天内成功 6 次、失败 3 次（同一超时）；archive 下界停在 07-09，120 天截止已是 07-11，仅差 2 天 |
 
-失败样本全库一致：`rate-limits-cleanup` 170 次、`github-dispatch-mark-stale` 130 次、`github-dispatch-snapshot-collect` 88 次，报错均为 `job startup timeout`。
+失败样本全库一致（0133 合并清理 job **之前**统计）：`rate-limits-cleanup` 170 次、`github-dispatch-mark-stale` 130 次、`github-dispatch-snapshot-collect` 88 次，报错均为 `job startup timeout`。
 
 ### 3.3 结论：归档正常，数据无缺口
 
@@ -140,17 +140,17 @@ C1–C4 档位基数与地板数值、运行时判词字面量均不在本计划
 - **「hourly 约 334 MB / archive 只有 110 MB」的矛盾不成立**：334 MB 是推算值（6756 行/日 × 120 天），实测 hourly 现表只有 36 MB / 约 15 天。7 天以前的 hourly 已经在 archive 里。
 - 真实问题是**吞吐与启动可靠性**，不是逻辑跳过：
   1. 归档速率恒为 1 天/次、1 次/天，没有追赶能力；每漏一次运行就永久多 1 天积压。诊断时积压 8 天（10-24 → 10-31），执行改造后见 §3.6。
-  2. `job startup timeout` 是 `max_connections=60` 下 pg_cron 启动竞争的全库症状，会周期性再发生，因此积压会持续累积。
+  2. `job startup timeout` 是 `max_connections=60` 下 pg_cron 启动竞争的全库症状，会周期性再发生，因此积压会持续累积。0133 已把 18 个日清合并成 `nightly-retention-cleanup`（active 31 → 17），剩下的竞争主要来自 **13 个 dispatcher 挤在同样的五组分钟上**（`0,15,30,45` / `3,18,33,48` / `7,22,37,52` / `10,25,40,55` / `12,27,42,57`）。
 
 ### 3.4 Supabase 空间从哪来（结论）
 
-1. **先靠归档把冻结存量搬走，不需要砍保留期**：`price_snapshots` 在 10-31 后已不再新增（Turso 已承接），随归档每天搬走 1 天，**8 天后行数归零**。实测每归档 1 天 archive 只增长 **约 2 MB**（不是 20–25 MB）；且 `DELETE` 不释放文件空间，收益是**停止增长并复用空闲页**，不是整库数字立刻下降。
+1. **先靠归档把冻结存量搬走，不需要砍保留期**：`price_snapshots` 在 10-31 后已不再新增（Turso 已承接），随归档每天搬走 1 天，**8 天后行数归零**。实测每归档 1 天 archive 只增长 **约 2 MB**；且 `DELETE` 不释放文件空间，收益是**停止增长并复用空闲页**，不是整库数字立刻下降。
 2. **hourly 现表是稳定值**：约 15 天 × 2.4 MB/天 ≈ 36 MB，不会再随 120 天窗口线性增长；archive 稳态是 **113 天**（120 天窗口减去 7 天热区），按当前密度约 115–120 MB，不会无限增长。
 3. **余量**：整库 438 MB / 500 MB，当前余量约 **62 MB**。此前记录的 452 MB / 40.9 MB 余量已被归档消耗掉一部分，说明其它表也在缓慢增长，仍需盯。
 4. **修 job 的最小动作（2026-11-08 已执行，见 §3.6）**：
    - 把 `maintain_snapshot_archives` 从「每次 1 天」改为「循环到积压清空（带上限与 `statement_timeout`）」；
    - 给 `snapshot-archive-maintenance` 增加 1 次补跑（例如 05:07 UTC），失败后当天还有第二次机会；
-   - 把同频/同窗口/无依赖的清理 job 合并，降低 pg_cron 启动竞争（这是 `job startup timeout` 的直接诱因）。
+   - 把 13 个 dispatcher 的分钟分布拉开（现在 `0,15,30,45` / `3,18,33,48` / `7,22,37,52` / `10,25,40,55` / `12,27,42,57` 已经很密）；清理 job 合并在 0133 已完成，不再重复。
 
 ### 3.5 保留期：现在有一项可直接推进
 
@@ -163,7 +163,7 @@ C1–C4 档位基数与地板数值、运行时判词字面量均不在本计划
 
 ### 3.6 2026-11-08 执行记录（已落生产，未回滚）
 
-迁移 `0131_archive_catchup_bound.sql` 已应用：
+迁移 `0134_archive_catchup_bound.sql` 已应用：
 
 - `maintain_snapshot_archives(p_max_days, p_max_seconds)`：单次最多 **3 天 / 45 秒**，两天各跑一次 → 容量 6 天/日 对 到达 1 天/日，3 倍余量；零参数包装保留，cron 命令不变。
 - 新增 `snapshot-archive-maintenance-early` @ **05:07 UTC**；原 `19:07 UTC` 保留。
@@ -178,7 +178,7 @@ C1–C4 档位基数与地板数值、运行时判词字面量均不在本计划
 
 手工跑返回 `moved_price=18,155`、`moved_hourly=5,501`、`archive_rows=23,656`；重复 archive 行检查 = **0**。
 剩余 7 天积压由 19:07 + 05:07 两次 3 天配额清空，最迟 **2026-11-09 19:07 UTC** 后归零；稳态 archive 约 **1 MB/日**，113 天上限约 115–120 MB。
-**整库不会回到 390 MB**：`DELETE` 只释放页内空间，`price_snapshots` 文件大小保持 75 MB，直到这些空闲页被新数据复用。
+**整库大小不会因此下降**：`DELETE` 只释放页内空间，`price_snapshots` 文件大小保持 75 MB，直到这些空闲页被新数据复用。
 
 ACK payload 读取方审计（`30 → 7` 前置）：
 
@@ -216,24 +216,25 @@ ACK payload 读取方审计（`30 → 7` 前置）：
 - `turso` 期间若 Supabase 未双写，切回前最多缺一个采集周期的缓存行；`fallback_on_miss` 会继续从 Turso 读到 TTL 结束。
 - 压缩窗口改回 `30` 不会恢复已压缩 payload（不可逆），但 hash/summary/审计字段仍在；这是唯一不可逆项，故默认保持 30。
 
-### 批次 2：归档 job 加固 + 清理 job 合并（需人工批准，少量 SQL）
+### 批次 2：归档追赶（已执行）+ dispatcher 分钟重排（待做）
 
-先做 §3 里已经定位的确定性动作，不动任何保留期：
+归档部分已于 2026-11-08 执行（`0134_archive_catchup_bound.sql`，见 §3.6），保留期一律不动。
 
-- 把 `maintain_snapshot_archives` 从「每次只归档最老 1 天」改为「循环到积压清空，带上限（例如每次最多 7 天）与 `statement_timeout`」。
-- 给 `snapshot-archive-maintenance` 增加一次补跑（例如 05:07 UTC）；两次运行之间用现有 advisory lock 互斥。
-- 合并 17 个库内清理：同频/同窗口/无依赖的放到 2–3 个夜间批处理函数；不合并 dispatcher、receipt 探针和采集派发。
+待做：**13 个 dispatcher 的分钟重排**。清理 job 已由 0133 合并为 `nightly-retention-cleanup`（active 31 → 17），再合并清理没有收益；现在的竞争源是 dispatcher 挤在 `0,15,30,45` / `3,18,33,48` / `7,22,37,52` / `10,25,40,55` / `12,27,42,57` 这几组分钟上。
+
+- 目标：同一分钟最多 2 个 dispatch job；避开 `05:07` / `19:07` 归档跑和 `07:00` 快照写入。
+- 不合并 dispatcher：它们的 command 与 workflow 一一对应，合并会把“单次 dispatch 失败”放大成“多条线路一起失败”。
 
 验收指标：
 
-1. 积压天数（`(utc_today-7) - max(archive_day)`）在 3 天内从 8 降到 0；此后每日保持 0–1。
-2. `snapshot-archive-maintenance` 的 `job startup timeout` 次数在 14 天内为 0；若仍出现，说明 `max_connections=60` 的竞争未缓解，需继续合并清理 job。
-3. `price_snapshots` 的 `n_live_tup` 在 8 天内从 158,695 降到 0；整库从 438 MB 降到约 390 MB 以下。
-4. 注意：`DELETE` 不会让文件立即变小；指标只能是 live tuples 与表大小增长，不能承诺“库容立刻降 X MB”。如需回收文件，需要 `VACUUM FULL`/重建，Free 档不可行。
+1. 积压天数（`(utc_today-7) - max(archive_day)`）在 3 天内从 8 降到 0，此后每日保持 0–1。
+2. `snapshot-archive-maintenance` 的 `job startup timeout` 次数在 14 天内为 0；若仍出现，先看同分钟 dispatch 并发数，而不是继续合并 cleanup。
+3. `price_snapshots` 的 `n_live_tup` 在 8 天内从 158,695 降到 0；**整库不再增长**（`DELETE` 不释放文件空间，整库大小不会向下回落）。
+4. 15 分钟 slot 的创建率在同一窗口内恢复到应有数量；`job startup timeout` 与丢窗按同一次运行的时间戳对账。
 
-回滚：函数体回退到 0065/0067 版本；补跑 job `cron.unschedule`；合并后的清理函数可拆回原 job。归档本身的 checksum 校验与同事务删除不变，不会丢数据。
+回滚：dispatcher 恢复原 schedule 即可；归档函数回退见 `0134_archive_catchup_bound.sql` 末尾的 ROLLBACK 块（恢复单天函数、删除 2 参数版本、unschedule `-early`）。已归档数据不会自动回退。
 
-保留期（`hourly`/archive 120→90、`feed_health` 90→60）**不放在本批**：等积压清零、且 `price_snapshots` 归零后再单独评估，见 §3.5。
+保留期（`hourly`/archive 120→90、`feed_health` 90→60）**不放在本批**：等积压清零、且 `price_snapshots` 行数归零后再单独评估，见 §3.5。
 
 ### 批次 3：`dex_market_swap_events` 与 `feed_health_snapshots` 的落点/保留期
 
