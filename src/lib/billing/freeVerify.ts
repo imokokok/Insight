@@ -31,7 +31,9 @@ const LEGACY_FREE_VERIFY_TOOLS = new Set([
  */
 export function isFreeVerifyCall(toolName: string, args?: unknown): boolean {
   if (LEGACY_FREE_VERIFY_TOOLS.has(toolName)) return true;
-  if (toolName !== 'verify_evidence') return false;
-  const kind = (args as { kind?: unknown } | undefined)?.kind;
-  return typeof kind === 'string' && parseFreeKinds().includes(kind);
+  const record = (args ?? {}) as { kind?: unknown; op?: unknown };
+  const isVerifyEvidence =
+    toolName === 'verify_evidence' || (toolName === 'trade_proof' && record.op === 'verify_evidence');
+  if (!isVerifyEvidence) return false;
+  return typeof record.kind === 'string' && parseFreeKinds().includes(record.kind);
 }

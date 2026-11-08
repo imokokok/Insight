@@ -319,7 +319,7 @@ export async function consumeMcpQuota(
   // verification kinds are also 0 and stay free.
   if (cost === 0) {
     const coveredByEntitlement =
-      !isFreeVerifyCall(toolName, args) && isEntitlementCoveredMcpTool(toolName);
+      !isFreeVerifyCall(toolName, args) && isEntitlementCoveredMcpTool(toolName, args);
     if (coveredByEntitlement) {
       // An entitlement-covered call is still a delivered call. Without this
       // 0-delta row it would vanish from the ledger, which is indistinguishable

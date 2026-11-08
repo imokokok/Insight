@@ -1,7 +1,862 @@
 [
   {
+    "name": "trade_guard",
+    "description": "Use it for every pre-execution trust decision: one oracle price, price analytics, oracle health, oracle registry search, a venue market quote, or the pre-trade safety gate including prepare_swap and prepare_perp_order. Each call selects the branch with \"op\". Do not use it to prove execution after the fact (use trade_proof), to poll a prepaid monitoring window (use oracle_watch_window), or to manage a position bundle (use position_lifecycle). Returns the op payload: price and analytics rows for read ops, a venue quote for market_quote, a READY/CAUTION/BLOCK verdict with reasons for check_safety, and an unsigned prepared transaction, Solana message, venue order or instruction for prepare_* ops. Absorbs the deprecated names get_oracle_price, get_price_analytics, get_oracle_health, search_oracle_registry, get_market_quote, check_trade_safety, prepare_swap and prepare_perp_order.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "op": {
+          "type": "string",
+          "enum": [
+            "oracle_price",
+            "price_analytics",
+            "oracle_health",
+            "search_registry",
+            "market_quote",
+            "check_safety",
+            "prepare_swap",
+            "prepare_perp_order"
+          ]
+        },
+        "provider": {
+          "description": "Oracle provider, e.g. chainlink, redstone, api3",
+          "type": "string"
+        },
+        "asset": {
+          "description": "Asset symbol, e.g. BTC, ETH",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 20
+        },
+        "chain": {
+          "description": "Optional blockchain filter, e.g. base",
+          "type": "string"
+        },
+        "force_refresh": {
+          "description": "Bypass cache and re-read upstream",
+          "type": "boolean"
+        },
+        "assets": {
+          "minItems": 1,
+          "maxItems": 10,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20
+          },
+          "description": "Assets to analyse; consensus/risk/history use the first asset"
+        },
+        "mode": {
+          "anyOf": [
+            {
+              "default": "consensus",
+              "description": "consensus = cross-provider price, batch = multi-asset, history = time series",
+              "type": "string",
+              "enum": ["consensus", "batch", "history"]
+            },
+            {
+              "default": "pre_trade",
+              "description": "Generic oracle gate mode when no family-specific guard applies",
+              "type": "string",
+              "enum": ["pre_trade", "preflight"]
+            }
+          ]
+        },
+        "metric": {
+          "anyOf": [
+            {
+              "description": "Deep-analysis metric; overrides mode",
+              "type": "string",
+              "enum": ["spreads", "deviation", "correlation", "risk"]
+            },
+            {
+              "description": "Optional metric selector; defaults to the scope default",
+              "type": "string",
+              "enum": [
+                "health",
+                "uptime",
+                "exposure",
+                "peg",
+                "latency",
+                "anomalies",
+                "coverage",
+                "counts",
+                "report"
+              ]
+            }
+          ]
+        },
+        "providers": {
+          "anyOf": [
+            {
+              "description": "Required for metric=risk; otherwise uses the provider default",
+              "minItems": 2,
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
+              "description": "Oracle providers to gate on",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "method": {
+          "description": "Consensus aggregation method",
+          "type": "string",
+          "enum": ["median", "trimmed_mean", "weighted_median", "iqr_filtered"]
+        },
+        "base_chain": {
+          "description": "Base chain for metric=spreads",
+          "type": "string"
+        },
+        "from": {
+          "description": "Start date YYYY-MM-DD",
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "to": {
+          "description": "End date YYYY-MM-DD",
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "interval": {
+          "description": "Deviation interval, default 24h",
+          "type": "string",
+          "enum": ["1h", "6h", "24h"]
+        },
+        "period_hours": {
+          "description": "Risk/history hours",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8760
+        },
+        "scope": {
+          "default": "ecosystem",
+          "description": "Which health surface to read",
+          "type": "string",
+          "enum": [
+            "ecosystem",
+            "feeds",
+            "feed",
+            "providers",
+            "provider",
+            "protocol",
+            "asset",
+            "incidents"
+          ]
+        },
+        "subject": {
+          "description": "Feed UUID, provider, protocol, or asset symbol depending on scope",
+          "type": "string",
+          "minLength": 1
+        },
+        "period": {
+          "description": "Period in hours or days",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8760
+        },
+        "days": {
+          "description": "Lookback days for rankings/trends",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 365
+        },
+        "date": {
+          "description": "Report date YYYY-MM-DD",
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "category": {
+          "description": "Feed category filter",
+          "type": "string",
+          "enum": ["crypto", "stablecoin", "forex", "commodity", "wrapped", "lst"]
+        },
+        "is_active": {
+          "description": "Feed active-state filter, default true",
+          "type": "boolean"
+        },
+        "min_severity": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "critical"]
+        },
+        "chain_id": {
+          "anyOf": [
+            {
+              "description": "Chain filter",
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            },
+            {
+              "type": "string",
+              "const": "solana"
+            },
+            {
+              "type": "string",
+              "const": "hyperliquid"
+            }
+          ]
+        },
+        "limit": {
+          "anyOf": [
+            {
+              "description": "Maximum rows",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500
+            },
+            {
+              "description": "Maximum rows",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200
+            }
+          ]
+        },
+        "offset": {
+          "description": "Pagination offset",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "symbols",
+            "feeds",
+            "protocols",
+            "stablecoins",
+            "protocol_params",
+            "rwa_instrument",
+            "rwa_context",
+            "settlement_evidence",
+            "setup_recommendation"
+          ],
+          "description": "Registry/evidence family to search"
+        },
+        "query": {
+          "description": "Search or lookup term (symbol, protocol, slug)",
+          "type": "string",
+          "minLength": 1
+        },
+        "verify_onchain": {
+          "description": "For RWA lookups, cross-check on chain",
+          "type": "boolean"
+        },
+        "venue": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "base_uniswap_v3",
+                "base_aerodrome",
+                "base_pancakeswap_v3",
+                "bnb_pancakeswap_v3",
+                "base_quickswap_v2",
+                "base_venue_identity",
+                "monad_uniswap_v3",
+                "monad_hanji",
+                "solana_jupiter",
+                "hyperliquid_perp"
+              ],
+              "description": "Reviewed venue to quote"
+            },
+            {
+              "type": "string",
+              "enum": [
+                "base_aerodrome_slipstream",
+                "base_pancakeswap_v3",
+                "bnb_pancakeswap_v3",
+                "base_agent_swap",
+                "solana_loopscale_vault",
+                "solana_jupiter"
+              ],
+              "description": "Reviewed execution venue"
+            }
+          ]
+        },
+        "profile_id": {
+          "description": "Reviewed pool/profile id. PancakeSwap V3: base-pancakeswap-v3-usdc-usdt-100, bnb-pancakeswap-v3-usdt-usdc-100, bnb-pancakeswap-v3-usdt-wbnb-100",
+          "type": "string",
+          "minLength": 1
+        },
+        "market": {
+          "description": "Hyperliquid perp market",
+          "type": "string",
+          "enum": ["BTC", "ETH", "HYPE"]
+        },
+        "venues": {
+          "description": "Base venue ids to inspect",
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "action": {
+          "type": "string",
+          "enum": [
+            "swap",
+            "borrow",
+            "repay",
+            "lend",
+            "open_perp",
+            "close_perp",
+            "check_position",
+            "check_liquidation",
+            "vault_deposit"
+          ],
+          "description": "Trade action being considered"
+        },
+        "amount_usd": {
+          "description": "Trade size in USD",
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "destination_asset": {
+          "description": "Destination asset for swaps",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 20
+        },
+        "protocol_id": {
+          "description": "Lending/protocol id",
+          "type": "string",
+          "minLength": 1
+        },
+        "market_id": {
+          "description": "Isolated lending market id when required",
+          "type": "string",
+          "minLength": 1
+        },
+        "side": {
+          "description": "Perp side",
+          "type": "string",
+          "enum": ["open_long", "open_short"]
+        },
+        "margin_asset": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 20
+        },
+        "margin_value_usd": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "loan_symbol": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 20
+            },
+            {
+              "type": "string",
+              "minLength": 1
+            }
+          ]
+        },
+        "collateral_value_usd": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "debt_value_usd": {
+          "type": "number",
+          "minimum": 0
+        },
+        "collateral_symbol": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 20
+            },
+            {
+              "type": "string",
+              "minLength": 1
+            }
+          ]
+        },
+        "collateral_amount": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "borrow_symbol": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 20
+        },
+        "borrow_amount": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "collaterals": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "symbol": {
+                "type": "string",
+                "minLength": 1
+              },
+              "amount": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              }
+            },
+            "required": ["symbol", "amount"]
+          }
+        },
+        "borrows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "symbol": {
+                "type": "string",
+                "minLength": 1
+              },
+              "amount": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              }
+            },
+            "required": ["symbol", "amount"]
+          }
+        },
+        "position": {
+          "description": "Position payload for action=check_position",
+          "type": "object",
+          "properties": {
+            "protocol_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "collaterals": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "symbol": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "amount": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  }
+                },
+                "required": ["symbol", "amount"]
+              }
+            },
+            "borrows": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "symbol": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "amount": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  }
+                },
+                "required": ["symbol", "amount"]
+              }
+            },
+            "collateral_symbol": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 20
+            },
+            "collateral_amount": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "borrow_symbol": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 20
+            },
+            "borrow_amount": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        },
+        "token_address": {
+          "type": "string",
+          "pattern": "^0x[0-9a-fA-F]{40}$"
+        },
+        "decision_input": {
+          "description": "Caller decision/quote evidence (old camelCase shape)",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "guard": {
+          "description": "Exact-call guard input for family-specific exact tools",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "transaction": {
+          "description": "Exact unsigned transaction for exact-call guards"
+        },
+        "order": {
+          "description": "Exact Hyperliquid order envelope"
+        },
+        "reputation_opt_in": {
+          "type": "boolean"
+        },
+        "reputation_agent_id": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991
+        },
+        "direction": {
+          "type": "string",
+          "enum": ["token0-to-token1", "token1-to-token0"]
+        },
+        "amount_in": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Exact input amount as a decimal string"
+        },
+        "recipient": {
+          "type": "string",
+          "pattern": "^0x[0-9a-fA-F]{40}$"
+        },
+        "deadline_unix_seconds": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991
+        },
+        "max_slippage_bps": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9999
+        },
+        "source_decision_price_usd": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "destination_decision_price_usd": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "policy": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "wallet": {
+          "type": "string",
+          "minLength": 1
+        },
+        "vault": {
+          "type": "string",
+          "minLength": 1
+        },
+        "asset_mint": {
+          "type": "string",
+          "minLength": 1
+        },
+        "input_mint": {
+          "description": "Solana base58 mint sold; required for venue=solana_jupiter",
+          "type": "string",
+          "pattern": "^[1-9A-HJ-NP-Za-km-z]{32,44}$"
+        },
+        "output_mint": {
+          "description": "Solana base58 mint bought; required for venue=solana_jupiter",
+          "type": "string",
+          "pattern": "^[1-9A-HJ-NP-Za-km-z]{32,44}$"
+        },
+        "principal_amount": {
+          "type": "string",
+          "minLength": 1
+        },
+        "min_lp_amount": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": ["op"]
+    }
+  },
+  {
+    "name": "trade_proof",
+    "description": "Use it to open a trade-evidence session, issue an execution receipt, or verify an evidence artifact after a trade. Each call selects the branch with \"op\": begin_evidence, issue_receipt or verify_evidence. Do not use it to decide whether a trade is safe before signing (use trade_guard) and do not use it to settle a swap guard (use the venue guard tools). Returns the evidence session handle, the signed receipt, or the verification verdict, digest and matched evidence. Absorbs the deprecated names begin_trade_evidence, issue_execution_receipt and verify_evidence.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "op": {
+          "type": "string",
+          "enum": ["begin_evidence", "issue_receipt", "verify_evidence"]
+        },
+        "asset": {
+          "description": "Source asset sold",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 20
+        },
+        "destination_asset": {
+          "description": "Destination asset bought",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 20
+        },
+        "chain_id": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991,
+          "description": "Execution chain id"
+        },
+        "action": {
+          "type": "string",
+          "enum": ["swap", "borrow", "lend", "liquidate", "repay"]
+        },
+        "amount_usd": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "max_slippage_bps": {
+          "type": "number",
+          "const": 50,
+          "description": "Pre-committed tolerance; fixed at 50"
+        },
+        "protocol_id": {
+          "type": "string"
+        },
+        "providers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "source_group_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "decision_input": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {},
+          "description": "Required quote evidence: {source, destination, routeQuotePrice, routeQuoteObservedAt} (old camelCase shape)"
+        },
+        "mode": {
+          "type": "string",
+          "enum": ["receipt", "settle_base_agent_swap", "settle_solana_swap"]
+        },
+        "receipt": {
+          "description": "Required for mode=receipt; old execution_receipt fields",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "decision": {
+          "description": "Required for settle modes; the signed guard decision",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "swap_tx_hash": {
+          "type": "string",
+          "pattern": "^0x[0-9a-fA-F]{64}$"
+        },
+        "signature": {
+          "description": "Solana transaction signature",
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "enum": ["execution_pair", "base_agent_swap", "solana_swap", "hyperliquid_perp"]
+        },
+        "pre_trade_attestation": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "execution_receipt": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "destination_pre_trade_attestation": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "settlement": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "user": {
+          "type": "string",
+          "pattern": "^0x[0-9a-fA-F]{40}$"
+        },
+        "order_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "submitted_at": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expected_order": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        }
+      },
+      "required": ["op"]
+    }
+  },
+  {
+    "name": "oracle_watch_window",
+    "description": "Oracle Watch for monitored trust signals. Use it to read one trust snapshot or history series, buy a 24h monitored window, or poll/close an already purchased window. Each call selects the branch with \"op\": snapshot, history, begin, poll or close. Do not use it for pre-trade safety (use trade_guard op check_safety), do not buy a second window for the same subject, and never reuse a token after close. Returns the trust signal or history series, the windowId plus one-time oww_ token and expiry for begin, and the poll signal or combined close summary for window ops. Absorbs the deprecated names oracle_watch, oracle_watch_window_begin and oracle_watch_window_control.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "op": {
+          "type": "string",
+          "enum": ["snapshot", "history", "begin", "poll", "close"]
+        },
+        "symbol": {
+          "description": "Asset symbol to watch",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 20
+        },
+        "chain": {
+          "type": "string"
+        },
+        "days": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 90
+        },
+        "interval": {
+          "type": "string",
+          "enum": ["30min", "hourly", "daily"]
+        },
+        "window_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "window_token": {
+          "type": "string",
+          "minLength": 1,
+          "description": "One-time oww_ token from the purchase"
+        }
+      },
+      "required": ["op"]
+    }
+  },
+  {
+    "name": "position_lifecycle",
+    "description": "Use it to buy a 24h Position Lifecycle bundle and run the guard, receipt and close steps inside it. Each call selects the branch with \"op\": begin, guard, receipt or close. Do not use it for a single pre-trade guard (use trade_guard op check_safety), for unrelated positions, or with a token after close. Returns the lifecycleId plus one-time plc_ token and expiry for begin, and the guard verdict, signed execution receipt or combined lifecycle summary for the in-window steps. Absorbs the deprecated names position_lifecycle_begin and position_lifecycle_step.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "op": {
+          "type": "string",
+          "enum": ["begin", "guard", "receipt", "close"]
+        },
+        "symbol": {
+          "description": "Position subject for the lifecycle",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 20
+        },
+        "chain": {
+          "type": "string"
+        },
+        "lifecycle_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "lifecycle_token": {
+          "type": "string",
+          "minLength": 1,
+          "description": "One-time plc_ token from the purchase"
+        },
+        "family": {
+          "type": "string",
+          "enum": [
+            "base_perp",
+            "bnb_perp",
+            "hyperliquid_perp",
+            "solana_perp",
+            "base_lending",
+            "monad_lending",
+            "multichain_evm_lending",
+            "solana_lending"
+          ]
+        },
+        "params": {
+          "description": "Native family guard input (old shape)",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "transaction": {},
+        "receipt": {
+          "description": "Bundled execution receipt (old shape)",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        }
+      },
+      "required": ["op"]
+    }
+  },
+  {
     "name": "get_oracle_price",
-    "description": "Read the current price one oracle provider reports for one asset. Use it for a single fresh or cached provider read (for example when a route quote needs a reference price). Do not use it for cross-provider consensus, historical series, deviation or risk analytics — use get_price_analytics instead. Returns the price, provider, symbol, chain, confidence/decimals, source timestamp and cache status.",
+    "description": "Read the current price one oracle provider reports for one asset. Use it for a single fresh or cached provider read (for example when a route quote needs a reference price). Do not use it for cross-provider consensus, historical series, deviation or risk analytics — use get_price_analytics instead. Returns the price, provider, symbol, chain, confidence/decimals, source timestamp and cache status. Deprecated alias: prefer trade_guard with op \"oracle_price\".",
     "inputSchema": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
@@ -30,7 +885,7 @@
   },
   {
     "name": "get_price_analytics",
-    "description": "Run multi-oracle price analytics: consensus across providers, batch reads, historical series, cross-chain spreads, deviation, correlation or a risk summary. Use it when one price is not enough and the caller needs to compare, stress or trend oracle data. Do not use it for a single provider spot read (get_oracle_price) or for feed uptime (get_oracle_health). Returns the requested analysis rows plus provider participation and reference prices.",
+    "description": "Run multi-oracle price analytics: consensus across providers, batch reads, historical series, cross-chain spreads, deviation, correlation or a risk summary. Use it when one price is not enough and the caller needs to compare, stress or trend oracle data. Do not use it for a single provider spot read (get_oracle_price) or for feed uptime (get_oracle_health). Returns the requested analysis rows plus provider participation and reference prices. Deprecated alias: prefer trade_guard with op \"price_analytics\".",
     "inputSchema": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
@@ -112,7 +967,7 @@
   },
   {
     "name": "get_oracle_health",
-    "description": "Read oracle ecosystem, feed, provider, protocol or asset health. Use it to answer freshness, uptime, latency, anomaly, coverage, peg, exposure, incident and daily-report questions before trusting a price or a protocol. Do not use it for a price quote (get_oracle_price) or for a trade gate (check_trade_safety). Returns the matching health rows, verdicts, counts and timestamps for the selected scope.",
+    "description": "Read oracle ecosystem, feed, provider, protocol or asset health. Use it to answer freshness, uptime, latency, anomaly, coverage, peg, exposure, incident and daily-report questions before trusting a price or a protocol. Do not use it for a price quote (get_oracle_price) or for a trade gate (check_trade_safety). Returns the matching health rows, verdicts, counts and timestamps for the selected scope. Deprecated alias: prefer trade_guard with op \"oracle_health\".",
     "inputSchema": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
@@ -219,7 +1074,7 @@
   },
   {
     "name": "search_oracle_registry",
-    "description": "Search Insight-reviewed registry and evidence resources: symbols, feeds, protocols, stablecoins, protocol risk parameters, RWA instruments/context, settlement-evidence packs and oracle setup recommendations. Use it to discover the exact ids a price, safety or execution tool expects. Do not use it to read live prices or health. Returns matching registry rows or one lookup record, with ids and reviewed metadata.",
+    "description": "Search Insight-reviewed registry and evidence resources: symbols, feeds, protocols, stablecoins, protocol risk parameters, RWA instruments/context, settlement-evidence packs and oracle setup recommendations. Use it to discover the exact ids a price, safety or execution tool expects. Do not use it to read live prices or health. Returns matching registry rows or one lookup record, with ids and reviewed metadata. Deprecated alias: prefer trade_guard with op \"search_registry\".",
     "inputSchema": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
@@ -281,7 +1136,7 @@
   },
   {
     "name": "get_market_quote",
-    "description": "Read one reviewed venue market: pool/market metadata, pinned quote context and venue constraints for Base, Monad, Solana or Hyperliquid. Use it before preparing or gating a trade when the agent needs the reviewed profile or market id. Do not use it as execution authorization or for prices outside the reviewed venues. Returns the market record, reviewed profile ids and current quote context.",
+    "description": "Read one reviewed venue market: pool/market metadata, pinned quote context and venue constraints for Base, Monad, Solana or Hyperliquid. Use it before preparing or gating a trade when the agent needs the reviewed profile or market id. Do not use it as execution authorization or for prices outside the reviewed venues. Returns the market record, reviewed profile ids and current quote context. Deprecated alias: prefer trade_guard with op \"market_quote\".",
     "inputSchema": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
@@ -326,7 +1181,7 @@
   },
   {
     "name": "check_trade_safety",
-    "description": "Run the pre-trade oracle safety gate for swaps, lending, perps, vault deposits and position stress tests across Base, Monad, multichain EVM, Solana and Hyperliquid. Use it immediately before an agent trades or signs, and pass the family native payload in `guard` when the venue needs exact-call fields. Do not use it after execution (use issue_execution_receipt) and do not treat its ALLOW as principal authorization. Returns a verdict (ALLOW/CAUTION/DANGER/BLOCK), reason codes, oracle evidence and a signed attestation or decision when the family supports one.",
+    "description": "Run the pre-trade oracle safety gate for swaps, lending, perps, vault deposits and position stress tests across Base, Monad, multichain EVM, Solana and Hyperliquid. Use it immediately before an agent trades or signs, and pass the family native payload in `guard` when the venue needs exact-call fields. Do not use it after execution (use issue_execution_receipt) and do not treat its ALLOW as principal authorization. Returns a verdict (ALLOW/CAUTION/DANGER/BLOCK), reason codes, oracle evidence and a signed attestation or decision when the family supports one. Deprecated alias: prefer trade_guard with op \"check_safety\".",
     "inputSchema": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
@@ -600,7 +1455,7 @@
   },
   {
     "name": "begin_trade_evidence",
-    "description": "Open the verifiable execution loop: certify a swap/DeFi intent before the agent executes. Use it when a principal needs a signed pre-trade handle to bind an execution receipt later. Do not use it as trade authorization and do not call it after the trade. Returns preTradeUid, destinationPreTradeUid, requestHash, CAIP-19 asset ids, certified cross-rate, the 50 bps band, verdicts and the signed pre-trade attestations.",
+    "description": "Open the verifiable execution loop: certify a swap/DeFi intent before the agent executes. Use it when a principal needs a signed pre-trade handle to bind an execution receipt later. Do not use it as trade authorization and do not call it after the trade. Returns preTradeUid, destinationPreTradeUid, requestHash, CAIP-19 asset ids, certified cross-rate, the 50 bps band, verdicts and the signed pre-trade attestations. Deprecated alias: prefer trade_proof with op \"begin_evidence\".",
     "inputSchema": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
@@ -672,7 +1527,7 @@
   },
   {
     "name": "prepare_swap",
-    "description": "Prepare unsigned, reviewed swap calldata for local signing on Base Aerodrome Slipstream, Base PancakeSwap V3, the Base agent swap guard, or a Solana Loopscale vault deposit. Use it when the user wants an executable transaction bound to a reviewed pool and policy. Do not use it to sign, submit or route arbitrary calldata, and do not skip the matching safety gate. Returns the unsigned transaction envelope (to/value/calldata), reviewed profile, quote and, where supported, a signed decision.",
+    "description": "Prepare unsigned, reviewed swap calldata for local signing on Base Aerodrome Slipstream, Base PancakeSwap V3, the Base agent swap guard, or a Solana Loopscale vault deposit. Use it when the user wants an executable transaction bound to a reviewed pool and policy. Do not use it to sign, submit or route arbitrary calldata, and do not skip the matching safety gate. Returns the unsigned transaction envelope (to/value/calldata), reviewed profile, quote and, where supported, a signed decision. Deprecated alias: prefer trade_guard with op \"prepare_swap\".",
     "inputSchema": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
@@ -779,7 +1634,7 @@
   },
   {
     "name": "prepare_perp_order",
-    "description": "Prepare an unsigned perpetual order for one reviewed venue, without signing or submitting it. Venue decides the artifact shape: hyperliquid returns an unsigned exchange order envelope (HyperCore); synthetix-perps-v3-base returns EVM calldata for commitOrder whose acceptablePrice is derived from Insight cross-oracle consensus, not the Synthetix mark price; aster-perps-bnb-mainnet returns a canonical centralized REST order payload (not calldata, and it proves payload binding rather than on-chain execution); solana_drift returns a Borsh instruction payload that the caller must complete with the Drift SDK. The reviewed guard runs inside each adapter, so the result carries the risk verdict reference. Use it when an agent has decided on venue, market, side and size. Do not use it to create a nonce, sign, or submit an order. Returns the shared prepared-execution envelope: `state` (READY, CAUTION, REQUIRES_COMPLETION, BLOCK or UNAVAILABLE), a payload whose `kind` is `evm-transaction`, `venue-rest-order`, `solana-instruction` or null, a required `validity_anchor` (timestamp, EVM block, Solana block height or venue policy), caller requirements and the guard verdict reference. It never returns a uniformly described executable trade package, and a payload that still needs caller completion is never labelled READY. A `venue-rest-order` payload exposes `execution_binding` with `proves_onchain_execution: false` and the `signing` requirement. Solana message payloads carry `transactionHash` (sha256 of the exact unsigned bytes, byte binding only, not signature-verifiable) and `messageHash` (null when the message segment cannot be derived).",
+    "description": "Prepare an unsigned perpetual order for one reviewed venue, without signing or submitting it. Venue decides the artifact shape: hyperliquid returns an unsigned exchange order envelope (HyperCore); synthetix-perps-v3-base returns EVM calldata for commitOrder whose acceptablePrice is derived from Insight cross-oracle consensus, not the Synthetix mark price; aster-perps-bnb-mainnet returns a canonical centralized REST order payload (not calldata, and it proves payload binding rather than on-chain execution); solana_drift returns a Borsh instruction payload that the caller must complete with the Drift SDK. The reviewed guard runs inside each adapter, so the result carries the risk verdict reference. Use it when an agent has decided on venue, market, side and size. Do not use it to create a nonce, sign, or submit an order. Returns the shared prepared-execution envelope: `state` (READY, CAUTION, REQUIRES_COMPLETION, BLOCK or UNAVAILABLE), a payload whose `kind` is `evm-transaction`, `venue-rest-order`, `solana-instruction` or null, a required `validity_anchor` (timestamp, EVM block, Solana block height or venue policy), caller requirements and the guard verdict reference. It never returns a uniformly described executable trade package, and a payload that still needs caller completion is never labelled READY. A `venue-rest-order` payload exposes `execution_binding` with `proves_onchain_execution: false` and the `signing` requirement. Solana message payloads carry `transactionHash` (sha256 of the exact unsigned bytes, byte binding only, not signature-verifiable) and `messageHash` (null when the message segment cannot be derived). Deprecated alias: prefer trade_guard with op \"prepare_perp_order\".",
     "inputSchema": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "oneOf": [
@@ -1049,7 +1904,7 @@
   },
   {
     "name": "issue_execution_receipt",
-    "description": "Close the loop after an agent executes: issue a signed execution-price receipt from the pre-trade handle plus the settlement transaction, or settle a guarded Base/Solana swap. Use it only after the trade settled. Do not use it before execution and do not treat the verdict as principal authorization. Returns a signed receipt or settlement with FAITHFUL/DEVIATED/NOT_EXECUTED/UNDETERMINED (or settlement status), price delta, binding ids and verify URL.",
+    "description": "Close the loop after an agent executes: issue a signed execution-price receipt from the pre-trade handle plus the settlement transaction, or settle a guarded Base/Solana swap. Use it only after the trade settled. Do not use it before execution and do not treat the verdict as principal authorization. Returns a signed receipt or settlement with FAITHFUL/DEVIATED/NOT_EXECUTED/UNDETERMINED (or settlement status), price delta, binding ids and verify URL. Deprecated alias: prefer trade_proof with op \"issue_receipt\".",
     "inputSchema": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
@@ -1089,7 +1944,7 @@
   },
   {
     "name": "verify_evidence",
-    "description": "Verify signed evidence produced by Insight or by an agent: a pre-trade/execution pair, a Base agent-swap settlement, a Solana swap settlement, or one Hyperliquid order/fill record. Use it when a third party needs to check binding and signatures before trusting a claim. Do not use it to re-assess oracle risk or to authorize trading. Returns valid/invalid, the closed-loop or settlement status, binding assertions and machine-readable reasons.",
+    "description": "Verify signed evidence produced by Insight or by an agent: a pre-trade/execution pair, a Base agent-swap settlement, a Solana swap settlement, or one Hyperliquid order/fill record. Use it when a third party needs to check binding and signatures before trusting a claim. Do not use it to re-assess oracle risk or to authorize trading. Returns valid/invalid, the closed-loop or settlement status, binding assertions and machine-readable reasons. Deprecated alias: prefer trade_proof with op \"verify_evidence\".",
     "inputSchema": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
@@ -1151,7 +2006,7 @@
   },
   {
     "name": "oracle_watch",
-    "description": "Read one oracle-trust snapshot or historical series for an asset. Use it for a one-off check of whether a symbol is currently trustworthy or how its recent history looks. Do not use it for continuous monitoring — buy a 24h window with oracle_watch_window_begin. Returns the current trust signal (or the requested history series) with provider participation and freshness.",
+    "description": "Read one oracle-trust snapshot or historical series for an asset. Use it for a one-off check of whether a symbol is currently trustworthy or how its recent history looks. Do not use it for continuous monitoring — buy a 24h window with oracle_watch_window_begin. Returns the current trust signal (or the requested history series) with provider participation and freshness. Deprecated alias: prefer oracle_watch_window with op \"snapshot\".",
     "inputSchema": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
@@ -1185,7 +2040,7 @@
   },
   {
     "name": "oracle_watch_window_begin",
-    "description": "Buy a 24h Oracle Watch window for one asset and return the one-time control token. Use it when an agent will poll throughout a window instead of paying per snapshot. Do not use it repeatedly for the same window and never share the token. Returns windowId, the oww_ token, the covered expiry and the credits charged.",
+    "description": "Buy a 24h Oracle Watch window for one asset and return the one-time control token. Use it when an agent will poll throughout a window instead of paying per snapshot. Do not use it repeatedly for the same window and never share the token. Returns windowId, the oww_ token, the covered expiry and the credits charged. Deprecated alias: prefer oracle_watch_window with op \"begin\".",
     "inputSchema": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
@@ -1205,7 +2060,7 @@
   },
   {
     "name": "oracle_watch_window_control",
-    "description": "Poll or close an already purchased Oracle Watch window using its one-time oww_ token. Poll returns a fresh signal at zero extra credits; close returns the complete window summary and the final signal. Use it only with a window token from oracle_watch_window_begin. Do not use it for a one-off snapshot (oracle_watch) and never reuse a token after close. Returns the signal (poll) or the combined summary (close).",
+    "description": "Poll or close an already purchased Oracle Watch window using its one-time oww_ token. Poll returns a fresh signal at zero extra credits; close returns the complete window summary and the final signal. Use it only with a window token from oracle_watch_window_begin. Do not use it for a one-off snapshot (oracle_watch) and never reuse a token after close. Returns the signal (poll) or the combined summary (close). Deprecated alias: prefer oracle_watch_window with op \"poll\".",
     "inputSchema": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
@@ -1230,7 +2085,7 @@
   },
   {
     "name": "position_lifecycle_begin",
-    "description": "Buy a 24h Position Lifecycle bundle for one position subject and return the one-time control token. Use it when an agent needs guard, execution-receipt and close steps inside one prepaid window. Do not use it for a single guard (use check_trade_safety) and never share the token. Returns lifecycleId, the plc_ token, the covered expiry and the credits charged.",
+    "description": "Buy a 24h Position Lifecycle bundle for one position subject and return the one-time control token. Use it when an agent needs guard, execution-receipt and close steps inside one prepaid window. Do not use it for a single guard (use check_trade_safety) and never share the token. Returns lifecycleId, the plc_ token, the covered expiry and the credits charged. Deprecated alias: prefer position_lifecycle with op \"begin\".",
     "inputSchema": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
@@ -1250,7 +2105,7 @@
   },
   {
     "name": "position_lifecycle_step",
-    "description": "Run one step inside a purchased Position Lifecycle bundle: guard (family-specific safety assessment), receipt (signed execution receipt), or close (combined summary). Guard and receipt cost zero extra credits inside the bundle. Returns the step result (guard verdict, signed receipt, or the combined lifecycle summary). Use it only with a lifecycle token from position_lifecycle_begin. Do not use it for unrelated positions and never reuse a token after close.",
+    "description": "Run one step inside a purchased Position Lifecycle bundle: guard (family-specific safety assessment), receipt (signed execution receipt), or close (combined summary). Guard and receipt cost zero extra credits inside the bundle. Returns the step result (guard verdict, signed receipt, or the combined lifecycle summary). Use it only with a lifecycle token from position_lifecycle_begin. Do not use it for unrelated positions and never reuse a token after close. Deprecated alias: prefer position_lifecycle with op \"guard\".",
     "inputSchema": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",

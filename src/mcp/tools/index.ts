@@ -82,6 +82,7 @@ import {
   verifySolanaSwapGuardSettlementTool,
 } from './solanaSwapGuardTools';
 import { UNIFIED_MCP_TOOLS, UNIFIED_TOOL_BY_NAME } from './unified';
+import { canonicalizeAlias } from './unified/aliases';
 import {
   LEGACY_MCP_TOOLS,
   LEGACY_TOOL_BY_NAME,
@@ -89,22 +90,15 @@ import {
   legacyToolsExpired,
 } from './unified/runtime';
 
-import type { McpToolCallContext, McpToolCallResult } from './types';
+import type { McpToolCallContext, McpToolCallResult, McpToolDefinition } from './types';
 
 const logger = createLogger(`mcp-tools`);
 
 /**
- * Default `core` lists the 16 consolidated tools. `MCP_TOOL_PROFILE=legacy`
- * re-exposes the 81 legacy tools for rollback only until
- * LEGACY_TOOL_REMOVAL_DATE.
+ * Default `core` lists the 4 canonical product tools plus their 16 deprecated
+ * alias spellings. `MCP_TOOL_PROFILE=legacy` re-exposes the 81 legacy tools for
+ * rollback only until LEGACY_TOOL_REMOVAL_DATE.
  */
-const BUNDLE_TOOL_NAMES: ReadonlySet<string> = new Set([
-  'oracle_watch_window_begin',
-  'oracle_watch_window_control',
-  'position_lifecycle_begin',
-  'position_lifecycle_step',
-]);
-
 function toolProfile(): 'core' | 'legacy' {
   return process.env.MCP_TOOL_PROFILE === `legacy` ? `legacy` : `core`;
 }
@@ -570,19 +564,62 @@ for (const tool of LEGACY_MCP_TOOLS) {
 }
 
 /**
- * Which registry serves a tool name under the current profile. `legacy`
- * rollback wins for names the legacy registry actually implements, except the
- * bundled product tools: their unified implementation is canonical in every
- * profile and their control/step tools have no legacy equivalent.
+ * Which registry serves a tool name under the current profile.
+ *
+ * Order: canonical product names are always unified; a deprecated alias under
+ * the legacy profile resolves to the real legacy implementation when one
+ * exists; every other alias is unified (it canonicalizes onto its product);
+ * remaining unified names follow; legacy is the last fallback.
  */
 export function resolveToolSource(name: string): 'unified' | 'legacy' | 'unknown' {
   const legacy = LEGACY_TOOL_BY_NAME.get(name);
-  if (toolProfile() === 'legacy' && legacy && !BUNDLE_TOOL_NAMES.has(name) && !legacyToolsExpired()) {
+  if (toolProfile() === 'legacy' && legacy && !legacyToolsExpired()) {
     return 'legacy';
   }
   if (UNIFIED_TOOL_BY_NAME.has(name)) return 'unified';
   if (legacy && !legacyToolsExpired()) return 'legacy';
   return 'unknown';
+}
+
+export interface CanonicalToolCall {
+  name: string;
+  args: unknown;
+}
+
+/**
+ * The one canonicalization used at the JSON-RPC boundary. Deprecated aliases
+ * become their product tool plus the op selector; the legacy profile keeps the
+ * old spelling so rollback still reaches the real legacy implementation.
+ */
+export function canonicalizeToolCall(name: string, args: unknown): CanonicalToolCall {
+  if (resolveToolSource(name) === 'legacy') return { name, args };
+  const canonical = canonicalizeAlias(name, args);
+  return canonical ? { name: canonical.name, args: canonical.args } : { name, args };
+}
+
+export interface DispatchedTool {
+  definition: McpToolDefinition;
+  source: 'unified' | 'legacy';
+  name: string;
+  args: unknown;
+}
+
+/** Resolve a name to the definition and args the dispatcher will actually run. */
+export function resolveDispatchedTool(name: string, args: unknown): DispatchedTool | null {
+  const source = resolveToolSource(name);
+  if (source === 'unified') {
+    const canonical = canonicalizeAlias(name, args);
+    const target = canonical?.name ?? name;
+    const definition = UNIFIED_TOOL_BY_NAME.get(target);
+    if (!definition) return null;
+    return { definition, source, name: target, args: canonical?.args ?? args };
+  }
+  if (source === 'legacy') {
+    const definition = LEGACY_TOOL_BY_NAME.get(name);
+    if (!definition) return null;
+    return { definition, source, name, args };
+  }
+  return null;
 }
 
 export function getToolDefinitions() {
@@ -611,52 +648,43 @@ export async function executeTool(
   args: unknown,
   context?: McpToolCallContext
 ): Promise<McpToolCallResult> {
-  const source = resolveToolSource(name);
-  const unified = source === 'unified' ? UNIFIED_TOOL_BY_NAME.get(name) : undefined;
-  if (unified) {
+  const dispatched = resolveDispatchedTool(name, args);
+  if (!dispatched) {
+    const removalHint =
+      LEGACY_TOOL_BY_NAME.has(name) && legacyToolsExpired()
+        ? ` (legacy name removed on ${LEGACY_TOOL_REMOVAL_DATE})`
+        : ``;
+    return {
+      content: [{ type: `text`, text: `Unknown tool: ${name}${removalHint}` }],
+      isError: true,
+    };
+  }
+
+  if (dispatched.source === 'unified') {
     // HyperEVM is not part of this surface's chain set, so name it explicitly
     // before schema validation: otherwise the caller sees a malformed-request
     // error instead of the ecosystem boundary.
-    const hyperevmField = refusedHyperevmChain(args);
+    const hyperevmField = refusedHyperevmChain(dispatched.args);
     if (hyperevmField) {
       return {
         content: [
           {
             type: `text`,
-            text: `[unavailable:ecosystem_absent] ${name}: HyperEVM (chain 999) is not wired into this tool's chain model ("${hyperevmField}"). This surface serves HyperEVM as a data-plane reference chain only; no other chain's data or execution model is substituted.`,
+            text: `[unavailable:ecosystem_absent] ${dispatched.name}: HyperEVM (chain 999) is not wired into this tool's chain model ("${hyperevmField}"). This surface serves HyperEVM as a data-plane reference chain only; no other chain's data or execution model is substituted.`,
           },
         ],
         isError: true,
       };
     }
-    try {
-      const validatedArgs = unified.parameters.parse(args);
-      const result = await unified.handler(validatedArgs, context);
-      return { content: [{ type: `text`, text: result }] };
-    } catch (error) {
-      return toolError(name, error);
-    }
   }
 
-  const legacy = source === 'legacy' ? LEGACY_TOOL_BY_NAME.get(name) : undefined;
-  if (legacy) {
-    try {
-      const validatedArgs = legacy.parameters.parse(args);
-      const result = await legacy.handler(validatedArgs, context);
-      return { content: [{ type: `text`, text: result }] };
-    } catch (error) {
-      return toolError(name, error);
-    }
+  try {
+    const validatedArgs = dispatched.definition.parameters.parse(dispatched.args);
+    const result = await dispatched.definition.handler(validatedArgs, context);
+    return { content: [{ type: `text`, text: result }] };
+  } catch (error) {
+    return toolError(name, error);
   }
-
-  const removalHint =
-    LEGACY_TOOL_BY_NAME.has(name) && legacyToolsExpired()
-      ? ` (legacy name removed on ${LEGACY_TOOL_REMOVAL_DATE})`
-      : ``;
-  return {
-    content: [{ type: `text`, text: `Unknown tool: ${name}${removalHint}` }],
-    isError: true,
-  };
 }
 
 /**

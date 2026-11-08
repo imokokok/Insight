@@ -59,6 +59,7 @@ jest.mock('@/lib/api/middleware/rateLimitStore', () => ({
 
 jest.mock('../tools', () => ({
   executeTool: (...args: unknown[]) => executeToolMock(...(args as [])),
+  canonicalizeToolCall: (name: unknown, args: unknown) => ({ name, args }),
   getToolDefinitions: () => [
     {
       name: 'get_symbols',

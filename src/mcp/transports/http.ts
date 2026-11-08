@@ -16,6 +16,7 @@ import {
 } from '@/lib/billing/billingHeaders';
 import { resolveClientIdempotencyKey } from '@/lib/billing/requestIdempotency';
 import { createLogger } from '@/lib/utils/logger';
+import { canonicalizeAlias } from '@/mcp/tools/unified/aliases';
 
 import packageJson from '../../../package.json';
 import { authenticateMcpRequest, type McpAuthContext } from '../auth';
@@ -358,11 +359,13 @@ function sseRequested(request: Request): boolean {
 const PAID_TOOLS_RATE_LIMIT = { windowMs: 60_000, maxRequests: 60 };
 
 /**
- * Extract the tool name from a single (non-batch) `tools/call` JSON-RPC
- * message without consuming the request. Returns null for batches, other
- * methods, or a missing/unnamed tool — the caller then falls through.
+ * Extract and canonicalize a single (non-batch) `tools/call` JSON-RPC message
+ * without consuming the request. Returns null for batches, other methods, or a
+ * missing/unnamed tool — the caller then falls through.
  */
-async function probeToolName(request: Request): Promise<string | null> {
+async function probeToolCall(
+  request: Request
+): Promise<{ name: string; args: unknown } | null> {
   try {
     if (request.method !== 'POST') return null;
     const contentType = (request.headers.get('content-type') ?? '').toLowerCase();
@@ -377,8 +380,14 @@ async function probeToolName(request: Request): Promise<string | null> {
     ) {
       return null;
     }
-    const name = (body as { params?: { name?: unknown } }).params?.name;
-    return typeof name === 'string' && name.length > 0 ? name : null;
+    const params = (body as { params?: { name?: unknown; arguments?: unknown } }).params;
+    const name = params?.name;
+    if (typeof name !== 'string' || name.length === 0) return null;
+    // Canonicalize once at the JSON-RPC boundary: pricing, payment scope,
+    // Bazaar discovery and settlement then all name the product tool instead
+    // of a deprecated alias.
+    const canonical = canonicalizeAlias(name, params?.arguments);
+    return canonical ?? { name, args: params?.arguments };
   } catch {
     return null;
   }
@@ -401,10 +410,11 @@ async function tryPaidToolCall(request: Request): Promise<McpHttpHandlerResult |
     return null;
   }
 
-  const toolName = await probeToolName(request);
-  if (!toolName) {
+  const call = await probeToolCall(request);
+  if (!call) {
     return null;
   }
+  const { name: toolName, args: toolArgs } = call;
 
   const identity = `mcp:x402:${getClientIp(request)}`;
   const rate = await rateLimitStore.increment(identity, PAID_TOOLS_RATE_LIMIT.windowMs);
@@ -445,6 +455,7 @@ async function tryPaidToolCall(request: Request): Promise<McpHttpHandlerResult |
       request,
       cfg,
       toolName,
+      toolArgs,
       runBusiness: async () => {
         const raw = await transport.handleRequest(request);
         return new Response(raw.body, {
@@ -560,8 +571,9 @@ async function tryMppPaidToolCall(
 ): Promise<McpHttpHandlerResult | null> {
   if (!mppConfig.mcpEnabled || !mppConfig.secretKey) return null;
 
-  const toolName = await probeToolName(request);
-  if (!toolName) return null;
+  const call = await probeToolCall(request);
+  if (!call) return null;
+  const toolName = call.name;
 
   if (request.headers.has('payment-signature')) {
     return {

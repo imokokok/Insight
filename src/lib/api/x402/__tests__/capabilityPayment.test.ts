@@ -231,6 +231,8 @@ describe('x402 capability payment bindings', () => {
       'get_pancakeswap_v3_market',
       'prepare_pancakeswap_v3_swap',
       'prepare_perp_order',
+      'trade_guard',
+      'trade_proof',
       'check_trade_safety',
       'prepare_swap',
       'get_market_quote',

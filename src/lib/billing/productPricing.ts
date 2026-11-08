@@ -14,6 +14,8 @@
  * product registry in here keeps the module graph acyclic.
  */
 
+import { canonicalizeAlias } from '@/mcp/tools/unified/aliases';
+
 import { isFreeVerifyCall } from './freeVerify';
 import {
   BATCH_UNIT_CREDITS,
@@ -82,12 +84,105 @@ export const PRODUCT_MCP_TOOL_USD_PRICES: Readonly<Record<string, number>> = {
   [POSITION_LIFECYCLE_BEGIN_MCP_TOOL]: POSITION_LIFECYCLE_PLAN.priceUsd,
 };
 
+const C1 = getToolCreditCost('get_symbols');
+const C2 = getToolCreditCost('get_price_analytics');
+const C3 = getToolCreditCost('check_trade_safety');
+const C4 = getToolCreditCost('begin_trade_evidence');
+
+/**
+ * Per-op credit cost for the consolidated product tools. The op branch keeps
+ * the class each deprecated name had before consolidation, which is why a
+ * single product name cannot carry one flat price: `get_oracle_price` must
+ * stay C1 while `prepare_swap` must stay C3. Product purchases keep their
+ * product credit price; covered in-window ops are 0.
+ */
+const PRODUCT_MCP_TOOL_OP_CREDIT_COSTS: Readonly<
+  Record<string, Readonly<Record<string, number>>>
+> = {
+  trade_guard: {
+    oracle_price: C1,
+    price_analytics: C2,
+    // Hard requirement: the pre-consolidation tier for get_oracle_health was C1.
+    oracle_health: C1,
+    search_registry: C1,
+    market_quote: C1,
+    check_safety: C3,
+    prepare_swap: C3,
+    prepare_perp_order: C3,
+  },
+  trade_proof: {
+    begin_evidence: C4,
+    issue_receipt: C4,
+    verify_evidence: C4,
+  },
+  oracle_watch_window: {
+    snapshot: C3,
+    history: C3,
+    begin: ORACLE_WATCH_WINDOW_CREDIT_COST,
+    poll: 0,
+    close: 0,
+  },
+  position_lifecycle: {
+    begin: POSITION_LIFECYCLE_CREDIT_COST,
+    guard: 0,
+    receipt: 0,
+    close: 0,
+  },
+};
+
+/** Representative op when a bare product name is priced without arguments. */
+const DEFAULT_PRODUCT_OP: Readonly<Record<string, string>> = {
+  trade_guard: 'oracle_price',
+  trade_proof: 'begin_evidence',
+  oracle_watch_window: 'snapshot',
+  position_lifecycle: 'begin',
+};
+
+function callOp(args: unknown): string | undefined {
+  if (args === null || typeof args !== 'object') return undefined;
+  const op = (args as Record<string, unknown>).op;
+  return typeof op === 'string' ? op : undefined;
+}
+
+/** Product purchases priced in USD, including the canonical product spelling. */
+const PRODUCT_MCP_TOOL_OP_USD_PRICES: Readonly<Record<string, number>> = {
+  'oracle_watch_window:begin': ORACLE_WATCH_WINDOW_PLAN.priceUsd,
+  'position_lifecycle:begin': POSITION_LIFECYCLE_PLAN.priceUsd,
+};
+
+/**
+ * USD list price for a call, if the tool is product-priced. Deprecated names,
+ * canonical product names and raw op arguments all resolve to the same entry.
+ */
+export function getMcpToolUsdPrice(toolName: string, args?: unknown): number | undefined {
+  const direct = PRODUCT_MCP_TOOL_USD_PRICES[toolName];
+  if (direct !== undefined) return direct;
+  const canonical = canonicalizeAlias(toolName, args);
+  const name = canonical?.name ?? toolName;
+  const op = callOp(canonical?.args ?? args) ?? DEFAULT_PRODUCT_OP[name];
+  return PRODUCT_MCP_TOOL_OP_USD_PRICES[`${name}:${op}`];
+}
+
+/**
+ * Resolve a product call to its op cost. Deprecated names are canonicalized
+ * first, so a direct `get_price_analytics` lookup and a canonical
+ * `trade_guard` + `price_analytics` lookup land on the same tier.
+ */
+function productOpCreditCost(toolName: string, args?: unknown): number | undefined {
+  const canonical = canonicalizeAlias(toolName, args);
+  const name = canonical?.name ?? toolName;
+  const op = callOp(canonical?.args ?? args) ?? DEFAULT_PRODUCT_OP[name];
+  return PRODUCT_MCP_TOOL_OP_CREDIT_COSTS[name]?.[op];
+}
+
 /**
  * Resolve the credit cost for an MCP tool name, honouring product-priced
  * tools before per-call class rules. A 0 result means the call is covered by
  * a prior purchase, not that the tool is unmetered-by-design.
  */
-export function getMcpToolCreditCost(toolName: string): number {
+export function getMcpToolCreditCost(toolName: string, args?: unknown): number {
+  const opCost = productOpCreditCost(toolName, args);
+  if (opCost !== undefined) return opCost;
   const product = PRODUCT_MCP_TOOL_CREDIT_COSTS[toolName];
   if (product !== undefined) return product;
   return getToolCreditCost(toolName);
@@ -105,12 +200,14 @@ export function getMcpToolCreditCostForCall(toolName: string, args?: unknown): n
   if (isMcpBatchCall(toolName, args)) {
     return BATCH_UNIT_CREDITS * getMcpToolBillableItems(toolName, args);
   }
-  const unitCost = getMcpToolCreditCost(toolName);
+  const unitCost = getMcpToolCreditCost(toolName, args);
   if (unitCost === 0) return 0;
   return unitCost * getMcpToolBillableItems(toolName, args);
 }
 
 /** True when a tool's per-call cost is covered by a prior product purchase. */
-export function isEntitlementCoveredMcpTool(toolName: string): boolean {
+export function isEntitlementCoveredMcpTool(toolName: string, args?: unknown): boolean {
+  const opCost = productOpCreditCost(toolName, args);
+  if (opCost !== undefined) return opCost === 0;
   return PRODUCT_MCP_TOOL_CREDIT_COSTS[toolName] === 0;
 }
