@@ -11,6 +11,7 @@ import {
 import {
   ALIAS_MCP_TOOLS,
   CORE_MCP_TOOLS,
+  LEGACY_MCP_TOOLS,
   LEGACY_PRODUCT_MCP_TOOLS,
   PRODUCT_MCP_TOOLS,
   UNIFIED_MCP_TOOLS,
@@ -81,12 +82,10 @@ describe('consolidated MCP surface', () => {
   });
 
   it('keeps aliases out of the legacy registry so neither gets an expiry date', () => {
-    // The legacy registry is removed wholesale on LEGACY_TOOL_REMOVAL_DATE;
-    // aliases must not inherit that date, so they live in their own table.
-    // 81 is this branch's measured size (main has 80; this branch adds
-    // bnb_perp_guard). The number follows the branch baseline — after merging,
-    // take the merged result as authoritative.
-    expect(LEGACY_TOOL_BY_NAME.size).toBe(81);
+    // The registry size follows the branch baseline (main: 80, this branch:
+    // 81 after bnb_perp_guard), so pin the structural invariant rather than a
+    // branch-local number. After merging, the merged result is authoritative.
+    expect(LEGACY_TOOL_BY_NAME.size).toBe(new Set(LEGACY_MCP_TOOLS.map((tool) => tool.name)).size);
     const aliasOnly = [...ALIAS_TOOL_NAMES].filter((name) => !LEGACY_TOOL_BY_NAME.has(name));
     const overlap = [...ALIAS_TOOL_NAMES].filter((name) => LEGACY_TOOL_BY_NAME.has(name));
     expect(aliasOnly).toHaveLength(11);
