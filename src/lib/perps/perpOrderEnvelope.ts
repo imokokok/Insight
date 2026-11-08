@@ -12,6 +12,7 @@
 import { keccak256, type Hex } from 'viem';
 import { z } from 'zod';
 
+import type { RejectedVerdictEvidence } from '@/lib/billing/exemptions';
 import { getRpcEndpoints } from '@/lib/execution/rpcEndpoints';
 import { canonicalJsonString } from '@/lib/utils/canonicalJson';
 
@@ -28,15 +29,36 @@ export type PerpOrderAdapterErrorCode =
   | 'INVALID_INPUT'
   | 'SLIPPAGE_EXCEEDED';
 
+/**
+ * Product-level meaning of an adapter failure. Only a completed risk verdict
+ * may be `rejected`; coverage gaps, invalid parameters and upstream failures
+ * stay `unavailable` and are never charged.
+ */
+export type PerpOrderAdapterOutcome = 'rejected' | 'unavailable';
+
+export interface SlippageRejectionContext {
+  input_digest: string;
+  data_sources: Array<Record<string, unknown>>;
+  risk_ruleset_version: string;
+}
+
 export class PerpOrderAdapterError extends Error {
   readonly code: PerpOrderAdapterErrorCode;
+  readonly outcome: PerpOrderAdapterOutcome;
+  readonly evidence: RejectedVerdictEvidence | null;
 
-  constructor(code: PerpOrderAdapterErrorCode, message: string, cause?: unknown) {
+  constructor(
+    code: PerpOrderAdapterErrorCode,
+    message: string,
+    options: { cause?: unknown; evidence?: RejectedVerdictEvidence | null } = {}
+  ) {
     super(message);
     this.name = 'PerpOrderAdapterError';
     this.code = code;
-    if (cause !== undefined) {
-      (this as Error & { cause?: unknown }).cause = cause;
+    this.outcome = code === 'SLIPPAGE_EXCEEDED' ? 'rejected' : 'unavailable';
+    this.evidence = options.evidence ?? null;
+    if (options.cause !== undefined) {
+      (this as Error & { cause?: unknown }).cause = options.cause;
     }
   }
 }
@@ -201,6 +223,7 @@ export function resolveSlippageBoundedPrice(input: {
   referencePrice: number;
   maxSlippageBps: number;
   limitPrice?: string;
+  rejectionContext?: SlippageRejectionContext;
 }): SlippageBoundedPrice {
   if (!Number.isFinite(input.referencePrice) || input.referencePrice <= 0) {
     throw new PerpOrderAdapterError(
@@ -223,9 +246,25 @@ export function resolveSlippageBoundedPrice(input: {
       throw new PerpOrderAdapterError('INVALID_INPUT', 'The limit price must be positive');
     }
     if (deviationBps(limitPrice, input.referencePrice) > input.maxSlippageBps) {
+      const observed = deviationBps(limitPrice, input.referencePrice);
       throw new PerpOrderAdapterError(
         'SLIPPAGE_EXCEEDED',
-        `Limit price deviates beyond the caller slippage cap of ${input.maxSlippageBps} bps`
+        `Limit price deviates beyond the caller slippage cap of ${input.maxSlippageBps} bps`,
+        input.rejectionContext
+          ? {
+              evidence: {
+                reason_code: 'SLIPPAGE_EXCEEDED',
+                input_digest: input.rejectionContext.input_digest,
+                triggered_threshold: {
+                  rule: 'limit_price_deviation_bps',
+                  threshold: input.maxSlippageBps,
+                  observed,
+                },
+                data_sources: input.rejectionContext.data_sources,
+                risk_ruleset_version: input.rejectionContext.risk_ruleset_version,
+              },
+            }
+          : {}
       );
     }
     return {
@@ -277,11 +316,9 @@ export async function runPerpOrderQuery<T>(
   } catch (error) {
     if (error instanceof PerpOrderAdapterError) throw error;
     const message = error instanceof Error ? error.message : 'unknown upstream failure';
-    throw new PerpOrderAdapterError(
-      'UPSTREAM_UNAVAILABLE',
-      `${label} query failed: ${message}`,
-      error
-    );
+    throw new PerpOrderAdapterError('UPSTREAM_UNAVAILABLE', `${label} query failed: ${message}`, {
+      cause: error,
+    });
   } finally {
     if (timer !== undefined) clearTimeout(timer);
   }
@@ -360,6 +397,6 @@ export async function fetchChainHeadBlockNumber(
   throw new PerpOrderAdapterError(
     'UPSTREAM_UNAVAILABLE',
     `Every reviewed RPC endpoint failed to return a block number for chain ${chainId}`,
-    lastError
+    { cause: lastError }
   );
 }

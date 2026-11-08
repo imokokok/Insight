@@ -1,3 +1,4 @@
+import { assessProductOutcome, missingRejectedEvidenceItems } from '@/lib/billing/exemptions';
 import type { AsterPerpMarketState } from '@/lib/dex/asterPerpMarket';
 
 import {
@@ -7,8 +8,26 @@ import {
 } from '../bnbPerpOrderEnvelope';
 
 import type { BnbPerpGuardResult } from '../bnbPerpGuard';
+import type { PerpOrderAdapterError } from '../perpOrderEnvelope';
 
 const NOW = new Date('2026-11-08T00:00:00.000Z');
+
+const COMPLETE_EVIDENCE = {
+  reason_code: 'TEST',
+  input_digest: `0x${'11'.repeat(32)}`,
+  triggered_threshold: { rule: 'test', threshold: 1, observed: 2 },
+  data_sources: [{ source: 'test' }],
+  risk_ruleset_version: 'test-v1',
+};
+
+async function captureAdapterError(run: Promise<unknown>): Promise<PerpOrderAdapterError> {
+  try {
+    await run;
+  } catch (error) {
+    return error as PerpOrderAdapterError;
+  }
+  throw new Error('expected the adapter to reject');
+}
 
 const REQUEST: BnbPerpOrderEnvelopeRequest = {
   chain: 'eip155:56',
@@ -167,7 +186,11 @@ describe('prepareBnbPerpOrderEnvelope', () => {
   it('fails with UNSUPPORTED_MARKET for a market outside the reviewed set', async () => {
     await expect(
       prepareBnbPerpOrderEnvelope({ ...REQUEST, market: 'SOL' }, dependencies())
-    ).rejects.toMatchObject({ code: 'UNSUPPORTED_MARKET' });
+    ).rejects.toMatchObject({
+      code: 'UNSUPPORTED_MARKET',
+      outcome: 'unavailable',
+      evidence: null,
+    });
   });
 
   it('fails with UPSTREAM_UNAVAILABLE when venue evidence times out', async () => {
@@ -179,16 +202,46 @@ describe('prepareBnbPerpOrderEnvelope', () => {
           queryTimeoutMs: 20,
         })
       )
-    ).rejects.toMatchObject({ code: 'UPSTREAM_UNAVAILABLE' });
+    ).rejects.toMatchObject({
+      code: 'UPSTREAM_UNAVAILABLE',
+      outcome: 'unavailable',
+      evidence: null,
+    });
   });
 
-  it('rejects a limit price outside the caller slippage cap', async () => {
-    await expect(
+  it('rejects a limit price outside the caller slippage cap with complete evidence', async () => {
+    const error = await captureAdapterError(
       prepareBnbPerpOrderEnvelope(
         { ...REQUEST, orderType: 'limit', limitPrice: '3200' },
         dependencies()
       )
-    ).rejects.toMatchObject({ code: 'SLIPPAGE_EXCEEDED' });
+    );
+
+    expect(error.code).toBe('SLIPPAGE_EXCEEDED');
+    expect(error.outcome).toBe('rejected');
+    expect(missingRejectedEvidenceItems(error.evidence)).toEqual([]);
+    const assessment = assessProductOutcome(
+      JSON.stringify({ productOutcome: error.outcome, evidence: error.evidence })
+    );
+    expect(assessment.outcome).toBe('rejected');
+    expect(assessment.downgradedFromRejected).toBe(false);
+  });
+
+  it('keeps an invalid parameter failure unavailable even though the venue is covered', async () => {
+    const error = await captureAdapterError(
+      prepareBnbPerpOrderEnvelope(
+        { ...REQUEST, orderType: 'limit', limitPrice: '0' },
+        dependencies()
+      )
+    );
+
+    expect(error.code).toBe('INVALID_INPUT');
+    expect(error.outcome).toBe('unavailable');
+    expect(error.evidence).toBeNull();
+    const assessment = assessProductOutcome(
+      JSON.stringify({ productOutcome: error.outcome, evidence: COMPLETE_EVIDENCE })
+    );
+    expect(assessment.outcome).toBe('unavailable');
   });
 
   it('carries a guard BLOCK conclusion and withholds the venue payload', async () => {

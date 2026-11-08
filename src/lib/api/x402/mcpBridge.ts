@@ -17,6 +17,7 @@ import {
   isEntitlementCoveredMcpTool,
   PRODUCT_MCP_TOOL_USD_PRICES,
 } from '@/lib/billing/productPricing';
+import { recordRejectedOutcome } from '@/lib/billing/rejectedOutcomeMonitor';
 import { enqueueReputationAnchor } from '@/lib/erc8004/reputationAnchor';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -215,6 +216,7 @@ type McpBusinessAssessment = {
   failed: boolean;
   downgradedFromRejected: boolean;
   missingEvidence: readonly RejectedEvidenceItem[];
+  outcome: 'rejected' | 'unavailable' | null;
 };
 
 /**
@@ -227,7 +229,13 @@ type McpBusinessAssessment = {
  */
 async function assessMcpBusinessResponse(response: Response): Promise<McpBusinessAssessment> {
   if (response.status < 200 || response.status >= 300) {
-    return { response, failed: true, downgradedFromRejected: false, missingEvidence: [] };
+    return {
+      response,
+      failed: true,
+      downgradedFromRejected: false,
+      missingEvidence: [],
+      outcome: null,
+    };
   }
   try {
     const body = (await response.clone().json()) as {
@@ -238,7 +246,13 @@ async function assessMcpBusinessResponse(response: Response): Promise<McpBusines
       };
     };
     if (body?.error != null) {
-      return { response, failed: true, downgradedFromRejected: false, missingEvidence: [] };
+      return {
+        response,
+        failed: true,
+        downgradedFromRejected: false,
+        missingEvidence: [],
+        outcome: null,
+      };
     }
     const resultText = Array.isArray(body?.result?.content)
       ? body.result.content
@@ -254,6 +268,7 @@ async function assessMcpBusinessResponse(response: Response): Promise<McpBusines
           (assessment.outcome !== 'rejected' && body?.result?.isError === true),
         downgradedFromRejected: false,
         missingEvidence: [],
+        outcome: assessment.outcome,
       };
     }
 
@@ -284,9 +299,16 @@ async function assessMcpBusinessResponse(response: Response): Promise<McpBusines
       failed: true,
       downgradedFromRejected: true,
       missingEvidence: assessment.missingEvidence,
+      outcome: assessment.outcome,
     };
   } catch {
-    return { response, failed: true, downgradedFromRejected: false, missingEvidence: [] };
+    return {
+      response,
+      failed: true,
+      downgradedFromRejected: false,
+      missingEvidence: [],
+      outcome: null,
+    };
   }
 }
 
@@ -700,15 +722,17 @@ async function handleHypercoreMcpCall(input: {
   const businessAssessment = await assessMcpBusinessResponse(businessResponse);
   businessResponse = businessAssessment.response;
   const jsonRpcFailed = businessAssessment.failed;
+  if (businessAssessment.downgradedFromRejected) {
+    recordRejectedOutcome({
+      surface: 'x402',
+      tool: toolName,
+      kind: 'downgraded',
+      missingEvidence: businessAssessment.missingEvidence,
+    });
+  } else if (businessAssessment.outcome === 'rejected') {
+    recordRejectedOutcome({ surface: 'x402', tool: toolName, kind: 'billable' });
+  }
   if (jsonRpcFailed) {
-    if (businessAssessment.downgradedFromRejected) {
-      logger.warn('x402 rejected outcome downgraded to unavailable: incomplete evidence', {
-        requestId,
-        toolName,
-        missingEvidence: businessAssessment.missingEvidence,
-        zeroReason: BILLING_ZERO_REASONS.rejectedWithoutEvidence,
-      });
-    }
     recordX402Settlement({
       requestId,
       status: 'business_failed',
@@ -1025,17 +1049,20 @@ export async function handleMcpPaidToolCall({
   businessResponse = businessAssessment.response;
   const jsonRpcFailed = businessAssessment.failed;
 
+  if (businessAssessment.downgradedFromRejected) {
+    recordRejectedOutcome({
+      surface: 'x402',
+      tool: toolName,
+      kind: 'downgraded',
+      missingEvidence: businessAssessment.missingEvidence,
+    });
+  } else if (businessAssessment.outcome === 'rejected') {
+    recordRejectedOutcome({ surface: 'x402', tool: toolName, kind: 'billable' });
+  }
+
   if (jsonRpcFailed) {
     // Verified signature but no completed tool result: nothing is charged.
     // Audit as verify-only so the operator can see paid-call failure rates.
-    if (businessAssessment.downgradedFromRejected) {
-      logger.warn('x402 rejected outcome downgraded to unavailable: incomplete evidence', {
-        requestId,
-        toolName,
-        missingEvidence: businessAssessment.missingEvidence,
-        zeroReason: BILLING_ZERO_REASONS.rejectedWithoutEvidence,
-      });
-    }
     recordX402Settlement({
       requestId,
       status: 'business_failed',

@@ -22,6 +22,7 @@ import {
 } from '@/lib/billing/exemptions';
 import { isFreeVerifyCall } from '@/lib/billing/freeVerify';
 import { countMcpBatchSuccessItems, getMcpToolBillableItems } from '@/lib/billing/metering';
+import { recordRejectedOutcome } from '@/lib/billing/rejectedOutcomeMonitor';
 import {
   getCachedMcpResult,
   idempotencyMeteringKey,
@@ -99,6 +100,24 @@ type ZeroBillingDecision = {
   zeroReason?: BillingZeroReason;
   cacheZero: boolean;
 };
+
+/**
+ * Record whether a refusal is sold with complete evidence or demoted to
+ * `unavailable` because the package is incomplete. The two buckets are kept
+ * separate so launch-time revenue loss is measurable.
+ */
+function recordMcpRejectedOutcome(tool: string, assessment: ProductOutcomeAssessment): void {
+  if (assessment.downgradedFromRejected) {
+    recordRejectedOutcome({
+      surface: 'mcp',
+      tool,
+      kind: 'downgraded',
+      missingEvidence: assessment.missingEvidence,
+    });
+  } else if (assessment.outcome === 'rejected') {
+    recordRejectedOutcome({ surface: 'mcp', tool, kind: 'billable' });
+  }
+}
 
 /**
  * Decide the zero-charge branch from the structured product outcome. Returns
@@ -329,13 +348,7 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
         const assessment = assessProductOutcome(
           rawResult.content.map((block) => block.text).join('\n')
         );
-        if (assessment.downgradedFromRejected) {
-          logger.warn('MCP rejected outcome downgraded to unavailable: incomplete evidence', {
-            tool: name,
-            missingEvidence: assessment.missingEvidence,
-            zeroReason: BILLING_ZERO_REASONS.rejectedWithoutEvidence,
-          });
-        }
+        recordMcpRejectedOutcome(name, assessment);
         const result = assessment.downgradedFromRejected
           ? downgradeIncompleteRejection(rawResult, assessment)
           : rawResult;

@@ -1,6 +1,7 @@
 /** @jest-environment node */
 
 import type { PreTradeSafetyResult } from '@/lib/api/services/preTradeSafetyService';
+import { assessProductOutcome, missingRejectedEvidenceItems } from '@/lib/billing/exemptions';
 
 import { prepareSolanaJupiterSwap } from '../solanaJupiterSwap';
 import {
@@ -312,7 +313,40 @@ describe('Solana Jupiter swap guard', () => {
     });
     expect(result.riskVerdictRef.productOutcome).toBe('rejected');
     expect(result.reasons.join(' ')).toMatch(/PRICE_IMPACT_REQUIRES_REVIEW/);
+    expect(missingRejectedEvidenceItems(result.evidence)).toEqual([]);
+    expect(assessProductOutcome(JSON.stringify(result))).toMatchObject({
+      outcome: 'rejected',
+      downgradedFromRejected: false,
+    });
     expect(result.policy).not.toHaveProperty('allowCautionExecution');
+  });
+
+  it('keeps a stale quote unavailable even when every evidence field could be filled', async () => {
+    const result = await assessSolanaJupiterSwapGuard(
+      baseInput({
+        priceImpactPct: 0.6,
+        quotedAt: new Date(NOW.getTime() - 86_400_000).toISOString(),
+      }),
+      { checkOracle: passOracle(), now: () => NOW, timeoutMs: 1_000 }
+    );
+
+    expect(result.productOutcome).toBe('unavailable');
+    expect(result.chargeable).toBe(false);
+    expect(result.evidence).toBeNull();
+
+    const assessment = assessProductOutcome(
+      JSON.stringify({
+        productOutcome: result.productOutcome,
+        evidence: {
+          reason_code: 'TEST',
+          input_digest: `0x${'11'.repeat(32)}`,
+          triggered_threshold: { rule: 'test', threshold: 1, observed: 2 },
+          data_sources: [{ source: 'test' }],
+          risk_ruleset_version: 'test-v1',
+        },
+      })
+    );
+    expect(assessment.outcome).toBe('unavailable');
   });
 
   it('maps an oracle CAUTION leg into the rejected product state', async () => {

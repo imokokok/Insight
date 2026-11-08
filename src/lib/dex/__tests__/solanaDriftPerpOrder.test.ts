@@ -6,12 +6,21 @@ import type { SolanaPerpGuardResult } from '@/lib/perps/solanaPerpGuard';
 
 import {
   prepareSolanaDriftPerpOrder,
-  SolanaDriftPerpOrderError,
+  type SolanaDriftPerpOrderError,
   type SolanaDriftPerpOrderOptions,
 } from '../solanaDriftPerpOrder';
 
 const AUTHORITY = '9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin';
 const NOW = 1_700_000_000_000;
+
+async function captureDriftError(run: Promise<unknown>): Promise<SolanaDriftPerpOrderError> {
+  try {
+    await run;
+  } catch (error) {
+    return error as SolanaDriftPerpOrderError;
+  }
+  throw new Error('expected the Drift adapter to reject');
+}
 
 function guardResult(overrides: { verdict?: 'ALLOW' | 'CAUTION' | 'BLOCK' } = {}) {
   const verdict = overrides.verdict ?? 'ALLOW';
@@ -219,14 +228,24 @@ describe('Solana Drift perp order payload', () => {
     expect(result.instruction).not.toBeNull();
   });
 
-  it('rejects an unsupported order shape before calling the guard', async () => {
-    const assessGuard = jest.fn();
-    await expect(
+  it('classifies every Drift failure as unavailable, never a chargeable rejection', async () => {
+    const runs = [
       prepareSolanaDriftPerpOrder(
-        { ...BASE_REQUEST, expiresAfterSeconds: 3 },
-        { ...options(), assessGuard }
-      )
-    ).rejects.toBeInstanceOf(SolanaDriftPerpOrderError);
-    expect(assessGuard).not.toHaveBeenCalled();
+        { ...BASE_REQUEST, assetSymbol: 'DOGE' },
+        { ...options(), assessGuard: jest.fn() }
+      ),
+      prepareSolanaDriftPerpOrder({ ...BASE_REQUEST, expiresAfterSeconds: 3 }, options()),
+      prepareSolanaDriftPerpOrder(BASE_REQUEST, {
+        assessGuard: jest.fn(() => new Promise<SolanaPerpGuardResult>(() => {})),
+        nowMs: NOW,
+        timeoutMs: 100,
+      }),
+    ];
+
+    for (const run of runs) {
+      const error = await captureDriftError(run);
+      expect(error.outcome).toBe('unavailable');
+      expect(error).not.toHaveProperty('evidence');
+    }
   });
 });
