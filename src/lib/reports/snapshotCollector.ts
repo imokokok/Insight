@@ -138,7 +138,7 @@ export interface BatchResultItem {
 async function fetchBatchPrices(
   includeAdditionalHealthChecks: boolean,
   reuseRpcMetadata: boolean
-): Promise<BatchResultItem[]> {
+): Promise<{ results: BatchResultItem[]; registryErrored: boolean }> {
   const factory = getDefaultFactory();
   const queries: {
     provider: OracleProvider;
@@ -498,7 +498,7 @@ async function fetchBatchPrices(
     metadataPersisted: persisted,
     rpc: rpcUsageSince(rpcBefore),
   });
-  return [...fetched, ...skipped];
+  return { results: [...fetched, ...skipped], registryErrored: feedRegistry.errored };
 }
 
 /**
@@ -759,6 +759,30 @@ export function resolveSnapshotSlot(scheduledFor?: string, now: Date = new Date(
 }
 
 /**
+ * Strict slot resolution for scheduled runs. The runner clock is never used as
+ * a fallback: a delayed dispatch that fell back to `new Date()` wrote a later
+ * slot than the scheduler intended (observed at 2026-11-04 09:00/10:00).
+ */
+export function resolveRequiredSnapshotSlot(
+  scheduledFor: string | undefined,
+  now: Date = new Date()
+): Date {
+  if (!scheduledFor || scheduledFor.trim() === '') {
+    throw new SnapshotCollectionError(
+      'missing_scheduled_for',
+      'scheduled_for is required to resolve the 15-minute slot'
+    );
+  }
+  if (!Number.isFinite(new Date(scheduledFor).getTime())) {
+    throw new SnapshotCollectionError(
+      'invalid_scheduled_for',
+      `scheduled_for is not a parseable timestamp: ${scheduledFor}`
+    );
+  }
+  return resolveSnapshotSlot(scheduledFor, now);
+}
+
+/**
  * Run the full snapshot collection pipeline:
  *   fetch all active feeds → consensus → build inputs → upsert hourly
  *   snapshots → update feed health → auto-deactivate stale feeds.
@@ -800,7 +824,7 @@ export async function collectSnapshot(
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours())
   );
 
-  const results = await fetchBatchPrices(
+  const { results, registryErrored } = await fetchBatchPrices(
     options.includeAdditionalHealthChecks ?? true,
     options.reuseRpcMetadata ?? false
   );
@@ -830,6 +854,16 @@ export async function collectSnapshot(
   logger.info(
     `Price batch completed for ${snapshotDate}: ${successCount} success, ${failedCount} failed, ${skippedCount} skipped out of ${results.length}`
   );
+
+  // Fail closed instead of committing an empty slot. Once this run commits, the
+  // Turso lease marks the slot completed and the fallback probes stop looking.
+  // Keeping the run failed leaves the slot recoverable by the next probe.
+  if (registryErrored && successCount === 0) {
+    throw new SnapshotCollectionError(
+      'feed_registry_unavailable',
+      'Oracle feed registry remained unavailable after retries and no price succeeded; not committing an empty slot'
+    );
+  }
 
   if (options.deferDurableSnapshotWrites) {
     logger.info('Deferred durable snapshot writes for atomic collection-slot commit', {

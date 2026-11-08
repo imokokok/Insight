@@ -83,6 +83,44 @@ describe('dynamicFeedResolver cache invalidation', () => {
     expect(getOracleFeedsWithStatus).toHaveBeenCalledTimes(1);
   });
 
+  it('retries a transient registry failure twice with 2s/5s backoff', async () => {
+    jest.useFakeTimers();
+    try {
+      const getOracleFeedsWithStatus = jest
+        .fn()
+        .mockResolvedValueOnce({ feeds: [], errored: true })
+        .mockResolvedValueOnce({ feeds: [], errored: true })
+        .mockResolvedValueOnce({ feeds: [], errored: false });
+      mockedGetAdminQueries.mockReturnValue({ getOracleFeedsWithStatus } as never);
+
+      const pending = getAllActiveFeedsByProviderWithStatus();
+      await Promise.resolve();
+      await jest.advanceTimersByTimeAsync(7_000);
+
+      await expect(pending).resolves.toEqual({ feeds: new Map(), errored: false });
+      expect(getOracleFeedsWithStatus).toHaveBeenCalledTimes(3);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('stays fail-closed after both registry retries are exhausted', async () => {
+    jest.useFakeTimers();
+    try {
+      const getOracleFeedsWithStatus = jest.fn().mockResolvedValue({ feeds: [], errored: true });
+      mockedGetAdminQueries.mockReturnValue({ getOracleFeedsWithStatus } as never);
+
+      const pending = getAllActiveFeedsByProviderWithStatus();
+      await Promise.resolve();
+      await jest.advanceTimersByTimeAsync(7_000);
+
+      await expect(pending).resolves.toEqual({ feeds: new Map(), errored: true });
+      expect(getOracleFeedsWithStatus).toHaveBeenCalledTimes(3);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   it('does not resurrect an obsolete provider cache after complete registry refresh', async () => {
     const getOracleFeeds = jest
       .fn()

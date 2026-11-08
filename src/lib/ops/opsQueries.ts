@@ -483,7 +483,7 @@ export interface CronDispatchRun {
   workflowFile: string;
   scheduledFor: string;
   source: 'supabase_cron' | 'github_fallback' | 'manual';
-  status: 'dispatching' | 'running' | 'succeeded' | 'failed' | 'cancelled' | 'timed_out';
+  status: 'dispatching' | 'running' | 'succeeded' | 'failed' | 'cancelled' | 'timed_out' | 'lost';
   githubRunUrl: string | null;
   startedAt: string | null;
   completedAt: string | null;

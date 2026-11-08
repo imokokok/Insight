@@ -2,7 +2,8 @@ import {
   applyFeedHealthLifecycle,
   collectSnapshot,
   persistSelectedPriceRecords,
-  resolveSnapshotSlot,
+  resolveRequiredSnapshotSlot,
+  SnapshotCollectionError,
 } from '@/lib/reports/snapshotCollector';
 import { commitSnapshotDataSlot } from '@/lib/supabase/adaptiveSnapshotPersistence';
 import { getTursoPriceClient, readTursoPriceWriteMode } from '@/lib/turso/price/client';
@@ -58,7 +59,20 @@ export async function runSnapshotIngest(
   scheduledFor: string | undefined,
   triggerSource: TursoIngestTriggerSource
 ): Promise<SnapshotIngestResult> {
-  const snapshotTs = resolveSnapshotSlot(scheduledFor);
+  // The slot must come from the scheduler, never from the runner clock. A
+  // delayed dispatch that used `new Date()` wrote a later slot (observed at
+  // 2026-11-04 09:00/10:00), so a missing or unparseable schedule is a hard
+  // failure rather than a silent clock-drift fallback.
+  let snapshotTs: Date;
+  try {
+    snapshotTs = resolveRequiredSnapshotSlot(scheduledFor);
+  } catch (error) {
+    const stage = error instanceof SnapshotCollectionError ? error.stage : 'unknown';
+    logger.error(
+      `Snapshot run rejected (${stage}): scheduled_for "${scheduledFor ?? ''}" is missing or unparseable; runner-clock slot fallback is disabled`
+    );
+    throw error;
+  }
   const slotMs = snapshotTs.getTime();
   const primary = readTursoPriceWriteMode() === 'primary';
   let leaseId: string | null = null;

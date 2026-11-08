@@ -23,8 +23,8 @@ on:
         required: false
         type: string
       scheduled_for:
-        description: UTC fallback dispatch timestamp
-        required: false
+        description: UTC dispatch timestamp; required to resolve the 15-minute slot
+        required: true
         type: string
 
 # Prevent overlapping 15-min runs. If a run exceeds 15 min (extremely
@@ -97,6 +97,13 @@ jobs:
             exit 1
           fi
 
+      - name: Require scheduler-provided slot
+        run: |
+          if [ -z "${CRON_SCHEDULED_FOR}" ]; then
+            echo "::error title=Missing scheduled_for::CRON_SCHEDULED_FOR is required to resolve the 15-minute slot; the runner clock is not a fallback."
+            exit 1
+          fi
+
       - name: Collect snapshots
         run: node .github/cron-dist/collect-snapshot.mjs
 
@@ -153,10 +160,8 @@ jobs:
       #
       # Hourly gate: the series this collector covers currently yields zero
       # output, so 3 of 4 dispatches per hour are pure Supabase IO. Run it only
-      # on the top-of-hour slot. The Supabase dispatch ledger supplies
-      # `scheduled_for`; fall back to the runner clock (UTC minute < 15) for
-      # manual dispatches. Worst case a delayed top-of-hour dispatch skips one
-      # hourly pass, which is acceptable for a zero-output pipeline.
+      # on the top-of-hour slot. The slot must come from the dispatch ledger;
+      # without it the gate fails loudly instead of using the runner clock.
       - name: Settlement hourly gate
         id: settlement_gate
         run: |
@@ -166,7 +171,8 @@ jobs:
             minute=$(date -u -d "$slot" +%M 2>/dev/null || echo "")
           fi
           if [ -z "$minute" ]; then
-            minute=$(date -u +%M)
+            echo "::error title=Missing scheduled_for::Cannot resolve the settlement slot without CRON_SCHEDULED_FOR."
+            exit 1
           fi
           if [ "$((10#$minute))" -lt 15 ]; then
             echo "run=true" >> "$GITHUB_OUTPUT"

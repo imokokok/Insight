@@ -4,6 +4,7 @@ import { FailureMode } from '@/types/oracle/signals';
 import {
   buildProviderConsensusInputs,
   dedupeHourlySnapshotInputs,
+  resolveRequiredSnapshotSlot,
   resolveSnapshotSlot,
   selectPriceRecordsForPersistence,
 } from '../snapshotCollector';
@@ -134,6 +135,29 @@ describe('resolveSnapshotSlot', () => {
   it('falls back to a bucketed local start time when no valid schedule exists', () => {
     expect(resolveSnapshotSlot('', new Date('2026-09-13T12:44:00.000Z'))).toEqual(
       new Date('2026-09-13T12:30:00.000Z')
+    );
+  });
+});
+
+describe('resolveRequiredSnapshotSlot', () => {
+  it('uses the scheduler-provided timestamp and never the runner clock', () => {
+    expect(
+      resolveRequiredSnapshotSlot('2026-09-13T12:29:59.999Z', new Date('2026-09-13T12:44:00.000Z'))
+    ).toEqual(new Date('2026-09-13T12:15:00.000Z'));
+  });
+
+  it('fails closed when scheduled_for is missing', () => {
+    expect(() => resolveRequiredSnapshotSlot(undefined)).toThrow(
+      expect.objectContaining({ stage: 'missing_scheduled_for' })
+    );
+    expect(() => resolveRequiredSnapshotSlot('   ')).toThrow(
+      expect.objectContaining({ stage: 'missing_scheduled_for' })
+    );
+  });
+
+  it('fails closed when scheduled_for is unparseable', () => {
+    expect(() => resolveRequiredSnapshotSlot('not-a-timestamp')).toThrow(
+      expect.objectContaining({ stage: 'invalid_scheduled_for' })
     );
   });
 });
