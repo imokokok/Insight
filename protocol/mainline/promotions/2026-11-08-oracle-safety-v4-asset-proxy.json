@@ -1,0 +1,60 @@
+{
+  "kind": "MainlineProtocolPromotion",
+  "promotionVersion": 37,
+  "effectiveFrom": "2026-11-08",
+  "classification": "Additive OracleSafetyCheck v4 asset-proxy fields with v3 default issuance; no existing signed layout, activation or partner policy change",
+  "registryReleaseId": "0xc90709876d4210c521d36a27171d4f45bca4a7b48e67658fac9c76c04ef50831",
+  "predecessorReleaseId": "0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b",
+  "predecessorPromotionId": "0x76ac6f9a1b8120c323d132367db1b75e468044826dc909008b16d9927eaa0700",
+  "activationSetId": "0x32335b66b91bd4ab1742b86ffcaefa94bbfc063de5f9a1d51e0080df67896157",
+  "receiptImpact": "No existing signed layout changes. OracleSafetyCheck v4 (31 fields: the 27 v3 fields plus sourceAssetProxyStatus, sourceAssetProxyRelation, sourceAssetUnderlyingId and sourceAssetProxyNominalRatioBps) and OracleSafetyRecheck v4 (33 fields) are ADDED to the production router and to the standalone verifier. OracleSafetyCheck v1, v2, v3 and OracleSafetyRecheck v2, v3 remain byte-identical, and historical receipts keep verifying unchanged; version routing is explicit, so v4 is only reached when schemaVersion 4 is requested. Default issuance remains v3, so no existing caller sees a different receipt. A missing proxy assessment is signed as UNKNOWN with ratio 0 instead of being treated as 1:1 or \"no relation\", and verification echoes assetProxy with an asset_proxy_unknown warning; a signature-valid but internally contradictory combination fails with asset_proxy_inconsistent. No registry release, attester key, partner policy, activation set or trust pin changes. WBTC is the first registered relation (bip122:000000000019d6689c085ae165831e93/slip44:0 at 10,000 bps), which is a declared nominal claim rather than a custody audit.",
+  "activationRule": "Existing partner policies and activation set v6 remain unchanged and no partner is newly activated. OracleSafetyCheck v4 is opt-in per request and confers no trading, execution or data-source authority. This promotion records an additive signed-layout registration only; it does not publish a verifier release, authorize a live partner run or change production reachability. Production release remains gated on main.",
+  "compatibilityMatrix": [
+    {
+      "partnerId": "agent-passport",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves policy ID 0x11d4736a2c0a2c23f3a2d46f863d3ebb64e2b738f8da4a02bd12a30368578a43 byte for byte. OracleSafetyCheck v4 is an opt-in additive layout; default issuance remains v3 and no existing receipt, key, trust pin, policy or execution path changes."
+    },
+    {
+      "partnerId": "andydgrea",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves policy ID 0xe556b47dbdb4e3d7cab2c4fb882ffe0b65d6c4750ac0ff5ce6ee2f0494d3b787 byte for byte. OracleSafetyCheck v4 is an opt-in additive layout; default issuance remains v3 and no existing receipt, key, trust pin, policy or execution path changes."
+    },
+    {
+      "partnerId": "emilia",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves policy ID 0x0ce8536c90b23ebcb2952422e5eb67628da65c14b6bf5782849f20c0b137815b byte for byte. OracleSafetyCheck v4 is an opt-in additive layout; default issuance remains v3 and no existing receipt, key, trust pin, policy or execution path changes."
+    },
+    {
+      "partnerId": "frontier-compute",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves policy ID 0xca3bd5acb9d70f9e9755fad44e87cff1122f88986a6c61b33d93a49e3bb15861 byte for byte. OracleSafetyCheck v4 is an opt-in additive layout; default issuance remains v3 and no existing receipt, key, trust pin, policy or execution path changes."
+    },
+    {
+      "partnerId": "headless",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves policy ID 0xd510bd9f29be0b896aed2e2b95200eab25cb9e03430a456f1bee3df7a17de158 byte for byte. OracleSafetyCheck v4 is an opt-in additive layout; default issuance remains v3 and no existing receipt, key, trust pin, policy or execution path changes."
+    },
+    {
+      "partnerId": "interai",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves policy ID 0xb539451842dc4e907d6fcea012aa094f4fea3c3acd2fd054aa4106848f602239 byte for byte. OracleSafetyCheck v4 is an opt-in additive layout; default issuance remains v3 and no existing receipt, key, trust pin, policy or execution path changes."
+    },
+    {
+      "partnerId": "raul",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves policy ID 0x5a80afffbb667b62014c727fae35e9f00edd6ca99555baa1c4cc79d0650768d0 byte for byte. OracleSafetyCheck v4 is an opt-in additive layout; default issuance remains v3 and no existing receipt, key, trust pin, policy or execution path changes."
+    },
+    {
+      "partnerId": "vaara",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves policy ID 0x248f339e382efefaf20c9caad0ed6ee3db75775b5b5649b3d2421bb28d376341 byte for byte. OracleSafetyCheck v4 is an opt-in additive layout; default issuance remains v3 and no existing receipt, key, trust pin, policy or execution path changes."
+    },
+    {
+      "partnerId": "veritas",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves policy ID 0x55fbfb17fbab461ff237cad4b19f8fba71411461d19f8e99af103910ae47ae63 byte for byte. OracleSafetyCheck v4 is an opt-in additive layout; default issuance remains v3 and no existing receipt, key, trust pin, policy or execution path changes."
+    }
+  ],
+  "promotionId": "0xb871ed000814977e9ea860805f6536520ee1673c158c937d858459cda60a5872"
+}
