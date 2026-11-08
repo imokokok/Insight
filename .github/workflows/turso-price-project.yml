@@ -40,6 +40,9 @@ env:
   TURSO_PRICE_PROJECTION_MAX_BATCHES: ${{ vars.TURSO_PRICE_PROJECTION_MAX_BATCHES || '4' }}
   TURSO_PRICE_PROJECTION_MAX_LAG_SECONDS: ${{ vars.TURSO_PRICE_PROJECTION_MAX_LAG_SECONDS || '1800' }}
   TURSO_PRICE_RAW_RETENTION_DAYS: ${{ vars.TURSO_PRICE_RAW_RETENTION_DAYS || '30' }}
+  # Compacts ACKed slot payloads only; hash, digest and summary stay as audit
+  # evidence, and raw rows follow TURSO_PRICE_RAW_RETENTION_DAYS independently.
+  TURSO_PRICE_ACKED_PAYLOAD_RETENTION_DAYS: ${{ vars.TURSO_PRICE_ACKED_PAYLOAD_RETENTION_DAYS || '30' }}
 
 jobs:
   project:
