@@ -137,7 +137,7 @@
     {
       "id": "position_lifecycle_bundle",
       "name": "Position Lifecycle Bundle (24h)",
-      "description": "One $0.55 settlement pre-pays a full monitored lifecycle for one (symbol, chain) position: an embedded 24h Oracle Watch window (300 free signal polls), 4 bundled guard assessments across any position-guard family, and 1 attested execution receipt. Bundled calls are token-authenticated and never charged per call. Assessment and evidence only — no custody, no execution authority.",
+      "description": "One $0.55 settlement pre-pays a full monitored lifecycle for one (symbol, chain) position: an embedded 24h Oracle Watch window (48 free signal polls), 4 bundled guard assessments across any position-guard family, and 1 attested execution receipt. Bundled calls are token-authenticated and never charged per call. Assessment and evidence only — no custody, no execution authority.",
       "tags": ["oracle", "monitoring", "lifecycle", "bundle", "recurring", "agent-safety"],
       "examples": [
         "Cover my new BTC perp position for 24 hours: monitoring, four guard checks, and a signed execution receipt",

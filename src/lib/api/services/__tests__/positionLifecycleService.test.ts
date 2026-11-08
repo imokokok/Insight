@@ -159,7 +159,13 @@ describe('beginPositionLifecycle', () => {
     });
 
     // Both rows store only the token hash — the same one.
-    expect(windowInsert).toMatchObject({ token_hash: expect.any(String) });
+    expect(windowInsert).toMatchObject({
+      token_hash: expect.any(String),
+      // A newly sold lifecycle must snapshot the current window plan rather
+      // than inherit the legacy 300/30 column defaults.
+      poll_cap: 48,
+      min_poll_interval_seconds: 1800,
+    });
     expect(lifecycleInsert).toMatchObject({
       window_id: WINDOW_ID,
       guard_budget: 4,

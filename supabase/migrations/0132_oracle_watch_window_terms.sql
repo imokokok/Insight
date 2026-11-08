@@ -10,8 +10,10 @@
 -- The window plan moved from 300 polls / 30-second minimum interval to
 -- 48 polls / 30-minute minimum interval. Existing windows must keep the terms
 -- they were sold under: this migration backfills every existing row with the
--- old values, while new rows write the new plan values explicitly in
--- src/lib/api/services/oracleWatchWindowService.ts.
+-- old values (300 / 30), while new rows write the new plan values explicitly
+-- in src/lib/api/services/oracleWatchWindowService.ts and
+-- positionLifecycleService.ts. The column defaults are the current plan (48 /
+-- 1800) so an insert that omits the columns can never resurrect the old terms.
 --
 -- Idempotent and safe on databases that never had these columns: the columns
 -- are added without constraints, NULLs are backfilled, then the defaults and
@@ -34,14 +36,14 @@ SET "min_poll_interval_seconds" = 30
 WHERE "min_poll_interval_seconds" IS NULL;
 
 ALTER TABLE "public"."oracle_watch_windows"
-    ALTER COLUMN "poll_cap" SET DEFAULT 300,
+    ALTER COLUMN "poll_cap" SET DEFAULT 48,
     ALTER COLUMN "poll_cap" SET NOT NULL,
-    ALTER COLUMN "min_poll_interval_seconds" SET DEFAULT 30,
+    ALTER COLUMN "min_poll_interval_seconds" SET DEFAULT 1800,
     ALTER COLUMN "min_poll_interval_seconds" SET NOT NULL;
 
 COMMENT ON COLUMN "public"."oracle_watch_windows"."poll_cap" IS
-    'Poll budget snapshotted at purchase; rows sold before 0132 keep 300.';
+    'Poll budget snapshotted at purchase; rows sold before 0132 keep 300, new rows default to 48.';
 COMMENT ON COLUMN "public"."oracle_watch_windows"."min_poll_interval_seconds" IS
-    'Minimum poll interval snapshotted at purchase; rows sold before 0132 keep 30 seconds.';
+    'Minimum poll interval snapshotted at purchase; rows sold before 0132 keep 30 seconds, new rows default to 1800.';
 
 COMMIT;

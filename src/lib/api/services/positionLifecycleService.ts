@@ -24,6 +24,7 @@
 
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 
+import { ORACLE_WATCH_WINDOW_PLAN } from '@/lib/billing/oracleWatchWindow';
 import { POSITION_LIFECYCLE_PLAN } from '@/lib/billing/positionLifecycle';
 import type { PositionLifecycleGuardFamily } from '@/lib/billing/positionLifecycle';
 import { recordExecutionReceipt } from '@/lib/execution/executionReceiptAudit';
@@ -263,6 +264,11 @@ export async function beginPositionLifecycle(
       expires_at: expiresAt,
       payment_method: input.paymentMethod,
       api_key_id: input.apiKeyId ?? null,
+      // Write the current window terms explicitly: without them the insert
+      // would silently inherit the column default, i.e. the legacy 300/30
+      // terms, for every newly sold lifecycle.
+      poll_cap: ORACLE_WATCH_WINDOW_PLAN.pollCap,
+      min_poll_interval_seconds: ORACLE_WATCH_WINDOW_PLAN.minPollIntervalSeconds,
     })
     .select('id')
     .single();
