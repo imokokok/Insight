@@ -20,8 +20,8 @@
  * stops being a check on production.
  *
  * Three receipt FAMILIES are routed here, and the discriminator matters:
- *   - pre-trade / watch assessments (v1, v2, v3) — routed by schemaVersion
- *   - rechecks of those (v2 / v3 + two reference fields) — routed by primaryType
+ *   - pre-trade / watch assessments (v1, v2, v3, v4) — routed by schemaVersion
+ *   - rechecks of those (v2 / v3 / v4 + two reference fields) — routed by primaryType
  *   - scenario-test runs (OracleScenarioRun v1) — ALSO schemaVersion 1, so it is
  *     routed by primaryType too. See the isTestRun branch for why that is forced.
  */
@@ -37,6 +37,9 @@ import {
   RECHECK_V3_DOMAIN,
   RECHECK_V3_PRIMARY_TYPE,
   RECHECK_V3_TYPES,
+  RECHECK_V4_DOMAIN,
+  RECHECK_V4_PRIMARY_TYPE,
+  RECHECK_V4_TYPES,
   TEST_DOMAIN,
   TEST_PRIMARY_TYPE,
   TEST_TYPE,
@@ -50,19 +53,31 @@ import {
   V3_DOMAIN,
   V3_PRIMARY_TYPE,
   V3_TYPES,
+  V4_DOMAIN,
+  V4_PRIMARY_TYPE,
+  V4_TYPES,
   toRecheckMessage,
   toRecheckV3Message,
+  toRecheckV4Message,
   toTestRunMessage,
   toV1Message,
   toV2Message,
   toV3Message,
+  toV4Message,
 } from './schemas';
 
-import type { KeyRegistry, RoutableAttestation, VerifyCode, VerifyResult } from './types';
+import type {
+  AssetProxyRecord,
+  KeyRegistry,
+  RoutableAttestation,
+  VerifyCode,
+  VerifyResult,
+} from './types';
 
 const V1_SCHEMA_VERSION = 1;
 const V2_SCHEMA_VERSION = 2;
 const V3_SCHEMA_VERSION = 3;
+const V4_SCHEMA_VERSION = 4;
 const V1_VALID_FOR_SECONDS = 600;
 /** OracleScenarioRun v1. Shares the number 1 with pre-trade v1; routing is by
  *  primaryType, never by this value alone. */
@@ -89,6 +104,8 @@ interface CoreResult {
   expired: boolean;
   schemaVersion: number;
   reason?: string;
+  assetProxy?: AssetProxyRecord;
+  warnings?: string[];
 }
 
 function fail(
@@ -212,6 +229,83 @@ async function verifyV3(attestation: RoutableAttestation): Promise<CoreResult> {
     message: toV3Message(data),
   } as const;
   return verifyWindowed(attestation, args, V3_SCHEMA_VERSION, data, 'check');
+}
+
+/** Read the four signed proxy fields back into their typed shape. `toV4Message`
+ *  has already proved their presence and types, so no re-validation is needed
+ *  here — the values are the exact bytes the UID/signature covered. */
+function readAssetProxy(data: Record<string, unknown>): AssetProxyRecord {
+  return {
+    status: data.sourceAssetProxyStatus as string,
+    relation: data.sourceAssetProxyRelation as string,
+    underlyingAssetId: data.sourceAssetUnderlyingId as string,
+    nominalRatioBps: Number(data.sourceAssetProxyNominalRatioBps),
+  };
+}
+
+/**
+ * Self-consistency of the signed proxy fields. A valid signature only proves
+ * the bytes were not touched; it does not prove they mean something. A record
+ * signed as ASSESSED but shipping an empty underlying id (or as UNKNOWN but
+ * shipping a 1:1 ratio) is malformed and must not verify as valid. This is
+ * intentionally a local invariant, not a registry lookup: the verifier stays
+ * offline and can still reject a self-contradicting claim.
+ */
+function isAssetProxyConsistent(proxy: AssetProxyRecord): boolean {
+  if (proxy.status === 'ASSESSED') {
+    return (
+      proxy.relation.length > 0 &&
+      proxy.underlyingAssetId.length > 0 &&
+      Number.isInteger(proxy.nominalRatioBps) &&
+      proxy.nominalRatioBps > 0
+    );
+  }
+  if (proxy.status === 'UNKNOWN' || proxy.status === 'NOT_APPLICABLE') {
+    return proxy.relation === '' && proxy.underlyingAssetId === '' && proxy.nominalRatioBps === 0;
+  }
+  return false;
+}
+
+function attachProxy(base: CoreResult, proxy: AssetProxyRecord): CoreResult {
+  return {
+    ...base,
+    assetProxy: proxy,
+    ...(proxy.status === 'UNKNOWN' ? { warnings: ['asset_proxy_unknown'] } : {}),
+  };
+}
+
+async function verifyV4(attestation: RoutableAttestation): Promise<CoreResult> {
+  const data = attestation.data ?? {};
+  const args = {
+    domain: V4_DOMAIN,
+    types: V4_TYPES,
+    primaryType: V4_PRIMARY_TYPE,
+    message: toV4Message(data),
+  } as const;
+
+  const base = await verifyWindowed(attestation, args, V4_SCHEMA_VERSION, data, 'check');
+  const assetProxy = readAssetProxy(data);
+
+  if (base.code !== 'ok') return { ...base, assetProxy };
+
+  if (!isAssetProxyConsistent(assetProxy)) {
+    return {
+      ...fail(
+        V4_SCHEMA_VERSION,
+        'malformed',
+        'asset_proxy_inconsistent: signed proxy fields contradict their status',
+        {
+          uid: base.uid,
+          checkedAt: base.checkedAt,
+          validUntil: base.validUntil,
+          expired: base.expired,
+        }
+      ),
+      assetProxy,
+    };
+  }
+
+  return attachProxy(base, assetProxy);
 }
 
 async function verifyWindowed(
@@ -357,6 +451,47 @@ async function verifyRecheckV3(attestation: RoutableAttestation): Promise<CoreRe
   return base;
 }
 
+async function verifyRecheckV4(attestation: RoutableAttestation): Promise<CoreResult> {
+  const data = attestation.data ?? {};
+  const args = {
+    domain: RECHECK_V4_DOMAIN,
+    types: RECHECK_V4_TYPES,
+    primaryType: RECHECK_V4_PRIMARY_TYPE,
+    message: toRecheckV4Message(data),
+  } as const;
+
+  const checkedAt = typeof data.checkedAt === 'number' ? data.checkedAt : null;
+  const validUntil = typeof data.validUntil === 'number' ? data.validUntil : null;
+  const assetProxy = readAssetProxy(data);
+
+  const base = await verifyWindowed(attestation, args, V4_SCHEMA_VERSION, data, 'recheck');
+  if (base.code !== 'ok') return { ...base, assetProxy };
+
+  if (!isAssetProxyConsistent(assetProxy)) {
+    return {
+      ...fail(
+        V4_SCHEMA_VERSION,
+        'malformed',
+        'asset_proxy_inconsistent: signed proxy fields contradict their status',
+        { kind: 'recheck', uid: base.uid, checkedAt, validUntil, expired: base.expired }
+      ),
+      assetProxy,
+    };
+  }
+
+  const bindingFailure = checkRecheckBinding(
+    data,
+    V4_SCHEMA_VERSION,
+    base.uid,
+    checkedAt,
+    validUntil,
+    'recheck'
+  );
+  if (bindingFailure) return { ...bindingFailure, assetProxy };
+
+  return attachProxy(base, assetProxy);
+}
+
 // ---------------------------------------------------------------------------
 // OracleScenarioRun v1 — 13 fields (scenario-testing harness)
 // ---------------------------------------------------------------------------
@@ -447,10 +582,14 @@ export async function verifyReceipt(
     let core: CoreResult;
     if (isTestRun) {
       core = await verifyTestRun(attestation);
+    } else if (schemaVersion === V4_SCHEMA_VERSION && isRecheck) {
+      core = await verifyRecheckV4(attestation);
     } else if (schemaVersion === V3_SCHEMA_VERSION && isRecheck) {
       core = await verifyRecheckV3(attestation);
     } else if (schemaVersion === V2_SCHEMA_VERSION && isRecheck) {
       core = await verifyRecheck(attestation);
+    } else if (schemaVersion === V4_SCHEMA_VERSION) {
+      core = await verifyV4(attestation);
     } else if (schemaVersion === V3_SCHEMA_VERSION) {
       core = await verifyV3(attestation);
     } else if (schemaVersion === V2_SCHEMA_VERSION) {
@@ -461,7 +600,7 @@ export async function verifyReceipt(
       core = fail(
         typeof schemaVersion === 'number' ? schemaVersion : 0,
         'unsupported_schema',
-        `Unsupported schemaVersion ${String(schemaVersion)}; supported: 1 (v1), 2 (v2), 3 (v3). ` +
+        `Unsupported schemaVersion ${String(schemaVersion)}; supported: 1 (v1), 2 (v2), 3 (v3), 4 (v4). ` +
           `OracleScenarioRun v1 is routed by primaryType, not by this number.`
       );
     }
@@ -494,5 +633,7 @@ function finalize(core: CoreResult, attester: string, opts: VerifyOptions): Veri
     expired: core.expired,
     keyStatus: resolveKeyStatus(attester, core.checkedAt, opts.keyRegistry),
     reason: core.reason,
+    ...(core.assetProxy ? { assetProxy: core.assetProxy } : {}),
+    ...(core.warnings?.length ? { warnings: core.warnings } : {}),
   };
 }

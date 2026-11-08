@@ -57,11 +57,13 @@ export const PreTradeQuerySchema = z
       .describe('Optional lending protocol id to evaluate against (e.g. aave-v3-ethereum)'),
     schemaVersion: z.coerce
       .number()
-      .pipe(z.union([z.literal(1), z.literal(2), z.literal(3)]))
+      .pipe(z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]))
       .optional()
       .describe(
         'Attestation schema version: 1 (default, 11-field), 2 (26-field, CAIP-19 + quorum gate), ' +
-          'or 3 (27-field: v2 + the signed independence threshold, so the gate is self-verifying)'
+          '3 (27-field: v2 + the signed independence threshold, so the gate is self-verifying), ' +
+          'or 4 (31-field: v3 + 4 signed asset-proxy fields naming the underlying asset and ' +
+          'nominal ratio; unknown relationships are signed as UNKNOWN, never as 1:1)'
       ),
     destinationAsset: z
       .string()

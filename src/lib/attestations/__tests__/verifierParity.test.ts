@@ -45,6 +45,7 @@ import {
 } from '@/lib/attestations/oracleSafetyAttestation';
 import { V2_DOMAIN, V2_PRIMARY_TYPE, V2_TYPES } from '@/lib/attestations/oracleSafetyAttestationV2';
 import { V3_DOMAIN, V3_PRIMARY_TYPE, V3_TYPES } from '@/lib/attestations/oracleSafetyAttestationV3';
+import { V4_DOMAIN, V4_PRIMARY_TYPE, V4_TYPES } from '@/lib/attestations/oracleSafetyAttestationV4';
 import {
   RECHECK_DOMAIN,
   RECHECK_PRIMARY_TYPE,
@@ -55,6 +56,11 @@ import {
   RECHECK_V3_PRIMARY_TYPE,
   RECHECK_V3_TYPES,
 } from '@/lib/attestations/oracleSafetyRecheckV3';
+import {
+  RECHECK_V4_DOMAIN,
+  RECHECK_V4_PRIMARY_TYPE,
+  RECHECK_V4_TYPES,
+} from '@/lib/attestations/oracleSafetyRecheckV4';
 import { verifyAttestationBySchema } from '@/lib/attestations/verifyAttestationBySchema';
 import {
   TEST_DOMAIN,
@@ -205,6 +211,24 @@ function recheckV3Data(checkedAt: number) {
   return { ...v3Data(checkedAt), originalUid: H_ORIGINAL_UID, originalRequestHash: H2 };
 }
 
+const WBTC_MAINNET_ID = 'eip155:1/erc20:0x2260fac5e5542a773aa44fbcfedf7c193bc2c599';
+
+function v4Data(checkedAt: number) {
+  return {
+    ...v3Data(checkedAt),
+    sourceAssetId: WBTC_MAINNET_ID,
+    sourceAssetProxyStatus: 'ASSESSED',
+    sourceAssetProxyRelation: 'wrapped-btc',
+    sourceAssetUnderlyingId: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
+    sourceAssetProxyNominalRatioBps: 10_000,
+    schemaVersion: 4,
+  };
+}
+
+function recheckV4Data(checkedAt: number) {
+  return { ...v4Data(checkedAt), originalUid: H_ORIGINAL_UID, originalRequestHash: H2 };
+}
+
 /** A scenario-test run. Note `schemaVersion: 1` — the SAME number plain v1
  *  pre-trade carries, which is exactly why primaryType must route it. */
 function testRunData(ranAt: number) {
@@ -234,8 +258,10 @@ describe('verifier layout parity', () => {
     ['v1', ATTESTATION_TYPES, verifierSchemas.V1_TYPES],
     ['v2', V2_TYPES, verifierSchemas.V2_TYPES],
     ['v3', V3_TYPES, verifierSchemas.V3_TYPES],
+    ['v4', V4_TYPES, verifierSchemas.V4_TYPES],
     ['recheck', RECHECK_TYPES, verifierSchemas.RECHECK_TYPES],
     ['recheckV3', RECHECK_V3_TYPES, verifierSchemas.RECHECK_V3_TYPES],
+    ['recheckV4', RECHECK_V4_TYPES, verifierSchemas.RECHECK_V4_TYPES],
     ['testRun', TEST_TYPES, verifierSchemas.TEST_TYPES],
     ['executionV1', EXECUTION_TYPES_V1, verifierExecution.EXECUTION_TYPES_V1],
     ['executionV2', EXECUTION_TYPES_V2, verifierExecution.EXECUTION_TYPES_V2],
@@ -257,6 +283,7 @@ describe('verifier layout parity', () => {
     ],
     ['v2', V2_DOMAIN, verifierSchemas.V2_DOMAIN, V2_PRIMARY_TYPE, verifierSchemas.V2_PRIMARY_TYPE],
     ['v3', V3_DOMAIN, verifierSchemas.V3_DOMAIN, V3_PRIMARY_TYPE, verifierSchemas.V3_PRIMARY_TYPE],
+    ['v4', V4_DOMAIN, verifierSchemas.V4_DOMAIN, V4_PRIMARY_TYPE, verifierSchemas.V4_PRIMARY_TYPE],
     [
       'recheck',
       RECHECK_DOMAIN,
@@ -270,6 +297,13 @@ describe('verifier layout parity', () => {
       verifierSchemas.RECHECK_V3_DOMAIN,
       RECHECK_V3_PRIMARY_TYPE,
       verifierSchemas.RECHECK_V3_PRIMARY_TYPE,
+    ],
+    [
+      'recheckV4',
+      RECHECK_V4_DOMAIN,
+      verifierSchemas.RECHECK_V4_DOMAIN,
+      RECHECK_V4_PRIMARY_TYPE,
+      verifierSchemas.RECHECK_V4_PRIMARY_TYPE,
     ],
     [
       'testRun',
@@ -446,6 +480,17 @@ describe('verifier verdict parity', () => {
           }),
       ],
       [
+        'v4',
+        () =>
+          signEnvelope({
+            domain: V4_DOMAIN as unknown as Record<string, unknown>,
+            types: V4_TYPES as unknown as Record<string, unknown>,
+            primaryType: V4_PRIMARY_TYPE,
+            data: v4Data(now),
+            schemaVersion: 4,
+          }),
+      ],
+      [
         'recheck',
         () =>
           signEnvelope({
@@ -466,6 +511,18 @@ describe('verifier verdict parity', () => {
             primaryType: RECHECK_V3_PRIMARY_TYPE,
             data: recheckV3Data(now),
             schemaVersion: 3,
+            envelopeType: 'OracleSafetyRecheck',
+          }),
+      ],
+      [
+        'recheckV4',
+        () =>
+          signEnvelope({
+            domain: RECHECK_V4_DOMAIN as unknown as Record<string, unknown>,
+            types: RECHECK_V4_TYPES as unknown as Record<string, unknown>,
+            primaryType: RECHECK_V4_PRIMARY_TYPE,
+            data: recheckV4Data(now),
+            schemaVersion: 4,
             envelopeType: 'OracleSafetyRecheck',
           }),
       ],

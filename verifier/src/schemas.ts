@@ -91,6 +91,23 @@ export interface RecheckV3Message extends V3Message {
   originalRequestHash: string;
 }
 
+/** v4 = v3's 27 fields + 4 signed asset-proxy fields. The four fields are
+ *  present on every v4 receipt: when no relationship is known they are signed
+ *  as an explicit `UNKNOWN` (empty relation/underlying, ratio 0), never omitted
+ *  and never defaulted to 1:1. */
+export interface V4Message extends V3Message {
+  sourceAssetProxyStatus: string;
+  sourceAssetProxyRelation: string;
+  sourceAssetUnderlyingId: string;
+  sourceAssetProxyNominalRatioBps: bigint;
+}
+
+/** v4 recheck = v4's 31 fields + 2 reference fields, both `bytes32`. */
+export interface RecheckV4Message extends V4Message {
+  originalUid: string;
+  originalRequestHash: string;
+}
+
 // ---------------------------------------------------------------------------
 // v1 — 11 signed fields
 // ---------------------------------------------------------------------------
@@ -219,6 +236,46 @@ export const RECHECK_V3_PRIMARY_TYPE = 'OracleSafetyRecheck';
 export const RECHECK_V3_TYPES = {
   OracleSafetyRecheck: [
     ...V3_TYPES.OracleSafetyCheck,
+    { name: 'originalUid', type: 'bytes32' },
+    { name: 'originalRequestHash', type: 'bytes32' },
+  ],
+} as const;
+
+// ---------------------------------------------------------------------------
+// v4 — 31 signed fields (v3 + signed asset-proxy relationship)
+// ---------------------------------------------------------------------------
+
+export const V4_DOMAIN = {
+  name: 'Insight Oracle Safety',
+  version: '4',
+  chainId: 1,
+} as const;
+
+export const V4_PRIMARY_TYPE = 'OracleSafetyCheck';
+
+/** The four fields v4 appends, in production order. */
+const V4_ADDED_FIELDS = [
+  { name: 'sourceAssetProxyStatus', type: 'string' },
+  { name: 'sourceAssetProxyRelation', type: 'string' },
+  { name: 'sourceAssetUnderlyingId', type: 'string' },
+  { name: 'sourceAssetProxyNominalRatioBps', type: 'uint256' },
+] as const;
+
+/** Derived from v3 so the shared 27-field prefix can never drift. */
+export const V4_TYPES = {
+  OracleSafetyCheck: [...V3_TYPES.OracleSafetyCheck, ...V4_ADDED_FIELDS],
+} as const;
+
+// ---------------------------------------------------------------------------
+// v4 recheck — 33 signed fields
+// ---------------------------------------------------------------------------
+
+export const RECHECK_V4_DOMAIN = V4_DOMAIN;
+export const RECHECK_V4_PRIMARY_TYPE = 'OracleSafetyRecheck';
+
+export const RECHECK_V4_TYPES = {
+  OracleSafetyRecheck: [
+    ...V4_TYPES.OracleSafetyCheck,
     { name: 'originalUid', type: 'bytes32' },
     { name: 'originalRequestHash', type: 'bytes32' },
   ],
@@ -429,18 +486,55 @@ export function toRecheckV3Message(data: Record<string, unknown>): RecheckV3Mess
   };
 }
 
+/** v4 message = v3's widening + the four proxy fields. Every field is required:
+ *  v4 always signs them, so a receipt that omits one is malformed rather than
+ *  silently treated as UNKNOWN. */
+export function toV4Message(data: Record<string, unknown>): V4Message {
+  return {
+    ...toV3Message(data),
+    sourceAssetProxyStatus: str(pick(data, 'sourceAssetProxyStatus'), 'sourceAssetProxyStatus'),
+    sourceAssetProxyRelation: str(
+      pick(data, 'sourceAssetProxyRelation'),
+      'sourceAssetProxyRelation'
+    ),
+    sourceAssetUnderlyingId: str(pick(data, 'sourceAssetUnderlyingId'), 'sourceAssetUnderlyingId'),
+    sourceAssetProxyNominalRatioBps: uint(
+      pick(data, 'sourceAssetProxyNominalRatioBps'),
+      'sourceAssetProxyNominalRatioBps'
+    ),
+  };
+}
+
+export function toRecheckV4Message(data: Record<string, unknown>): RecheckV4Message {
+  return {
+    ...toV4Message(data),
+    originalUid: str(pick(data, 'originalUid'), 'originalUid'),
+    originalRequestHash: str(pick(data, 'originalRequestHash'), 'originalRequestHash'),
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Schema registry — machine-readable descriptor of every supported layout
 // ---------------------------------------------------------------------------
 
-export type SchemaId = 'v1' | 'v2' | 'v3' | 'recheck' | 'recheckV3' | 'testRun';
+export type SchemaId =
+  | 'v1'
+  | 'v2'
+  | 'v3'
+  | 'v4'
+  | 'recheck'
+  | 'recheckV3'
+  | 'recheckV4'
+  | 'testRun';
 
 export const DOMAIN_BY_SCHEMA = {
   v1: V1_DOMAIN,
   v2: V2_DOMAIN,
   v3: V3_DOMAIN,
+  v4: V4_DOMAIN,
   recheck: RECHECK_DOMAIN,
   recheckV3: RECHECK_V3_DOMAIN,
+  recheckV4: RECHECK_V4_DOMAIN,
   testRun: TEST_DOMAIN,
 } as const;
 
@@ -448,8 +542,10 @@ export const TYPES_BY_SCHEMA = {
   v1: V1_TYPES,
   v2: V2_TYPES,
   v3: V3_TYPES,
+  v4: V4_TYPES,
   recheck: RECHECK_TYPES,
   recheckV3: RECHECK_V3_TYPES,
+  recheckV4: RECHECK_V4_TYPES,
   testRun: TEST_TYPES,
 } as const;
 
@@ -457,8 +553,10 @@ export const PRIMARY_TYPE_BY_SCHEMA = {
   v1: V1_PRIMARY_TYPE,
   v2: V2_PRIMARY_TYPE,
   v3: V3_PRIMARY_TYPE,
+  v4: V4_PRIMARY_TYPE,
   recheck: RECHECK_PRIMARY_TYPE,
   recheckV3: RECHECK_V3_PRIMARY_TYPE,
+  recheckV4: RECHECK_V4_PRIMARY_TYPE,
   testRun: TEST_PRIMARY_TYPE,
 } as const;
 

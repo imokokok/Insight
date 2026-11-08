@@ -96,6 +96,22 @@ export interface VerifyResult {
   keyStatus: KeyStatus;
   /** Human-readable failure reason, absent on success. */
   reason?: string;
+  /** v4 only: the signed source-asset proxy relationship, echoed verbatim.
+   *  `status: 'UNKNOWN'` means the issuer had no reviewed relationship for the
+   *  asset — it is a visible gap, NOT a "no relationship" or 1:1 claim. */
+  assetProxy?: AssetProxyRecord;
+  /** Non-fatal, verifier-visible gaps (e.g. `asset_proxy_unknown`). */
+  warnings?: string[];
+}
+
+/** Signed asset-proxy relationship carried by v4 receipts. */
+export interface AssetProxyRecord {
+  status: 'ASSESSED' | 'UNKNOWN' | 'NOT_APPLICABLE' | string;
+  relation: string;
+  underlyingAssetId: string;
+  /** 10000 = nominal 1:1. 0 means not assessed / not applicable and must
+   *  NEVER be read as 1:1. */
+  nominalRatioBps: number;
 }
 
 /** One entry of the published attester-key registry. */
