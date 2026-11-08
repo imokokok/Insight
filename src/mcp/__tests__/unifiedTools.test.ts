@@ -301,7 +301,11 @@ describe('profile-aware dispatch', () => {
         // and gains the op selector before validation.
         const dispatched = resolveDispatchedTool(advertised.name, minimal);
         if (!dispatched) {
-          failures.push({ profile: profile ?? 'core', tool: advertised.name, issues: 'not dispatched' });
+          failures.push({
+            profile: profile ?? 'core',
+            tool: advertised.name,
+            issues: 'not dispatched',
+          });
           continue;
         }
 
@@ -405,7 +409,9 @@ function minimalValue(schema: JsonSchemaNode | undefined): unknown {
     }
     case 'integer':
     case 'number':
-      return schema.minimum ?? (schema.exclusiveMinimum !== undefined ? schema.exclusiveMinimum + 1 : 1);
+      return (
+        schema.minimum ?? (schema.exclusiveMinimum !== undefined ? schema.exclusiveMinimum + 1 : 1)
+      );
     case 'boolean':
       return true;
     case 'string':

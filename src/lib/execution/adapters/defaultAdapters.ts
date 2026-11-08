@@ -42,7 +42,6 @@ import {
   type SolanaPerpGuardExactInput,
   type SolanaPerpGuardExactResult,
 } from '@/lib/perps/solanaPerpGuard';
-
 import { canonicalJsonString } from '@/lib/utils/canonicalJson';
 
 import { estimateVenueNativeFee, noVenueFeeCommercialTerms } from '../commerce';

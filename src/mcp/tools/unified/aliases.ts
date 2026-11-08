@@ -93,20 +93,36 @@ function positionLifecycleStepOp(args: unknown): string {
  * legacy implementation before canonicalization is considered.
  */
 export const MCP_TOOL_ALIASES: Readonly<Record<string, ToolAlias>> = {
-  get_oracle_price: { tool: 'trade_guard', op: fixedOp('oracle_price'), preferredOp: 'oracle_price' },
+  get_oracle_price: {
+    tool: 'trade_guard',
+    op: fixedOp('oracle_price'),
+    preferredOp: 'oracle_price',
+  },
   get_price_analytics: {
     tool: 'trade_guard',
     op: fixedOp('price_analytics'),
     preferredOp: 'price_analytics',
   },
-  get_oracle_health: { tool: 'trade_guard', op: fixedOp('oracle_health'), preferredOp: 'oracle_health' },
+  get_oracle_health: {
+    tool: 'trade_guard',
+    op: fixedOp('oracle_health'),
+    preferredOp: 'oracle_health',
+  },
   search_oracle_registry: {
     tool: 'trade_guard',
     op: fixedOp('search_registry'),
     preferredOp: 'search_registry',
   },
-  get_market_quote: { tool: 'trade_guard', op: fixedOp('market_quote'), preferredOp: 'market_quote' },
-  check_trade_safety: { tool: 'trade_guard', op: fixedOp('check_safety'), preferredOp: 'check_safety' },
+  get_market_quote: {
+    tool: 'trade_guard',
+    op: fixedOp('market_quote'),
+    preferredOp: 'market_quote',
+  },
+  check_trade_safety: {
+    tool: 'trade_guard',
+    op: fixedOp('check_safety'),
+    preferredOp: 'check_safety',
+  },
   prepare_swap: { tool: 'trade_guard', op: fixedOp('prepare_swap'), preferredOp: 'prepare_swap' },
   prepare_perp_order: {
     tool: 'trade_guard',
@@ -123,7 +139,11 @@ export const MCP_TOOL_ALIASES: Readonly<Record<string, ToolAlias>> = {
     op: fixedOp('issue_receipt'),
     preferredOp: 'issue_receipt',
   },
-  verify_evidence: { tool: 'trade_proof', op: fixedOp('verify_evidence'), preferredOp: 'verify_evidence' },
+  verify_evidence: {
+    tool: 'trade_proof',
+    op: fixedOp('verify_evidence'),
+    preferredOp: 'verify_evidence',
+  },
   oracle_watch: { tool: 'oracle_watch_window', op: oracleWatchOp, preferredOp: 'snapshot' },
   oracle_watch_window_begin: {
     tool: 'oracle_watch_window',

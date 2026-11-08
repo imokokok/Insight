@@ -21,12 +21,7 @@ export const EXECUTION_OBSERVATION_SCHEMA = 'insight.execution-observation.v1' a
  * stands and the payload is buildable, but the caller must still complete it
  * (for example supplying remaining accounts) before it can be signed.
  */
-export type PreflightState =
-  | 'READY'
-  | 'CAUTION'
-  | 'REQUIRES_COMPLETION'
-  | 'BLOCK'
-  | 'UNAVAILABLE';
+export type PreflightState = 'READY' | 'CAUTION' | 'REQUIRES_COMPLETION' | 'BLOCK' | 'UNAVAILABLE';
 
 /**
  * What the quote / order is valid *against*. A timestamp alone cannot express
@@ -241,9 +236,7 @@ export function createPreparedExecution<Native>(
   value: PreparedExecution<Native>
 ): PreparedExecution<Native> {
   assertAdapterId(value.adapterId);
-  if (
-    !['READY', 'CAUTION', 'REQUIRES_COMPLETION', 'BLOCK', 'UNAVAILABLE'].includes(value.state)
-  ) {
+  if (!['READY', 'CAUTION', 'REQUIRES_COMPLETION', 'BLOCK', 'UNAVAILABLE'].includes(value.state)) {
     throw new TypeError('Execution preflight state is invalid.');
   }
   if (value.authorization !== 'user-controlled') {

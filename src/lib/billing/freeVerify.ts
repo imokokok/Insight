@@ -33,7 +33,8 @@ export function isFreeVerifyCall(toolName: string, args?: unknown): boolean {
   if (LEGACY_FREE_VERIFY_TOOLS.has(toolName)) return true;
   const record = (args ?? {}) as { kind?: unknown; op?: unknown };
   const isVerifyEvidence =
-    toolName === 'verify_evidence' || (toolName === 'trade_proof' && record.op === 'verify_evidence');
+    toolName === 'verify_evidence' ||
+    (toolName === 'trade_proof' && record.op === 'verify_evidence');
   if (!isVerifyEvidence) return false;
   return typeof record.kind === 'string' && parseFreeKinds().includes(record.kind);
 }

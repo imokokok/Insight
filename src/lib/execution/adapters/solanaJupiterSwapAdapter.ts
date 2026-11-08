@@ -48,9 +48,7 @@ export const solanaJupiterSwapAdapter: ExecutionAdapter<
     // Blocked swaps carry no transaction, so the intent binds the refusal.
     const digest =
       transaction === null
-        ? sha256Hex(
-            JSON.stringify({ adapterId: this.id, state, reasons: native.blockingReasons })
-          )
+        ? sha256Hex(JSON.stringify({ adapterId: this.id, state, reasons: native.blockingReasons }))
         : sha256OfBase64(transaction.base64);
     return createPreparedExecution({
       schema: 'insight.prepared-execution.v1',

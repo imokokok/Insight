@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-import { ErrorCode } from '@/types/api/error';
+import { type ErrorCode } from '@/types/api/error';
 
 interface ApiError {
   code: string;
