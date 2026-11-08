@@ -81,11 +81,11 @@ const daily = dayKeys.map((day) => {
   const dayStartMs = Date.parse(`${day}T00:00:00.000Z`);
   const dayEndMs = dayStartMs + 24 * 60 * 60 * 1000;
   const isPartial = dayEndMs > endMs;
-  const inDay = receipts.filter((r) => r.slotTs >= dayStartMs && r.slotTs < Math.min(dayEndMs, endMs));
+  const inDay = receipts.filter(
+    (r) => r.slotTs >= dayStartMs && r.slotTs < Math.min(dayEndMs, endMs)
+  );
   const distinctSlots = new Set(inDay.map((r) => r.slotMs));
-  const lags = inDay
-    .filter((r) => r.projectedAt !== null)
-    .map((r) => r.projectedAt! - r.slotTs);
+  const lags = inDay.filter((r) => r.projectedAt !== null).map((r) => r.projectedAt! - r.slotTs);
   const expectedSlots = isPartial
     ? Math.max(0, Math.floor((Math.min(dayEndMs, endMs) - dayStartMs) / SLOT_INTERVAL_MS))
     : SLOTS_PER_DAY;
@@ -141,10 +141,12 @@ for (const row of dispatchResult.data) {
 
 const STARTUP_TIMEOUT_SQL = `SELECT to_char(date_trunc('day', jrd.start_time),'YYYY-MM-DD') AS day, count(*) AS startup_timeouts, count(DISTINCT j.jobname) AS jobs_affected FROM cron.job_run_details jrd JOIN cron.job j ON j.jobid = jrd.jobid WHERE jrd.status = 'failed' AND jrd.return_message LIKE '%startup%' AND jrd.start_time > now() - interval '${days} days' GROUP BY 1 ORDER BY 1 DESC;`;
 
-function readStartupTimeoutsViaCli(): { source: 'cli'; byDay: Record<string, number> } | {
-  source: 'unavailable';
-  sql: string;
-} {
+function readStartupTimeoutsViaCli():
+  | { source: 'cli'; byDay: Record<string, number> }
+  | {
+      source: 'unavailable';
+      sql: string;
+    } {
   try {
     const run = spawnSync('supabase', ['db', 'query', '--linked', STARTUP_TIMEOUT_SQL], {
       encoding: 'utf8',
