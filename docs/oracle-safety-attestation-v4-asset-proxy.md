@@ -169,9 +169,13 @@ package.
 
 ## Scope / rollout
 
-- Default issuance remains v3. v4 is requested explicitly with
-  `schemaVersion: 4`; no existing signed literal, verdict literal, C1–C4
-  cardinalities, floors or `QUORUM_MIN` changed.
+- Omitted `schemaVersion` resolves per surface, and the two surfaces differ:
+  - REST `GET/POST /api/v1/safety/pre-trade`: omitting `schemaVersion` lands on
+    **v1**. Existing callers keep their current signature and verification
+    semantics; changing this default is a separate decision.
+  - MCP agent tools pin **v3**.
+- v4 must be requested explicitly with `schemaVersion: 4`; no existing signed
+  literal, verdict literal, C1–C4 cardinalities, floors or `QUORUM_MIN` changed.
 - `latestSchemaVersion` on the verify endpoint is now 4 ("can verify", not
   "default").
 - The v3-only 1800s joint-run validity exception is not extended to v4; v4
