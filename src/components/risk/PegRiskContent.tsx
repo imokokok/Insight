@@ -8,6 +8,7 @@ import { Activity, AlertCircle, Gauge } from 'lucide-react';
 
 import { Button } from '@/components/ui';
 import { STABLECOIN_RISK_THRESHOLDS, WRAPPED_ASSET_RISK_THRESHOLDS } from '@/lib/risk/constants';
+import { PEG_SNAPSHOT_TTL_SECONDS, oldestIsoTimestamp } from '@/lib/risk/snapshotFreshness';
 import type { RiskLevel } from '@/lib/risk/types';
 import { getRiskLevel } from '@/lib/risk/utils';
 import type { StablecoinDepegSnapshot } from '@/lib/stablecoins/monitor';
@@ -32,6 +33,12 @@ interface ApiResult<T> {
   success: boolean;
   data?: T;
   error?: { message?: string };
+  /**
+   * Freshness receipt added by both read endpoints. `asOf` is the newest
+   * `lastUpdated` in the returned set, so a cache hit (Data Cache or CDN)
+   * returns the same value while a real recomputation moves it forward.
+   */
+  meta?: { asOf?: string; cacheTtlSeconds?: number };
 }
 
 const VALID_TABS = new Set<ValidTab>(['overview', 'sources', 'protocols']);
@@ -93,21 +100,26 @@ function getLatestTimestamp(
   return timestamps.length > 0 ? Math.max(...timestamps) : null;
 }
 
-async function fetchSnapshots<T>(endpoint: string): Promise<T[]> {
+async function fetchSnapshots<T>(
+  endpoint: string
+): Promise<{ snapshots: T[]; asOf: string | null }> {
   const response = await fetch(endpoint);
   const result = (await response.json()) as ApiResult<T[]>;
   if (!response.ok || !result.success || !result.data) {
     throw new Error(result.error?.message || `Failed to fetch ${endpoint}`);
   }
-  return result.data;
+  return { snapshots: result.data, asOf: result.meta?.asOf ?? null };
 }
 
 export function PegRiskContent({
   initialStablecoins,
   initialWrappedAssets,
+  initialAsOf,
 }: {
   initialStablecoins: StablecoinDepegSnapshot[];
   initialWrappedAssets: WrappedAssetSnapshot[];
+  /** Oldest snapshot timestamp rendered by the server, if one was available. */
+  initialAsOf?: string | null;
 }) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -126,7 +138,9 @@ export function PegRiskContent({
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<number | null>(
-    getLatestTimestamp(initialStablecoins, initialWrappedAssets)
+    initialAsOf
+      ? Date.parse(initialAsOf)
+      : getLatestTimestamp(initialStablecoins, initialWrappedAssets)
   );
 
   const allSnapshots = useMemo(
@@ -172,21 +186,28 @@ export function PegRiskContent({
     ]);
 
     const failures: string[] = [];
+    const asOfCandidates: Array<string | null> = [];
     if (stablecoinResult.status === 'fulfilled') {
-      setStablecoins(stablecoinResult.value);
+      setStablecoins(stablecoinResult.value.snapshots);
+      asOfCandidates.push(stablecoinResult.value.asOf);
     } else {
       failures.push(`Stablecoins: ${stablecoinResult.reason.message}`);
     }
 
     if (wrappedResult.status === 'fulfilled') {
-      setWrappedAssets(wrappedResult.value);
+      setWrappedAssets(wrappedResult.value.snapshots);
+      asOfCandidates.push(wrappedResult.value.asOf);
     } else {
       failures.push(`Wrapped assets: ${wrappedResult.reason.message}`);
     }
 
     if (failures.length > 0) setError(failures.join(' · '));
-    if (stablecoinResult.status === 'fulfilled' || wrappedResult.status === 'fulfilled') {
-      setLastUpdatedAt(Date.now());
+    if (asOfCandidates.length > 0) {
+      // Show the staler half rather than the newest timestamp, and prefer the
+      // server's `asOf` over the local clock so a cache hit is visible as an
+      // unchanged label instead of a misleadingly fresh one.
+      const refreshedAsOf = oldestIsoTimestamp(asOfCandidates);
+      setLastUpdatedAt(refreshedAsOf ? Date.parse(refreshedAsOf) : Date.now());
     }
 
     setLoading(false);
@@ -201,7 +222,7 @@ export function PegRiskContent({
 
     const interval = window.setInterval(() => {
       if (!document.hidden) fetchData(true);
-    }, 60000);
+    }, PEG_SNAPSHOT_TTL_SECONDS * 1000);
 
     const handleVisibilityChange = () => {
       if (!document.hidden) fetchData(true);
