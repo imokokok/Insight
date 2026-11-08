@@ -633,6 +633,8 @@ export function getToolDefinitions() {
         name: tool.name,
         description: unified.description,
         inputSchema: unified.inputSchema,
+        ...(unified.pricing ? { pricing: unified.pricing } : {}),
+        ...(unified.deprecated ? { deprecated: unified.deprecated } : {}),
       };
     }
     return {

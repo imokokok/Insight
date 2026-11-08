@@ -45,9 +45,9 @@ const BILLING_FACTS = [
 
 const X402_PAY_PER_CALL_FACTS = [
   {
-    value: '$0.02',
-    label: 'Per check',
-    detail: 'USDC on Base via x402 or optional MPP; settled on-chain',
+    value: '$0.002–$0.040',
+    label: 'Per MCP call',
+    detail: 'Op-priced Trade Guard plus product prices; settled in USDC on Base',
   },
   {
     value: '0',
@@ -63,6 +63,41 @@ const X402_PAY_PER_CALL_FACTS = [
     value: 'BLOCK',
     label: 'Still charged',
     detail: 'A BLOCK verdict is a complete check; the answer, not the outcome, is the product',
+  },
+];
+
+const PRODUCT_PRICES = [
+  {
+    name: 'Trade Guard',
+    price: '$0.002–$0.040',
+    unit: 'per call, op-priced',
+    detail:
+      'Read-only ops cost 2–4 credits ($0.002–$0.004). The full trade-safety check (check_safety, prepare_swap, prepare_perp_order) costs 20 credits ($0.020); the 40-credit ($0.040) figure is the product price ceiling, not a flat per-call price.',
+    credits: '2–40 credits',
+  },
+  {
+    name: 'Trade Proof',
+    price: '$0.040',
+    unit: 'per call',
+    detail:
+      'Signed evidence: begin the trade record, issue the execution receipt, or verify execution-pair and offline evidence offline.',
+    credits: '40 credits',
+  },
+  {
+    name: 'Oracle Watch',
+    price: '$0.500',
+    unit: 'per 24h window',
+    detail:
+      'Up to 48 signal polls per window, one full reassessment every 30 minutes, escalating to a full scan when the signal jumps. Polls inside a paid window are free.',
+    credits: '500 credits',
+  },
+  {
+    name: 'Position Lifecycle',
+    price: '$0.550',
+    unit: 'per position',
+    detail:
+      'One window plus four guard checks and one execution receipt for a single position; in-bundle guards and receipts are not charged again.',
+    credits: '550 credits',
   },
 ];
 
@@ -148,7 +183,46 @@ export default function PricingPage() {
       <section className="pricing-plan-section py-14 sm:py-20">
         <div className="editorial-frame mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
           <div className="grid gap-4 border-b border-slate-900/15 pb-5 lg:grid-cols-[0.8fr_1.7fr]">
-            <p className="editorial-index">02 — Pay per call, no account</p>
+            <p className="editorial-index">02 — Product prices</p>
+            <div>
+              <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+                Four product tools, metered by the work they do.
+              </h2>
+              <p className="mt-4 max-w-2xl text-lg leading-relaxed text-slate-600">
+                Trade Guard dispatches across metering classes, so it is priced by operation rather
+                than a single flat rate. The other three products carry one product price. Every
+                price below is also available through the credit wallet and x402.
+              </p>
+            </div>
+          </div>
+          <div className="pricing-fact-ledger grid border-b border-slate-900/15 sm:grid-cols-2 lg:grid-cols-4">
+            {PRODUCT_PRICES.map((product, index) => (
+              <div
+                key={product.name}
+                className="pricing-fact-record border-b border-r border-slate-900/10 bg-white/30 px-0 py-6 sm:px-5 first:sm:pl-0"
+              >
+                <span className="font-mono text-[10px] text-blue-700">
+                  {String(index + 1).padStart(2, '0')}
+                </span>
+                <p className="mt-4 text-xs font-semibold uppercase tracking-[0.1em] text-slate-600">
+                  {product.name}
+                </p>
+                <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
+                  {product.price}
+                </p>
+                <p className="mt-1 text-xs text-slate-600">{product.unit}</p>
+                <p className="mt-2 text-xs leading-relaxed text-slate-500">{product.detail}</p>
+                <p className="mt-2 font-mono text-[11px] text-blue-700">{product.credits}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="pricing-plan-section py-14 sm:py-20">
+        <div className="editorial-frame mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
+          <div className="grid gap-4 border-b border-slate-900/15 pb-5 lg:grid-cols-[0.8fr_1.7fr]">
+            <p className="editorial-index">03 — Pay per call, no account</p>
             <div>
               <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
                 One endpoint for autonomous agents: hit it, pay, get the verdict.
@@ -156,9 +230,10 @@ export default function PricingPage() {
               <p className="mt-4 max-w-2xl text-lg leading-relaxed text-slate-600">
                 <code className="font-mono text-base">GET /api/v1/safety/pre-trade</code> speaks the
                 x402 and optional MPP protocols. A request without credentials receives an HTTP 402
-                quote; the agent pays $0.02 in USDC on Base and retries with a signed payment to
-                receive the full safety check. Humans and teams with ongoing volume should use the
-                credit plans above instead.
+                quote; the agent pays the quoted USDC price on Base — $0.02 for the pre-trade safety
+                check, from $0.002 for read-only Trade Guard ops, and up to $0.040 for the full
+                trade-safety set — and retries with a signed payment to receive the full result.
+                Humans and teams with ongoing volume should use the credit plans above instead.
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link

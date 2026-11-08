@@ -9,7 +9,7 @@ import type { McpToolDefinition } from '../types';
  * The advertised surface is 4 canonical product tools followed by the 16
  * deprecated alias names they absorb. Aliases live here rather than in the
  * legacy registry: that registry expires on `LEGACY_TOOL_REMOVAL_DATE`, while
- * these names are permanent convenience spellings with no removal date.
+ * these names are convenience spellings that expire on the same date.
  */
 export const ALIAS_MCP_TOOLS: McpToolDefinition[] = [
   ...CORE_MCP_TOOLS,
@@ -21,7 +21,12 @@ export const ALIAS_MCP_TOOLS: McpToolDefinition[] = [
   }
   return {
     ...tool,
-    description: `${tool.description} Deprecated alias: prefer ${alias.tool} with op "${alias.preferredOp}".`,
+    description: `${tool.description} Deprecated alias: prefer ${alias.tool} with op "${alias.preferredOp}". Removed on ${LEGACY_TOOL_REMOVAL_DATE}.`,
+    deprecated: {
+      sunset: LEGACY_TOOL_REMOVAL_DATE,
+      replacedBy: alias.tool,
+      preferredOp: alias.preferredOp,
+    },
   };
 });
 

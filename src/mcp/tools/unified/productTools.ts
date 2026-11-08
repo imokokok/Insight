@@ -255,6 +255,7 @@ async function dispatchByOp(
 export const PRODUCT_MCP_TOOLS: McpToolDefinition[] = [
   defineTool({
     name: 'trade_guard',
+    pricing: { credits: 40, usd: '0.040', minCredits: 2, minUsd: '0.002' },
     description:
       'Use it for every pre-execution trust decision: one oracle price, price analytics, oracle health, oracle registry search, a venue market quote, or the pre-trade safety gate including prepare_swap and prepare_perp_order. Each call selects the branch with "op". Do not use it to prove execution after the fact (use trade_proof), to poll a prepaid monitoring window (use oracle_watch_window), or to manage a position bundle (use position_lifecycle). Returns the op payload: price and analytics rows for read ops, a venue quote for market_quote, a READY/CAUTION/BLOCK verdict with reasons for check_safety, and an unsigned prepared transaction, Solana message, venue order or instruction for prepare_* ops. Absorbs the deprecated names get_oracle_price, get_price_analytics, get_oracle_health, search_oracle_registry, get_market_quote, check_trade_safety, prepare_swap and prepare_perp_order.',
     parameters: productParameters(TRADE_GUARD_OPS),
@@ -264,6 +265,7 @@ export const PRODUCT_MCP_TOOLS: McpToolDefinition[] = [
   }),
   defineTool({
     name: 'trade_proof',
+    pricing: { credits: 40, usd: '0.040' },
     description:
       'Use it to open a trade-evidence session, issue an execution receipt, or verify an evidence artifact after a trade. Each call selects the branch with "op": begin_evidence, issue_receipt or verify_evidence. Do not use it to decide whether a trade is safe before signing (use trade_guard) and do not use it to settle a swap guard (use the venue guard tools). Returns the evidence session handle, the signed receipt, or the verification verdict, digest and matched evidence. Absorbs the deprecated names begin_trade_evidence, issue_execution_receipt and verify_evidence.',
     parameters: productParameters(TRADE_PROOF_OPS),
@@ -273,6 +275,7 @@ export const PRODUCT_MCP_TOOLS: McpToolDefinition[] = [
   }),
   defineTool({
     name: 'oracle_watch_window',
+    pricing: { credits: 500, usd: '0.500' },
     description:
       'Oracle Watch for monitored trust signals. Use it to read one trust snapshot or history series, buy a 24h monitored window, or poll/close an already purchased window. Each call selects the branch with "op": snapshot, history, begin, poll or close. Do not use it for pre-trade safety (use trade_guard op check_safety), do not buy a second window for the same subject, and never reuse a token after close. Returns the trust signal or history series, the windowId plus one-time oww_ token and expiry for begin, and the poll signal or combined close summary for window ops. Absorbs the deprecated names oracle_watch, oracle_watch_window_begin and oracle_watch_window_control.',
     parameters: productParameters(ORACLE_WATCH_WINDOW_OPS),
@@ -285,6 +288,7 @@ export const PRODUCT_MCP_TOOLS: McpToolDefinition[] = [
   }),
   defineTool({
     name: 'position_lifecycle',
+    pricing: { credits: 550, usd: '0.550' },
     description:
       'Use it to buy a 24h Position Lifecycle bundle and run the guard, receipt and close steps inside it. Each call selects the branch with "op": begin, guard, receipt or close. Do not use it for a single pre-trade guard (use trade_guard op check_safety), for unrelated positions, or with a token after close. Returns the lifecycleId plus one-time plc_ token and expiry for begin, and the guard verdict, signed execution receipt or combined lifecycle summary for the in-window steps. Absorbs the deprecated names position_lifecycle_begin and position_lifecycle_step.',
     parameters: productParameters(POSITION_LIFECYCLE_OPS),

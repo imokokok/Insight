@@ -554,7 +554,7 @@
         "operationId": "mcpToolCall",
         "summary": "MCP tools/call over JSON-RPC 2.0 (streamable HTTP), x402 pay-per-call",
         "tags": ["MCP"],
-        "description": "Pay-per-call access to the Insight oracle tool catalog (16 consolidated tools: prices, consensus, peg risk, lending safety) for x402 agents without an API key. Price scales with the tool metering class (C1=$0.002, C2=$0.004, C3=$0.02, C4=$0.04). tools/list and initialize are free. Every paid response carries a verifiable EIP-712 attestation receipt.",
+        "description": "Pay-per-call access to the Insight oracle tool catalog (20 advertised names: the four product tools trade_guard, trade_proof, oracle_watch_window and position_lifecycle, plus 16 deprecated aliases that keep their original metering class until 2027-01-06) for x402 agents without an API key. Product prices: Trade Guard $0.002-$0.040 per call (op-priced; $0.040 for check_safety / prepare_swap / prepare_perp_order), Trade Proof $0.040, Oracle Watch $0.500 per 24h window, Position Lifecycle $0.550. Other calls scale with the metering class (C1=$0.002, C2=$0.004, C3=$0.02, C4=$0.04). tools/list and initialize are free. Every paid response carries a verifiable EIP-712 attestation receipt.",
         "requestBody": {
           "required": true,
           "content": {
