@@ -22,6 +22,33 @@ const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 // failed read for every feed. Keep fallback reads available, but bound retry
 // pressure while the registry dependency is unavailable.
 const REGISTRY_FAILURE_BACKOFF_MS = 30_000;
+// A single transient registry read failure used to abort the whole 15-minute
+// snapshot run, which permanently lost that slot (there is no backfill). Retry
+// twice inside the same run before declaring the registry unavailable.
+const FEED_REGISTRY_RETRY_DELAYS_MS = [2_000, 5_000] as const;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function readActiveFeedsWithRetry(): Promise<{
+  feeds: OracleFeed[];
+  errored: boolean;
+}> {
+  const queries = getAdminQueries();
+  let result = await queries.getOracleFeedsWithStatus('');
+
+  for (const delayMs of FEED_REGISTRY_RETRY_DELAYS_MS) {
+    if (!result.errored) return result;
+    logger.warn(`Failed to get oracle feeds; retrying in ${delayMs}ms`, {
+      retryDelayMs: delayMs,
+    });
+    await sleep(delayMs);
+    result = await queries.getOracleFeedsWithStatus('');
+  }
+
+  return result;
+}
 
 interface FeedCacheEntry {
   /** Every active feed, keyed by its exact DB symbol and chain. */
@@ -176,9 +203,9 @@ async function loadAllActiveFeeds(): Promise<AllFeedsCacheEntry | null> {
   const generation = cacheGeneration;
   const fetchPromise: Promise<AllFeedsCacheEntry | null> = (async () => {
     try {
-      const queries = getAdminQueries();
       // Empty provider string returns all active feeds (see getOracleFeeds).
-      const result = await queries.getOracleFeedsWithStatus('');
+      // Retries twice inside this run before the failure is cached.
+      const result = await readActiveFeedsWithRetry();
       if (result.errored) {
         registryFailureUntilMs = Date.now() + REGISTRY_FAILURE_BACKOFF_MS;
         return null;
