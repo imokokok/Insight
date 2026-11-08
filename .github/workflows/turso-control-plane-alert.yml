@@ -4,7 +4,9 @@ on:
   schedule:
     # Check after the GitHub Actions capture and projection windows. This is
     # deliberately independent from the Supabase data path it watches.
-    - cron: '12,27,42,57 * * * *'
+    # 30-minute cadence (was every 15 minutes): it keeps the public-probe path
+    # verified end to end while halving the probe's Vercel invocation count.
+    - cron: '7,37 * * * *'
   workflow_dispatch:
 
 permissions:
