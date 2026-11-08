@@ -165,7 +165,7 @@ export default function RiskIntelligencePage() {
             </h2>
             <p className="mt-4 max-w-3xl text-base leading-relaxed text-slate-300">
               Use a risk finding as evidence inside a policy you control. If you need a pre-trade
-              assessment plus continuous monitoring in one workflow, use Decision Integrity.
+              assessment plus between-action monitoring in one workflow, use Decision Integrity.
             </p>
             <Link
               href="/decision-integrity"
