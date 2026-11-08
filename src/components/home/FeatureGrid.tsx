@@ -43,7 +43,7 @@ const referenceLinks = [
 const highlights = [
   {
     icon: Zap,
-    label: '10 Providers',
+    label: '13 Providers',
     description: 'Chainlink, RedStone, API3, DIA & more',
   },
   {

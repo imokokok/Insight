@@ -119,6 +119,7 @@ function HomeLiveDashboardContent({ initialData }: { initialData: ServerDashboar
   const [now, setNow] = useState(initialData.fetchedAt);
   const [dashboardData, setDashboardData] = useState(initialData);
   const [isLoading, setIsLoading] = useState(initialData.prices.length === 0);
+  const [dataIssue, setDataIssue] = useState<string | null>(null);
   const lastFetchedAt = useRef(initialData.fetchedAt);
 
   useEffect(() => {
@@ -143,9 +144,18 @@ function HomeLiveDashboardContent({ initialData }: { initialData: ServerDashboar
         if (!active) return;
         lastFetchedAt.current = nextData.fetchedAt;
         setDashboardData(nextData);
+        setDataIssue(
+          nextData.prices.length === 0 && nextData.reputations.length === 0
+            ? 'No current source observations were returned. Insight will retry automatically; do not treat this as a provider outage.'
+            : null
+        );
       } catch (error) {
         if (!(error instanceof DOMException && error.name === 'AbortError')) {
-          // Keep the last complete snapshot visible during transient failures.
+          // Keep the last complete snapshot visible during transient failures, but
+          // never let an empty dashboard masquerade as a provider-health verdict.
+          setDataIssue(
+            'Live source data is temporarily unavailable. Insight will retry automatically; any observations still shown may be older than the latest check.'
+          );
         }
       } finally {
         if (active) setIsLoading(false);
@@ -221,6 +231,17 @@ function HomeLiveDashboardContent({ initialData }: { initialData: ServerDashboar
           now={now}
           updateInterval="60s"
         />
+        {dataIssue && (
+          <p
+            role="status"
+            className="mt-4 border-l-2 border-amber-500 bg-amber-50/80 px-4 py-3 text-sm leading-relaxed text-amber-950"
+          >
+            <span className="mr-2 font-mono text-xs font-semibold uppercase tracking-[0.12em] text-amber-700">
+              Data note
+            </span>
+            {dataIssue}
+          </p>
+        )}
         <div className="mt-6">
           <ConsensusCore assets={assetData} />
         </div>
@@ -246,6 +267,10 @@ function HomeLiveDashboardContent({ initialData }: { initialData: ServerDashboar
           now={now}
           reputations={currentData.reputations}
           isLoading={isLoading && currentData.reputations.length === 0}
+          dataState={
+            currentData.reputations.length > 0 ? 'available' : isLoading ? 'loading' : 'unavailable'
+          }
+          unavailableMessage={dataIssue}
           displayLimit={5}
         />
       </section>

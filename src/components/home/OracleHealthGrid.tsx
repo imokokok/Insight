@@ -12,6 +12,7 @@ import type { OracleReputation } from '@/lib/oracles/services/reputationService'
 import { type OracleProvider, ORACLE_PROVIDER_VALUES } from '@/types/oracle';
 
 type NetworkStatus = 'healthy' | 'degraded' | 'down';
+type NetworkDataState = 'available' | 'loading' | 'unavailable';
 
 function getStatusFromScore(score: number): NetworkStatus {
   if (score >= 80) return 'healthy';
@@ -52,13 +53,20 @@ export function OracleHealthGrid({
   now,
   reputations,
   isLoading = false,
+  dataState,
+  unavailableMessage,
   displayLimit,
 }: {
   now: number;
   reputations: OracleReputation[];
   isLoading?: boolean;
+  dataState?: NetworkDataState;
+  unavailableMessage?: string | null;
   displayLimit?: number;
 }) {
+  const resolvedDataState: NetworkDataState =
+    dataState ?? (reputations.length > 0 ? 'available' : isLoading ? 'loading' : 'unavailable');
+  const hasMeasuredData = resolvedDataState === 'available' && reputations.length > 0;
   const { providers, detailsMap, counts, aggregates } = useMemo(() => {
     const detailsMap = new Map<string, OracleReputation>();
     for (const reputation of reputations) detailsMap.set(reputation.provider, reputation);
@@ -68,10 +76,13 @@ export function OracleHealthGrid({
         ? reputations.map((reputation) => reputation.provider as OracleProvider)
         : ([...ORACLE_PROVIDER_VALUES] as OracleProvider[]);
 
-    const counts = { healthy: 0, degraded: 0, down: 0, total: providers.length };
-    for (const provider of providers) {
-      const score = detailsMap.get(provider)?.overall_score ?? 0;
-      counts[getStatusFromScore(score)] += 1;
+    const counts = { healthy: 0, degraded: 0, down: 0, total: 0 };
+    if (hasMeasuredData) {
+      counts.total = providers.length;
+      for (const provider of providers) {
+        const score = detailsMap.get(provider)?.overall_score ?? 0;
+        counts[getStatusFromScore(score)] += 1;
+      }
     }
 
     const scored = reputations.filter((reputation) => reputation.overall_score > 0);
@@ -105,7 +116,7 @@ export function OracleHealthGrid({
     };
 
     return { providers, detailsMap, counts, aggregates };
-  }, [reputations]);
+  }, [hasMeasuredData, reputations]);
 
   const statusEntries = (['healthy', 'degraded', 'down'] as const).map((status) => ({
     status,
@@ -130,18 +141,37 @@ export function OracleHealthGrid({
       </header>
 
       <div className="network-field-status" aria-label="Network status distribution">
-        {statusEntries.map(({ status, count, percentage }) => (
+        {hasMeasuredData ? (
+          statusEntries.map(({ status, count, percentage }) => (
+            <div
+              key={status}
+              className={`network-status-${status}`}
+              style={{ '--status-width': `${Math.max(percentage, 1)}%` } as CSSProperties}
+            >
+              <span>{status}</span>
+              <strong>{count}</strong>
+              <i />
+              <small>{percentage.toFixed(0)}% of network</small>
+            </div>
+          ))
+        ) : (
           <div
-            key={status}
-            className={`network-status-${status}`}
-            style={{ '--status-width': `${Math.max(percentage, 1)}%` } as CSSProperties}
+            className="network-status-unavailable"
+            style={{ '--status-width': '16%' } as CSSProperties}
           >
-            <span>{status}</span>
-            <strong>{count}</strong>
+            <span>
+              {resolvedDataState === 'loading' ? 'Sampling providers' : 'Provider data unavailable'}
+            </span>
+            <strong>—</strong>
             <i />
-            <small>{percentage.toFixed(0)}% of network</small>
+            <small>
+              {resolvedDataState === 'loading'
+                ? 'Awaiting the first provider-health snapshot.'
+                : (unavailableMessage ??
+                  'No current provider-health result is being shown. A fresh check will retry automatically.')}
+            </small>
           </div>
-        ))}
+        )}
       </div>
 
       <div className="network-field-body">
@@ -155,7 +185,7 @@ export function OracleHealthGrid({
           {providers.slice(0, displayLimit ?? providers.length).map((provider, index) => {
             const details = detailsMap.get(provider);
             const score = details?.overall_score ?? 0;
-            const status = getStatusFromScore(score);
+            const status = hasMeasuredData ? getStatusFromScore(score) : null;
             return (
               <article className="network-provider" key={provider}>
                 <div className="network-provider-identity">
@@ -168,12 +198,18 @@ export function OracleHealthGrid({
                   <div>
                     <strong>{score > 0 ? score.toFixed(0) : '—'}</strong>
                     <span>/100</span>
-                    <small className={`status-${status}`}>{isLoading ? 'sampling' : status}</small>
+                    <small className={status ? `status-${status}` : 'status-unknown'}>
+                      {resolvedDataState === 'loading' ? 'sampling' : (status ?? 'unavailable')}
+                    </small>
                   </div>
                   <div
                     className="network-provider-track"
                     style={{ '--health-width': `${score}%` } as CSSProperties}
-                    aria-label={`${providerNames[provider] ?? provider} health score ${score} out of 100`}
+                    aria-label={
+                      hasMeasuredData
+                        ? `${providerNames[provider] ?? provider} health score ${score} out of 100`
+                        : `${providerNames[provider] ?? provider} health score unavailable`
+                    }
                   >
                     <i />
                   </div>

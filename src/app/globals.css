@@ -9636,6 +9636,11 @@ body:has(.ops-workspace) .public-chrome {
   color: #ec6a91;
 }
 
+.network-status-unavailable {
+  grid-column: 1 / -1;
+  color: #8eb5ff;
+}
+
 .network-field-status small {
   grid-column: 1 / -1;
   color: #70839f;
@@ -9755,6 +9760,10 @@ body:has(.ops-workspace) .public-chrome {
 
 .status-down {
   color: #ec6a91;
+}
+
+.status-unknown {
+  color: #8eb5ff;
 }
 
 .network-provider-track {

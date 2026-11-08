@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Insight API — Oracle Transparency & Risk Intelligence',
     description:
-      'Oracle transparency and risk intelligence across 10 providers and 40+ chains: source comparison, freshness, Peg Risk, and protocol exposure.',
+      'Oracle transparency and risk intelligence across 13 providers and 40+ chains: source comparison, freshness, Peg Risk, and protocol exposure.',
     type: 'website',
   },
 };
