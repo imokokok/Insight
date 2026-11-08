@@ -40,7 +40,10 @@ function normalizeVersion(value: string): string | null {
 }
 
 export function migrationNameFromFile(file: string): string {
-  return file.replace(/\d{4,14}_/, '').replace(/\.sql$/i, '');
+  // Strip only the leading version prefix. A migration name may itself contain
+  // four or more digits followed by an underscore (`erc8004_reputation_anchor`),
+  // and an unanchored match turns that into a false version/name mismatch.
+  return file.replace(/^\d{4,14}_/, '').replace(/\.sql$/i, '');
 }
 
 export function repositoryMigrationVersions(files: string[]): string[] {

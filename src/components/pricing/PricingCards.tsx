@@ -301,7 +301,10 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
           <p className="text-xs text-slate-500 mb-4">
             For C3 pre-trade checks, API credit pricing works out to ${apiC3PriceMin}–$
             {apiC3PriceMax} per call, depending on the plan, billing cycle, or prepaid pack — annual
-            plans are the cheapest path. The direct x402 price remains $0.02 per check.
+            plans are the cheapest path. The direct x402 price remains $0.02 per REST
+            /safety/pre-trade check (C3). The three MCP trade_guard trade-safety ops (check_safety,
+            prepare_swap, prepare_perp_order) are $0.040 each; the 16 deprecated alias spellings are
+            priced the same.
           </p>
           <div className="border-y border-slate-900/15">
             {METERING_ROWS.map((row) => (
