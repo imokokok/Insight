@@ -661,10 +661,11 @@ export async function executeTool(
   }
 
   if (dispatched.source === 'unified') {
-    // HyperEVM is not part of this surface's chain set, so name it explicitly
-    // before schema validation: otherwise the caller sees a malformed-request
-    // error instead of the ecosystem boundary.
-    const hyperevmField = refusedHyperevmChain(dispatched.args);
+    // HyperEVM is served as a data-plane reference chain: read-only branches may
+    // name it now that the enum and chain mapping exist, but execution branches
+    // still stop before schema validation so the caller sees the ecosystem
+    // boundary instead of a malformed-request error.
+    const hyperevmField = refusedHyperevmChain(dispatched.name, dispatched.args);
     if (hyperevmField) {
       return {
         content: [
@@ -688,17 +689,37 @@ export async function executeTool(
 }
 
 /**
- * The unified chain schema (`SafeChainSchema`) does not carry HyperEVM, so a
- * caller naming it would otherwise get a schema validation error. Detect it
- * first so every entry returns the same structured ecosystem boundary.
+ * Tool branches that need a reviewed execution venue. HyperEVM has none, so
+ * these keep the structured boundary even though the chain now exists in the
+ * enum and chain mapping. Every other branch is data-plane and may serve 999.
  */
-function refusedHyperevmChain(args: unknown): string | null {
+const HYPEREVM_EXECUTION_BRANCHES: Readonly<Record<string, readonly string[] | 'all'>> = {
+  trade_guard: ['check_safety', 'prepare_swap', 'prepare_perp_order'],
+  trade_proof: ['issue_receipt'],
+  position_lifecycle: 'all',
+};
+
+function isHyperevmExecutionBranch(toolName: string, args: Record<string, unknown>): boolean {
+  const blocked = HYPEREVM_EXECUTION_BRANCHES[toolName];
+  if (blocked === undefined) return false;
+  if (blocked === 'all') return true;
+  const op = args.op;
+  return typeof op === 'string' && blocked.includes(op);
+}
+
+/**
+ * Return the argument field that names HyperEVM when this call is execution
+ * shaped. Data-plane calls return null so chain 999 reaches the services; the
+ * unified chain schema carries it after the HyperEVM enum landed.
+ */
+export function refusedHyperevmChain(toolName: string, args: unknown): string | null {
   if (!args || typeof args !== 'object') return null;
   const record = args as Record<string, unknown>;
-  for (const field of ['chain', 'base_chain']) {
-    if (record[field] === 'hyperevm') return field;
-  }
-  return null;
+  const field = (['chain', 'base_chain'] as const).find(
+    (candidate) => record[candidate] === 'hyperevm'
+  );
+  if (!field) return null;
+  return isHyperevmExecutionBranch(toolName, record) ? field : null;
 }
 
 function toolError(name: string, error: unknown): McpToolCallResult {
