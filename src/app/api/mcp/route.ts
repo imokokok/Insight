@@ -1,5 +1,6 @@
 import type { NextRequest } from 'next/server';
 
+import { rejectOversizedRequest, rejectStreamedOversizedRequest } from '@/lib/api/requestLimits';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('mcp-route');
@@ -25,6 +26,14 @@ function runCleanup(cleanup: () => Promise<void>): void {
 }
 
 async function handleRequest(request: Request): Promise<Response> {
+  // Protect the transport before it inspects cloned JSON or buffers a body to
+  // normalize Accept. Content-Length is only an early rejection; the stream
+  // check covers chunked and HTTP/2 requests that omit it.
+  const declaredOversize = rejectOversizedRequest(request);
+  if (declaredOversize) return declaredOversize;
+  const streamedOversize = await rejectStreamedOversizedRequest(request);
+  if (streamedOversize) return streamedOversize;
+
   // Keep the heavy MCP/x402 transport out of invalid HEAD probes. Next.js
   // loads this route module to answer HEAD, so importing the transport only
   // for supported methods avoids its SDK, payment and database dependency

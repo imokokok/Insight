@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 
+import { verifyCronSecret } from '@/lib/api/cronAuth';
 import { createApiHandler, createOptionsHandler } from '@/lib/api/handler';
 import { ApiResponseBuilder } from '@/lib/api/response';
 import { CACHE_PRESETS } from '@/lib/api/utils';
@@ -96,7 +97,20 @@ export const dynamic = 'force-dynamic';
 // report database unavailability (below) instead of timing out before its
 // bounded readiness query runs.
 export const GET = createApiHandler(
-  async (_request, context) => {
+  async (request, context) => {
+    // Public health monitors need only a liveness answer. The costly and
+    // operationally detailed dependency probe is an internal cron surface.
+    if (request.nextUrl.searchParams.get('deep') !== '1') {
+      const response = NextResponse.json(
+        ApiResponseBuilder.success({ status: 'live' }, { requestId: context.requestId })
+      );
+      response.headers.set('Cache-Control', CACHE_PRESETS.noStore);
+      return response;
+    }
+
+    const authResponse = verifyCronSecret(request);
+    if (authResponse) return authResponse;
+
     const startedAt = Date.now();
 
     try {

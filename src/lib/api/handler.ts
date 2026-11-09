@@ -45,7 +45,7 @@ import {
 } from './middleware';
 import { checkPreAuthBurstLimit } from './middleware/preAuthBurstLimiter';
 import { extractClientIp, rateLimitKeyGenerator } from './middleware/rateLimitMiddleware';
-import { rejectOversizedRequest } from './requestLimits';
+import { rejectOversizedRequest, rejectStreamedOversizedRequest } from './requestLimits';
 import { ApiResponseBuilder } from './response';
 import { withRouteDeadline } from './routeDeadline';
 
@@ -743,6 +743,22 @@ function applyDiagnosticHeaders(
   response.headers.set('Server-Timing', `app;dur=${duration}`);
 }
 
+async function enforceRequestBodyLimit(params: {
+  request: NextRequest;
+  maxBodyBytes: number | undefined;
+  requestId: string;
+  startTime: number;
+  corsHeaders: Record<string, string> | null;
+}): Promise<NextResponse | null> {
+  const response =
+    rejectOversizedRequest(params.request, params.maxBodyBytes) ??
+    (await rejectStreamedOversizedRequest(params.request, params.maxBodyBytes));
+  if (!response) return null;
+  applyDiagnosticHeaders(response, params.requestId, params.startTime);
+  if (params.corsHeaders) applyCorsHeaders(response, params.corsHeaders);
+  return response;
+}
+
 /**
  * Build a success envelope as a plain object (NOT a NextResponse). Return it
  * from a `createApiHandler` handler and the orchestrator serializes it as-is;
@@ -833,21 +849,17 @@ export function createApiHandler<
     preAuthBurstLimit,
     maxBodyBytes,
   } = options;
-
   const validationMiddleware = validation
     ? createZodValidationMiddleware<TBody, TQuery, TParams>(validation)
     : null;
-
   const authMiddleware = middlewares.auth
     ? createAuthMiddleware(
         typeof middlewares.auth === 'boolean' ? { required: middlewares.auth } : middlewares.auth
       )
     : null;
-
   const loggingMiddleware = middlewares.logging
     ? createLoggingMiddleware(typeof middlewares.logging === 'boolean' ? {} : middlewares.logging)
     : null;
-
   const errorMiddleware = createErrorMiddleware(middlewares.error);
 
   const baseRateLimitOptions = middlewares.rateLimit
@@ -927,10 +939,14 @@ export function createApiHandler<
         apiContext.requestId = `req_${crypto.randomUUID().replace(/-/g, '')}`;
       }
 
-      const oversizedResponse = rejectOversizedRequest(request, maxBodyBytes);
+      const oversizedResponse = await enforceRequestBodyLimit({
+        request,
+        maxBodyBytes,
+        requestId: apiContext.requestId,
+        startTime,
+        corsHeaders,
+      });
       if (oversizedResponse) {
-        applyDiagnosticHeaders(oversizedResponse, apiContext.requestId, startTime);
-        if (corsHeaders) applyCorsHeaders(oversizedResponse, corsHeaders);
         return oversizedResponse;
       }
 

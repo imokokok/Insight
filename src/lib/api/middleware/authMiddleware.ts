@@ -127,25 +127,25 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
     }
 
     if (roles.length > 0) {
-      // API Key authentication does not carry role information — skip role
-      // checks for API Key requests.  Role-based access control only applies
-      // to Bearer token (user session) authentication.
-      if (!authContext.apiKey) {
-        const userRole = authContext.role;
-        if (!userRole || !roles.includes(userRole)) {
-          logger.warn('Authorization failed', {
-            userId: authContext.userId,
-            requiredRoles: roles,
-            userRole,
-          });
-          return {
-            success: false,
-            response: NextResponse.json(
-              ApiResponseBuilder.error('FORBIDDEN', 'Insufficient permissions'),
-              { status: 403 }
-            ),
-          };
-        }
+      // API keys deliberately carry no role claim. A route that requires a
+      // role must reject them rather than treating the missing claim as an
+      // implicit bypass; callers can use an explicit scoped-key policy when
+      // that is the intended authorization model.
+      const userRole = authContext.role;
+      if (authContext.apiKey || !userRole || !roles.includes(userRole)) {
+        logger.warn('Authorization failed', {
+          userId: authContext.userId,
+          requiredRoles: roles,
+          userRole,
+          credentialType: authContext.apiKey ? 'api_key' : 'bearer',
+        });
+        return {
+          success: false,
+          response: NextResponse.json(
+            ApiResponseBuilder.error('FORBIDDEN', 'Insufficient permissions'),
+            { status: 403 }
+          ),
+        };
       }
     }
 

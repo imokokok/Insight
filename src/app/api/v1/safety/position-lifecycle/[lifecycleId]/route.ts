@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
+import { enforceCapabilityRateLimit } from '@/lib/api/capabilityRateLimit';
 import { ApiResponseBuilder, createOptionsHandler } from '@/lib/api/handler';
 import {
   lifecycleErrorResponse,
@@ -23,6 +24,8 @@ export const POST = async (
   routeContext: { params: Promise<Record<string, string>> }
 ): Promise<NextResponse> => {
   const requestId = request.headers.get('x-request-id') ?? undefined;
+  const rateLimitResponse = await enforceCapabilityRateLimit(request);
+  if (rateLimitResponse) return rateLimitResponse;
   const { lifecycleId } = await routeContext.params;
   try {
     const token = requireBearerToken(request);
