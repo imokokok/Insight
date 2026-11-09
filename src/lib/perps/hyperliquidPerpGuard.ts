@@ -97,6 +97,14 @@ export interface HyperliquidPerpGuardVenueEvidence {
   openInterestCoin: number | null;
   dayNotionalVolume: number | null;
   liveMaxLeverage: number | null;
+  /**
+   * Asset index of the assessed market as resolved from the same fresh main
+   * perp-dex metadata read (`metaAndAssetCtxs` universe position). Exact-order
+   * binding pins the envelope's asset id to this value so a same-symbol order
+   * on another perp dex (for example a HIP-3 builder-deployed market, whose
+   * asset ids are 100000+) cannot be bound to this assessment.
+   */
+  observedAssetIndex: number | null;
   /** Cross-venue deviation between Insight consensus and the venue oracle price. */
   consensusVenueDeviationPct: number | null;
 }
@@ -187,6 +195,7 @@ function venueEvidence(
     openInterestCoin: state.perpetual.openInterest,
     dayNotionalVolume: state.perpetual.dayNotionalVolume,
     liveMaxLeverage: state.perpetual.maxLeverage,
+    observedAssetIndex: state.assetIndex,
     consensusVenueDeviationPct: computeConsensusVenueDeviationPct(
       state.perpetual.oraclePrice,
       consensusPrice
@@ -208,6 +217,7 @@ function unavailableVenueEvidence(): HyperliquidPerpGuardVenueEvidence {
     openInterestCoin: null,
     dayNotionalVolume: null,
     liveMaxLeverage: null,
+    observedAssetIndex: null,
     consensusVenueDeviationPct: null,
   };
 }
