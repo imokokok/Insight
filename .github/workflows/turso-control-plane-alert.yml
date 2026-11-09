@@ -4,10 +4,24 @@ on:
   # Deliberately no `schedule:`: GitHub's best-effort native cron dropped most
   # of even this 30-minute cadence (8 runs in 2 days against the nominal 48)
   # and the 2026-11-08 3.5h capture outage produced zero issues. Supabase
-  # pg_cron now dispatches this workflow every 15 minutes via migration 0142
-  # (`github-dispatch-turso-control-plane-alert`), on minutes spaced away from
-  # the other dispatchers. `workflow_dispatch` stays for manual runs.
+  # pg_cron dispatches this workflow hourly at :10 via migration 0143
+  # (`github-dispatch-turso-control-plane-alert`). 0142 dispatched it every
+  # 15 minutes, but the workflow was missing from the dispatcher allowlist, so
+  # every run failed. Hourly still detects a stopped capture within 55 minutes
+  # (25-minute readiness scheduler threshold plus the :10 poll).
+  # `workflow_dispatch` stays for manual runs. The dispatcher always sends
+  # `dispatch_id` and `scheduled_for`; GitHub rejects undeclared inputs with
+  # HTTP 422 "Unexpected inputs provided", so both must be declared here.
   workflow_dispatch:
+    inputs:
+      dispatch_id:
+        description: 'Supabase cron_dispatch_runs id'
+        required: false
+        type: string
+      scheduled_for:
+        description: 'Supabase scheduled slot (audit only)'
+        required: false
+        type: string
 
 permissions:
   issues: write
