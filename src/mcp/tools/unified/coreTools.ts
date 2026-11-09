@@ -100,7 +100,7 @@ export const CORE_MCP_TOOLS: McpToolDefinition[] = [
   defineTool({
     name: 'check_trade_safety',
     description:
-      'Run the pre-trade oracle safety gate for swaps, lending, perps, vault deposits and position stress tests across Base, Monad, multichain EVM, Solana and Hyperliquid. Use it immediately before an agent trades or signs, and pass the family native payload in `guard` when the venue needs exact-call fields. Do not use it after execution (use issue_execution_receipt) and do not treat its ALLOW as principal authorization. Returns a verdict (ALLOW/CAUTION/DANGER/BLOCK), reason codes, oracle evidence and a signed attestation or decision when the family supports one.',
+      'Run the pre-trade oracle safety gate for swaps, lending, perps, vault deposits and position stress tests across Base, Monad, multichain EVM, Solana and Hyperliquid. Use it immediately before an agent trades or signs, and pass the family native payload in `guard` when the venue needs exact-call fields. Do not use it after execution (use trade_proof) and do not treat its PASS as principal authorization. Returns a verdict (PASS/CAUTION/DANGER/BLOCK), reason codes, oracle evidence and a signed attestation or decision when the family supports one.',
     parameters: CheckTradeSafetyInputSchema,
     inputSchema: jsonSchema(CheckTradeSafetyInputSchema),
     handler: routeCheckTradeSafety,

@@ -49,7 +49,7 @@ Insight sells **independently recomputable, tamper-evident decision inputs** —
 ## Supported Networks
 
 - **x402 pay-per-call settlement:** The public [x402 manifest](https://www.oracleinsight.xyz/.well-known/x402) and each endpoint's unsigned `PAYMENT-REQUIRED` response are the source of truth for rails currently advertised in production. A caller must select a live `accepts[]` option; do not infer availability from the action chain.
-- **Current x402 rail:** HyperEVM (Chain ID: 999) settles USDC through the UVD facilitator using the standard EIP-3009 x402 exact flow. The live challenge may additionally expose route-specific options that are not listed for discovery.
+- **x402 settlement rails:** the live 402 `accepts[]` is authoritative and differs by route and request. In production, generic MCP calls quote HyperEVM (Chain ID: 999), Base (8453) and Solana mainnet in USDC; chain-bound guard routes quote their own chain; HyperEVM settles through the UVD facilitator using the standard EIP-3009 x402 exact flow; HyperCore quotes are issued per request.
 - **Product coverage is separate from payment availability:** Base, BNB Chain, Monad, and additional EVM networks can be assessed by the API, but that does not make their native tokens payment rails. Treat the live quote as authoritative.
 - Additional EVM networks are covered read-only for oracle data (40+ chains)
 
