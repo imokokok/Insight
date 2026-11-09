@@ -183,7 +183,7 @@ export function priceAtomicForTool(toolName: string, args?: unknown): string {
 export async function handleMcpIndexerQuote(request: Request, cfg: X402Config): Promise<Response> {
   const requestId = newRequestId();
   // Quote the product's flagship pre-trade op so the bare shelf price stays
-  // the C3 safety-gate price rather than an oracle-read C1 price.
+  // the C4 $0.040 safety-gate price rather than an oracle-read C1 price.
   const price = priceAtomicForTool(MCP_INDEXER_QUOTE_TOOL, { op: 'check_safety' });
   // The directory's bare GET is the x402 Bazaar shelf, not a tools/call for
   // `trade_guard`: with no arguments there is no per-chain scope to derive, so

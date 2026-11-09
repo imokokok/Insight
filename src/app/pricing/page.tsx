@@ -47,7 +47,8 @@ const X402_PAY_PER_CALL_FACTS = [
   {
     value: '$0.002–$0.040',
     label: 'Per MCP call',
-    detail: 'Op-priced Trade Guard plus product prices; settled in USDC on Base',
+    detail:
+      'Op-priced Trade Guard plus product prices; the live 402 accepts[] is authoritative because rails differ by route and request',
   },
   {
     value: '0',
@@ -72,7 +73,7 @@ const PRODUCT_PRICES = [
     price: '$0.002–$0.040',
     unit: 'per call, op-priced',
     detail:
-      'Read-only ops cost 2–4 credits ($0.002–$0.004). The trade-safety ops (check_safety, prepare_swap, prepare_perp_order) cost 40 credits ($0.040), which is both the per-call price and the product ceiling; the 16 deprecated alias spellings are callable at the same price until 2027-01-06. price_analytics batch mode is billed per asset at 2 credits each: 10 assets cost 20 credits, the 20-asset cap costs 40.',
+      'Read-only ops cost 2–4 credits ($0.002–$0.004). The trade-safety ops (check_safety, prepare_swap, prepare_perp_order) cost 40 credits ($0.040), which is both the per-call price and the product ceiling; the 16 deprecated alias spellings are callable at the same price until 2027-01-06. price_analytics batch mode is billed per asset at 2 credits each: MCP accepts at most 10 assets, so the op caps at 20 credits ($0.020). A 20-item cap applies only to get_oracle_prices_batch.queries and the REST /api/v1/prices/batch route, not to MCP price_analytics.',
     credits: '2–40 credits (40 = per trade-safety op, also the ceiling)',
   },
   {
@@ -242,9 +243,12 @@ export default function PricingPage() {
               <p className="mt-4 max-w-2xl text-lg leading-relaxed text-slate-600">
                 <code className="font-mono text-base">GET /api/v1/safety/pre-trade</code> speaks the
                 x402 and optional MPP protocols. A request without credentials receives an HTTP 402
-                quote; the agent pays the quoted USDC price on Base — $0.02 for the REST pre-trade
-                safety check (C3) — and retries with a signed payment to receive the full result. On
-                the MCP surface, the <code className="font-mono text-base">trade_guard</code>{' '}
+                quote; the agent pays the quoted USDC price on one of the rails in that
+                challenge&apos;s <code className="font-mono text-base">accepts[]</code> — currently
+                HyperEVM (eip155:999), Base (eip155:8453) and Solana mainnet for generic MCP calls,
+                while chain-bound guard routes quote their own chain — and retries with a signed
+                payment to receive the full result. The REST pre-trade safety check is $0.02 (C3).
+                On the MCP surface, the <code className="font-mono text-base">trade_guard</code>{' '}
                 trade-safety ops (<code className="font-mono text-base">check_safety</code>,{' '}
                 <code className="font-mono text-base">prepare_swap</code>,{' '}
                 <code className="font-mono text-base">prepare_perp_order</code>) are $0.040 each;

@@ -1,6 +1,6 @@
 # Insight: Pre-Trade Safety for Trading Agents
 
-Insight tells an agent whether the price it is about to trade on is trustworthy. For one trade it returns an oracle-manipulation-aware verdict (PASS / WARN / BLOCK) computed from multi-provider oracle consensus, with optional verifiable EIP-712 attestation. Paid per call in USDC via x402 v2. No signup, no API key, no subscription.
+Insight tells an agent whether the price it is about to trade on is trustworthy. For one trade it returns an oracle-manipulation-aware verdict (PASS / CAUTION / DANGER / BLOCK) computed from multi-provider oracle consensus, with optional verifiable EIP-712 attestation. Paid per call in USDC via x402 v2. No signup, no API key, no subscription.
 
 Agent-facing contacts:
 
@@ -12,8 +12,8 @@ Agent-facing contacts:
 
 - [Pre-Trade Safety Skill](https://www.oracleinsight.xyz/downloads/insight-pre-trade-safety-skill-v0.2.0.zip) — installable MCP configuration, no-money discovery check, and prompts for one proposed trade or DeFi action.
 - [Base Aave V3 Lending Guard Skill](https://www.oracleinsight.xyz/downloads/insight-lending-guard-skill-v0.1.0.zip) — a deliberately narrow, exact-call decision layer for direct Base Aave V3 EOA `supply` and variable-rate `borrow` calls.
-- [Base Agent Swap Guard Skill](https://www.oracleinsight.xyz/downloads/insight-base-agent-swap-guard-skill-v0.1.0.zip) — a narrow pre-signing workflow for reviewed direct single-hop swaps: three Base profiles (Aerodrome Slipstream WETH→USDC, Aerodrome Slipstream USDC→USDT, PancakeSwap V3 USDC→USDT), two BNB Chain PancakeSwap V3 profiles (USDT→USDC, USDT→WBNB), and one Monad PancakeSwap V3 profile (WMON→USDC). Settlement closure is pinned to Base, BNB Chain, and Monad. It can be paid with x402 at C3 / $0.02 and returns no calldata for `CAUTION` or `BLOCK`.
-- [Solana Swap Guard Skill](https://www.oracleinsight.xyz/downloads/insight-solana-swap-guard-skill-v0.1.0.zip) — a narrow pre-signing workflow and signed settlement closure for one exact unsigned Orca Whirlpool swap on Solana mainnet (reviewed USDC/USDT and SOL/USDC pools, legacy `swap` discriminator only). It can be paid with x402 at C3 / $0.02 per decision and C4 / $0.04 per settlement call and returns no signable payload for `CAUTION` or `BLOCK`.
+- [Base Agent Swap Guard Skill](https://www.oracleinsight.xyz/downloads/insight-base-agent-swap-guard-skill-v0.1.0.zip) — a narrow pre-signing workflow for reviewed direct single-hop swaps: three Base profiles (Aerodrome Slipstream WETH→USDC, Aerodrome Slipstream USDC→USDT, PancakeSwap V3 USDC→USDT), two BNB Chain PancakeSwap V3 profiles (USDT→USDC, USDT→WBNB), and one Monad PancakeSwap V3 profile (WMON→USDC). Settlement closure is pinned to Base, BNB Chain, and Monad. It can be paid on the REST x402 surface at C3 / $0.02 and returns no calldata for `CAUTION` or `BLOCK`.
+- [Solana Swap Guard Skill](https://www.oracleinsight.xyz/downloads/insight-solana-swap-guard-skill-v0.1.0.zip) — a narrow pre-signing workflow and signed settlement closure for one exact unsigned Orca Whirlpool swap on Solana mainnet (reviewed USDC/USDT and SOL/USDC pools, legacy `swap` discriminator only). It can be paid on the REST x402 surface at C3 / $0.02 per decision and C4 / $0.04 per settlement call and returns no signable payload for `CAUTION` or `BLOCK`.
 - [Base Perp Guard Skill](https://www.oracleinsight.xyz/downloads/insight-base-perp-guard-skill-v0.1.0.zip) — a decision-input skill for one Synthetix Perps V3 Base open-position intent, with disclosed spot/TWAP liquidity evidence and exact `commitOrder` call binding.
 - [Hyperliquid Perp Guard Skill](https://www.oracleinsight.xyz/downloads/insight-hyperliquid-perp-guard-skill-v0.1.0.zip) — a decision-input skill for one reviewed Hyperliquid HyperCore open-position intent (BTC, ETH), with disclosed venue evidence and exact IOC order envelope binding.
 - [Solana Perp Guard Skill](https://www.oracleinsight.xyz/downloads/insight-solana-perp-guard-skill-v0.1.0.zip) — a decision-input skill for one reviewed Drift Protocol v2 Solana open-position intent (SOL, BTC, ETH), with disclosed on-chain venue evidence (mark/oracle deviation, funding rate, open interest). Status disclosure: Drift's reviewed profile is currently **STALE**. First-hand on-chain verification (2026-11-05) confirmed the Drift AMM has been frozen since 2026-04-01 and the team migrated to Velocity, so position openings hard-BLOCK by default and no decision attestation is signed; the skill remains available for reading venue evidence.
@@ -120,13 +120,17 @@ POST https://www.oracleinsight.xyz/api/mcp
 
 JSON-RPC `tools/call` access to the Insight tool catalog for x402-aware MCP clients. Each call is priced by its tool metering class; the 402 challenge carries the live quote.
 
+The catalog exposes 20 discoverable names: the product tools `trade_guard`, `trade_proof`, `oracle_watch_window` and `position_lifecycle`, plus 16 deprecated alias spellings — `get_oracle_price`, `get_price_analytics`, `get_oracle_health`, `search_oracle_registry`, `get_market_quote`, `check_trade_safety`, `begin_trade_evidence`, `prepare_swap`, `prepare_perp_order`, `issue_execution_receipt`, `verify_evidence`, `oracle_watch`, `oracle_watch_window_begin`, `oracle_watch_window_control`, `position_lifecycle_begin`, `position_lifecycle_step` — callable at the same price until 2027-01-06.
+
+MCP prices: `trade_guard` and `trade_proof` are $0.040; `oracle_watch_window` is $0.500; `position_lifecycle` is $0.550. The three `trade_guard` trade-safety ops (`check_safety`, `prepare_swap`, `prepare_perp_order`) are $0.040 each, while read-only `trade_guard` ops start at $0.002. The $0.02 C3 price is the REST `/api/v1/safety/pre-trade` route, not the MCP `trade_guard` price.
+
 ### 4. Hyperliquid perpetual execution loop (MCP)
 
 For reviewed `BTC`, `ETH`, and `HYPE` perpetuals, use the MCP tools in this order:
 
-1. `prepare_hyperliquid_perp_order` — validates the exact IOC intent against fresh market metadata, tick/lot constraints, an explicit notional cap, mark/oracle divergence, and displayed L2 fill/impact limits. A `READY_TO_SIGN` result includes a short-expiry unsigned exchange action and the original client order id.
+1. `trade_guard` with `op: "prepare_perp_order"` — validates the exact IOC intent against fresh market metadata, tick/lot constraints, an explicit notional cap, mark/oracle divergence, and displayed L2 fill/impact limits. A `READY_TO_SIGN` prepare result includes a short-expiry unsigned exchange action and the original client order id.
 2. Sign and submit that action in the account owner's own Hyperliquid client or approved API-wallet process. Insight does not accept or hold an API key, private key, nonce, signature, or exchange submission.
-3. `verify_hyperliquid_perp_execution` — provides a bounded public observation of the exact order status and matching fills, compared with the original expected intent.
+3. `trade_proof` with `op: "verify_evidence"` — provides a bounded public observation of the exact order status and matching fills, compared with the original expected intent.
 
 Only IOC is admitted, so an action that cannot fully satisfy its caller-selected displayed-book constraints is returned as `BLOCK` and has no signable envelope. The final observation is not a signed Insight receipt or a guarantee of the exchange's future state.
 
@@ -143,7 +147,7 @@ A chain-agnostic pre-signing metadata screen for one Polymarket event position (
 
 ## Payment
 
-Paid calls use x402 v2. The pre-trade C3 price is **$0.02 USDC** (`20000` atomic units on a 6-decimal rail), but available networks, assets, payees, schemes, and facilitator-specific fields are deployment-specific.
+Paid calls use x402 v2. The REST `/api/v1/safety/pre-trade` route is C3 at **$0.02 USDC** (`20000` atomic units on a 6-decimal rail); the MCP `trade_guard` trade-safety ops (`check_safety`, `prepare_swap`, `prepare_perp_order`) are C4 at **$0.040 USDC** (`40000` atomic units). Available networks, assets, payees, schemes, and facilitator-specific fields are deployment-specific.
 
 Before signing, issue a plain unsigned request and select an entry from its live `PAYMENT-REQUIRED` header. The public [x402 manifest](https://www.oracleinsight.xyz/.well-known/x402) derives fixed-route options from the same route scope as production; routes whose rail depends on validated input are listed under `requestBoundResources`. HyperCore quotes contain a short-lived `quoteId` and are listed under `dynamicPaymentOptions`, not fabricated in static `accepts[]`. The live `accepts[]` array is always the binding payment contract. Do not infer a payment rail from the action chain or reuse a network, asset, or `payTo` value from an example.
 
@@ -155,7 +159,7 @@ Before signing, issue a plain unsigned request and select an entry from its live
 
 ## Response (paid call)
 
-JSON containing: `verdict` (`PASS` / `WARN` / `BLOCK`), consensus price, max deviation %, manipulation-risk score, cross-provider agreement/quorum, and attestation data when requested. BLOCK means: do not execute this trade against the price you read.
+JSON containing: `verdict` (`PASS` / `CAUTION` / `DANGER` / `BLOCK`), consensus price, max deviation %, manipulation-risk score, cross-provider agreement/quorum, and attestation data when requested. BLOCK means: do not execute this trade against the price you read.
 
 ## MCP tool metering classes
 

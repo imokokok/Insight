@@ -56,12 +56,12 @@
     {
       "url": "https://www.oracleinsight.xyz/api/mcp",
       "method": "POST",
-      "description": "MCP tools/call over JSON-RPC (streamable HTTP): pay-per-call access to the Insight oracle tool catalog for x402 agents without an API key. Includes prepare_base_agent_swap_guard: a pre-signing guard for reviewed direct swaps on Base, BNB Smart Chain, and Monad (Aerodrome Slipstream WETH→USDC CL100, PancakeSwap V3 USDC→USDT 0.01% on Base, PancakeSwap V3 USDT→USDC 0.01% on BNB, and PancakeSwap V3 WMON→USDC 0.05% on Monad); it returns ALLOW, CAUTION, or BLOCK and only exposes unsigned calldata on ALLOW. Amount shown is the C3 anchor ($0.02); the live 402 quote prices each call from its tool metering class (C1=2000, C2=4000, C3=20000, C4=40000 atomic).",
+      "description": "MCP tools/call over JSON-RPC (streamable HTTP): pay-per-call access to the Insight MCP catalog for x402 agents without an API key. The catalog exposes 20 discoverable names: the product tools trade_guard, trade_proof, oracle_watch_window and position_lifecycle, plus 16 deprecated alias spellings callable at the same price until 2027-01-06. trade_guard's check_safety op returns a PASS, CAUTION, DANGER or BLOCK verdict with reasons; prepare_swap and prepare_perp_order return an unsigned exchange payload. MCP prices are $0.040 per trade_guard or trade_proof call, $0.500 per oracle_watch_window and $0.550 per position_lifecycle. The shelf amount below is $0.040 (40000 atomic units), the trade_guard safety-op price that Bazaar indexes; the live 402 quote is authoritative and prices each call from its tool metering class (C1=2000, C2=4000, C3=20000, C4=40000 atomic). The C3 $0.02 price is the REST /api/v1/safety/pre-trade route, not the MCP trade_guard safety-op price.",
       "accepts": [
         {
           "scheme": "exact",
           "network": "eip155:999",
-          "amount": "20000",
+          "amount": "40000",
           "asset": "0xb88339CB7199b77E23DB6E890353E22632Ba630f",
           "assetSymbol": "USDC",
           "assetDecimals": 6,
