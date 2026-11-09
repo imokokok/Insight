@@ -112,7 +112,19 @@ export const CHAINLINK_RPC_CONFIG: Record<number, ChainlinkRPCConfig> = {
     // Chainlink price cache (30s), the cross-process metadata cache and the
     // in-flight read coalescing in chainlinkOnChainService.getPrice. Do not add
     // a per-request uncached probe here without a matching budget.
-    endpoints: ['https://rpc.hyperliquid.xyz/evm'],
+    //
+    // Escape hatch: EXECUTION_RPC_999 (comma-separated, same convention as
+    // execution/rpcEndpoints.ts) prepends dedicated provider endpoints ahead
+    // of the reviewed public one. The reviewed endpoint stays last so a
+    // misconfigured override fails over instead of silently replacing the
+    // only known-good read path.
+    endpoints: [
+      ...(process.env.EXECUTION_RPC_999 ?? '')
+        .split(',')
+        .map((endpoint) => endpoint.trim())
+        .filter((endpoint) => endpoint.length > 0),
+      'https://rpc.hyperliquid.xyz/evm',
+    ],
     chainId: 999,
     name: 'HyperEVM',
   },

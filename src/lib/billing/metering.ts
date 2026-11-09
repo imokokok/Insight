@@ -106,6 +106,10 @@ const ENDPOINT_RULES: Array<[RegExp, MeteringClass]> = [
   [/execution\/attestation/, 'C4'],
 
   // C3 — agent gates.
+  // Note: the MCP trade_guard canonical ops (check_safety / prepare_swap /
+  // prepare_perp_order) are deliberately priced at C4 (see
+  // productPricing.ts, decision in cb8cc1ed). The REST gate stays at C3 —
+  // the two rails differ on purpose; do not "fix" one to match the other.
   [/\/safety\//, 'C3'],
   [/\/oracle-watch/, 'C3'],
   // Settlement-evidence grading gates a release decision and is sold on the

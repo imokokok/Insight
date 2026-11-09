@@ -114,6 +114,10 @@ const PRODUCT_MCP_TOOL_OP_CREDIT_COSTS: Readonly<Record<string, Readonly<Record<
       oracle_health: getToolCreditCost('get_oracle_health'),
       search_registry: C1,
       market_quote: C1,
+      // C4 here is a deliberate MCP premium over the REST gate (see
+      // metering.ts REST rules note, decision in cb8cc1ed): the canonical
+      // trade-safety ops carry the review-heavy surface, the REST /safety/
+      // gate stays at C3.
       check_safety: C4,
       prepare_swap: C4,
       prepare_perp_order: C4,
