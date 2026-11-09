@@ -262,6 +262,16 @@ describe('agent_begin_trade', () => {
     );
   });
 
+  it('marks unsupported route-quote chains unavailable before any billable work', async () => {
+    const out = await agentBeginTradeTool.handler({ ...BASE_ARGS, chainId: 8453 });
+
+    expect(out).toContain('[unavailable:unsupported_chain]');
+    expect(out).toContain('chainId 8453');
+    expect(out).toContain('chainId 1');
+    expect(mockOnchainRouteQuote).not.toHaveBeenCalled();
+    expect(mockPreTrade).not.toHaveBeenCalled();
+  });
+
   it('refuses when the oracle verdict is DANGER', async () => {
     mockPreTrade.mockResolvedValue(fakeCheck('ETH', 2000, 'DANGER'));
 
