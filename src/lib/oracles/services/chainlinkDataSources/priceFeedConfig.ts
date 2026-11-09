@@ -191,6 +191,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
       decimals: 8,
       category: 'stablecoin',
     },
+    56: {
+      address: '0xB97Ad0E74fa7d920791E90258A6E2085088b4320',
+      name: 'USDT / USD',
+      symbol: 'USDT',
+      decimals: 8,
+      category: 'stablecoin',
+    },
     42161: {
       address: '0x3f3f5dF88dC9F13eac63DF89EC16ef6e7E25DdE7',
       name: 'USDT / USD',

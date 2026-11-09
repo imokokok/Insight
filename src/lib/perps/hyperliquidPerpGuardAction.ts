@@ -146,10 +146,31 @@ export function bindHyperliquidPerpExactOrder(
     throw new Error('A BLOCK verdict must not be bound to an exact order');
   }
 
-  // The asset index must be re-observed by the caller from the same fresh
-  // market read that the preflight used; the guard cannot validate it against
-  // a static table because Hyperliquid can list or reindex markets. The
-  // binding therefore carries it verbatim and the attestation commits to it.
+  // The envelope's asset id must be the index the preflight actually observed
+  // on the main perp dex. Asset ids 100000+ belong to HIP-3 builder-deployed
+  // perp dexes, whose oracle, leverage, and fee parameters are deployer-set
+  // and outside this guard's claims; a same-symbol order on such a market
+  // must not be bindable to a main-dex assessment. A binding also requires
+  // fresh venue evidence: without an observed index there is nothing to pin.
+  if (
+    guard.venue.status !== 'observed' ||
+    guard.venue.observedAssetIndex === null ||
+    !Number.isSafeInteger(guard.venue.observedAssetIndex)
+  ) {
+    throw new Error(
+      'Exact-order binding requires fresh venue evidence with an observed asset index'
+    );
+  }
+  if (orderRequest.a !== guard.venue.observedAssetIndex) {
+    throw new Error(
+      'Envelope asset index does not match the market index observed by the preflight assessment'
+    );
+  }
+
+  // The asset index is pinned to the index observed by the same fresh market
+  // read the guard used (guard.venue.observedAssetIndex); the binding still
+  // carries it verbatim and the attestation commits to it, so a third-party
+  // verifier can compare it against Hyperliquid's meta universe themselves.
   const sizeValue = Number(orderRequest.s);
   const priceValue = Number(orderRequest.p);
   const impliedSizeUsd = sizeValue * priceValue;

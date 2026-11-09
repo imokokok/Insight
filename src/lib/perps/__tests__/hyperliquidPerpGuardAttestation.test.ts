@@ -183,6 +183,28 @@ describe('bindHyperliquidPerpExactOrder', () => {
     reduceOnly.action.orders[0].r = true;
     expect(() => bindHyperliquidPerpExactOrder(g, reduceOnly, { nowMs: NOW_MS })).toThrow();
   });
+
+  it('rejects an envelope whose asset index departs from the observed market index', async () => {
+    // A HIP-3 builder-deployed perp dex carries asset ids 100000+; a same-symbol
+    // order on such a market must not be bindable to a main-dex assessment.
+    const g = await guard();
+    const hip3 = JSON.parse(JSON.stringify(orderEnvelope()));
+    hip3.action.orders[0].a = 100_005;
+    expect(() => bindHyperliquidPerpExactOrder(g, hip3, { nowMs: NOW_MS })).toThrow(
+      'does not match the market index observed'
+    );
+  });
+
+  it('rejects an envelope when the guard lacks observed venue evidence', async () => {
+    const g = await guard();
+    const noVenue = {
+      ...g,
+      venue: { ...g.venue, status: 'unavailable' as const, observedAssetIndex: null },
+    };
+    expect(() =>
+      bindHyperliquidPerpExactOrder(noVenue, orderEnvelope(), { nowMs: NOW_MS })
+    ).toThrow('requires fresh venue evidence');
+  });
 });
 
 describe('createHyperliquidPerpGuardDecision / verify', () => {
