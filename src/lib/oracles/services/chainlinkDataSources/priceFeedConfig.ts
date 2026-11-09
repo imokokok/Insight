@@ -57,6 +57,25 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
       decimals: 8,
       category: 'crypto',
     },
+    // HyperEVM standard proxy; live latestRoundData + eth_chainId=999 verified 2026-11-10.
+    999: {
+      address: '0x017151e74fB3a393673B5B5149F53578c0Fa55B0',
+      name: 'ETH / USD',
+      symbol: 'ETH',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  HYPE: {
+    // Native asset of the Hyperliquid L1. Standard (non-SVR) proxy from the
+    // official Hyperliquid RDD; live read verified 2026-11-10.
+    999: {
+      address: '0xa5a72eF19F82A579431186402425593a559ed352',
+      name: 'HYPE / USD',
+      symbol: 'HYPE',
+      decimals: 8,
+      category: 'crypto',
+    },
   },
   BTC: {
     1: {
@@ -103,6 +122,14 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
     },
     10: {
       address: '0xD702DD976Fb76Fffc2D3963D037dfDae5b04E593',
+      name: 'BTC / USD',
+      symbol: 'BTC',
+      decimals: 8,
+      category: 'crypto',
+    },
+    // HyperEVM standard proxy; live latestRoundData verified 2026-11-10.
+    999: {
+      address: '0x71A2017296De30F4597B36FBD90b7e8Ec6E97A82',
       name: 'BTC / USD',
       symbol: 'BTC',
       decimals: 8,
@@ -182,6 +209,14 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
       decimals: 8,
       category: 'stablecoin',
     },
+    // HyperEVM standard proxy; live latestRoundData verified 2026-11-10.
+    999: {
+      address: '0xA0Adc43ce7AfE3EE7d7eac3C994E178D0620223B',
+      name: 'USDC / USD',
+      symbol: 'USDC',
+      decimals: 8,
+      category: 'stablecoin',
+    },
   },
   USDT: {
     1: {
@@ -200,6 +235,14 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
     },
     42161: {
       address: '0x3f3f5dF88dC9F13eac63DF89EC16ef6e7E25DdE7',
+      name: 'USDT / USD',
+      symbol: 'USDT',
+      decimals: 8,
+      category: 'stablecoin',
+    },
+    // HyperEVM standard proxy; live latestRoundData verified 2026-11-10.
+    999: {
+      address: '0x9114446540B4f8E0E310041981f7c1Be6181Ed07',
       name: 'USDT / USD',
       symbol: 'USDT',
       decimals: 8,
@@ -287,6 +330,14 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
   SOL: {
     42161: {
       address: '0x24ceA4b8ce57cdA5058b924B9B9987992450590c',
+      name: 'SOL / USD',
+      symbol: 'SOL',
+      decimals: 8,
+      category: 'crypto',
+    },
+    // HyperEVM standard proxy; live latestRoundData verified 2026-11-10.
+    999: {
+      address: '0x20935EE640be2F556E6f45F7C9092364C464224D',
       name: 'SOL / USD',
       symbol: 'SOL',
       decimals: 8,
