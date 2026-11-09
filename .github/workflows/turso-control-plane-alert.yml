@@ -24,13 +24,24 @@ on:
         type: string
 
 permissions:
+  contents: read
   issues: write
+
+env:
+  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+  SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+  CRON_WORKFLOW: turso-control-plane-alert.yml
+  CRON_DISPATCH_ID: ${{ inputs.dispatch_id || '' }}
+  CRON_SCHEDULED_FOR: ${{ inputs.scheduled_for || '' }}
 
 jobs:
   readiness:
     runs-on: ubuntu-24.04
     timeout-minutes: 3
     steps:
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
       - name: Check public control-plane readiness
         id: readiness
         env:
@@ -83,3 +94,12 @@ jobs:
           else
             gh issue comment "$issue_number" --repo "$GITHUB_REPOSITORY" --body "$INCIDENT_BODY"
           fi
+
+      # Supabase owns the clock and inserts the dispatch row before GitHub
+      # starts. Report this run's conclusion so the row reaches a terminal
+      # state instead of being reaped as timed_out by mark-stale.
+      - name: Finish dispatch ledger
+        if: always() && env.CRON_DISPATCH_ID != ''
+        env:
+          CRON_CONCLUSION: ${{ job.status }}
+        run: node scripts/cron-control.mjs finish
