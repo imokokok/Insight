@@ -46,11 +46,11 @@ beforeEach(() => {
 it('awaits durable failure recording for every target instead of dropping failed probes', async () => {
   jest.mocked(assessCoverage).mockRejectedValue(new Error('provider failure'));
   const results = await collectCoverageSlo();
-  expect(results).toHaveLength(4);
+  expect(results).toHaveLength(5);
   expect(results.every((r) => r.status === 'UNAVAILABLE')).toBe(true);
   expect(upsertResult.mock.calls[0][0]).toBeInstanceOf(AbortSignal);
   const samples = upsert.mock.calls.filter(([row]) => row.target_id);
-  expect(samples).toHaveLength(4);
+  expect(samples).toHaveLength(5);
   expect(samples[0][0]).toMatchObject({ status: 'UNAVAILABLE', signed_ready: false, proof: null });
   expect(samples[0][1]).toEqual({ onConflict: 'target_id,slot', ignoreDuplicates: true });
 });

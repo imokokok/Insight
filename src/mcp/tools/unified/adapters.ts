@@ -70,6 +70,7 @@ type PreparePerpOrderArgs = z.infer<typeof PreparePerpOrderInputSchema>;
 type VerifyEvidenceArgs = z.infer<typeof VerifyEvidenceInputSchema>;
 
 const MONAD_LENDING_PROTOCOLS = new Set(['aave-v3-monad', 'morpho-blue-monad', 'euler-v2-monad']);
+const HYPEREVM_LENDING_PROTOCOLS = new Set(['hyperlend-core-hyperevm']);
 const MULTICHAIN_LENDING_PROTOCOLS = new Set([
   'aave-v3-polygon',
   'aave-v3-arbitrum',
@@ -103,12 +104,16 @@ function isLendingAction(action: CheckTradeSafetyArgs['action']): boolean {
   );
 }
 
-function lendingProtocolFamily(args: CheckTradeSafetyArgs): 'base' | 'monad' | 'multichain' {
+function lendingProtocolFamily(
+  args: CheckTradeSafetyArgs
+): 'base' | 'monad' | 'hyperevm' | 'multichain' {
   const protocol = args.protocol_id;
   if (protocol && MONAD_LENDING_PROTOCOLS.has(protocol)) return 'monad';
+  if (protocol && HYPEREVM_LENDING_PROTOCOLS.has(protocol)) return 'hyperevm';
   if (protocol && MULTICHAIN_LENDING_PROTOCOLS.has(protocol)) return 'multichain';
   if (protocol) return 'base';
   if (args.chain_id === 143) return 'monad';
+  if (args.chain_id === 999) return 'hyperevm';
   if (isEvmChain(args.chain_id) && args.chain_id !== 8453) return 'multichain';
   return 'base';
 }
@@ -341,10 +346,10 @@ export async function routeCheckTradeSafety(
 
   if (
     chain === CHAIN_ID.HYPEREVM &&
-    (args.action === 'swap' || args.action === 'vault_deposit' || isLendingAction(args.action))
+    (args.action === 'swap' || args.action === 'vault_deposit' || args.action === 'repay')
   ) {
     throw new Error(
-      '[unavailable:ecosystem_absent] check_trade_safety: HyperEVM (chain 999) has no DEX or lending execution venue in its ecosystem: it is a data-plane chain (Chainlink USD feeds only). No Base venue guard is substituted.'
+      '[unavailable:not_integrated] check_trade_safety: HyperEVM (chain 999) swap, vault-deposit and repay venues are not reviewed on this surface yet. Direct HyperLend Core supply/borrow (action lend/borrow with protocolId hyperlend-core-hyperevm) is served; no DEX guard is substituted.'
     );
   }
 
@@ -359,6 +364,15 @@ export async function routeCheckTradeSafety(
             context
           )
         : callLegacy('monad_lending_guard', lendingGuard, context);
+    }
+    if (family === 'hyperevm') {
+      return exactTransaction
+        ? callLegacy(
+            'hyperevm_lending_guard_exact_call',
+            { guard: lendingGuard, transaction: exactTransaction },
+            context
+          )
+        : callLegacy('hyperevm_lending_guard', lendingGuard, context);
     }
     if (family === 'multichain') {
       return exactTransaction

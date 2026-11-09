@@ -30,6 +30,7 @@ export const POSITION_LIFECYCLE_GUARD_FAMILIES = [
   'bnb_perp',
   'base_lending',
   'monad_lending',
+  'hyperevm_lending',
   'multichain_evm_lending',
   'solana_lending',
   'solana_perp',

@@ -198,7 +198,7 @@ const TOOL_RULES: Array<[RegExp, MeteringClass]> = [
 
   // C3 — agent gates.
   [
-    /pre_trade|oracle_watch|position_safety|liquidation|(?:base|monad|solana|multichain_evm)_lending_guard|base_perp_guard|loopscale_vault_deposit/,
+    /pre_trade|oracle_watch|position_safety|liquidation|(?:base|monad|solana|multichain_evm|hyperevm)_lending_guard|base_perp_guard|loopscale_vault_deposit/,
     'C3',
   ],
 

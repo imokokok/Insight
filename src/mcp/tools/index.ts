@@ -21,6 +21,8 @@ import {
   BasePerpGuardExactJsonSchema,
   BasePerpGuardJsonSchema,
   BnbPerpGuardJsonSchema,
+  HyperEvmLendingGuardExactJsonSchema,
+  HyperEvmLendingGuardJsonSchema,
   MonadLendingGuardExactJsonSchema,
   MonadLendingGuardJsonSchema,
   MultichainEvmLendingGuardExactJsonSchema,
@@ -397,6 +399,16 @@ const JSON_SCHEMA_MAP: Record<
     required?: string[];
   },
   monad_lending_guard_exact_call: MonadLendingGuardExactJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  hyperevm_lending_guard: HyperEvmLendingGuardJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  hyperevm_lending_guard_exact_call: HyperEvmLendingGuardExactJsonSchema.toJSONSchema() as {
     type: 'object';
     properties?: Record<string, unknown>;
     required?: string[];

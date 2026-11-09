@@ -10,6 +10,8 @@ export const CHAINLINK_RDD_BY_CHAIN: Readonly<Record<number, string>> = {
   137: 'https://reference-data-directory.vercel.app/feeds-matic-mainnet.json',
   8453: 'https://reference-data-directory.vercel.app/feeds-ethereum-mainnet-base-1.json',
   43114: 'https://reference-data-directory.vercel.app/feeds-avalanche-mainnet.json',
+  // Chainlink names the HyperEVM (chain 999) network "Hyperliquid" in its RDD.
+  999: 'https://reference-data-directory.vercel.app/feeds-hyperliquid-mainnet.json',
 };
 
 export const CHAINLINK_ADDRESSES_URL = 'https://docs.chain.link/data-feeds/price-feeds/addresses';

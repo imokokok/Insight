@@ -3849,6 +3849,117 @@ paths:
       responses:
         '200': { description: Cryptographic verification result and expiry state. }
 
+  /safety/hyperevm-lending-guard:
+    get:
+      operationId: assessHyperEvmLendingGuard
+      tags: [Safety]
+      summary: HyperEVM lending risk decision
+      description: >-
+        Read-only risk gate for a caller-declared post-action lending position on
+        HyperEVM (chain ID 999). It checks live HyperLend Core (Aave V3 fork)
+        controls and oracle safety evidence; it never signs, submits, or
+        authorizes a transaction. API-key access or x402 payment is accepted.
+      security:
+        - apiKey: []
+        - {}
+      parameters:
+        - {
+            name: protocolId,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [hyperlend-core-hyperevm] },
+          }
+        - {
+            name: action,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [supply, borrow] },
+          }
+        - {
+            name: collateralSymbol,
+            in: query,
+            required: true,
+            schema: { type: string, example: WHYPE },
+          }
+        - { name: loanSymbol, in: query, required: true, schema: { type: string, example: USDC } }
+        - {
+            name: collateralValueUsd,
+            in: query,
+            required: true,
+            schema: { type: number, exclusiveMinimum: 0, example: 10000 },
+          }
+        - {
+            name: debtValueUsd,
+            in: query,
+            required: true,
+            schema: { type: number, minimum: 0, example: 5000 },
+          }
+      responses:
+        '200': { description: Complete ALLOW, CAUTION, or BLOCK lending decision. }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+    post:
+      operationId: createHyperEvmLendingGuardExactDecision
+      tags: [Safety]
+      summary: Bind a HyperEVM lending decision to one exact direct call
+      description: >-
+        Creates a portable EIP-712 decision for a read-only assessment and one
+        unsigned direct HyperLend Core lending call. The decision remains
+        non-authorizing and must be bound to user authorization before execution.
+      security:
+        - apiKey: []
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [guard, transaction]
+              properties:
+                guard: { type: object, description: The same lending fields accepted by GET. }
+                transaction:
+                  {
+                    type: object,
+                    description: Exact unsigned direct call,
+                    sender,
+                    nonce,
+                    and zero value.,
+                  }
+      responses:
+        '200':
+          {
+            description: Complete decision,
+            optionally carrying an attestation when an eligible attester is configured.,
+          }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+
+  /safety/hyperevm-lending-guard/verify:
+    get:
+      operationId: getHyperEvmLendingGuardVerificationSchema
+      tags: [Safety]
+      summary: Get HyperEVM lending guard attestation schema
+      security: []
+      responses:
+        '200': { description: Attester status and supported EIP-712 schema. }
+    post:
+      operationId: verifyHyperEvmLendingGuardDecision
+      tags: [Safety]
+      summary: Verify a HyperEVM lending guard decision
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: { type: object, additionalProperties: true }
+      responses:
+        '200': { description: Cryptographic verification result and expiry state. }
+
   /safety/multichain-evm-lending-guard:
     get:
       operationId: assessMultichainEvmLendingGuard

@@ -21,6 +21,7 @@ import {
   X402_HYPERLIQUID_PERP_GUARD_ROUTE,
   X402_MONAD_LENDING_GUARD_ROUTE,
   X402_MONAD_PERP_GUARD_ROUTE,
+  X402_HYPEREVM_LENDING_GUARD_ROUTE,
   X402_MULTICHAIN_EVM_LENDING_GUARD_ROUTE,
   X402_ORACLE_WATCH_WINDOW_ROUTE,
   X402_POSITION_LIFECYCLE_ROUTE,
@@ -460,6 +461,56 @@ export const BAZAAR_MONAD_LENDING_GUARD_DISCOVERY_EXTENSION = declareDiscoveryEx
 });
 
 /** Marketplace contract for reviewed Base, Polygon, Arbitrum and BNB direct lending calls. */
+/** Marketplace contract for the HyperEVM HyperLend Core direct-lending decision gate. */
+export const BAZAAR_HYPEREVM_LENDING_GUARD_DISCOVERY_EXTENSION = declareDiscoveryExtension({
+  input: {
+    protocolId: 'hyperlend-core-hyperevm',
+    action: 'borrow',
+    collateralSymbol: 'WHYPE',
+    loanSymbol: 'USDC',
+    collateralValueUsd: 10_000,
+    debtValueUsd: 4_000,
+  },
+  inputSchema: {
+    type: 'object',
+    properties: {
+      protocolId: { type: 'string', enum: ['hyperlend-core-hyperevm'] },
+      action: { type: 'string', enum: ['supply', 'borrow'] },
+      collateralSymbol: { type: 'string', description: 'On-chain collateral token symbol' },
+      loanSymbol: { type: 'string', description: 'On-chain loan token symbol' },
+      collateralValueUsd: {
+        type: 'number',
+        description: 'Caller-declared post-action collateral value in USD',
+      },
+      debtValueUsd: {
+        type: 'number',
+        description: 'Caller-declared post-action debt value in USD',
+      },
+      transaction: {
+        type: 'object',
+        description:
+          'POST only: exact unsigned HyperEVM transaction {chainId:999,from,to,data,nonce,value}.',
+      },
+    },
+    required: [
+      'protocolId',
+      'action',
+      'collateralSymbol',
+      'loanSymbol',
+      'collateralValueUsd',
+      'debtValueUsd',
+    ],
+  },
+  output: {
+    example: {
+      schema: 'insight.hyperevm-lending-guard.v1',
+      verdict: 'ALLOW',
+      projected: { ltv: 0.4, liquidationBufferPct: 50, conservativeMaxDebtUsd: 7200 },
+      next: { execution: 'not_performed' },
+    },
+  },
+});
+
 export const BAZAAR_MULTICHAIN_EVM_LENDING_GUARD_DISCOVERY_EXTENSION = declareDiscoveryExtension({
   input: {
     chainId: 42161,
@@ -931,6 +982,11 @@ export async function buildX402HttpServer(
       cfg,
       BAZAAR_MONAD_LENDING_GUARD_DISCOVERY_EXTENSION,
       'Monad Lending Guard: a read-only, pre-signing decision for direct Aave V3 Monad calls or exact Morpho Blue Monad markets. GET returns a preview; POST binds one unsigned direct call and may return an Insight EIP-712 decision attestation. It never authorizes or broadcasts a transaction.'
+    ),
+    [X402_HYPEREVM_LENDING_GUARD_ROUTE]: routeConfigFor(
+      cfg,
+      BAZAAR_HYPEREVM_LENDING_GUARD_DISCOVERY_EXTENSION,
+      'HyperEVM Lending Guard: a read-only, pre-signing decision for direct HyperLend Core Pool supply/borrow calls on HyperEVM (chain 999). GET returns a preview; POST binds one unsigned direct call and may return an Insight EIP-712 decision attestation. It never authorizes or broadcasts a transaction.'
     ),
     [X402_MULTICHAIN_EVM_LENDING_GUARD_ROUTE]: routeConfigFor(
       cfg,

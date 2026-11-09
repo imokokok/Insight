@@ -19,6 +19,10 @@ import {
   BaseLendingGuardInputSchema,
 } from '@/lib/lending/baseLendingGuard';
 import {
+  assessHyperEvmLendingGuard,
+  HyperEvmLendingGuardInputSchema,
+} from '@/lib/lending/hyperEvmLendingGuard';
+import {
   assessMonadLendingGuard,
   MonadLendingGuardInputSchema,
 } from '@/lib/lending/monadLendingGuard';
@@ -71,6 +75,10 @@ export const POSITION_LIFECYCLE_GUARD_REGISTRY: Record<
   },
   base_lending: { paramsSchema: BaseLendingGuardInputSchema, assess: assessBaseLendingGuard },
   monad_lending: { paramsSchema: MonadLendingGuardInputSchema, assess: assessMonadLendingGuard },
+  hyperevm_lending: {
+    paramsSchema: HyperEvmLendingGuardInputSchema,
+    assess: assessHyperEvmLendingGuard,
+  },
   multichain_evm_lending: {
     paramsSchema: MultichainEvmLendingGuardInputSchema,
     assess: assessMultichainEvmLendingGuard,

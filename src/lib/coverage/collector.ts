@@ -7,7 +7,7 @@ import { summarizeCoverageSlo, type CoverageSloCounts } from './slo';
 // The route has a 240s ceiling. A stalled PostgREST request must fail with a
 // useful stage code while the immutable slot can still be retried.
 const COVERAGE_DB_TIMEOUT_MS = 20_000;
-// Four targets run sequentially. Keep each probe bounded so one degraded
+// Five targets run sequentially. Keep each probe bounded so one degraded
 // oracle quorum cannot consume the route's entire platform allowance.
 const COVERAGE_TARGET_TIMEOUT_MS = 45_000;
 
@@ -26,6 +26,7 @@ export const COVERAGE_TARGETS = [
   { asset: 'USDC', chainId: 1 },
   { asset: 'ETH', chainId: 8453 },
   { asset: 'USDC', chainId: 8453 },
+  { asset: 'HYPE', chainId: 999 },
 ] as const;
 
 export async function collectCoverageSlo(options: { signal?: AbortSignal } = {}) {

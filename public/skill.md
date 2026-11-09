@@ -96,7 +96,7 @@ Parameters:
 
 Unauthenticated calls receive `HTTP 402` with a base64url `PAYMENT-REQUIRED` header (x402 v2). Sign one `accepts[]` entry and retry with the payment header.
 
-### 2. HTTP: Monad Lending Guard
+### 2. HTTP: Lending Guard examples (Monad, HyperEVM)
 
 ```
 GET https://www.oracleinsight.xyz/api/v1/safety/monad-lending-guard
@@ -111,6 +111,20 @@ GET https://www.oracleinsight.xyz/api/v1/safety/monad-lending-guard
 This is a read-only, pre-signing decision gate for direct Aave V3 Monad calls or exact Morpho Blue Monad markets. Required query parameters are `protocolId` (`aave-v3-monad` or `morpho-blue-monad`), `action` (`supply` or `borrow`), `collateralSymbol`, `loanSymbol`, `collateralValueUsd`, and `debtValueUsd`; add the immutable `marketId` for Morpho. The response is an `ALLOW`, `CAUTION`, or `BLOCK` decision based on live protocol controls and separate collateral/debt oracle evidence. It never authorizes, signs, relays, or broadcasts a transaction.
 
 `POST` to the same endpoint may bind that assessment to one caller-built unsigned direct Monad call and return an EIP-712 decision attestation when an eligible Insight attester is configured. The attestation remains non-authorizing.
+
+The HyperEVM Lending Guard follows the same shape for HyperLend Core (an Aave V3 fork) on HyperEVM chain 999:
+
+```
+GET https://www.oracleinsight.xyz/api/v1/safety/hyperevm-lending-guard
+    ?protocolId=hyperlend-core-hyperevm
+    &action=supply
+    &collateralSymbol=WHYPE
+    &loanSymbol=USDC
+    &collateralValueUsd=10000
+    &debtValueUsd=0
+```
+
+Reviewed markets are WHYPE, WSTHYPE, UBTC, UETH, USDe, sUSDe, USDT0, KHYPE, and USDC (`protocolId=hyperlend-core-hyperevm`; `action` is `supply` or `borrow`). Same pricing and non-authorizing guarantees as Monad.
 
 ### 3. MCP: tools/call over Streamable HTTP
 

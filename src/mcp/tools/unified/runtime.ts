@@ -49,6 +49,10 @@ import {
   getFeedsTool,
 } from '../feedTools';
 import {
+  hyperEvmLendingGuardExactCallTool,
+  hyperEvmLendingGuardTool,
+} from '../hyperEvmLendingGuardTools';
+import {
   hyperliquidPerpGuardExactCallTool,
   hyperliquidPerpGuardTool,
 } from '../hyperliquidPerpGuardTools';
@@ -181,6 +185,8 @@ export const LEGACY_MCP_TOOLS: McpToolDefinition[] = [
   hyperliquidPerpGuardExactCallTool,
   monadLendingGuardTool,
   monadLendingGuardExactCallTool,
+  hyperEvmLendingGuardTool,
+  hyperEvmLendingGuardExactCallTool,
   multichainEvmLendingGuardTool,
   multichainEvmLendingGuardExactCallTool,
   solanaLendingGuardTool,

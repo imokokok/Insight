@@ -189,7 +189,7 @@ describe('consolidated MCP surface', () => {
   });
 
   it('keeps every legacy tool callable by its old name', async () => {
-    expect(LEGACY_TOOL_BY_NAME.size).toBe(81);
+    expect(LEGACY_TOOL_BY_NAME.size).toBe(83);
     expect(LEGACY_TOOL_BY_NAME.has('assess_rwa_evidence')).toBe(false);
     for (const name of [
       'get_symbols',
