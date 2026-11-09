@@ -16,9 +16,11 @@
 
 import { canonicalizeAlias } from '@/mcp/tools/unified/aliases';
 
+import { BILLING_ZERO_REASONS } from './exemptions';
 import { isFreeVerifyCall } from './freeVerify';
 import {
   BATCH_UNIT_CREDITS,
+  CREDIT_COST,
   getCreditCost,
   getMcpToolBillableItems,
   getToolCreditCost,
@@ -91,7 +93,7 @@ export const PRODUCT_MCP_TOOL_USD_PRICES: Readonly<Record<string, number>> = {
 
 const C1 = getToolCreditCost('get_symbols');
 const C2 = getToolCreditCost('get_price_analytics');
-const C3 = getToolCreditCost('check_trade_safety');
+const C3 = CREDIT_COST.C3;
 const C4 = getToolCreditCost('begin_trade_evidence');
 
 /**
@@ -264,4 +266,19 @@ export function isEntitlementCoveredMcpTool(toolName: string, args?: unknown): b
   const opCost = productOpCreditCost(toolName, args);
   if (opCost !== undefined) return opCost === 0;
   return PRODUCT_MCP_TOOL_CREDIT_COSTS[toolName] === 0;
+}
+
+/**
+ * Ledger reason for a 0-cost call covered by a prior product purchase. The
+ * covered product family decides the vocabulary; `tool_free` stays reserved for
+ * tools that are free by design and must never mask a product call.
+ */
+export function entitlementCoveredZeroReason(
+  toolName: string,
+  args?: unknown
+): typeof BILLING_ZERO_REASONS.windowIncluded | typeof BILLING_ZERO_REASONS.lifecycleIncluded {
+  const { name } = canonicalCall(toolName, args);
+  return name === 'position_lifecycle' || name.startsWith('position_lifecycle_')
+    ? BILLING_ZERO_REASONS.lifecycleIncluded
+    : BILLING_ZERO_REASONS.windowIncluded;
 }

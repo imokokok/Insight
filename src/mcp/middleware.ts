@@ -20,11 +20,13 @@ import {
   precheckCredits,
   recordWaivedCredit,
 } from '@/lib/billing/creditWallet';
-import { BILLING_ZERO_REASONS } from '@/lib/billing/exemptions';
 import { isFreeVerifyCall } from '@/lib/billing/freeVerify';
 import { batchChargeCredits, getMcpToolBillableItems } from '@/lib/billing/metering';
 import { normalizePlan, PLANS } from '@/lib/billing/plans';
-import { isEntitlementCoveredMcpTool } from '@/lib/billing/productPricing';
+import {
+  entitlementCoveredZeroReason,
+  isEntitlementCoveredMcpTool,
+} from '@/lib/billing/productPricing';
 import { createLogger } from '@/lib/utils/logger';
 
 import type { McpAuthContext } from './auth';
@@ -328,12 +330,16 @@ export async function consumeMcpQuota(
       // from "never happened" during reconciliation.
       const waiverKey =
         options?.meteringKey ?? makeMeteringKey(`mcp:${auth.apiKey.keyId}:${toolName}`);
+      // Entitlement-covered product calls keep a product-family reason
+      // (`window_included` / `lifecycle_included`); never `tool_free`, which is
+      // reserved for tools that are free by design.
+      const waivedReason = entitlementCoveredZeroReason(toolName, args);
       await recordWaivedCredit({
         keyId: auth.apiKey.keyId,
         meteringKey: waiverKey,
         ref: `/mcp/tools/${toolName}`,
         source: 'subscription',
-        reason: BILLING_ZERO_REASONS.toolFree,
+        reason: waivedReason,
         requestId: waiverKey,
         meta: options?.meta,
       });

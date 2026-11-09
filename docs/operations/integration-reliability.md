@@ -99,11 +99,12 @@ response claimed `rejected` but omitted at least one of the five reproducibility
 items (`reason_code`, `input_digest`, `triggered_threshold`, `data_sources`,
 `risk_ruleset_version`), so the refusal was downgraded to `unavailable` and
 waived; `tool_free` means the tool or verification kind is zero-priced by design
-(offline verification); `timeout`, `free`, `replay` and `unconfirmed` cover the
-remaining zero-charge outcomes.
+(offline verification); `window_included` and `lifecycle_included` mean the call
+is covered by a prior oracle-watch or position-lifecycle purchase; `timeout`,
+`free`, `replay` and `unconfirmed` cover the remaining zero-charge outcomes.
 Keeping the first two apart lets reconciliation tell "the market had no data"
-from "our upstreams were down", and `tool_free` apart from both lets it tell a
-pricing decision from a data outcome.
+from "our upstreams were down", and the entitlement reasons apart from both let
+it tell a covered product call from a pricing decision or a data outcome.
 
 An all-failed batch is a deterministic terminal outcome, so its replay cache
 entry keeps the original `zeroReason: upstream_failed` for audit. The replayed
@@ -189,7 +190,9 @@ present with a null source), never as a fourth funding bucket.
 Entitlement-covered MCP calls (a product-priced tool whose per-call cost is 0
 because the purchase already happened) now write an audit row instead of
 disappearing: `kind = waiver`, `delta = 0`, `source = subscription`,
-`reason = tool_free`. The wallet is untouched. This uses the existing
+`reason = window_included` for oracle-watch coverage and
+`reason = lifecycle_included` for position-lifecycle coverage. The wallet is
+untouched. This uses the existing
 `record_waived_credit` RPC and the same `waive:`-prefixed key as every other
 zero-charge outcome, so it remains idempotent and never blocks a later charge.
 

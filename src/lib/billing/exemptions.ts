@@ -29,6 +29,8 @@ export const BILLING_ZERO_REASONS = {
   rejectedWithoutEvidence: 'rejected_without_evidence',
   timeout: 'timeout',
   toolFree: 'tool_free',
+  windowIncluded: 'window_included',
+  lifecycleIncluded: 'lifecycle_included',
 } as const;
 
 export type BillingZeroReason = (typeof BILLING_ZERO_REASONS)[keyof typeof BILLING_ZERO_REASONS];
