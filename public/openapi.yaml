@@ -3511,6 +3511,31 @@ paths:
         '200': { description: Complete ALLOW, CAUTION, or BLOCK perp decision. }
         '400': { $ref: '#/components/responses/ValidationError' }
         '402': { $ref: '#/components/responses/CreditExhausted' }
+  /safety/bnb-perp-guard/verify:
+    get:
+      operationId: getBnbPerpGuardVerificationSchema
+      tags: [Safety]
+      summary: Get BNB Perp Guard attestation schema
+      security: []
+      responses:
+        '200': { description: Attester status and supported EIP-712 schema. }
+    post:
+      operationId: verifyBnbPerpGuardDecision
+      tags: [Safety]
+      summary: Verify a BNB (Aster) Perp Guard decision
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: { type: object, additionalProperties: true }
+      responses:
+        '200': { description: Cryptographic verification result and expiry state. }
+
   /safety/hyperliquid-perp-guard:
     get:
       operationId: assessHyperliquidPerpGuard
