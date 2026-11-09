@@ -28,10 +28,12 @@ export interface CreditBillingHeaderInput {
    * grade itself could not support a conclusion), `upstream_failed` (every
    * requested batch item failed upstream), `rejected_without_evidence` (a
    * refused verdict omitted a reproducibility item and was downgraded), `timeout`,
-   * `tool_free` (the tool or
-   * verification kind is zero-priced by design), `free`, `replay`,
-   * `unconfirmed`. Emitted only for zero-charge outcomes so a caller can tell
-   * "free because there was no data" from "free by price".
+   * `tool_free` (the tool or verification kind is zero-priced by design),
+   * `window_included` (an MCP call covered by a prior oracle-watch purchase),
+   * `lifecycle_included` (an MCP call covered by a prior position-lifecycle
+   * purchase), `free`, `replay`, `unconfirmed`. Emitted only for zero-charge
+   * outcomes so a caller can tell "free because there was no data" from "free
+   * by price".
    */
   zeroReason?: string;
   /** Deterministic ledger metering key for this logical request. */

@@ -81,8 +81,43 @@ describe('consumeMcpQuota', () => {
         keyId: 'key-1',
         meteringKey: 'metering-key',
         source: 'subscription',
-        reason: 'tool_free',
+        reason: 'window_included',
       })
     );
   });
+
+  it.each(['position_lifecycle_step', 'position_lifecycle_guard'])(
+    'records an entitlement-covered lifecycle call (%s) with its own reason',
+    async (toolName) => {
+      mockedMakeMeteringKey.mockReturnValue('metering-key');
+      mockedConsumeCredits.mockClear();
+      mockedRecordWaivedCredit.mockClear();
+
+      const result = await consumeMcpQuota(
+        {
+          type: 'apikey',
+          userId: 'user-1',
+          apiKey: {
+            keyId: 'key-1',
+            userId: 'user-1',
+            plan: 'pro',
+            rateLimit: 100,
+          },
+        } as never,
+        toolName
+      );
+
+      expect(result).toEqual(
+        expect.objectContaining({ allowed: true, cost: 0, charged: 0, source: 'entitlement' })
+      );
+      expect(mockedRecordWaivedCredit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          keyId: 'key-1',
+          meteringKey: 'metering-key',
+          source: 'subscription',
+          reason: 'lifecycle_included',
+        })
+      );
+    }
+  );
 });

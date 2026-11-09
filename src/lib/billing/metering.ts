@@ -151,12 +151,12 @@ const TOOL_RULES: Array<[RegExp, MeteringClass]> = [
   [/^verify_hyperliquid_perp_execution$/, 'C4'],
 
   // Consolidated 16-tool surface. Explicit rules keep each unified tool at its
-  // documented class regardless of later broad-regex changes.
+  // documented class regardless of later broad-regex changes. Deprecated alias
+  // spellings are intentionally absent: every priced path canonicalizes the
+  // alias onto its product op first (productPricing.ts), so a static alias rule
+  // here would only create a second, divergent price map.
   [/^get_price_analytics$/, 'C2'],
   [/^search_oracle_registry$/, 'C1'],
-  [/^check_trade_safety$/, 'C3'],
-  [/^prepare_swap$/, 'C3'],
-  [/^prepare_perp_order$/, 'C3'],
   [/^begin_trade_evidence$/, 'C4'],
   [/^get_robinhood_rwa_context$/, 'C1'],
   [/^get_robinhood_rwa_instrument$/, 'C1'],
