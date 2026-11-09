@@ -265,12 +265,23 @@ export function monadPerpGuardDecisionHash(
   return keccak256(new TextEncoder().encode(canonicalJsonString(unsignedDecision(value))));
 }
 
+/**
+ * Guard-level invariant shared by bind and verify: a BLOCK assessment is
+ * never executable evidence (same invariant as the BNB / Hyperliquid layers).
+ */
+function assertMonadGuardBindingScope(guard: MonadPerpGuardResult): void {
+  if (guard.verdict === 'BLOCK') {
+    throw new Error('A BLOCK verdict must not be bound to an exact order');
+  }
+}
+
 /** Recompute the exact order binding from the guard scope and order payload. */
 function assertOrderBinding(
   guard: MonadPerpGuardResult,
   order: MonadPerpExactOrderPayload,
   action: MonadPerpDecodedAction
 ): void {
+  assertMonadGuardBindingScope(guard);
   const decoded = bindMonadPerpExactOrder(order, {
     protocolId: guard.protocolId,
     action: guard.action,
@@ -289,6 +300,7 @@ export async function createMonadPerpGuardDecision(
   rawOrder: MonadPerpExactOrderPayload,
   dependencies: MonadPerpGuardAttestationDependencies = {}
 ): Promise<MonadPerpGuardDecision> {
+  assertMonadGuardBindingScope(guard);
   const order = MonadPerpExactOrderPayloadSchema.parse(rawOrder);
   const action = bindMonadPerpExactOrder(order, {
     protocolId: guard.protocolId,

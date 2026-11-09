@@ -16,6 +16,12 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { ApiResponseBuilder } from '@/lib/api/handler';
+import {
+  getMaxRequestBytes,
+  parseLimitedJson,
+  RequestBodyTooLargeError,
+  requestBodyTooLargeResponse,
+} from '@/lib/api/requestLimits';
 import { CACHE_PRESETS } from '@/lib/api/utils';
 import { x402ConfigForPaymentScope, type X402PaymentScope } from '@/lib/api/x402/capabilityPayment';
 import { getX402Config } from '@/lib/api/x402/config';
@@ -60,8 +66,11 @@ export function createPaidRouteMethod<T>(options: PaidRouteMethodOptions<T>): Pa
         let raw: unknown;
         if (options.source === 'body') {
           try {
-            raw = await request.json();
-          } catch {
+            raw = await parseLimitedJson(request);
+          } catch (error) {
+            if (error instanceof RequestBodyTooLargeError) {
+              return requestBodyTooLargeResponse(getMaxRequestBytes(), requestId);
+            }
             return NextResponse.json(
               ApiResponseBuilder.error(
                 'VALIDATION_ERROR',

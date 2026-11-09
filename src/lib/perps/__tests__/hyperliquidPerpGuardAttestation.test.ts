@@ -146,7 +146,7 @@ describe('bindHyperliquidPerpExactOrder', () => {
       bindHyperliquidPerpExactOrder(g, orderEnvelope({ expiresAfter: NOW_MS + 300_000 }), {
         nowMs: NOW_MS,
       })
-    ).toThrow('outside the reviewed');
+    ).toThrow('must be in the future and within 120 seconds');
   });
 
   it('rejects an implied notional beyond the reviewed tolerance', async () => {

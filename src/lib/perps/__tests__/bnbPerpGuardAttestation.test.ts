@@ -305,3 +305,63 @@ describe('createBnbPerpGuardDecision / verify', () => {
     expect(verification).toMatchObject({ valid: false, reason: 'expired', expired: true });
   });
 });
+
+describe('bindBnbPerpExactOrder hardening', () => {
+  it('rejects a payload whose venue symbol is not the reviewed Aster market', async () => {
+    const g = guardResult();
+    const envelope = await preparedEnvelope(g);
+    const tampered = JSON.parse(JSON.stringify(envelope));
+    tampered.unsignedOrderEnvelope.payload.symbol = 'FOOUSDT';
+    tampered.market.venueSymbol = 'FOOUSDT';
+    expect(() => bindBnbPerpExactOrder(g, tampered, { nowSec: NOW_SEC })).toThrow(
+      'Payload venue symbol is not the reviewed Aster market'
+    );
+  });
+
+  it('rejects reduce-only payloads', async () => {
+    const g = guardResult();
+    const envelope = await preparedEnvelope(g);
+    const tampered = JSON.parse(JSON.stringify(envelope));
+    tampered.unsignedOrderEnvelope.payload.reduceOnly = true;
+    expect(() => bindBnbPerpExactOrder(g, tampered, { nowSec: NOW_SEC })).toThrow();
+  });
+
+  it('rejects MARKET payloads that carry a price', async () => {
+    const g = guardResult();
+    const envelope = await preparedEnvelope(g);
+    const tampered = JSON.parse(JSON.stringify(envelope));
+    tampered.unsignedOrderEnvelope.payload.price = '3000';
+    expect(() => bindBnbPerpExactOrder(g, tampered, { nowSec: NOW_SEC })).toThrow(
+      'MARKET payloads must not carry a price or time in force'
+    );
+  });
+
+  it('rejects LIMIT payloads without a priced IOC order', async () => {
+    const g = guardResult();
+    const envelope = await prepareBnbPerpOrderEnvelope(
+      { ...REQUEST, orderType: 'limit' as const, limitPrice: '2990' },
+      {
+        fetchVenueState: async () => venueState(),
+        getBlockNumber: async () => 45_678_901,
+        assessGuard: (async () => g) as never,
+        now: () => NOW,
+      }
+    );
+    const tampered = JSON.parse(JSON.stringify(envelope));
+    delete tampered.unsignedOrderEnvelope.payload.price;
+    delete tampered.unsignedOrderEnvelope.payload.timeInForce;
+    expect(() => bindBnbPerpExactOrder(g, tampered, { nowSec: NOW_SEC })).toThrow(
+      'LIMIT payloads must carry a price with IOC time in force'
+    );
+  });
+
+  it('rejects an envelope whose declared intent hash departs from its content', async () => {
+    const g = guardResult();
+    const envelope = await preparedEnvelope(g);
+    const tampered = JSON.parse(JSON.stringify(envelope));
+    tampered.intentHash = `0x${'0'.repeat(64)}`;
+    expect(() => bindBnbPerpExactOrder(g, tampered, { nowSec: NOW_SEC })).toThrow(
+      'Envelope intent hash does not match its recomputed value'
+    );
+  });
+});

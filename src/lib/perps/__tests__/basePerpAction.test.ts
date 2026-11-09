@@ -18,7 +18,7 @@ const ACCOUNT = '0x1111111111111111111111111111111111111111' as const;
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000' as const;
 const ETH_MARKET_ID = 100n;
 const ACCOUNT_ID = 42n;
-const SIZE_DELTA = 25_000_000000000000000000n; // 25,000 ETH units (18dp)
+const SIZE_DELTA = 10_000000000000000000n; // 10 ETH units (18dp)
 const ACCEPTABLE_PRICE = 2_500_000000000000000000n; // 2,500 USD (18dp)
 
 const COMMIT_ORDER_ABI = [
@@ -336,5 +336,56 @@ describe('Base Perp Guard attestation', () => {
       deps
     );
     expect(basePerpGuardDecisionHash(short)).not.toBe(basePerpGuardDecisionHash(long));
+  });
+});
+
+describe('Base Perp guard binding scope', () => {
+  it('rejects a BLOCK verdict at the bind path', async () => {
+    const blockGuard: BasePerpGuardResult = { ...guard, verdict: 'BLOCK' };
+    await expect(createBasePerpGuardDecision(blockGuard, transaction(), deps)).rejects.toThrow(
+      'A BLOCK verdict must not be bound to an exact order'
+    );
+  });
+
+  it('rejects an exact call whose worst-case spend departs from the assessed size', async () => {
+    const oversizedData = encodeFunctionData({
+      abi: COMMIT_ORDER_ABI,
+      functionName: 'commitOrder',
+      args: [
+        {
+          marketId: ETH_MARKET_ID,
+          accountId: ACCOUNT_ID,
+          sizeDelta: SIZE_DELTA * 100n,
+          settlementStrategyId: 0n,
+          acceptablePrice: ACCEPTABLE_PRICE,
+          trackingCode: `0x${'00'.repeat(32)}` as `0x${string}`,
+          referrer: ZERO_ADDRESS,
+        },
+      ],
+    });
+    await expect(
+      createBasePerpGuardDecision(guard, transaction({ data: oversizedData }), deps)
+    ).rejects.toThrow('worst-case notional');
+  });
+
+  it('rejects an acceptable price that inflates the worst-case spend at the same size', async () => {
+    const inflatedData = encodeFunctionData({
+      abi: COMMIT_ORDER_ABI,
+      functionName: 'commitOrder',
+      args: [
+        {
+          marketId: ETH_MARKET_ID,
+          accountId: ACCOUNT_ID,
+          sizeDelta: SIZE_DELTA,
+          settlementStrategyId: 0n,
+          acceptablePrice: ACCEPTABLE_PRICE * 2n,
+          trackingCode: `0x${'00'.repeat(32)}` as `0x${string}`,
+          referrer: ZERO_ADDRESS,
+        },
+      ],
+    });
+    await expect(
+      createBasePerpGuardDecision(guard, transaction({ data: inflatedData }), deps)
+    ).rejects.toThrow('worst-case notional');
   });
 });

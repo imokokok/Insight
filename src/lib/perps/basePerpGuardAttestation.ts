@@ -247,6 +247,38 @@ export function basePerpGuardDecisionHash(
   return keccak256(new TextEncoder().encode(canonicalJsonString(unsignedDecision(value))));
 }
 
+/**
+ * Reviewed worst-case notional binding: `sizeDelta × acceptablePrice` is the
+ * maximum USD the committed order can spend, so it must stay within tolerance
+ * of the assessed declared size. The band absorbs the prepare-time slippage
+ * headroom baked into `acceptablePrice` by the reviewed envelope flow.
+ */
+export const BASE_PERP_BINDING_NOTIONAL_TOLERANCE = 0.15;
+
+/**
+ * Guard-level invariants that must hold for any bindable exact call: a BLOCK
+ * assessment is never executable evidence, and the committed worst-case spend
+ * cannot depart from the assessed size.
+ */
+function assertGuardBindingScope(guard: BasePerpGuardResult, action: BasePerpDecodedAction): void {
+  if (guard.verdict === 'BLOCK') {
+    throw new Error('A BLOCK verdict must not be bound to an exact order');
+  }
+  const signedSize = BigInt(action.sizeDelta);
+  const magnitude = signedSize < 0n ? -signedSize : signedSize;
+  const worstCaseNotionalUsd = Number((magnitude * BigInt(action.acceptablePrice)) / 10n ** 36n);
+  if (
+    !Number.isFinite(worstCaseNotionalUsd) ||
+    worstCaseNotionalUsd <= 0 ||
+    Math.abs(worstCaseNotionalUsd - guard.projected.sizeUsd) / guard.projected.sizeUsd >
+      BASE_PERP_BINDING_NOTIONAL_TOLERANCE
+  ) {
+    throw new Error(
+      'Exact call worst-case notional departs from the assessed declared size beyond the reviewed tolerance; re-assess at the actual size'
+    );
+  }
+}
+
 function assertCallBinding(
   guard: BasePerpGuardResult,
   transaction: BasePerpExactTransaction,
@@ -260,6 +292,7 @@ function assertCallBinding(
   if (canonicalJsonString(decoded) !== canonicalJsonString(action)) {
     throw new Error('decoded exact call does not match the decision action binding');
   }
+  assertGuardBindingScope(guard, decoded);
 }
 
 /** Build a decision even when signing is disabled; only an attested decision is reusable. */
@@ -274,6 +307,7 @@ export async function createBasePerpGuardDecision(
     action: guard.action,
     assetSymbol: guard.market.assetSymbol,
   });
+  assertGuardBindingScope(guard, action);
   const decisionHash = basePerpGuardDecisionHash({ guard, transaction, action });
   const signer =
     dependencies.signer === undefined ? await getAttesterAccount() : dependencies.signer;

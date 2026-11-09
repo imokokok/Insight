@@ -130,7 +130,7 @@ export function bindHyperliquidPerpExactOrder(
   }
   if (order.expiresAfter > nowMs + 120_000) {
     throw new Error(
-      'Hyperliquid order envelope expiry is outside the reviewed 5-120 second window'
+      'Hyperliquid order envelope expiry must be in the future and within 120 seconds of the binding time'
     );
   }
 

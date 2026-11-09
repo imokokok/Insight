@@ -88,7 +88,7 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
       category: 'crypto',
     },
     43114: {
-      address: '0x2779D32d5196c3C70aFc7189d76Ca6f99B2B8e7D',
+      address: '0x2779D32d5166BAaa2B2b658333bA7e6Ec0C65743',
       name: 'BTC / USD',
       symbol: 'BTC',
       decimals: 8,
@@ -132,7 +132,7 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
       category: 'crypto',
     },
     8453: {
-      address: '0x6b6C7139B4817185eAB5E1da0C09eEf74c7576f1',
+      address: '0x17CAb8FE31E32f08326e5E27412894e49B0f9D65',
       name: 'LINK / USD',
       symbol: 'LINK',
       decimals: 8,
