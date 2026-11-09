@@ -81,11 +81,9 @@ export const GET = createApiHandler<
     try {
       rows = await fetchDecisionEvidenceRows(uid);
     } catch (error) {
-      logger.error(
-        'evidence pack lookup failed',
-        error instanceof Error ? error : undefined,
-        { requestId: context.requestId }
-      );
+      logger.error('evidence pack lookup failed', error instanceof Error ? error : undefined, {
+        requestId: context.requestId,
+      });
       return ApiResponseBuilder.serverError('evidence pack lookup failed', context.requestId);
     }
 
