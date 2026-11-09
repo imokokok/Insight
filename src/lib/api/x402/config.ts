@@ -925,6 +925,12 @@ export function atomicUnitsForNetwork(network: X402NetworkId, microUsdAtomic: st
  * BNB C1 ($0.002) and C2 ($0.004) are not listed: both sit below the 50%
  * gross-margin floor ($0.00486 at the 2026-11-07 BNB price of $694.48).
  * C3 ($0.02) and above stay on shelf.
+ *
+ * Maintenance: this constant is a static snapshot of the BNB/USD rate. If
+ * BNB drops roughly 25%+ (≈$520 at write time) the floor overcharges
+ * relative to the margin target; if it rises the floor stops fencing C1.
+ * Re-derive `micro-USDC × gas cost` and update this value whenever the BNB
+ * price moves materially.
  */
 const BNB_MIN_LISTED_MICRO_ATOMIC = '4861';
 
