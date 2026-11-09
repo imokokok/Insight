@@ -8,6 +8,11 @@ import {
   createOptionsHandler,
   V1_STANDARD_MIDDLEWARES,
 } from '@/lib/api/handler';
+import {
+  parseLimitedJson,
+  RequestBodyTooLargeError,
+  requestBodyTooLargeResponse,
+} from '@/lib/api/requestLimits';
 import { beginOracleWatchWindow } from '@/lib/api/services/oracleWatchWindowService';
 import { ProductLimitError } from '@/lib/api/services/productLimits';
 import { productLimitErrorResponse } from '@/lib/api/services/productLimitsHttp';
@@ -104,8 +109,11 @@ export const POST = async (
       async (requestId) => {
         let body: unknown;
         try {
-          body = await request.json();
-        } catch {
+          body = await parseLimitedJson(request);
+        } catch (error) {
+          if (error instanceof RequestBodyTooLargeError) {
+            return requestBodyTooLargeResponse(undefined, requestId);
+          }
           return NextResponse.json(
             ApiResponseBuilder.error(
               'VALIDATION_ERROR',

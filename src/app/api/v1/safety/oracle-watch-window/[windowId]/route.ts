@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
+import { enforceCapabilityRateLimit } from '@/lib/api/capabilityRateLimit';
 import { ApiResponseBuilder, createOptionsHandler } from '@/lib/api/handler';
 import {
   closeOracleWatchWindow,
@@ -65,6 +66,8 @@ export const GET = async (
   routeContext: { params: Promise<Record<string, string>> }
 ): Promise<NextResponse> => {
   const requestId = request.headers.get('x-request-id') ?? undefined;
+  const rateLimitResponse = await enforceCapabilityRateLimit(request);
+  if (rateLimitResponse) return rateLimitResponse;
   const { windowId } = await routeContext.params;
   try {
     const result = await pollOracleWatchWindow(windowId, bearerToken(request));
@@ -98,6 +101,8 @@ export const POST = async (
   routeContext: { params: Promise<Record<string, string>> }
 ): Promise<NextResponse> => {
   const requestId = request.headers.get('x-request-id') ?? undefined;
+  const rateLimitResponse = await enforceCapabilityRateLimit(request);
+  if (rateLimitResponse) return rateLimitResponse;
   const { windowId } = await routeContext.params;
   try {
     const summary = await closeOracleWatchWindow(windowId, bearerToken(request));

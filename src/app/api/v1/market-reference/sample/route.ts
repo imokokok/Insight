@@ -15,6 +15,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { createApiHandler, createOptionsHandler } from '@/lib/api/handler';
+import { createCachedJsonResponse } from '@/lib/api/utils';
 import { customerRawMarketReferenceDeliveryPermitted } from '@/lib/dataRights/evidenceRights';
 import { getMarketReference } from '@/lib/marketReference/client';
 import { SafeSymbolSchema } from '@/lib/security/validation';
@@ -59,20 +60,26 @@ export const GET = createApiHandler(
       );
     }
 
-    return NextResponse.json({
-      symbol: ref.symbol,
-      available: true,
-      refHour: ref.refHour,
-      refPrice: ref.refPrice,
-      quote: 'USD',
-      exchangeCount: ref.exchangeCount,
-      crossExchangeSpreadPct: ref.crossExchangeSpreadPct,
-      freshness: {
-        maxAgeHours: 3,
-        note: 'rows older than this are treated as absent (fail-closed)',
+    return createCachedJsonResponse(
+      {
+        symbol: ref.symbol,
+        available: true,
+        refHour: ref.refHour,
+        refPrice: ref.refPrice,
+        quote: 'USD',
+        exchangeCount: ref.exchangeCount,
+        crossExchangeSpreadPct: ref.crossExchangeSpreadPct,
+        freshness: {
+          maxAgeHours: 3,
+          note: 'rows older than this are treated as absent (fail-closed)',
+        },
+        note: 'Independent CEX reference (non-derived source). Evidence for oracle-vs-market divergence — not a verdict input.',
       },
-      note: 'Independent CEX reference (non-derived source). Evidence for oracle-vs-market divergence — not a verdict input.',
-    });
+      { preset: 'realtime' }
+    );
   },
-  { validation: { query: SampleQuerySchema } }
+  {
+    validation: { query: SampleQuerySchema },
+    middlewares: { logging: true, auth: false, cors: true, rateLimit: { preset: 'strict' } },
+  }
 );
