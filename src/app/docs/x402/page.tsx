@@ -311,6 +311,16 @@ const GUARD_QUICKSTARTS = [
     price: '$0.02 (C3)',
   },
   {
+    family: 'HyperEVM Lending Guard',
+    path: '/api/v1/safety/hyperevm-lending-guard',
+    method: 'GET',
+    query:
+      'protocolId=hyperlend-core-hyperevm&action=supply&collateralSymbol=WHYPE&loanSymbol=USDC&collateralValueUsd=10000&debtValueUsd=0',
+    mcp: 'hyperevm_lending_guard · hyperevm_lending_guard_exact_call',
+    decides: 'HyperLend Core (Aave V3 fork) on HyperEVM chain 999',
+    price: '$0.02 (C3)',
+  },
+  {
     family: 'Multichain EVM Lending Guard',
     path: '/api/v1/safety/multichain-evm-lending-guard',
     method: 'GET',

@@ -48,6 +48,27 @@
       ]
     },
     {
+      "url": "https://www.oracleinsight.xyz/api/v1/safety/hyperevm-lending-guard",
+      "method": "GET",
+      "description": "HyperEVM Lending Guard: a read-only, pre-signing decision for direct HyperLend Core (Aave V3 fork) supply or borrow on HyperEVM chain 999 with reviewed WHYPE, WSTHYPE, UBTC, UETH, USDe, sUSDe, USDT0, KHYPE, and USDC markets. GET returns a preview; POST binds one unsigned direct call and may return an Insight EIP-712 decision attestation. It never authorizes or broadcasts a transaction.",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "eip155:999",
+          "amount": "20000",
+          "asset": "0xb88339CB7199b77E23DB6E890353E22632Ba630f",
+          "assetSymbol": "USDC",
+          "assetDecimals": 6,
+          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
+          "maxTimeoutSeconds": 60,
+          "extra": {
+            "name": "USDC",
+            "version": "2"
+          }
+        }
+      ]
+    },
+    {
       "url": "https://www.oracleinsight.xyz/api/v1/safety/monad-perp-guard",
       "method": "GET",
       "description": "Monad Perp Guard: a read-only, pre-trade decision gate for opening a Perpl AUSD-margined perpetual position on Monad mainnet (reviewed BTC, MON, ETH, and SOL markets). It evaluates the underlying cross-oracle consensus integrity on canonical mainnet feeds, binds the declared leverage to a reviewed static profile capped by the live Perpl initial-margin ratio, and attaches disclosed venue evidence (Perpl mark/oracle divergence, funding rate, open interest, market status, consensus-vs-oracle deviation; the AUSD margin peg is disclosed as not independently verified). It never signs, submits, or authorizes an order.",

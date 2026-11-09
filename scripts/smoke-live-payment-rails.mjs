@@ -44,6 +44,11 @@ const FIXED_SCOPE_PROBES = [
     expectedNetwork: 'eip155:143',
     name: 'monad-lending',
   },
+  {
+    path: '/api/v1/safety/hyperevm-lending-guard',
+    expectedNetwork: 'eip155:999',
+    name: 'hyperevm-lending',
+  },
 ];
 
 const failures = [];
