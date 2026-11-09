@@ -190,24 +190,55 @@ describe('chain 999 (hyperevm) data-plane behaviour', () => {
     expect(mockGetConsensusPrice.mock.calls[0]?.[1]).toBe('hyperevm');
   });
 
-  it.each([
-    'swap',
-    'borrow',
-    'repay',
-    'lend',
-    'open_perp',
-    'close_perp',
-    'check_position',
-    'check_liquidation',
-    'vault_deposit',
-  ])('check_trade_safety action=%s is unavailable on chain 999', async (action) => {
-    const result = await executeTool('check_trade_safety', { chain_id: 999, action });
+  it.each(['swap', 'vault_deposit', 'repay'] as const)(
+    'check_trade_safety action=%s is not integrated on chain 999',
+    async (action) => {
+      const result = await executeTool('check_trade_safety', { chain_id: 999, action });
 
-    expect(result.isError).toBe(true);
-    const text = textOf(result);
-    expect(text).toContain('[unavailable:ecosystem_absent]');
-    expect(assessProductOutcome(text).outcome).toBe('unavailable');
-  });
+      expect(result.isError).toBe(true);
+      const text = textOf(result);
+      expect(text).toContain('[unavailable:not_integrated]');
+      expect(text).toContain('Direct HyperLend Core supply/borrow');
+      expect(assessProductOutcome(text).outcome).toBe('unavailable');
+    }
+  );
+
+  it.each(['open_perp', 'close_perp'] as const)(
+    'check_trade_safety action=%s stays ecosystem_absent on chain 999 (perps execute on HyperCore)',
+    async (action) => {
+      const result = await executeTool('check_trade_safety', { chain_id: 999, action });
+
+      expect(result.isError).toBe(true);
+      const text = textOf(result);
+      expect(text).toContain('[unavailable:ecosystem_absent]');
+      expect(text).toContain('HyperCore');
+      expect(assessProductOutcome(text).outcome).toBe('unavailable');
+    }
+  );
+
+  it.each(['check_position', 'check_liquidation'] as const)(
+    'check_trade_safety action=%s stays ecosystem_absent on chain 999 (no position surface)',
+    async (action) => {
+      const result = await executeTool('check_trade_safety', { chain_id: 999, action });
+
+      expect(result.isError).toBe(true);
+      const text = textOf(result);
+      expect(text).toContain('[unavailable:ecosystem_absent]');
+      expect(assessProductOutcome(text).outcome).toBe('unavailable');
+    }
+  );
+
+  it.each(['lend', 'borrow'] as const)(
+    'check_trade_safety action=%s reaches the HyperLend guard on chain 999 and demands protocol_id',
+    async (action) => {
+      const result = await executeTool('check_trade_safety', { chain_id: 999, action });
+
+      expect(result.isError).toBe(true);
+      const text = textOf(result);
+      expect(text).toContain('"protocol_id" is required for lending/borrowing actions');
+      expect(text).not.toContain('ecosystem_absent');
+    }
+  );
 });
 
 describe('trade_proof begin_evidence route quotes', () => {

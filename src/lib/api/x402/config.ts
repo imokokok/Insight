@@ -702,6 +702,9 @@ export const X402_HYPERLIQUID_PERP_GUARD_ROUTE = '/api/v1/safety/hyperliquid-per
 /** Monad lending decision gate; x402 quotes are bound to Monad mainnet. */
 export const X402_MONAD_LENDING_GUARD_ROUTE = '/api/v1/safety/monad-lending-guard';
 
+/** HyperEVM HyperLend Core lending decision gate; x402 quotes are bound to chain 999. */
+export const X402_HYPEREVM_LENDING_GUARD_ROUTE = '/api/v1/safety/hyperevm-lending-guard';
+
 /** Monad Perpl perp decision gate; x402 quotes are bound to Monad mainnet. */
 export const X402_MONAD_PERP_GUARD_ROUTE = '/api/v1/safety/monad-perp-guard';
 
@@ -806,6 +809,7 @@ export const X402_PAID_REST_ROUTE_PATHS = [
   X402_HYPERLIQUID_PERP_GUARD_ROUTE,
   X402_MONAD_LENDING_GUARD_ROUTE,
   X402_MONAD_PERP_GUARD_ROUTE,
+  X402_HYPEREVM_LENDING_GUARD_ROUTE,
   X402_MULTICHAIN_EVM_LENDING_GUARD_ROUTE,
   X402_SOLANA_LENDING_GUARD_ROUTE,
   X402_SOLANA_PERP_GUARD_ROUTE,

@@ -632,6 +632,36 @@ export const MonadLendingGuardExactJsonSchema = z
   })
   .strict();
 
+/** Wire schema for the HyperEVM HyperLend Core pre-signing lending gate. */
+export const HyperEvmLendingGuardJsonSchema = z
+  .object({
+    protocolId: z.enum(['hyperlend-core-hyperevm']),
+    action: z.enum(['supply', 'borrow']),
+    collateralSymbol: z.string().regex(/^[A-Za-z][A-Za-z0-9.-]{0,15}$/),
+    loanSymbol: z.string().regex(/^[A-Za-z][A-Za-z0-9.-]{0,15}$/),
+    collateralValueUsd: z.number().finite().positive(),
+    debtValueUsd: z.number().finite().nonnegative(),
+  })
+  .strict();
+
+export const HyperEvmLendingGuardExactJsonSchema = z
+  .object({
+    guard: HyperEvmLendingGuardJsonSchema,
+    transaction: z
+      .object({
+        chainId: z.literal(999),
+        from: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
+        to: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
+        data: z.string().regex(/^0x(?:[a-fA-F0-9]{2})+$/),
+        nonce: z.union([z.string().regex(/^0$|^[1-9][0-9]*$/), z.number().int().nonnegative()]),
+        value: z
+          .union([z.string().regex(/^0$|^[1-9][0-9]*$/), z.number().int().nonnegative()])
+          .optional(),
+      })
+      .strict(),
+  })
+  .strict();
+
 /** Wire schema for a user-signed, IOC-only reviewed Hyperliquid perp order. */
 export const HyperliquidPerpOrderPreflightJsonSchema = z
   .object({

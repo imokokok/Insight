@@ -59,6 +59,10 @@ import {
 import { loopscaleVaultDepositTool } from '../loopscaleVaultDepositTools';
 import { monadLendingGuardExactCallTool, monadLendingGuardTool } from '../monadLendingGuardTools';
 import {
+  hyperEvmLendingGuardExactCallTool,
+  hyperEvmLendingGuardTool,
+} from '../hyperEvmLendingGuardTools';
+import {
   multichainEvmLendingGuardExactCallTool,
   multichainEvmLendingGuardTool,
 } from '../multichainEvmLendingGuardTools';
@@ -181,6 +185,8 @@ export const LEGACY_MCP_TOOLS: McpToolDefinition[] = [
   hyperliquidPerpGuardExactCallTool,
   monadLendingGuardTool,
   monadLendingGuardExactCallTool,
+  hyperEvmLendingGuardTool,
+  hyperEvmLendingGuardExactCallTool,
   multichainEvmLendingGuardTool,
   multichainEvmLendingGuardExactCallTool,
   solanaLendingGuardTool,
