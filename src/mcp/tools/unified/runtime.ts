@@ -49,6 +49,10 @@ import {
   getFeedsTool,
 } from '../feedTools';
 import {
+  hyperEvmLendingGuardExactCallTool,
+  hyperEvmLendingGuardTool,
+} from '../hyperEvmLendingGuardTools';
+import {
   hyperliquidPerpGuardExactCallTool,
   hyperliquidPerpGuardTool,
 } from '../hyperliquidPerpGuardTools';
@@ -58,10 +62,6 @@ import {
 } from '../hyperliquidPerpTools';
 import { loopscaleVaultDepositTool } from '../loopscaleVaultDepositTools';
 import { monadLendingGuardExactCallTool, monadLendingGuardTool } from '../monadLendingGuardTools';
-import {
-  hyperEvmLendingGuardExactCallTool,
-  hyperEvmLendingGuardTool,
-} from '../hyperEvmLendingGuardTools';
 import {
   multichainEvmLendingGuardExactCallTool,
   multichainEvmLendingGuardTool,

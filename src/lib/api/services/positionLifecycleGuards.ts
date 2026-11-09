@@ -19,13 +19,13 @@ import {
   BaseLendingGuardInputSchema,
 } from '@/lib/lending/baseLendingGuard';
 import {
-  assessMonadLendingGuard,
-  MonadLendingGuardInputSchema,
-} from '@/lib/lending/monadLendingGuard';
-import {
   assessHyperEvmLendingGuard,
   HyperEvmLendingGuardInputSchema,
 } from '@/lib/lending/hyperEvmLendingGuard';
+import {
+  assessMonadLendingGuard,
+  MonadLendingGuardInputSchema,
+} from '@/lib/lending/monadLendingGuard';
 import {
   assessMultichainEvmLendingGuard,
   MultichainEvmLendingGuardInputSchema,
