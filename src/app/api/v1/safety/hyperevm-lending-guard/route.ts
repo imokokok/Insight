@@ -77,7 +77,10 @@ export const GET = createPaidRouteMethod({
 const legacyPost = createApiHandler(
   async (_request, context) =>
     executeDecision(context.validated!.body as DecisionBody, context.requestId),
-  { middlewares: V1_STANDARD_MIDDLEWARES, validation: { body: HyperEvmLendingGuardExactInputSchema } }
+  {
+    middlewares: V1_STANDARD_MIDDLEWARES,
+    validation: { body: HyperEvmLendingGuardExactInputSchema },
+  }
 );
 /** Bind a read-only assessment to one unsigned direct call; it is never authorization. */
 export const POST = createPaidRouteMethod({

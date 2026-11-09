@@ -27,21 +27,23 @@ import {
   hyperLendUnderlyingForSymbol,
 } from './hyperEvmLendingProtocols';
 
-export const HyperEvmLendingGuardInputSchema = z
-  .object({
-    protocolId: HyperEvmLendingProtocolIdSchema,
-    action: z.enum(['supply', 'borrow']),
-    collateralSymbol: z.string().regex(/^[A-Za-z][A-Za-z0-9.-]{0,15}$/),
-    loanSymbol: z.string().regex(/^[A-Za-z][A-Za-z0-9.-]{0,15}$/),
-    collateralValueUsd: z.number().finite().positive().max(1_000_000_000_000),
-    debtValueUsd: z.number().finite().min(0).max(1_000_000_000_000),
-  });
+export const HyperEvmLendingGuardInputSchema = z.object({
+  protocolId: HyperEvmLendingProtocolIdSchema,
+  action: z.enum(['supply', 'borrow']),
+  collateralSymbol: z.string().regex(/^[A-Za-z][A-Za-z0-9.-]{0,15}$/),
+  loanSymbol: z.string().regex(/^[A-Za-z][A-Za-z0-9.-]{0,15}$/),
+  collateralValueUsd: z.number().finite().positive().max(1_000_000_000_000),
+  debtValueUsd: z.number().finite().min(0).max(1_000_000_000_000),
+});
 
 export type HyperEvmLendingGuardInput = z.infer<typeof HyperEvmLendingGuardInputSchema>;
 export type HyperEvmLendingGuardVerdict = 'ALLOW' | 'CAUTION' | 'BLOCK';
 
 export const HyperEvmLendingGuardExactInputSchema = z
-  .object({ guard: HyperEvmLendingGuardInputSchema, transaction: HyperEvmLendingExactTransactionSchema })
+  .object({
+    guard: HyperEvmLendingGuardInputSchema,
+    transaction: HyperEvmLendingExactTransactionSchema,
+  })
   .strict();
 export type HyperEvmLendingGuardExactInput = z.infer<typeof HyperEvmLendingGuardExactInputSchema>;
 
@@ -236,11 +238,7 @@ async function resolveHyperLendRisk(input: HyperEvmLendingGuardInput): Promise<R
   const loan = byAddress.get(loanAddress);
   if (!collateral || !loan)
     throw new Error('HyperLend live reserve list did not contain a reviewed declared asset');
-  if (
-    !collateral.isActive ||
-    collateral.isFrozen ||
-    !collateral.usageAsCollateralEnabled
-  ) {
+  if (!collateral.isActive || collateral.isFrozen || !collateral.usageAsCollateralEnabled) {
     throw new Error('HyperLend collateral reserve is inactive, frozen, or not collateral-enabled');
   }
   if (!loan.isActive || loan.isFrozen || !loan.borrowingEnabled) {
@@ -253,7 +251,12 @@ async function resolveHyperLendRisk(input: HyperEvmLendingGuardInput): Promise<R
   }
   if (/^0x0{40}$/i.test(collateral.priceOracle))
     throw new Error('HyperLend reserve returned a zero oracle');
-  return { maxLtv, liquidationLtv, source: 'hyperlend-live', oracleAddress: collateral.priceOracle };
+  return {
+    maxLtv,
+    liquidationLtv,
+    source: 'hyperlend-live',
+    oracleAddress: collateral.priceOracle,
+  };
 }
 
 export interface HyperEvmLendingGuardDependencies {

@@ -70,9 +70,7 @@ export function canonicalHyperLendSymbol(
 
 export function hyperLendUnderlyingForSymbol(symbol: string): `0x${string}` | null {
   const canonical = canonicalHyperLendSymbol(symbol);
-  return canonical
-    ? (HYPERLEND_CORE_ASSETS[canonical].toLowerCase() as `0x${string}`)
-    : null;
+  return canonical ? (HYPERLEND_CORE_ASSETS[canonical].toLowerCase() as `0x${string}`) : null;
 }
 
 /**

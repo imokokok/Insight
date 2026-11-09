@@ -31,7 +31,8 @@ export const HYPEREVM_LENDING_GUARD_DECISION_SCHEMA =
   'insight.hyperevm-lending-guard-decision.v1' as const;
 export const HYPEREVM_LENDING_GUARD_ATTESTATION_SCHEMA_VERSION = 1 as const;
 export const HYPEREVM_LENDING_GUARD_ATTESTATION_VALID_FOR_SECONDS = 300;
-export const HYPEREVM_LENDING_GUARD_ATTESTATION_PRIMARY_TYPE = 'HyperEvmLendingGuardDecision' as const;
+export const HYPEREVM_LENDING_GUARD_ATTESTATION_PRIMARY_TYPE =
+  'HyperEvmLendingGuardDecision' as const;
 export const HYPEREVM_LENDING_GUARD_ATTESTATION_DOMAIN = {
   name: 'Insight HyperEVM Lending Guard',
   version: '1',

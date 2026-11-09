@@ -50,7 +50,8 @@ export const GET = createApiHandler(
   async (_request, context) => {
     const attester = await getAttesterAddress();
     const attestationEnabled =
-      attester !== null && (await isPublishedHyperEvmLendingGuardAttester(attester, nowInSeconds()));
+      attester !== null &&
+      (await isPublishedHyperEvmLendingGuardAttester(attester, nowInSeconds()));
     return NextResponse.json(
       ApiResponseBuilder.success(
         {
