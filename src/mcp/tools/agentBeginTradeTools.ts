@@ -270,6 +270,14 @@ export const agentBeginTradeTool: McpToolDefinition<typeof AgentBeginTradeInputS
   ].join(' '),
   parameters: AgentBeginTradeInputSchema,
   handler: async (args) => {
+    // The evidence contract needs an independently verified route quote. That
+    // verifier is intentionally Ethereum-mainnet-only, so decline before any
+    // RPC, attestation, evidence-handle, or billable work starts. The marker is
+    // consumed by both credit-wallet and x402 settlement gates.
+    if (args.chainId !== 1) {
+      return `[unavailable:unsupported_chain] agent_begin_trade: independent on-chain route quotes are available only on Ethereum mainnet (chainId 1). chainId ${args.chainId} was refused before any evidence handle or charge was created. No execution handle was issued, so no execution receipt can be bound.`;
+    }
+
     const routeQuoteMaxAgeSeconds = Math.min(
       args.decisionInput.source.maxQuoteAgeSeconds,
       args.decisionInput.destination.maxQuoteAgeSeconds

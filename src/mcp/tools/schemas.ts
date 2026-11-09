@@ -658,7 +658,9 @@ export const AgentBeginTradeInputSchema = z.object({
   chainId: z
     .number()
     .int()
-    .describe('Chain ID where the trade executes, e.g. 1=Ethereum, 42161=Arbitrum, 8453=Base'),
+    .describe(
+      'Execution chain ID. Independent on-chain route quotes are currently available only on Ethereum mainnet (chainId 1); other chains return [unavailable:unsupported_chain] without billing.'
+    ),
   action: z
     .enum(['swap', 'borrow', 'lend', 'liquidate', 'repay'])
     .describe('Type of DeFi operation being considered'),

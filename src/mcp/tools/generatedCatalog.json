@@ -112,7 +112,7 @@
           "enum": ["median", "trimmed_mean", "weighted_median", "iqr_filtered"]
         },
         "base_chain": {
-          "description": "Base chain for metric=spreads",
+          "description": "Base chain name for metric=spreads",
           "type": "string"
         },
         "from": {
@@ -636,7 +636,7 @@
           "type": "integer",
           "minimum": -9007199254740991,
           "maximum": 9007199254740991,
-          "description": "Execution chain id"
+          "description": "Execution chain id. Independent on-chain route quotes are currently available only on Ethereum mainnet (chain_id 1); other chains return [unavailable:unsupported_chain] without billing."
         },
         "action": {
           "type": "string",
@@ -778,6 +778,7 @@
           "maxLength": 20
         },
         "chain": {
+          "description": "Chain-name filter (e.g. \"ethereum\", \"base\", \"hyperevm\"); not a numeric chain id",
           "type": "string"
         },
         "days": {
@@ -823,6 +824,7 @@
           "maxLength": 20
         },
         "chain": {
+          "description": "Chain-name filter (e.g. \"ethereum\", \"base\", \"hyperevm\"); not a numeric chain id",
           "type": "string"
         },
         "lifecycle_id": {
@@ -953,11 +955,11 @@
           "enum": ["median", "trimmed_mean", "weighted_median", "iqr_filtered"]
         },
         "chain": {
-          "description": "Optional chain filter",
+          "description": "Optional chain-name filter (e.g. \"ethereum\", \"base\", \"hyperevm\"); not a numeric chain id",
           "type": "string"
         },
         "base_chain": {
-          "description": "Base chain for metric=spreads",
+          "description": "Base chain name for metric=spreads",
           "type": "string"
         },
         "from": {
@@ -1524,7 +1526,7 @@
           "type": "integer",
           "minimum": -9007199254740991,
           "maximum": 9007199254740991,
-          "description": "Execution chain id"
+          "description": "Execution chain id. Independent on-chain route quotes are currently available only on Ethereum mainnet (chain_id 1); other chains return [unavailable:unsupported_chain] without billing."
         },
         "action": {
           "type": "string",
@@ -2096,6 +2098,7 @@
           "maxLength": 20
         },
         "chain": {
+          "description": "Chain-name filter (e.g. \"ethereum\", \"base\", \"hyperevm\"); not a numeric chain id",
           "type": "string"
         },
         "days": {
@@ -2130,6 +2133,7 @@
           "maxLength": 20
         },
         "chain": {
+          "description": "Chain-name filter (e.g. \"ethereum\", \"base\", \"hyperevm\"); not a numeric chain id",
           "type": "string"
         }
       },
@@ -2185,6 +2189,7 @@
           "maxLength": 20
         },
         "chain": {
+          "description": "Chain-name filter (e.g. \"ethereum\", \"base\", \"hyperevm\"); not a numeric chain id",
           "type": "string"
         }
       },

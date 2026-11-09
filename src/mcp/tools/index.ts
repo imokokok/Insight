@@ -663,21 +663,32 @@ export async function executeTool(
   }
 
   if (dispatched.source === 'unified') {
-    // HyperEVM is served as a data-plane reference chain: read-only branches may
-    // name it now that the enum and chain mapping exist, but execution branches
-    // still stop before schema validation so the caller sees the ecosystem
-    // boundary instead of a malformed-request error.
-    const hyperevmField = refusedHyperevmChain(dispatched.name, dispatched.args);
-    if (hyperevmField) {
+    // A numeric `chain_id` on a branch that names its chain `chain` would be
+    // stripped by Zod and the call would silently widen to every chain. Refuse
+    // it before validation so the caller gets an actionable, structured error.
+    if (droppedChainIdField(dispatched.name, dispatched.args)) {
       return {
-        content: [
-          {
-            type: `text`,
-            text: `[unavailable:ecosystem_absent] ${dispatched.name}: HyperEVM (chain 999) is not wired into this tool's chain model ("${hyperevmField}"). This surface serves HyperEVM as a data-plane reference chain only; no other chain's data or execution model is substituted.`,
-          },
-        ],
+        content: [{ type: `text`, text: droppedChainIdError(name, dispatched) }],
         isError: true,
       };
+    }
+
+    // Independent route quotes are Ethereum-mainnet only. Refuse other chains
+    // before the handler turns the quote error into an unbilled-looking prose
+    // refusal that the outcome classifier cannot see.
+    if (dispatched.name === 'trade_proof') {
+      const unsupportedChainId = unsupportedRouteQuoteChain(dispatched.args);
+      if (unsupportedChainId !== null) {
+        return {
+          content: [
+            {
+              type: `text`,
+              text: `[unavailable:unsupported_chain] trade_proof begin_evidence: independent on-chain route quotes are available only on Ethereum mainnet (chain_id 1). chain_id ${unsupportedChainId} was refused before any evidence handle or charge was created. No execution handle was issued, so no execution receipt can be bound.`,
+            },
+          ],
+          isError: true,
+        };
+      }
     }
   }
 
@@ -691,37 +702,52 @@ export async function executeTool(
 }
 
 /**
- * Tool branches that need a reviewed execution venue. HyperEVM has none, so
- * these keep the structured boundary even though the chain now exists in the
- * enum and chain mapping. Every other branch is data-plane and may serve 999.
+ * Branches whose schema names the chain with `chain` (a chain *name*). A
+ * numeric `chain_id` is the spelling of a different branch family; Zod strips
+ * unknown keys, so accepting it here would turn a chain-scoped read into a
+ * cross-chain aggregate. `chain_id` is still valid for the ops absent here,
+ * such as `trade_guard` op `check_safety`.
  */
-const HYPEREVM_EXECUTION_BRANCHES: Readonly<Record<string, readonly string[] | 'all'>> = {
-  trade_guard: ['check_safety', 'prepare_swap', 'prepare_perp_order'],
-  trade_proof: ['issue_receipt'],
-  position_lifecycle: 'all',
+const CHAIN_NAME_BRANCHES: Readonly<Record<string, readonly string[]>> = {
+  trade_guard: ['oracle_price', 'price_analytics'],
+  oracle_watch_window: ['snapshot', 'history', 'begin'],
+  position_lifecycle: ['begin'],
 };
 
-function isHyperevmExecutionBranch(toolName: string, args: Record<string, unknown>): boolean {
-  const blocked = HYPEREVM_EXECUTION_BRANCHES[toolName];
-  if (blocked === undefined) return false;
-  if (blocked === 'all') return true;
-  const op = args.op;
-  return typeof op === 'string' && blocked.includes(op);
+function droppedChainIdField(toolName: string, args: unknown): boolean {
+  if (!args || typeof args !== 'object') return false;
+  const record = args as Record<string, unknown>;
+  if (!Object.prototype.hasOwnProperty.call(record, 'chain_id')) return false;
+  const branches = CHAIN_NAME_BRANCHES[toolName];
+  return typeof record.op === 'string' && branches?.includes(record.op) === true;
 }
 
-/**
- * Return the argument field that names HyperEVM when this call is execution
- * shaped. Data-plane calls return null so chain 999 reaches the services; the
- * unified chain schema carries it after the HyperEVM enum landed.
- */
-export function refusedHyperevmChain(toolName: string, args: unknown): string | null {
+function droppedChainIdError(callerName: string, dispatched: DispatchedTool): string {
+  const record =
+    dispatched.args && typeof dispatched.args === 'object'
+      ? (dispatched.args as Record<string, unknown>)
+      : {};
+  return JSON.stringify({
+    error: {
+      code: 'unknown_field',
+      tool: callerName,
+      resolved_tool: dispatched.name,
+      op: typeof record.op === 'string' ? record.op : null,
+      field: 'chain_id',
+      message: `"chain_id" is not an input for ${callerName}; it would be dropped before the call and the chain filter would silently widen to every chain.`,
+      hint: 'Use "chain" with a chain name such as "ethereum", "base" or "hyperevm". Numeric chain ids are accepted only by ops that declare "chain_id".',
+    },
+  });
+}
+
+/** Independent route quotes are mainnet-only; `null` means the call may proceed. */
+function unsupportedRouteQuoteChain(args: unknown): number | null {
   if (!args || typeof args !== 'object') return null;
   const record = args as Record<string, unknown>;
-  const field = (['chain', 'base_chain'] as const).find(
-    (candidate) => record[candidate] === 'hyperevm'
-  );
-  if (!field) return null;
-  return isHyperevmExecutionBranch(toolName, record) ? field : null;
+  if (record.op !== 'begin_evidence') return null;
+  const chainId = record.chain_id;
+  if (typeof chainId !== 'number' || !Number.isInteger(chainId)) return null;
+  return chainId === 1 ? null : chainId;
 }
 
 function toolError(name: string, error: unknown): McpToolCallResult {

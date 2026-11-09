@@ -44,8 +44,10 @@ export const GetPriceAnalyticsInputSchema = z.object({
     .enum(['median', 'trimmed_mean', 'weighted_median', 'iqr_filtered'])
     .optional()
     .describe('Consensus aggregation method'),
-  chain: SafeChainSchema.optional().describe('Optional chain filter'),
-  base_chain: SafeChainSchema.optional().describe('Base chain for metric=spreads'),
+  chain: SafeChainSchema.optional().describe(
+    'Optional chain-name filter (e.g. "ethereum", "base", "hyperevm"); not a numeric chain id'
+  ),
+  base_chain: SafeChainSchema.optional().describe('Base chain name for metric=spreads'),
   from: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/)
@@ -256,7 +258,12 @@ export const CheckTradeSafetyInputSchema = z.object({
 export const BeginTradeEvidenceInputSchema = z.object({
   asset: SafeSymbolSchema.describe('Source asset sold'),
   destination_asset: SafeSymbolSchema.describe('Destination asset bought'),
-  chain_id: z.number().int().describe('Execution chain id'),
+  chain_id: z
+    .number()
+    .int()
+    .describe(
+      'Execution chain id. Independent on-chain route quotes are currently available only on Ethereum mainnet (chain_id 1); other chains return [unavailable:unsupported_chain] without billing.'
+    ),
   action: z.enum(['swap', 'borrow', 'lend', 'liquidate', 'repay']),
   amount_usd: z.number().finite().positive(),
   max_slippage_bps: z.literal(50).describe('Pre-committed tolerance; fixed at 50'),
@@ -411,7 +418,9 @@ export const VerifyEvidenceInputSchema = z.object({
 export const OracleWatchInputSchema = z.object({
   op: z.enum(['snapshot', 'history']).optional().default('snapshot'),
   symbol: SafeSymbolSchema.describe('Asset symbol to watch'),
-  chain: SafeChainSchema.optional(),
+  chain: SafeChainSchema.optional().describe(
+    'Chain-name filter (e.g. "ethereum", "base", "hyperevm"); not a numeric chain id'
+  ),
   days: z.number().int().min(1).max(90).optional(),
   interval: z.enum(['30min', 'hourly', 'daily']).optional(),
 });
@@ -419,7 +428,9 @@ export const OracleWatchInputSchema = z.object({
 /** 13. Buy an Oracle Watch window. */
 export const OracleWatchWindowBeginInputSchema = z.object({
   symbol: SafeSymbolSchema.describe('Asset to monitor for the window'),
-  chain: SafeChainSchema.optional(),
+  chain: SafeChainSchema.optional().describe(
+    'Chain-name filter (e.g. "ethereum", "base", "hyperevm"); not a numeric chain id'
+  ),
 });
 
 /** 14. Poll/close an Oracle Watch window. */
@@ -432,7 +443,9 @@ export const OracleWatchWindowControlInputSchema = z.object({
 /** 15. Buy a Position Lifecycle bundle. */
 export const PositionLifecycleBeginInputSchema = z.object({
   symbol: SafeSymbolSchema.describe('Position subject for the lifecycle'),
-  chain: SafeChainSchema.optional(),
+  chain: SafeChainSchema.optional().describe(
+    'Chain-name filter (e.g. "ethereum", "base", "hyperevm"); not a numeric chain id'
+  ),
 });
 
 /** 16. Run one bundled lifecycle step. */
