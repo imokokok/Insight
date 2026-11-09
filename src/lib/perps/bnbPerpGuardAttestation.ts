@@ -23,6 +23,7 @@ import {
   type AttesterAccount,
 } from '@/lib/attestations/attesterAccount';
 import { buildKeyRegistryConfig, trustedAttesterEntry } from '@/lib/attestations/keyRegistryConfig';
+import { asterReviewedMarketForAsset } from '@/lib/dex/asterPerpMarket';
 import { canonicalJsonString } from '@/lib/utils/canonicalJson';
 import { createLogger } from '@/lib/utils/logger';
 import { nowInSeconds } from '@/lib/utils/time';
@@ -72,6 +73,24 @@ const VENUE_SYMBOL = /^[A-Z]+USDT$/;
 
 /** Market orders carry no venue price; the binding commits to "0" instead. */
 const MARKET_ORDER_PRICE_BINDING = '0';
+
+/**
+ * Strict bind-time schema for the exact Aster venue order payload. The
+ * envelope interface is compile-time only; bind must fail closed at runtime
+ * on any field outside the reviewed open-position profile.
+ */
+const BnbBindPayloadSchema = z
+  .object({
+    symbol: z.string().regex(VENUE_SYMBOL),
+    side: z.enum(['BUY', 'SELL']),
+    type: z.enum(['MARKET', 'LIMIT']),
+    quantity: z.string().regex(POSITIVE_DECIMAL),
+    price: z.string().regex(POSITIVE_DECIMAL).optional(),
+    timeInForce: z.literal('IOC').optional(),
+    reduceOnly: z.literal(false),
+    newClientOrderId: z.string().min(1),
+  })
+  .strict();
 
 const AttestationDataSchema = z
   .object({
@@ -342,7 +361,31 @@ export function bindBnbPerpExactOrder(
     throw new Error('Envelope asset symbol does not match the assessed market');
   }
 
-  const payload = venuePayload.payload;
+  const payload = BnbBindPayloadSchema.parse(venuePayload.payload);
+
+  // The venue market itself must be the reviewed Aster market for the
+  // assessed asset: the guard's oracle/leverage evidence is only valid for
+  // that market, and a same-format foreign symbol would otherwise inherit it.
+  const reviewedVenueSymbol = asterReviewedMarketForAsset(guard.market.assetSymbol);
+  if (!reviewedVenueSymbol || payload.symbol !== reviewedVenueSymbol) {
+    throw new Error('Payload venue symbol is not the reviewed Aster market for the assessed asset');
+  }
+  if (envelope.market.venueSymbol !== payload.symbol) {
+    throw new Error('Envelope market venue symbol does not match the payload');
+  }
+
+  // Mirror the prepare-side profile exactly: LIMIT orders carry a priced IOC
+  // order, MARKET orders carry neither a price nor a time-in-force value.
+  if (payload.type === 'LIMIT' && !(payload.price && payload.timeInForce === 'IOC')) {
+    throw new Error('LIMIT payloads must carry a price with IOC time in force');
+  }
+  if (
+    payload.type === 'MARKET' &&
+    (payload.price !== undefined || payload.timeInForce !== undefined)
+  ) {
+    throw new Error('MARKET payloads must not carry a price or time in force');
+  }
+
   const expectedSide = guard.action === 'open_long' ? 'BUY' : 'SELL';
   if (payload.side !== expectedSide) {
     throw new Error(`Payload side does not match the assessed ${guard.action} action`);
@@ -379,8 +422,24 @@ export function bindBnbPerpExactOrder(
     throw new Error('Envelope payload hash does not match its payload');
   }
 
+  // Recompute the intent hash from the envelope's own content instead of
+  // trusting its declared value: the attestation data carries it as an
+  // independent commitment (same discipline as the Hyperliquid layer).
+  const recomputedIntentHash = perpOrderIntentHash({
+    schema: BNB_PERP_ORDER_SCHEMA,
+    chainId: BNB_PERP_ORDER_CHAIN_ID,
+    market: { assetSymbol: envelope.market.assetSymbol, venueSymbol: envelope.market.venueSymbol },
+    payload,
+    quote: envelope.quote,
+    observation: { blockNumber: envelope.observation.blockNumber },
+    risk: envelope.risk.assessmentHash,
+  });
+  if (recomputedIntentHash.toLowerCase() !== envelope.intentHash.toLowerCase()) {
+    throw new Error('Envelope intent hash does not match its recomputed value');
+  }
+
   const binding: BnbPerpOrderBinding = {
-    intentHash: envelope.intentHash,
+    intentHash: recomputedIntentHash,
     payloadHash,
     chainId: BNB_PERP_ORDER_CHAIN_ID,
     venueSymbol: payload.symbol,

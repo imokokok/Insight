@@ -261,3 +261,13 @@ describe('P1-2 Monad perp attestation and independent recompute', () => {
     expect(verification.reason).toBe('missing_attestation');
   });
 });
+
+describe('Monad guard binding scope', () => {
+  it('rejects a BLOCK verdict at the create path', async () => {
+    const guard = await passingGuard();
+    const blockGuard: MonadPerpGuardResult = { ...guard, verdict: 'BLOCK' };
+    await expect(createMonadPerpGuardDecision(blockGuard, ORDER, signerDeps)).rejects.toThrow(
+      'A BLOCK verdict must not be bound to an exact order'
+    );
+  });
+});

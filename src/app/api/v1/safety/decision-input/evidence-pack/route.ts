@@ -30,6 +30,9 @@ import {
   fetchDecisionEvidenceRows,
   verifyDecisionEvidencePack,
 } from '@/lib/decisionInputTrust/evidencePack';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('DecisionEvidencePackRoute');
 
 const HEX32 = /^0x[0-9a-fA-F]{64}$/;
 
@@ -78,10 +81,10 @@ export const GET = createApiHandler<
     try {
       rows = await fetchDecisionEvidenceRows(uid);
     } catch (error) {
-      return ApiResponseBuilder.serverError(
-        error instanceof Error ? error.message : 'evidence pack lookup failed',
-        context.requestId
-      );
+      logger.error('evidence pack lookup failed', error instanceof Error ? error : undefined, {
+        requestId: context.requestId,
+      });
+      return ApiResponseBuilder.serverError('evidence pack lookup failed', context.requestId);
     }
 
     if (!rows) {

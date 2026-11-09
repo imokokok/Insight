@@ -25,7 +25,10 @@ import {
   type PositionInput,
   type OracleWarning,
 } from '@/lib/protocols/protocolHealth';
+import { createLogger } from '@/lib/utils/logger';
 import { type OracleProvider } from '@/types/oracle';
+
+const logger = createLogger('SafetyPositionRoute');
 
 function formatSymbolList(symbols: string[]): string {
   if (symbols.length === 0) return 'your assets';
@@ -167,9 +170,13 @@ export const POST = createApiHandler(
 
       return response;
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error occurred';
+      logger.error(
+        'position safety calculation failed',
+        error instanceof Error ? error : undefined,
+        { requestId: context.requestId }
+      );
       return NextResponse.json(
-        ApiResponseBuilder.error('CALCULATION_ERROR', message, {
+        ApiResponseBuilder.error('CALCULATION_ERROR', 'Internal server error', {
           requestId: context.requestId,
         }),
         { status: 500 }
