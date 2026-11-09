@@ -1,6 +1,12 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
+import { enforceCapabilityRateLimit } from '@/lib/api/capabilityRateLimit';
 import { ApiResponseBuilder, createOptionsHandler } from '@/lib/api/handler';
+import {
+  parseLimitedJson,
+  RequestBodyTooLargeError,
+  requestBodyTooLargeResponse,
+} from '@/lib/api/requestLimits';
 import {
   lifecycleErrorResponse,
   requireBearerToken,
@@ -27,13 +33,18 @@ export const POST = async (
   routeContext: { params: Promise<Record<string, string>> }
 ): Promise<NextResponse> => {
   const requestId = request.headers.get('x-request-id') ?? undefined;
+  const rateLimitResponse = await enforceCapabilityRateLimit(request);
+  if (rateLimitResponse) return rateLimitResponse;
   const { lifecycleId } = await routeContext.params;
   try {
     const token = requireBearerToken(request);
     let body: unknown;
     try {
-      body = await request.json();
-    } catch {
+      body = await parseLimitedJson(request);
+    } catch (error) {
+      if (error instanceof RequestBodyTooLargeError) {
+        return requestBodyTooLargeResponse(undefined, requestId);
+      }
       return NextResponse.json(
         ApiResponseBuilder.error(
           'VALIDATION_ERROR',

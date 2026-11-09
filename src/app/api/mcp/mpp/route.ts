@@ -1,4 +1,5 @@
 import { createOptionsHandler } from '@/lib/api/handler';
+import { rejectOversizedRequest, rejectStreamedOversizedRequest } from '@/lib/api/requestLimits';
 import { createLogger } from '@/lib/utils/logger';
 import { handleMcpHttpRequest } from '@/mcp/transports/http';
 
@@ -18,6 +19,11 @@ function runCleanup(cleanup: () => Promise<void>): void {
 }
 
 async function handle(request: Request): Promise<Response> {
+  const declaredOversize = rejectOversizedRequest(request);
+  if (declaredOversize) return declaredOversize;
+  const streamedOversize = await rejectStreamedOversizedRequest(request);
+  if (streamedOversize) return streamedOversize;
+
   const { response, cleanup } = await handleMcpHttpRequest(request, { paymentRail: 'mpp' });
   runCleanup(cleanup);
   return response;
