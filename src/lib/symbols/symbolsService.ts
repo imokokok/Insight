@@ -48,7 +48,19 @@ export async function loadSymbolsFromDatabase(): Promise<SymbolsData> {
   loadPromise = (async () => {
     try {
       const queries = getAdminQueries();
-      const feeds = await queries.getOracleFeeds(''); // empty string = get all providers
+      // Use the status-preserving read: getOracleFeeds() discards the errored
+      // bit, so a failed registry read (egress cap, pooler timeout, paging
+      // mismatch) would surface as a legitimately empty catalog and get cached
+      // for the full TTL with no fallback engaged. The registry is never
+      // legitimately empty in production, so treat both a reported read error
+      // and a zero-row read as a database failure and fall through to the
+      // reviewed fallback below.
+      const { feeds, errored } = await queries.getOracleFeedsWithStatus('');
+      if (errored || feeds.length === 0) {
+        throw new Error(
+          `oracle feed registry read returned no usable rows (errored=${errored}, rows=${feeds.length})`
+        );
+      }
 
       const allSymbols = new Set<string>();
       const oracleSymbols: Record<string, string[]> = {};
