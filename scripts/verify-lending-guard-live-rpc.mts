@@ -12,6 +12,7 @@ import {
   MOONWELL_BASE_COMPTROLLER,
 } from '@/lib/lending/baseLendingProtocols';
 import { AAVE_V3_MONAD_POOL } from '@/lib/lending/monadLendingProtocols';
+import { HYPERLEND_CORE_POOL } from '@/lib/lending/hyperEvmLendingProtocols';
 import {
   AAVE_V3_EVM_MARKETS,
   VENUS_CORE_POOL_COMPTROLLER,
@@ -21,7 +22,7 @@ import { CHAINLINK_RPC_CONFIG } from '@/lib/oracles/services/chainlinkDataSource
 
 type EvmProbe = {
   name: string;
-  chainId: 8453 | 143 | 137 | 42161 | 56;
+  chainId: 8453 | 143 | 137 | 42161 | 56 | 999;
   contracts: string[];
   viewCalls?: Array<{ to: string; data: `0x${string}` }>;
 };
@@ -41,6 +42,11 @@ const EVM_PROBES: EvmProbe[] = [
     viewCalls: [{ to: AAVE_V3_MONAD_POOL, data: '0xd1946dbc' }],
   },
   { name: 'Polygon', chainId: 137, contracts: [AAVE_V3_EVM_MARKETS['aave-v3-polygon'].pool] },
+  {
+    name: 'HyperEVM',
+    chainId: 999,
+    contracts: [HYPERLEND_CORE_POOL],
+  },
   { name: 'Arbitrum', chainId: 42161, contracts: [AAVE_V3_EVM_MARKETS['aave-v3-arbitrum'].pool] },
   {
     name: 'BNB Chain',

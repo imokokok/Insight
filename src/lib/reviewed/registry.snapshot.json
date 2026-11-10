@@ -157,6 +157,14 @@
       "check": { "kind": "evm-code", "addresses": ["0xbbbbbbbbbb9cc5e90e3b3af64bdaf62c37eeffcb"] }
     },
     {
+      "profileId": "hyperlend-core-hyperevm",
+      "family": "lending",
+      "chain": "hyperevm",
+      "status": "ACTIVE",
+      "activityStatus": "UNKNOWN",
+      "check": { "kind": "evm-code", "addresses": ["0x00A89d7a5A02160f20150EbEA7a2b5E4879A1A8b"] }
+    },
+    {
       "profileId": "kamino-lend",
       "family": "lending",
       "chain": "solana",
