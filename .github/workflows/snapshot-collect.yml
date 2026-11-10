@@ -155,7 +155,16 @@ jobs:
       # move price). Evidence failure is isolated to this job and does not
       # affect the raw capture lease or its projection acknowledgement.
       - name: Collect manipulation cost
+        id: manipulation_cost
+        # This is auxiliary evidence. Preserve its failure visibly while
+        # allowing an independently durable Turso capture to succeed and be
+        # projected once the Supabase quota is restored.
+        continue-on-error: true
         run: node .github/cron-dist/collect-manip-cost.mjs
+
+      - name: Report deferred manipulation-cost evidence
+        if: steps.manipulation_cost.outcome == 'failure'
+        run: echo "::warning title=Manipulation-cost evidence deferred::The collector could not persist optional evidence. Raw capture remains durable; retry after restoring Supabase write availability."
 
       # Prediction-market settlement evidence (Gamma watch → Kraken candles →
       # signed packs). Kraken is the only rights-cleared collection venue; the
