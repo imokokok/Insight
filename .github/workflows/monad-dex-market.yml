@@ -33,6 +33,8 @@ env:
   SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
   SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
   TURSO_DEX_MARKET_MODE: ${{ vars.TURSO_DEX_MARKET_MODE || 'supabase' }}
+  TURSO_OPS_DATABASE_URL: libsql://insight-imokokok.aws-ap-southeast-1.turso.io
+  TURSO_OPS_AUTH_TOKEN: ${{ secrets.TURSO_PRICE_AUTH_TOKEN }}
   CRON_WORKFLOW: monad-dex-market.yml
   CRON_DISPATCH_ID: ${{ inputs.dispatch_id || '' }}
   CRON_SCHEDULED_FOR: ${{ inputs.scheduled_for || '' }}
