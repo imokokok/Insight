@@ -44,15 +44,23 @@ export interface TursoCoverageSample {
 /** Idempotent enrollment, mirroring `onConflict: 'id', ignoreDuplicates`. */
 export async function enrollTursoCoverageTarget(
   client: Client,
-  target: TursoCoverageTarget
+  target: TursoCoverageTarget,
+  enrolledAt: string = new Date().toISOString()
 ): Promise<void> {
   await client.execute({
     sql: `
-      INSERT INTO coverage_slo_targets (id, asset, chain_id, policy_id, objective_bps)
-      VALUES (?, ?, ?, ?, ?)
+      INSERT INTO coverage_slo_targets (id, asset, chain_id, policy_id, objective_bps, enrolled_at)
+      VALUES (?, ?, ?, ?, ?, ?)
       ON CONFLICT (id) DO NOTHING
     `,
-    args: [target.id, target.asset, target.chainId, target.policyId, target.objectiveBps],
+    args: [
+      target.id,
+      target.asset,
+      target.chainId,
+      target.policyId,
+      target.objectiveBps,
+      enrolledAt,
+    ],
   });
 }
 
@@ -113,4 +121,112 @@ export async function trimTursoCoverageSamples(
     args: [cutoff],
   });
   return Number(result.rowsAffected ?? 0);
+}
+
+export interface TursoCoverageSummaryRow {
+  id: string;
+  asset: string;
+  chain_id: number;
+  policy_id: string;
+  objective_bps: number;
+  expected: number;
+  observed: number;
+  data_ready: number;
+  signed_ready: number;
+  unavailable: number;
+  missing: number;
+  latest: {
+    slot: number;
+    status: string;
+    signedReady: boolean;
+    reasons: string[];
+    providers: unknown;
+  } | null;
+}
+
+const SUPPORTED_WINDOWS = [24, 168, 672] as const;
+
+/**
+ * JS port of the coverage_slo_summary Postgres RPC (migration 0056): per
+ * target, aggregate the samples inside the slot window
+ * [max(enrolled_slot, end_slot - window), end_slot) and attach the newest
+ * sample. The repository does not filter by policy — callers do that.
+ */
+export async function readTursoCoverageSummary(
+  client: Client,
+  windowHours: 24 | 168 | 672,
+  now: Date = new Date()
+): Promise<TursoCoverageSummaryRow[]> {
+  if (!SUPPORTED_WINDOWS.includes(windowHours)) {
+    throw new Error('Unsupported SLO window');
+  }
+  const endSlot = Math.floor(now.getTime() / 900_000) * 900;
+  const targets = await client.execute(
+    `SELECT id, asset, chain_id, policy_id, objective_bps, enrolled_at
+     FROM coverage_slo_targets ORDER BY asset, chain_id, policy_id`
+  );
+
+  const rows: TursoCoverageSummaryRow[] = [];
+  for (const target of targets.rows) {
+    const enrolledSlot = Math.ceil(Date.parse(String(target.enrolled_at)) / 900_000) * 900;
+    const startSlot = Math.max(enrolledSlot, endSlot - windowHours * 3600);
+    const samples = await client.execute({
+      sql: `SELECT slot, status, signed_ready, reasons, proof
+            FROM coverage_slo_samples
+            WHERE target_id = ? AND slot >= ? AND slot < ?
+            ORDER BY slot ASC`,
+      args: [String(target.id), startSlot, endSlot],
+    });
+
+    let dataReady = 0;
+    let signedReady = 0;
+    let unavailable = 0;
+    let latest: TursoCoverageSummaryRow['latest'] = null;
+    for (const sample of samples.rows) {
+      const status = String(sample.status);
+      if (status === 'PASS') dataReady++;
+      if (Number(sample.signed_ready) === 1) signedReady++;
+      if (status === 'UNAVAILABLE') unavailable++;
+      const proof =
+        sample.proof === null || sample.proof === undefined
+          ? null
+          : (JSON.parse(String(sample.proof)) as Record<string, unknown>);
+      const providers =
+        proof !== null &&
+        typeof proof === 'object' &&
+        'report' in proof &&
+        typeof proof.report === 'object' &&
+        proof.report !== null &&
+        'evaluation' in proof.report &&
+        typeof (proof.report as Record<string, unknown>).evaluation === 'object'
+          ? ((proof.report as Record<string, unknown>).evaluation as Record<string, unknown>)
+              .providers
+          : undefined;
+      latest = {
+        slot: Number(sample.slot),
+        status,
+        signedReady: Number(sample.signed_ready) === 1,
+        reasons: JSON.parse(String(sample.reasons)) as string[],
+        providers,
+      };
+    }
+
+    const expected = Math.max(0, Math.floor((endSlot - startSlot) / 900));
+    const observed = samples.rows.length;
+    rows.push({
+      id: String(target.id),
+      asset: String(target.asset),
+      chain_id: Number(target.chain_id),
+      policy_id: String(target.policy_id),
+      objective_bps: Number(target.objective_bps),
+      expected,
+      observed,
+      data_ready: dataReady,
+      signed_ready: signedReady,
+      unavailable,
+      missing: Math.max(0, expected - observed),
+      latest,
+    });
+  }
+  return rows;
 }
