@@ -455,6 +455,37 @@ const MONAD_LENDING: ReviewedProfileDescriptor[] = [
 ];
 
 // ---------------------------------------------------------------------------
+// lending · HyperEVM (chainId 999)
+// src/lib/lending/hyperEvmLendingAction.ts:65 / hyperEvmLendingProtocols.ts
+// ---------------------------------------------------------------------------
+const HYPEREVM_LENDING: ReviewedProfileDescriptor[] = [
+  {
+    profileId: 'hyperlend-core-hyperevm',
+    family: 'lending',
+    chainId: 999,
+    reviewedAt: REVIEW_DATE,
+    evidenceRefs: [
+      ev(
+        'src/lib/lending/hyperEvmLendingAction.ts:65',
+        'official',
+        'HyperEvmLendingProtocolIdSchema'
+      ),
+      ev('src/lib/lending/hyperEvmLendingProtocols.ts:16', 'official', 'HYPERLEND_CORE_POOL'),
+      ev('src/lib/lending/hyperEvmLendingProtocols.ts:37', 'official', 'HYPERLEND_CORE_ASSETS'),
+    ],
+    chainAnchor: {
+      pool: '0x00a89d7a5a02160f20150ebea7a2b5e4879a1a8b',
+      activitySignal: unknownSignal(),
+    },
+    lastHeartbeatAt: null,
+    status: 'ACTIVE',
+    activityStatus: 'UNKNOWN',
+    notes:
+      'HyperLend Core (Aave V3 fork) Pool on HyperEVM chain 999; pool/addresses-provider/UiPoolDataProvider live-verified 2026-11-10 via RPC getBytecode + getReservesList. Reviewed assets: WHYPE, WSTHYPE, UBTC, UETH, USDe, sUSDe, USDT0, KHYPE, USDC.',
+  },
+];
+
+// ---------------------------------------------------------------------------
 // lending · Solana
 // src/lib/lending/solanaLendingAction.ts:12-20,144-150
 // ---------------------------------------------------------------------------
@@ -901,6 +932,7 @@ const PROFILES: ReviewedProfileDescriptor[] = [
   ...BASE_LENDING,
   ...MULTICHAIN_EVM_LENDING,
   ...MONAD_LENDING,
+  ...HYPEREVM_LENDING,
   ...SOLANA_LENDING,
   ...EVM_SWAP,
   ...SOLANA_ORCA_SWAP,
