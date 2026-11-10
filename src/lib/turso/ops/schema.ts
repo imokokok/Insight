@@ -10,6 +10,11 @@
 //   Postgres view with percentile_cont(0.5) is NOT ported (SQLite has no
 //   ordered-set aggregate); hourly aggregates are computed on read by the
 //   repository instead (see marketReferenceRepository.readHourlyAggregates).
+// House typing convention (cf. price/schema.ts): type against the node
+// entry's Client — the web client used at runtime is structurally compatible,
+// and tests use the node client against file::memory: databases.
+import type { Client } from '@libsql/client';
+
 export const TURSO_OPS_SCHEMA_VERSION = 1;
 
 const MARKET_REFERENCE_SNAPSHOTS_DDL = [
@@ -63,13 +68,11 @@ export function tursoOpsMigrations(): readonly string[] {
 }
 
 /** True when every statement is already reflected in the live schema. */
-export async function isTursoOpsSchemaCurrent(client: {
-  execute: (sql: string) => Promise<unknown>;
-}): Promise<boolean> {
+export async function isTursoOpsSchemaCurrent(client: Client): Promise<boolean> {
   try {
-    const result = (await client.execute(
+    const result = await client.execute(
       `SELECT value FROM ops_schema_meta WHERE key = 'schema_version'`
-    )) as { rows: Array<{ value?: unknown }> };
+    );
     return Number(result.rows[0]?.value) === TURSO_OPS_SCHEMA_VERSION;
   } catch {
     return false;
@@ -81,10 +84,7 @@ export async function isTursoOpsSchemaCurrent(client: {
  * version read short-circuits convergent databases, and DDL only runs when
  * the meta table is missing or behind.
  */
-export async function ensureTursoOpsSchema(client: {
-  execute: (sql: string) => Promise<unknown>;
-  batch?: (stmts: unknown[]) => Promise<unknown>;
-}): Promise<void> {
+export async function ensureTursoOpsSchema(client: Client): Promise<void> {
   let current = false;
   try {
     current = await isTursoOpsSchemaCurrent(client);
