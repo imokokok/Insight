@@ -106,6 +106,37 @@ export async function insertTursoCoverageSample(
   await client.batch(statements, 'write');
 }
 
+export interface TursoCoverageAlertHistoryRow {
+  target_id: string;
+  slot: number;
+  status: string;
+  signed_ready: number;
+}
+
+/** Window history for alert state-change detection (previous 3 slots). */
+export async function readTursoCoverageAlertHistory(
+  client: Client,
+  targetIds: readonly string[],
+  fromSlot: number,
+  toSlotExclusive: number
+): Promise<TursoCoverageAlertHistoryRow[]> {
+  if (targetIds.length === 0) return [];
+  const placeholders = targetIds.map(() => '?').join(', ');
+  const result = await client.execute({
+    sql: `SELECT target_id, slot, status, signed_ready
+          FROM coverage_slo_samples
+          WHERE target_id IN (${placeholders}) AND slot >= ? AND slot < ?
+          ORDER BY target_id, slot`,
+    args: [...targetIds, fromSlot, toSlotExclusive],
+  });
+  return result.rows.map((row) => ({
+    target_id: String(row.target_id),
+    slot: Number(row.slot),
+    status: String(row.status),
+    signed_ready: Number(row.signed_ready),
+  }));
+}
+
 /** Retention trim (90-day window, migration 0138). Best-effort per run. */
 export async function trimTursoCoverageSamples(
   client: Client,
