@@ -15,7 +15,7 @@
 // and tests use the node client against file::memory: databases.
 import type { Client } from '@libsql/client';
 
-export const TURSO_OPS_SCHEMA_VERSION = 2;
+export const TURSO_OPS_SCHEMA_VERSION = 4;
 
 const MARKET_REFERENCE_SNAPSHOTS_DDL = [
   `CREATE TABLE IF NOT EXISTS market_reference_snapshots (
@@ -102,6 +102,69 @@ const PRICE_SLOT_PROJECTION_RUNS_DDL = [
   )`,
 ];
 
+// Manipulation-cost domain (egress retirement v3). Mirrors Supabase
+// public.manip_cost_pool_snapshots (migration 0082): one row per
+// (snapshot_ts, pool_key), 365-day retention. JSON columns (pool_state,
+// cost_curve) are stored as TEXT — the repository stringifies on write and
+// parses on read.
+const MANIP_COST_POOL_SNAPSHOTS_DDL = [
+  `CREATE TABLE IF NOT EXISTS manip_cost_pool_snapshots (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    snapshot_ts TEXT NOT NULL,
+    pool_key TEXT NOT NULL,
+    chain TEXT NOT NULL,
+    pool_addr TEXT NOT NULL,
+    dex TEXT NOT NULL,
+    fee_tier TEXT,
+    block_number INTEGER,
+    mid_price REAL,
+    tvl_usd REAL,
+    eth_usd_mid REAL,
+    pool_state TEXT,
+    cost_curve TEXT,
+    is_success INTEGER NOT NULL CHECK (is_success IN (0, 1)),
+    error_message TEXT,
+    collector_version TEXT,
+    CONSTRAINT manip_cost_pool_snapshots_unique
+      UNIQUE (snapshot_ts, pool_key)
+  )`,
+  `CREATE INDEX IF NOT EXISTS manip_cost_pool_snapshots_ts_idx
+     ON manip_cost_pool_snapshots (snapshot_ts DESC)`,
+  // 365-day retention support (collector trims past-window rows per run).
+  `CREATE INDEX IF NOT EXISTS manip_cost_pool_snapshots_retention_idx
+     ON manip_cost_pool_snapshots (snapshot_ts)`,
+];
+
+// Coverage-SLO domain (egress retirement v4). Mirrors Supabase
+// public.coverage_slo_targets (enrollment baseline) and
+// public.coverage_slo_samples (one row per (target_id, slot), slot = 15-min
+// grid). reasons/proof are JSON payloads stored as TEXT.
+const COVERAGE_SLO_DDL = [
+  `CREATE TABLE IF NOT EXISTS coverage_slo_targets (
+    id TEXT PRIMARY KEY,
+    asset TEXT NOT NULL,
+    chain_id INTEGER NOT NULL,
+    policy_id TEXT NOT NULL,
+    objective_bps INTEGER NOT NULL
+  )`,
+  `CREATE TABLE IF NOT EXISTS coverage_slo_samples (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    target_id TEXT NOT NULL,
+    slot INTEGER NOT NULL,
+    status TEXT NOT NULL,
+    signed_ready INTEGER NOT NULL CHECK (signed_ready IN (0, 1)),
+    reasons TEXT NOT NULL,
+    proof TEXT,
+    recorded_at TEXT NOT NULL,
+    CONSTRAINT coverage_slo_samples_unique UNIQUE (target_id, slot)
+  )`,
+  `CREATE INDEX IF NOT EXISTS coverage_slo_samples_target_slot_idx
+     ON coverage_slo_samples (target_id, slot DESC)`,
+  // 90-day retention support (migration 0138, keyed on recorded_at).
+  `CREATE INDEX IF NOT EXISTS coverage_slo_samples_retention_idx
+     ON coverage_slo_samples (recorded_at)`,
+];
+
 const OPS_SCHEMA_META_DDL = [
   `CREATE TABLE IF NOT EXISTS ops_schema_meta (
     key TEXT PRIMARY KEY,
@@ -114,6 +177,8 @@ const ALL_DDL: string[] = [
   ...MARKET_REFERENCE_SNAPSHOTS_DDL,
   ...HOURLY_PRICE_SNAPSHOTS_DDL,
   ...PRICE_SLOT_PROJECTION_RUNS_DDL,
+  ...MANIP_COST_POOL_SNAPSHOTS_DDL,
+  ...COVERAGE_SLO_DDL,
 ];
 
 export function tursoOpsMigrations(): readonly string[] {

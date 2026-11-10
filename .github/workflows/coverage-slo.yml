@@ -22,6 +22,12 @@ concurrency:
 env:
   SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
   SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+  # Coverage-SLO egress retirement (2026-11): writes land in the Turso ops
+  # data plane; reuses the price database credentials below via
+  # TURSO_PRICE_DATABASE_URL/TURSO_PRICE_AUTH_TOKEN.
+  TURSO_COVERAGE_SLO_MODE: ${{ vars.TURSO_COVERAGE_SLO_MODE || 'supabase' }}
+  TURSO_PRICE_DATABASE_URL: libsql://insight-imokokok.aws-ap-southeast-1.turso.io
+  TURSO_PRICE_AUTH_TOKEN: ${{ secrets.TURSO_PRICE_AUTH_TOKEN }}
   CRON_WORKFLOW: coverage-slo.yml
   CRON_DISPATCH_ID: ${{ inputs.dispatch_id || '' }}
   CRON_SCHEDULED_FOR: ${{ inputs.scheduled_for || '' }}
