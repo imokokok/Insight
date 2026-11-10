@@ -43,6 +43,7 @@ permissions:
 env:
   SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
   SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+  TURSO_FEED_HEALTH_MODE: ${{ vars.TURSO_FEED_HEALTH_MODE || 'supabase' }}
   # Pyth Core and Stork Monad reads use this ahead of public RPC fallbacks.
   ALCHEMY_MONAD_RPC: ${{ secrets.ALCHEMY_MONAD_RPC }}
   CRON_WORKFLOW: oracle-watch-collect.yml

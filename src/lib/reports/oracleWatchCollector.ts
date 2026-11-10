@@ -3,6 +3,10 @@ import {
   type OracleWatchResult,
 } from '@/lib/api/services/oracleWatchService';
 import { createServiceRoleClient } from '@/lib/supabase/server';
+import {
+  appendFeedHealthSnapshotsOnTurso,
+  readTursoFeedHealthMode,
+} from '@/lib/turso/ops/feedHealthRepository';
 import { mapWithConcurrency } from '@/lib/utils/concurrency';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -121,6 +125,36 @@ export async function collectOracleWatchSnapshots(
     .filter((s): s is OracleWatchResult => s !== null)
     .map((s) => buildFeedHealthSnapshotRow(s));
   if (rows.length === 0) return { collected: 0 };
+
+  if (readTursoFeedHealthMode() === 'turso') {
+    // Egress-retired end state: the Oracle Watch spine appends to the Turso
+    // ops data plane, so Supabase egress never gates the 30-min cadence.
+    const written = await appendFeedHealthSnapshotsOnTurso(
+      rows.map((row) => ({
+        symbol: row.symbol,
+        chain: row.chain,
+        evaluatedAt: row.evaluated_at,
+        verdict: row.verdict,
+        recommendation: row.recommendation,
+        reason: row.reason,
+        maxDeviationPct: row.max_deviation_pct,
+        agreement: row.agreement,
+        participantCount: row.participant_count,
+        outlierCount: row.outlier_count,
+        staleCount: row.stale_count,
+        consensusPrice: row.consensus_price,
+        mlRiskScore: row.ml_risk_score,
+        mlRiskLevel: row.ml_risk_level,
+        avgReputation: row.avg_reputation,
+        minReputation: row.min_reputation,
+        quorumSatisfied: row.quorum_satisfied,
+        trustScore: row.trust_score,
+        trustLevel: row.trust_level,
+      }))
+    );
+    logger.info(`Oracle Watch collected ${written} snapshots (turso)`);
+    return { collected: written };
+  }
 
   const supabase = createServiceRoleClient();
   const { error } = await supabase.from('feed_health_snapshots').insert(rows);
