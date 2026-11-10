@@ -168,7 +168,10 @@ export async function readTursoCoverageSummary(
 
   const rows: TursoCoverageSummaryRow[] = [];
   for (const target of targets.rows) {
-    const enrolledSlot = Math.ceil(Date.parse(String(target.enrolled_at)) / 900_000) * 900;
+    const enrolledMs = Date.parse(String(target.enrolled_at ?? ''));
+    // Rows enrolled before the v5 column existed carry an empty string; treat
+    // them as enrolled at the epoch so the full window is evaluated.
+    const enrolledSlot = Number.isFinite(enrolledMs) ? Math.ceil(enrolledMs / 900_000) * 900 : 0;
     const startSlot = Math.max(enrolledSlot, endSlot - windowHours * 3600);
     const samples = await client.execute({
       sql: `SELECT slot, status, signed_ready, reasons, proof
