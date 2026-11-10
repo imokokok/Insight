@@ -5,6 +5,12 @@ import { z } from 'zod';
 import type { HourlySnapshotInput } from '@/lib/reports/reportService';
 import { retryIdempotentSupabaseWrite } from '@/lib/supabase/idempotentWrite';
 import { createServiceRoleClient } from '@/lib/supabase/server';
+import { getTursoOpsClient } from '@/lib/turso/ops/client';
+import {
+  readTursoPriceProjectionMode,
+  writeProjectedTursoPriceSlot,
+} from '@/lib/turso/ops/hourlyPriceProjectionRepository';
+import { ensureTursoOpsSchema } from '@/lib/turso/ops/schema';
 import {
   getTursoPriceClient,
   readTursoPriceConfig,
@@ -72,7 +78,7 @@ const adaptiveSnapshotSummarySchema = z
   .strict();
 
 type AdaptiveSnapshotRow = z.infer<typeof adaptiveSnapshotRowSchema>;
-type HourlySnapshotRow = z.infer<typeof hourlySnapshotRowSchema>;
+export type HourlySnapshotRow = z.infer<typeof hourlySnapshotRowSchema>;
 export type AdaptiveSnapshotPersistenceSummary = z.infer<typeof adaptiveSnapshotSummarySchema>;
 
 const snapshotSlotCommitSummarySchema = z
@@ -415,6 +421,21 @@ async function projectTursoPriceSlot(
   rawDigest: string
 ): Promise<{ hourlyWritten: number; replayed: boolean }> {
   const { partitionKey } = readTursoPriceConfig();
+  if (readTursoPriceProjectionMode() === 'turso') {
+    // Egress-retired end state: the delivery ledger and business hourly rows
+    // land in Turso's ops data plane, so Supabase egress never gates the
+    // projection pipeline. Ops schema must exist before the first delivery.
+    // The ops client is cached by the factory; never close it here.
+    const opsClient = getTursoOpsClient();
+    await ensureTursoOpsSchema(opsClient);
+    return await writeProjectedTursoPriceSlot(opsClient, {
+      hourlyRows,
+      snapshotTs,
+      inputHash,
+      partitionKey,
+      rawDigest,
+    });
+  }
   const supabase = createServiceRoleClient();
   return retryIdempotentSupabaseWrite(async () => {
     const { data, error } = await supabase.rpc('project_turso_price_slot', {

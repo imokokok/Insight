@@ -15,7 +15,7 @@
 // and tests use the node client against file::memory: databases.
 import type { Client } from '@libsql/client';
 
-export const TURSO_OPS_SCHEMA_VERSION = 1;
+export const TURSO_OPS_SCHEMA_VERSION = 2;
 
 const MARKET_REFERENCE_SNAPSHOTS_DDL = [
   `CREATE TABLE IF NOT EXISTS market_reference_snapshots (
@@ -54,6 +54,54 @@ const MARKET_REFERENCE_SNAPSHOTS_DDL = [
      ON market_reference_snapshots (snapshot_ts)`,
 ];
 
+// Projection target for the Turso price-slot outbox (egress retirement v2).
+// Mirrors Supabase public.hourly_price_snapshots: the independent projector
+// (turso-price-project.yml) used to deliver business hourly rows back to
+// Supabase via project_turso_price_slot; under TURSO_PRICE_PROJECTION_MODE=turso
+// it lands here instead. Unique key matches the Postgres table.
+const HOURLY_PRICE_SNAPSHOTS_DDL = [
+  `CREATE TABLE IF NOT EXISTS hourly_price_snapshots (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    provider TEXT NOT NULL,
+    symbol TEXT NOT NULL,
+    chain_id INTEGER NOT NULL,
+    price REAL NOT NULL,
+    consensus_price REAL,
+    deviation_pct REAL,
+    latency_ms INTEGER,
+    data_age_seconds INTEGER,
+    confidence REAL,
+    is_success INTEGER NOT NULL CHECK (is_success IN (0, 1)),
+    error_message TEXT,
+    snapshot_hour TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    CONSTRAINT hourly_price_snapshots_unique
+      UNIQUE (provider, symbol, chain_id, snapshot_hour)
+  )`,
+  `CREATE INDEX IF NOT EXISTS hourly_price_snapshots_symbol_hour_idx
+     ON hourly_price_snapshots (symbol, snapshot_hour DESC)`,
+  `CREATE INDEX IF NOT EXISTS hourly_price_snapshots_hour_idx
+     ON hourly_price_snapshots (snapshot_hour DESC)`,
+  // 120-day retention window (matches Supabase hourly retention).
+  `CREATE INDEX IF NOT EXISTS hourly_price_snapshots_retention_idx
+     ON hourly_price_snapshots (snapshot_hour)`,
+];
+
+// Delivery ledger for projected slots (audit + replay detection). One row per
+// (slot_ms, input_hash); re-projection of the same immutable payload is
+// idempotent and flips the replayed flag on the response.
+const PRICE_SLOT_PROJECTION_RUNS_DDL = [
+  `CREATE TABLE IF NOT EXISTS price_slot_projection_runs (
+    slot_ms INTEGER NOT NULL,
+    input_hash TEXT NOT NULL,
+    raw_digest TEXT NOT NULL,
+    partition_key TEXT NOT NULL,
+    hourly_written INTEGER NOT NULL,
+    projected_at TEXT NOT NULL,
+    PRIMARY KEY (slot_ms, input_hash)
+  )`,
+];
+
 const OPS_SCHEMA_META_DDL = [
   `CREATE TABLE IF NOT EXISTS ops_schema_meta (
     key TEXT PRIMARY KEY,
@@ -61,7 +109,12 @@ const OPS_SCHEMA_META_DDL = [
   )`,
 ];
 
-const ALL_DDL: string[] = [...OPS_SCHEMA_META_DDL, ...MARKET_REFERENCE_SNAPSHOTS_DDL];
+const ALL_DDL: string[] = [
+  ...OPS_SCHEMA_META_DDL,
+  ...MARKET_REFERENCE_SNAPSHOTS_DDL,
+  ...HOURLY_PRICE_SNAPSHOTS_DDL,
+  ...PRICE_SLOT_PROJECTION_RUNS_DDL,
+];
 
 export function tursoOpsMigrations(): readonly string[] {
   return ALL_DDL;
