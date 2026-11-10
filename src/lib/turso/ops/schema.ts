@@ -15,7 +15,7 @@
 // and tests use the node client against file::memory: databases.
 import type { Client } from '@libsql/client';
 
-export const TURSO_OPS_SCHEMA_VERSION = 3;
+export const TURSO_OPS_SCHEMA_VERSION = 4;
 
 const MARKET_REFERENCE_SNAPSHOTS_DDL = [
   `CREATE TABLE IF NOT EXISTS market_reference_snapshots (
@@ -135,6 +135,36 @@ const MANIP_COST_POOL_SNAPSHOTS_DDL = [
      ON manip_cost_pool_snapshots (snapshot_ts)`,
 ];
 
+// Coverage-SLO domain (egress retirement v4). Mirrors Supabase
+// public.coverage_slo_targets (enrollment baseline) and
+// public.coverage_slo_samples (one row per (target_id, slot), slot = 15-min
+// grid). reasons/proof are JSON payloads stored as TEXT.
+const COVERAGE_SLO_DDL = [
+  `CREATE TABLE IF NOT EXISTS coverage_slo_targets (
+    id TEXT PRIMARY KEY,
+    asset TEXT NOT NULL,
+    chain_id INTEGER NOT NULL,
+    policy_id TEXT NOT NULL,
+    objective_bps INTEGER NOT NULL
+  )`,
+  `CREATE TABLE IF NOT EXISTS coverage_slo_samples (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    target_id TEXT NOT NULL,
+    slot INTEGER NOT NULL,
+    status TEXT NOT NULL,
+    signed_ready INTEGER NOT NULL CHECK (signed_ready IN (0, 1)),
+    reasons TEXT NOT NULL,
+    proof TEXT,
+    recorded_at TEXT NOT NULL,
+    CONSTRAINT coverage_slo_samples_unique UNIQUE (target_id, slot)
+  )`,
+  `CREATE INDEX IF NOT EXISTS coverage_slo_samples_target_slot_idx
+     ON coverage_slo_samples (target_id, slot DESC)`,
+  // 90-day retention support (migration 0138, keyed on recorded_at).
+  `CREATE INDEX IF NOT EXISTS coverage_slo_samples_retention_idx
+     ON coverage_slo_samples (recorded_at)`,
+];
+
 const OPS_SCHEMA_META_DDL = [
   `CREATE TABLE IF NOT EXISTS ops_schema_meta (
     key TEXT PRIMARY KEY,
@@ -148,6 +178,7 @@ const ALL_DDL: string[] = [
   ...HOURLY_PRICE_SNAPSHOTS_DDL,
   ...PRICE_SLOT_PROJECTION_RUNS_DDL,
   ...MANIP_COST_POOL_SNAPSHOTS_DDL,
+  ...COVERAGE_SLO_DDL,
 ];
 
 export function tursoOpsMigrations(): readonly string[] {

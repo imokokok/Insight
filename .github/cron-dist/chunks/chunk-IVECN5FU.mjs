@@ -75,9 +75,27 @@ import{createClient}from"./chunk-HP6HVOT3.mjs";function readTursoOpsConfig(env=p
       UNIQUE (snapshot_ts, pool_key)
   )`,`CREATE INDEX IF NOT EXISTS manip_cost_pool_snapshots_ts_idx
      ON manip_cost_pool_snapshots (snapshot_ts DESC)`,`CREATE INDEX IF NOT EXISTS manip_cost_pool_snapshots_retention_idx
-     ON manip_cost_pool_snapshots (snapshot_ts)`],OPS_SCHEMA_META_DDL=[`CREATE TABLE IF NOT EXISTS ops_schema_meta (
+     ON manip_cost_pool_snapshots (snapshot_ts)`],COVERAGE_SLO_DDL=[`CREATE TABLE IF NOT EXISTS coverage_slo_targets (
+    id TEXT PRIMARY KEY,
+    asset TEXT NOT NULL,
+    chain_id INTEGER NOT NULL,
+    policy_id TEXT NOT NULL,
+    objective_bps INTEGER NOT NULL
+  )`,`CREATE TABLE IF NOT EXISTS coverage_slo_samples (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    target_id TEXT NOT NULL,
+    slot INTEGER NOT NULL,
+    status TEXT NOT NULL,
+    signed_ready INTEGER NOT NULL CHECK (signed_ready IN (0, 1)),
+    reasons TEXT NOT NULL,
+    proof TEXT,
+    recorded_at TEXT NOT NULL,
+    CONSTRAINT coverage_slo_samples_unique UNIQUE (target_id, slot)
+  )`,`CREATE INDEX IF NOT EXISTS coverage_slo_samples_target_slot_idx
+     ON coverage_slo_samples (target_id, slot DESC)`,`CREATE INDEX IF NOT EXISTS coverage_slo_samples_retention_idx
+     ON coverage_slo_samples (recorded_at)`],OPS_SCHEMA_META_DDL=[`CREATE TABLE IF NOT EXISTS ops_schema_meta (
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL
-  )`],ALL_DDL=[...OPS_SCHEMA_META_DDL,...MARKET_REFERENCE_SNAPSHOTS_DDL,...HOURLY_PRICE_SNAPSHOTS_DDL,...PRICE_SLOT_PROJECTION_RUNS_DDL,...MANIP_COST_POOL_SNAPSHOTS_DDL];async function isTursoOpsSchemaCurrent(client){try{let result=await client.execute("SELECT value FROM ops_schema_meta WHERE key = 'schema_version'");return Number(result.rows[0]?.value)===3}catch{return!1}}async function ensureTursoOpsSchema(client){let current=!1;try{current=await isTursoOpsSchemaCurrent(client)}catch{current=!1}if(!current){for(let ddl of ALL_DDL)await client.execute(ddl);await client.execute(`INSERT INTO ops_schema_meta (key, value)
-     VALUES ('schema_version', '3')
+  )`],ALL_DDL=[...OPS_SCHEMA_META_DDL,...MARKET_REFERENCE_SNAPSHOTS_DDL,...HOURLY_PRICE_SNAPSHOTS_DDL,...PRICE_SLOT_PROJECTION_RUNS_DDL,...MANIP_COST_POOL_SNAPSHOTS_DDL,...COVERAGE_SLO_DDL];async function isTursoOpsSchemaCurrent(client){try{let result=await client.execute("SELECT value FROM ops_schema_meta WHERE key = 'schema_version'");return Number(result.rows[0]?.value)===4}catch{return!1}}async function ensureTursoOpsSchema(client){let current=!1;try{current=await isTursoOpsSchemaCurrent(client)}catch{current=!1}if(!current){for(let ddl of ALL_DDL)await client.execute(ddl);await client.execute(`INSERT INTO ops_schema_meta (key, value)
+     VALUES ('schema_version', '4')
      ON CONFLICT(key) DO UPDATE SET value = excluded.value`)}}export{getTursoOpsClient,ensureTursoOpsSchema};

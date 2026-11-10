@@ -1,4 +1,13 @@
 import { createServiceRoleClient } from '@/lib/supabase/server';
+import { getTursoOpsClient } from '@/lib/turso/ops/client';
+import {
+  enrollTursoCoverageTarget,
+  hasTursoCoverageSample,
+  insertTursoCoverageSample,
+  readTursoCoverageSloMode,
+  trimTursoCoverageSamples,
+} from '@/lib/turso/ops/coverageSloRepository';
+import { ensureTursoOpsSchema } from '@/lib/turso/ops/schema';
 import { throwIfAborted } from '@/lib/utils/requestDeadline';
 
 import { assessCoverage, COVERAGE_POLICY_ID } from './service';
@@ -10,6 +19,8 @@ const COVERAGE_DB_TIMEOUT_MS = 20_000;
 // Five targets run sequentially. Keep each probe bounded so one degraded
 // oracle quorum cannot consume the route's entire platform allowance.
 const COVERAGE_TARGET_TIMEOUT_MS = 45_000;
+// Turso retention window (mirrors migration 0138's 90-day cleanup).
+const COVERAGE_SAMPLE_RETENTION_DAYS = 90;
 
 function combineSignals(signal: AbortSignal | undefined, timeoutMs: number): AbortSignal {
   const timeout = AbortSignal.timeout(timeoutMs);
@@ -30,38 +41,70 @@ export const COVERAGE_TARGETS = [
 ] as const;
 
 export async function collectCoverageSlo(options: { signal?: AbortSignal } = {}) {
-  const db = createServiceRoleClient();
+  // Egress retirement (2026-11): under TURSO_COVERAGE_SLO_MODE=turso the
+  // enrollment/dedupe/persist calls land in the Turso ops data plane, so the
+  // 15-minute cadence no longer touches Supabase. Read-side summaries
+  // (coverage_slo_summary) remain on Supabase until the read cutover.
+  const tursoMode = readTursoCoverageSloMode() === 'turso';
+  const tursoDb = tursoMode ? getTursoOpsClient() : null;
+  if (tursoDb) {
+    await ensureTursoOpsSchema(tursoDb);
+    // Retention trim is best-effort: a failure only drifts the window.
+    try {
+      await trimTursoCoverageSamples(tursoDb, COVERAGE_SAMPLE_RETENTION_DAYS);
+    } catch {
+      /* tolerate */
+    }
+  }
+  const supabaseDb = tursoMode ? null : createServiceRoleClient();
   const results: { asset: string; chainId: number; slot: number; status: string }[] = [];
   for (const target of COVERAGE_TARGETS) {
     throwIfAborted(options.signal);
     const id = `${target.asset}:${target.chainId}:${COVERAGE_POLICY_ID}`;
     const databaseSignal = databaseDeadline(options.signal);
-    const enrollment = await db
-      .from('coverage_slo_targets')
-      .upsert(
-        {
-          id,
-          asset: target.asset,
-          chain_id: target.chainId,
-          policy_id: COVERAGE_POLICY_ID,
-          objective_bps: 9900,
-        },
-        { onConflict: 'id', ignoreDuplicates: true }
-      )
-      .abortSignal(databaseSignal);
-    if (enrollment.error) throw new Error('COVERAGE_SLO_ENROLLMENT_FAILED');
+    if (tursoDb) {
+      await enrollTursoCoverageTarget(tursoDb, {
+        id,
+        asset: target.asset,
+        chainId: target.chainId,
+        policyId: COVERAGE_POLICY_ID,
+        objectiveBps: 9900,
+      });
+    } else {
+      const enrollment = await supabaseDb!
+        .from('coverage_slo_targets')
+        .upsert(
+          {
+            id,
+            asset: target.asset,
+            chain_id: target.chainId,
+            policy_id: COVERAGE_POLICY_ID,
+            objective_bps: 9900,
+          },
+          { onConflict: 'id', ignoreDuplicates: true }
+        )
+        .abortSignal(databaseSignal);
+      if (enrollment.error) throw new Error('COVERAGE_SLO_ENROLLMENT_FAILED');
+    }
     const slot = Math.floor(Date.now() / 900000) * 900;
-    const existing = await db
-      .from('coverage_slo_samples')
-      .select('slot')
-      .eq('target_id', id)
-      .eq('slot', slot)
-      .abortSignal(databaseSignal)
-      .maybeSingle();
-    if (existing.error) throw new Error('COVERAGE_SLO_READ_FAILED');
-    if (existing.data) {
-      results.push({ ...target, slot, status: 'ALREADY_RECORDED' });
-      continue;
+    if (tursoDb) {
+      if (await hasTursoCoverageSample(tursoDb, id, slot)) {
+        results.push({ ...target, slot, status: 'ALREADY_RECORDED' });
+        continue;
+      }
+    } else {
+      const existing = await supabaseDb!
+        .from('coverage_slo_samples')
+        .select('slot')
+        .eq('target_id', id)
+        .eq('slot', slot)
+        .abortSignal(databaseSignal)
+        .maybeSingle();
+      if (existing.error) throw new Error('COVERAGE_SLO_READ_FAILED');
+      if (existing.data) {
+        results.push({ ...target, slot, status: 'ALREADY_RECORDED' });
+        continue;
+      }
     }
     let proof = null;
     let status = 'UNAVAILABLE';
@@ -85,14 +128,26 @@ export async function collectCoverageSlo(options: { signal?: AbortSignal } = {})
       status === 'PASS' &&
       Boolean(proof?.signature) &&
       proof!.report.validUntil > Math.floor(Date.now() / 1000);
-    const saved = await db
-      .from('coverage_slo_samples')
-      .upsert(
-        { target_id: id, slot, status, signed_ready: signedReady, reasons, proof },
-        { onConflict: 'target_id,slot', ignoreDuplicates: true }
-      )
-      .abortSignal(combineSignals(options.signal, COVERAGE_DB_TIMEOUT_MS));
-    if (saved.error) throw new Error('COVERAGE_SLO_PERSISTENCE_FAILED');
+    if (tursoDb) {
+      await insertTursoCoverageSample(tursoDb, {
+        targetId: id,
+        slot,
+        status,
+        signedReady,
+        reasons,
+        proof,
+        recordedAt: new Date().toISOString(),
+      });
+    } else {
+      const saved = await supabaseDb!
+        .from('coverage_slo_samples')
+        .upsert(
+          { target_id: id, slot, status, signed_ready: signedReady, reasons, proof },
+          { onConflict: 'target_id,slot', ignoreDuplicates: true }
+        )
+        .abortSignal(combineSignals(options.signal, COVERAGE_DB_TIMEOUT_MS));
+      if (saved.error) throw new Error('COVERAGE_SLO_PERSISTENCE_FAILED');
+    }
     results.push({ ...target, slot, status });
   }
   return results;
