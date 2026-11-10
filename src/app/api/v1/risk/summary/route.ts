@@ -8,7 +8,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 import { z } from 'zod';
 
-import { createApiHandler, createOptionsHandler, V1_STANDARD_MIDDLEWARES } from '@/lib/api/handler';
+import { createApiHandler, createOptionsHandler } from '@/lib/api/handler';
 import { ApiResponseBuilder } from '@/lib/api/response';
 import { getRiskSummary, type RiskSummaryResponse } from '@/lib/api/services/riskSummaryService';
 import { CACHE_PRESETS } from '@/lib/api/utils';
@@ -17,6 +17,22 @@ import { SafeProviderSchema, SafeSymbolSchema } from '@/lib/security/validation'
 import { type OracleProvider } from '@/types/oracle';
 
 const MAX_PROVIDERS = 10;
+
+/**
+ * Public-tier limits for anonymous callers. The endpoint is deliberately open
+ * so external agents and integrators can discover the risk surface without an
+ * account; deeper reads (long history, many providers) keep the authenticated
+ * path so the free tier cannot become a free data-warehouse.
+ */
+const PUBLIC_TIER_MAX_PERIOD_HOURS = 168;
+const PUBLIC_TIER_MAX_PROVIDERS = 4;
+
+/** Presence of a credential header opts the caller into the full query space.
+ *  Validation of the credential itself is the auth middleware's job; this gate
+ *  only separates anonymous discovery from metered depth. */
+function hasApiCredential(request: NextRequest): boolean {
+  return Boolean(request.headers.get('x-api-key') ?? request.headers.get('authorization'));
+}
 
 const ProvidersListSchema = z
   .string()
@@ -50,8 +66,34 @@ const RiskSummaryQuerySchema = z.object({
 export const OPTIONS = createOptionsHandler();
 
 export const GET = createApiHandler(
-  async (_request: NextRequest, context) => {
+  async (request: NextRequest, context) => {
     const { symbol, providers, period } = context.validated!.query!;
+
+    // Public tier: anonymous callers get the default 7-day window and a
+    // compact provider set; deeper reads require a credential.
+    if (
+      !hasApiCredential(request) &&
+      (period > PUBLIC_TIER_MAX_PERIOD_HOURS || providers.length > PUBLIC_TIER_MAX_PROVIDERS)
+    ) {
+      return NextResponse.json(
+        ApiResponseBuilder.error(
+          'UNAUTHORIZED',
+          'Authentication required for deep risk summary queries',
+          {
+            details: {
+              publicTierLimits: {
+                periodHours: PUBLIC_TIER_MAX_PERIOD_HOURS,
+                providers: PUBLIC_TIER_MAX_PROVIDERS,
+              },
+              upgradeHint:
+                'Provide an API key (x-api-key header) for periods up to 8760h and up to 10 providers.',
+              requested: { periodHours: period, providers: providers.length },
+            },
+          }
+        ),
+        { status: 401 }
+      );
+    }
 
     try {
       const result: RiskSummaryResponse = await getRiskSummary(
@@ -60,8 +102,32 @@ export const GET = createApiHandler(
         period
       );
 
+      // Machine-readable funnel: a risk summary is context, not a verdict.
+      // Point agents at the paying surface (pre-trade verdict) and the
+      // re-verification surface (signed attestation schema) without implying
+      // that this response authorizes anything.
+      const dataWithNextActions = {
+        ...result,
+        nextActions: {
+          preTradeVerdict: {
+            method: 'GET',
+            template:
+              '/api/v1/safety/pre-trade?symbol={symbol}&chain={chain}&side={side}&notionalUsd={notionalUsd}',
+            prefilled: { symbol: encodeURIComponent(symbol) },
+            description:
+              'Signed pre-trade verdict for one trade on this input. BLOCK verdicts are complete checks and are charged (x402).',
+          },
+          attestationSchema: {
+            method: 'GET',
+            href: '/api/v1/safety/attestation/sample',
+            description:
+              'Signed attestation schema; third parties can re-verify a verdict offline.',
+          },
+        },
+      };
+
       const response = NextResponse.json(
-        ApiResponseBuilder.success(result, {
+        ApiResponseBuilder.success(dataWithNextActions, {
           requestId: context.requestId,
         })
       );
@@ -109,7 +175,12 @@ export const GET = createApiHandler(
     }
   },
   {
-    middlewares: V1_STANDARD_MIDDLEWARES,
+    middlewares: {
+      logging: true,
+      auth: { required: false },
+      rateLimit: { preset: 'moderate' },
+      cors: true,
+    },
     validation: { query: RiskSummaryQuerySchema },
   }
 );

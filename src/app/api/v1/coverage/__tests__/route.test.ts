@@ -46,14 +46,32 @@ it.each([
     .mockResolvedValue({ feeds: new Map(), errored: false });
   const query = new URLSearchParams({ asset: 'USDC', chainId: '1' });
   if (value) query.set('probe', value);
+  // Live probes are credential-gated under the public-tier contract; probe=false
+  // is registry-only and would work anonymously, but the key is harmless there.
   const response = await (
     GET as unknown as (request: NextRequest, context: unknown) => Promise<Response>
-  )(new NextRequest(`https://test/api/v1/coverage?${query}`), { requestId: 'test' });
+  )(
+    new NextRequest(`https://test/api/v1/coverage?${query}`, {
+      headers: { 'x-api-key': 'test-key' },
+    }),
+    { requestId: 'test' }
+  );
   expect(response.status).toBe(200);
   expect(getCoverageDiagnostic).toHaveBeenCalledWith(
     expect.objectContaining({ asset: 'USDC', chainId: 1, probe }),
     expect.any(Map)
   );
+});
+
+it('rejects anonymous live probes with 401 (public tier gate)', async () => {
+  const response = await (
+    GET as unknown as (request: NextRequest, context: unknown) => Promise<Response>
+  )(new NextRequest('https://test/api/v1/coverage?asset=USDC&chainId=1&probe=true'), {
+    requestId: 'test',
+  });
+  expect(response.status).toBe(401);
+  expect(getAllActiveFeedsByProviderWithStatus).not.toHaveBeenCalled();
+  expect(getCoverageDiagnostic).not.toHaveBeenCalled();
 });
 
 it('rejects an invalid HTTP probe before reading the registry', async () => {
@@ -72,9 +90,12 @@ it('keeps cross-chain evidence default-off', async () => {
     .mockResolvedValue({ feeds: new Map(), errored: false });
   const response = await (
     GET as unknown as (request: NextRequest, context: unknown) => Promise<Response>
-  )(new NextRequest('https://test/api/v1/coverage?asset=USDC&chainId=8453&probe=true'), {
-    requestId: 'test',
-  });
+  )(
+    new NextRequest('https://test/api/v1/coverage?asset=USDC&chainId=8453&probe=true', {
+      headers: { 'x-api-key': 'test-key' },
+    }),
+    { requestId: 'test' }
+  );
 
   expect(response.status).toBe(200);
   expect(getCrossChainPriceEvidenceCandidate).not.toHaveBeenCalled();
@@ -93,7 +114,8 @@ it('returns cross-chain evidence only after an explicit live-probe opt-in', asyn
     GET as unknown as (request: NextRequest, context: unknown) => Promise<Response>
   )(
     new NextRequest(
-      'https://test/api/v1/coverage?asset=USDC&chainId=8453&probe=true&maxSourceAgeSeconds=300&includeCrossChainCandidate=true'
+      'https://test/api/v1/coverage?asset=USDC&chainId=8453&probe=true&maxSourceAgeSeconds=300&includeCrossChainCandidate=true',
+      { headers: { 'x-api-key': 'test-key' } }
     ),
     { requestId: 'test' }
   );
