@@ -25,13 +25,13 @@ Its product path is **oracle observations → transparency → risk assessment �
 
 The public website should make the evidence-to-decision path explicit without implying that Insight authorizes or executes an action:
 
-| Entry              | Public role                                                                                           | Canonical route                |
-| ------------------ | ----------------------------------------------------------------------------------------------------- | ------------------------------ |
-| Oracle Evidence    | Inspect source coverage, freshness, agreement, and observed prices.                                   | `/price-insight?stage=observe` |
-| Decision Integrity | Assess a proposed action, monitor changed conditions, and inspect optional attestations.              | `/decision-integrity`          |
-| Risk Intelligence  | Choose a focused tool for source comparison, position stress, peg risk, provider context, or reports. | `/risk-intelligence`           |
-| Build              | Select REST API, AI / MCP, Guard SDK, or documentation for an integration.                            | `/build`                       |
-| Verify             | Independently inspect supported signed evidence and its limits.                                       | `/verify`                      |
+| Entry              | Public role                                                                                                                     | Canonical route                |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
+| Oracle Evidence    | Inspect source coverage, freshness, agreement, and observed prices.                                                             | `/price-insight?stage=observe` |
+| Decision Integrity | Check the integrity of the oracle inputs a decision would trust, monitor changed conditions, and inspect optional attestations. | `/decision-integrity`          |
+| Risk Intelligence  | Choose a focused tool for source comparison, position stress, peg risk, provider context, or reports.                           | `/risk-intelligence`           |
+| Build              | Select REST API, AI / MCP, Guard SDK, or documentation for an integration.                                                      | `/build`                       |
+| Verify             | Independently inspect supported signed evidence and its limits.                                                                 | `/verify`                      |
 
 `Position Stress Test` is the public name for the existing `/safety-check` tool. Its URL and query parameters remain stable because it is a focused lending-position calculation, not a general top-level product category. `Compare & Assess` is the Risk Intelligence label for `/price-insight?stage=compare`; `Oracle Evidence` remains the separate Observe-stage entry.
 
