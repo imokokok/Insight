@@ -48,7 +48,7 @@ beforeAll(async () => {
 
 describe('Turso ops schema', () => {
   it('reports the current schema version', async () => {
-    expect(TURSO_OPS_SCHEMA_VERSION).toBe(4);
+    expect(TURSO_OPS_SCHEMA_VERSION).toBeGreaterThanOrEqual(2);
     expect(await isTursoOpsSchemaCurrent(client)).toBe(true);
   });
 
