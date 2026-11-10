@@ -5,6 +5,7 @@ import {
   hasTursoCoverageSample,
   insertTursoCoverageSample,
   readTursoCoverageSloMode,
+  readTursoCoverageSummary,
   trimTursoCoverageSamples,
 } from '@/lib/turso/ops/coverageSloRepository';
 import { ensureTursoOpsSchema } from '@/lib/turso/ops/schema';
@@ -165,6 +166,25 @@ export async function getCoverageSlo(
   options: { signal?: AbortSignal } = {}
 ) {
   throwIfAborted(options.signal);
+  if (readTursoCoverageSloMode() === 'turso') {
+    // Egress-retired read path: the summary aggregation (JS port of the
+    // coverage_slo_summary RPC) runs against the Turso ops data plane, so the
+    // 15-minute alert cadence never touches Supabase.
+    const tursoDb = getTursoOpsClient();
+    await ensureTursoOpsSchema(tursoDb);
+    const rows = await readTursoCoverageSummary(tursoDb, hours);
+    return {
+      windowHours: hours,
+      cadenceSeconds: 900,
+      measuredAt: new Date().toISOString(),
+      limitation: 'Fixed-slot sampled readiness, not continuous uptime, trade safety or an SLA.',
+      // Old policy targets and immutable samples remain available for audit, but
+      // they must not accrue perpetual missing slots after a policy rotation.
+      targets: rows
+        .filter((row) => row.policy_id === COVERAGE_POLICY_ID)
+        .map((row) => ({ ...row, ...summarizeCoverageSlo(row) })),
+    };
+  }
   const db = createServiceRoleClient();
   const { data, error } = await db
     .rpc('coverage_slo_summary', { window_hours: hours })

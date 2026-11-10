@@ -15,7 +15,7 @@
 // and tests use the node client against file::memory: databases.
 import type { Client } from '@libsql/client';
 
-export const TURSO_OPS_SCHEMA_VERSION = 4;
+export const TURSO_OPS_SCHEMA_VERSION = 5;
 
 const MARKET_REFERENCE_SNAPSHOTS_DDL = [
   `CREATE TABLE IF NOT EXISTS market_reference_snapshots (
@@ -145,7 +145,8 @@ const COVERAGE_SLO_DDL = [
     asset TEXT NOT NULL,
     chain_id INTEGER NOT NULL,
     policy_id TEXT NOT NULL,
-    objective_bps INTEGER NOT NULL
+    objective_bps INTEGER NOT NULL,
+    enrolled_at TEXT NOT NULL
   )`,
   `CREATE TABLE IF NOT EXISTS coverage_slo_samples (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

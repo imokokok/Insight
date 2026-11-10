@@ -80,7 +80,8 @@ import{createClient}from"./chunk-HP6HVOT3.mjs";function readTursoOpsConfig(env=p
     asset TEXT NOT NULL,
     chain_id INTEGER NOT NULL,
     policy_id TEXT NOT NULL,
-    objective_bps INTEGER NOT NULL
+    objective_bps INTEGER NOT NULL,
+    enrolled_at TEXT NOT NULL
   )`,`CREATE TABLE IF NOT EXISTS coverage_slo_samples (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     target_id TEXT NOT NULL,
@@ -96,6 +97,6 @@ import{createClient}from"./chunk-HP6HVOT3.mjs";function readTursoOpsConfig(env=p
      ON coverage_slo_samples (recorded_at)`],OPS_SCHEMA_META_DDL=[`CREATE TABLE IF NOT EXISTS ops_schema_meta (
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL
-  )`],ALL_DDL=[...OPS_SCHEMA_META_DDL,...MARKET_REFERENCE_SNAPSHOTS_DDL,...HOURLY_PRICE_SNAPSHOTS_DDL,...PRICE_SLOT_PROJECTION_RUNS_DDL,...MANIP_COST_POOL_SNAPSHOTS_DDL,...COVERAGE_SLO_DDL];async function isTursoOpsSchemaCurrent(client){try{let result=await client.execute("SELECT value FROM ops_schema_meta WHERE key = 'schema_version'");return Number(result.rows[0]?.value)===4}catch{return!1}}async function ensureTursoOpsSchema(client){let current=!1;try{current=await isTursoOpsSchemaCurrent(client)}catch{current=!1}if(!current){for(let ddl of ALL_DDL)await client.execute(ddl);await client.execute(`INSERT INTO ops_schema_meta (key, value)
-     VALUES ('schema_version', '4')
+  )`],ALL_DDL=[...OPS_SCHEMA_META_DDL,...MARKET_REFERENCE_SNAPSHOTS_DDL,...HOURLY_PRICE_SNAPSHOTS_DDL,...PRICE_SLOT_PROJECTION_RUNS_DDL,...MANIP_COST_POOL_SNAPSHOTS_DDL,...COVERAGE_SLO_DDL];async function isTursoOpsSchemaCurrent(client){try{let result=await client.execute("SELECT value FROM ops_schema_meta WHERE key = 'schema_version'");return Number(result.rows[0]?.value)===5}catch{return!1}}async function ensureTursoOpsSchema(client){let current=!1;try{current=await isTursoOpsSchemaCurrent(client)}catch{current=!1}if(!current){for(let ddl of ALL_DDL)await client.execute(ddl);await client.execute(`INSERT INTO ops_schema_meta (key, value)
+     VALUES ('schema_version', '5')
      ON CONFLICT(key) DO UPDATE SET value = excluded.value`)}}export{getTursoOpsClient,ensureTursoOpsSchema};
