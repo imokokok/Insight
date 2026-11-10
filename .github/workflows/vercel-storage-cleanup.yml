@@ -1,0 +1,64 @@
+name: Vercel deployment storage cleanup
+
+# Hobby teams share a 10 GB deployment-storage quota, and past the limit
+# Vercel deletes unprotected deployments immediately (2026-10-14 policy).
+# PR preview builds are the bulk of that usage, so this controller can
+# report usage, delete unprotected old deployments, and toggle preview
+# builds via the DEPLOYMENT_DISABLED env var — all through the same
+# VERCEL_TOKEN the release workflow uses, so no local CLI login is needed.
+#
+# Read-only by default: `report` mutates nothing. `cleanup` and the preview
+# toggles are explicit operator actions via workflow_dispatch inputs.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'report (read-only) | cleanup | disable-preview | enable-preview'
+        required: false
+        type: choice
+        default: report
+        options:
+          - report
+          - cleanup
+          - disable-preview
+          - enable-preview
+      retention_days:
+        description: 'Deployments younger than this many days are always protected (cleanup mode)'
+        required: false
+        type: string
+        default: '30'
+
+permissions:
+  contents: read
+
+jobs:
+  storage-cleanup:
+    name: 'Vercel storage: ${{ inputs.mode }}'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    # VERCEL_TOKEN is scoped to the Production environment (same secret the
+    # release and provenance-audit jobs use).
+    environment: Production
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 22.23.2
+      # Node builtins only; Node 22.18+ strips the script's TypeScript types
+      # natively, so this step installs no third-party code.
+      - name: Run the storage controller
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+          VERCEL_TEAM_ID: ${{ vars.VERCEL_TEAM_ID }}
+        run: |
+          if [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "::error::VERCEL_PROJECT_ID is not configured; the storage controller cannot run"
+            exit 1
+          fi
+          node scripts/vercel-storage-cleanup.mts --mode "${{ inputs.mode }}" --retention-days "${{ inputs.retention_days }}"
