@@ -15,7 +15,7 @@
 // and tests use the node client against file::memory: databases.
 import type { Client } from '@libsql/client';
 
-export const TURSO_OPS_SCHEMA_VERSION = 2;
+export const TURSO_OPS_SCHEMA_VERSION = 3;
 
 const MARKET_REFERENCE_SNAPSHOTS_DDL = [
   `CREATE TABLE IF NOT EXISTS market_reference_snapshots (
@@ -102,6 +102,39 @@ const PRICE_SLOT_PROJECTION_RUNS_DDL = [
   )`,
 ];
 
+// Manipulation-cost domain (egress retirement v3). Mirrors Supabase
+// public.manip_cost_pool_snapshots (migration 0082): one row per
+// (snapshot_ts, pool_key), 365-day retention. JSON columns (pool_state,
+// cost_curve) are stored as TEXT — the repository stringifies on write and
+// parses on read.
+const MANIP_COST_POOL_SNAPSHOTS_DDL = [
+  `CREATE TABLE IF NOT EXISTS manip_cost_pool_snapshots (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    snapshot_ts TEXT NOT NULL,
+    pool_key TEXT NOT NULL,
+    chain TEXT NOT NULL,
+    pool_addr TEXT NOT NULL,
+    dex TEXT NOT NULL,
+    fee_tier TEXT,
+    block_number INTEGER,
+    mid_price REAL,
+    tvl_usd REAL,
+    eth_usd_mid REAL,
+    pool_state TEXT,
+    cost_curve TEXT,
+    is_success INTEGER NOT NULL CHECK (is_success IN (0, 1)),
+    error_message TEXT,
+    collector_version TEXT,
+    CONSTRAINT manip_cost_pool_snapshots_unique
+      UNIQUE (snapshot_ts, pool_key)
+  )`,
+  `CREATE INDEX IF NOT EXISTS manip_cost_pool_snapshots_ts_idx
+     ON manip_cost_pool_snapshots (snapshot_ts DESC)`,
+  // 365-day retention support (collector trims past-window rows per run).
+  `CREATE INDEX IF NOT EXISTS manip_cost_pool_snapshots_retention_idx
+     ON manip_cost_pool_snapshots (snapshot_ts)`,
+];
+
 const OPS_SCHEMA_META_DDL = [
   `CREATE TABLE IF NOT EXISTS ops_schema_meta (
     key TEXT PRIMARY KEY,
@@ -114,6 +147,7 @@ const ALL_DDL: string[] = [
   ...MARKET_REFERENCE_SNAPSHOTS_DDL,
   ...HOURLY_PRICE_SNAPSHOTS_DDL,
   ...PRICE_SLOT_PROJECTION_RUNS_DDL,
+  ...MANIP_COST_POOL_SNAPSHOTS_DDL,
 ];
 
 export function tursoOpsMigrations(): readonly string[] {

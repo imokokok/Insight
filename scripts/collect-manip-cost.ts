@@ -12,11 +12,37 @@
  * ALCHEMY_ETHEREUM_RPC with public fallbacks.
  */
 import { collectManipCost, type ManipCostRow } from '@/lib/manipCost/collector';
+import {
+  readTursoManipCostMode,
+  trimTursoManipCostRows,
+  upsertTursoManipCostRows,
+} from '@/lib/turso/ops/manipCostRepository';
+import { getTursoOpsClient } from '@/lib/turso/ops/client';
+import { ensureTursoOpsSchema } from '@/lib/turso/ops/schema';
 import { retryIdempotentSupabaseWrite } from '@/lib/supabase/idempotentWrite';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 
+const MANIP_COST_RETENTION_DAYS = 365;
+
+async function upsertRowsTurso(rows: ManipCostRow[]): Promise<number> {
+  if (rows.length === 0) return 0;
+  const client = getTursoOpsClient();
+  await ensureTursoOpsSchema(client);
+  const inserted = await upsertTursoManipCostRows(client, rows);
+  // Retention trim is best-effort: a failure only drifts the window.
+  try {
+    await trimTursoManipCostRows(client, MANIP_COST_RETENTION_DAYS);
+  } catch {
+    /* tolerate */
+  }
+  return inserted;
+}
+
 async function upsertRows(rows: ManipCostRow[]): Promise<number> {
   if (rows.length === 0) return 0;
+  if (readTursoManipCostMode() === 'turso') {
+    return upsertRowsTurso(rows);
+  }
   const supabase = createServiceRoleClient();
   await retryIdempotentSupabaseWrite(async () => {
     const { error } = await supabase.from('manip_cost_pool_snapshots').upsert(
