@@ -59,6 +59,8 @@ env:
   # Market-reference egress retirement (2026-11): ops client reuses the price
   # database credentials above; mode advances via the TURSO_MARKET_REF_MODE var.
   TURSO_MARKET_REF_MODE: ${{ vars.TURSO_MARKET_REF_MODE || 'supabase' }}
+  # Manipulation-cost egress retirement (2026-11): same ops data plane.
+  TURSO_MANIP_COST_MODE: ${{ vars.TURSO_MANIP_COST_MODE || 'supabase' }}
   TURSO_PRICE_READ_CUTOVER_AT: ${{ vars.TURSO_PRICE_READ_CUTOVER_AT || '' }}
   SNAPSHOT_TRIGGER_SOURCE: github_actions
   CRON_WORKFLOW: snapshot-collect.yml
