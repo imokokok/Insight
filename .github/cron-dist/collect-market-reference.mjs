@@ -1,37 +1,5 @@
 import { createRequire as __createRequire } from 'node:module'; import { fileURLToPath as __fileURLToPath } from 'node:url'; import { dirname as __pathDirname } from 'node:path'; const require = __createRequire(import.meta.url); const __filename = __fileURLToPath(import.meta.url); const __dirname = __pathDirname(__filename);
-import{MARKET_REFERENCE_CORE_SYMBOLS,MARKET_REFERENCE_SYMBOLS,collectMarketReference}from"./chunks/chunk-F4PE7VGS.mjs";import"./chunks/chunk-F66MWD3Z.mjs";import"./chunks/chunk-SOVLXXTX.mjs";import"./chunks/chunk-JDDFEL3W.mjs";import"./chunks/chunk-J2ENORLO.mjs";import"./chunks/chunk-442O4QML.mjs";import"./chunks/chunk-HS6U44HW.mjs";import"./chunks/chunk-ES3X2Z6D.mjs";import"./chunks/chunk-ANLYKSY2.mjs";import"./chunks/chunk-NGJ4AQMF.mjs";import"./chunks/chunk-6AHDS36N.mjs";import"./chunks/chunk-YORPEMY3.mjs";import"./chunks/chunk-ZTQ5PKJ3.mjs";import"./chunks/chunk-LSFNED2R.mjs";import"./chunks/chunk-G3RYPRAY.mjs";import"./chunks/chunk-O3KOSBAY.mjs";import{customerEligibleMarketReferenceVenues}from"./chunks/chunk-VJBYDK4O.mjs";import{retryIdempotentSupabaseWrite}from"./chunks/chunk-BK6PZO64.mjs";import"./chunks/chunk-LEAZDFTW.mjs";import{createServiceRoleClient}from"./chunks/chunk-HWJSD6CB.mjs";import"./chunks/chunk-EGGMAI3X.mjs";import"./chunks/chunk-VPGETSTW.mjs";import{createClient}from"./chunks/chunk-E7F3Z4UO.mjs";import"./chunks/chunk-UT5KZJOK.mjs";import"./chunks/chunk-O4WYJBQD.mjs";import"./chunks/chunk-JLTI6MPQ.mjs";import"./chunks/chunk-XF3S7P6F.mjs";import"./chunks/chunk-JCA4BSYY.mjs";function readTursoOpsConfig(env=process.env){let url=(env.TURSO_OPS_DATABASE_URL??env.TURSO_PRICE_DATABASE_URL)?.trim(),authToken=(env.TURSO_OPS_AUTH_TOKEN??env.TURSO_PRICE_AUTH_TOKEN)?.trim();if(!url||!/^(libsql|https):\/\//.test(url))throw new Error("Missing or invalid TURSO_OPS_DATABASE_URL (or TURSO_PRICE_DATABASE_URL)");if(!authToken)throw new Error("Missing TURSO_OPS_AUTH_TOKEN (or TURSO_PRICE_AUTH_TOKEN)");return{url,authToken}}var cachedOpsClient;function getTursoOpsClient(){if(!cachedOpsClient){let{url,authToken}=readTursoOpsConfig();cachedOpsClient=createClient({url,authToken,concurrency:4})}return cachedOpsClient}var MARKET_REFERENCE_SNAPSHOTS_DDL=[`CREATE TABLE IF NOT EXISTS market_reference_snapshots (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    snapshot_ts TEXT NOT NULL,
-    symbol TEXT NOT NULL,
-    quote TEXT NOT NULL DEFAULT 'USD',
-    exchange TEXT NOT NULL,
-    ref_price REAL,
-    volume REAL,
-    bid REAL,
-    ask REAL,
-    bid_ask_spread_pct REAL,
-    data_age_seconds INTEGER,
-    source_observed_at TEXT,
-    rights_scope TEXT NOT NULL DEFAULT 'research-quarantined',
-    rights_reference TEXT,
-    delivery_policy TEXT NOT NULL DEFAULT 'not-authorized',
-    is_success INTEGER NOT NULL CHECK (is_success IN (0, 1)),
-    error_message TEXT,
-    collector_version TEXT,
-    created_at TEXT NOT NULL,
-    CONSTRAINT market_reference_snapshots_unique
-      UNIQUE (snapshot_ts, symbol, quote, exchange)
-  )`,`CREATE INDEX IF NOT EXISTS market_reference_symbol_ts_idx
-     ON market_reference_snapshots (symbol, snapshot_ts DESC)`,`CREATE INDEX IF NOT EXISTS market_reference_ts_idx
-     ON market_reference_snapshots (snapshot_ts DESC)`,`CREATE INDEX IF NOT EXISTS market_reference_success_symbol_ts_idx
-     ON market_reference_snapshots (symbol, snapshot_ts DESC)
-     WHERE is_success = 1`,`CREATE INDEX IF NOT EXISTS market_reference_retention_idx
-     ON market_reference_snapshots (snapshot_ts)`],OPS_SCHEMA_META_DDL=[`CREATE TABLE IF NOT EXISTS ops_schema_meta (
-    key TEXT PRIMARY KEY,
-    value TEXT NOT NULL
-  )`],ALL_DDL=[...OPS_SCHEMA_META_DDL,...MARKET_REFERENCE_SNAPSHOTS_DDL];async function isTursoOpsSchemaCurrent(client){try{let result=await client.execute("SELECT value FROM ops_schema_meta WHERE key = 'schema_version'");return Number(result.rows[0]?.value)===1}catch{return!1}}async function ensureTursoOpsSchema(client){let current=!1;try{current=await isTursoOpsSchemaCurrent(client)}catch{current=!1}if(!current){for(let ddl of ALL_DDL)await client.execute(ddl);await client.execute(`INSERT INTO ops_schema_meta (key, value)
-     VALUES ('schema_version', '1')
-     ON CONFLICT(key) DO UPDATE SET value = excluded.value`)}}function readTursoMarketRefMode(value=process.env.TURSO_MARKET_REF_MODE){if(value===void 0||value===""||value==="supabase")return"supabase";if(value==="shadow"||value==="turso")return value;throw new Error("TURSO_MARKET_REF_MODE must be supabase, shadow, or turso")}function toInt(flag){return flag?1:0}function normalizeIso(value){if(value==null||value==="")return null;let parsed=Date.parse(value);return Number.isNaN(parsed)?null:new Date(parsed).toISOString()}var INSERT_SQL=`
+import{MARKET_REFERENCE_CORE_SYMBOLS,MARKET_REFERENCE_SYMBOLS,collectMarketReference}from"./chunks/chunk-F4PE7VGS.mjs";import"./chunks/chunk-F66MWD3Z.mjs";import"./chunks/chunk-SOVLXXTX.mjs";import"./chunks/chunk-JDDFEL3W.mjs";import"./chunks/chunk-J2ENORLO.mjs";import"./chunks/chunk-442O4QML.mjs";import"./chunks/chunk-HS6U44HW.mjs";import"./chunks/chunk-ES3X2Z6D.mjs";import"./chunks/chunk-ANLYKSY2.mjs";import"./chunks/chunk-NGJ4AQMF.mjs";import"./chunks/chunk-6AHDS36N.mjs";import"./chunks/chunk-YORPEMY3.mjs";import"./chunks/chunk-ZTQ5PKJ3.mjs";import"./chunks/chunk-LSFNED2R.mjs";import"./chunks/chunk-G3RYPRAY.mjs";import"./chunks/chunk-O3KOSBAY.mjs";import{customerEligibleMarketReferenceVenues}from"./chunks/chunk-VJBYDK4O.mjs";import{ensureTursoOpsSchema,getTursoOpsClient}from"./chunks/chunk-JDMR7LJE.mjs";import{retryIdempotentSupabaseWrite}from"./chunks/chunk-BK6PZO64.mjs";import"./chunks/chunk-LEAZDFTW.mjs";import{createServiceRoleClient}from"./chunks/chunk-HWJSD6CB.mjs";import"./chunks/chunk-EGGMAI3X.mjs";import"./chunks/chunk-VPGETSTW.mjs";import"./chunks/chunk-E7F3Z4UO.mjs";import"./chunks/chunk-UT5KZJOK.mjs";import"./chunks/chunk-O4WYJBQD.mjs";import"./chunks/chunk-JLTI6MPQ.mjs";import"./chunks/chunk-XF3S7P6F.mjs";import"./chunks/chunk-JCA4BSYY.mjs";function readTursoMarketRefMode(value=process.env.TURSO_MARKET_REF_MODE){if(value===void 0||value===""||value==="supabase")return"supabase";if(value==="shadow"||value==="turso")return value;throw new Error("TURSO_MARKET_REF_MODE must be supabase, shadow, or turso")}function toInt(flag){return flag?1:0}function normalizeIso(value){if(value==null||value==="")return null;let parsed=Date.parse(value);return Number.isNaN(parsed)?null:new Date(parsed).toISOString()}var INSERT_SQL=`
   INSERT INTO market_reference_snapshots (
     snapshot_ts, symbol, quote, exchange,
     ref_price, volume, bid, ask, bid_ask_spread_pct,
