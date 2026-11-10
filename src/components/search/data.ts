@@ -183,12 +183,14 @@ function getPageSearchResults(): SearchResult[] {
       id: 'page-decision-integrity',
       title: 'Decision Integrity',
       description:
-        'Run a pre-trade oracle assessment, monitor conditions with Oracle Watch, and understand the evidence boundary',
+        'Check the integrity of the oracle inputs a decision would trust: pre-trade assessment, Oracle Watch, and the evidence boundary',
       type: 'page',
       href: '/decision-integrity',
       icon: Shield,
       keywords: [
         'decision integrity',
+        'decision-input integrity',
+        'input integrity',
         'pre-trade',
         'pre trade',
         'oracle watch',

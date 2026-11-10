@@ -29,10 +29,10 @@ const features: Feature[] = [
     icon: <ShieldCheck className="w-6 h-6" />,
     title: 'Decision Integrity',
     description:
-      'Inspect oracle evidence, assess a proposed action, monitor changing conditions, and retain optional verifiable assessment records.',
+      'Check the integrity of the oracle inputs a decision would trust: inspect source evidence, monitor changing conditions, and retain optional verifiable assessment records.',
     href: '/decision-integrity',
     highlights: [
-      'Pre-trade assessment with machine-readable factors',
+      'Pre-trade assessment of decision inputs with machine-readable factors',
       'Oracle Watch for changing source conditions',
       'Clear boundary: your policy, signer, and execution remain yours',
     ],

@@ -34,10 +34,10 @@ describe('RootLayout', () => {
   describe('Metadata', () => {
     it('should export correct metadata', () => {
       expect(metadata.title).toBe(
-        'Insight — Decision Integrity & Oracle Risk Intelligence for DeFi'
+        'Insight — Decision-Input Integrity & Oracle Risk Intelligence for DeFi'
       );
       expect(metadata.description).toContain(
-        'Decision integrity and oracle risk intelligence for DeFi'
+        'Decision-input integrity and oracle risk intelligence for DeFi'
       );
     });
   });

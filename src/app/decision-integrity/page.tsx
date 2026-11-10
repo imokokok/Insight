@@ -9,21 +9,22 @@ import { EditorialWorkspaceHeader, EvidenceProcessRail } from '@/components/edit
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Decision Integrity — Pre-Trade Oracle Assessment | Insight',
+  title: 'Decision Integrity — Decision-Input Integrity for DeFi & AI Agents | Insight',
   description:
-    'Inspect oracle evidence before an action, run a pre-trade assessment, monitor changing conditions with Oracle Watch, and retain optional verifiable attestations.',
+    'Check the integrity of the oracle inputs a decision would trust—before the action. Inspect source evidence, run a pre-trade assessment, monitor changing conditions with Oracle Watch, and retain verifiable attestations.',
   keywords: [
     'decision integrity',
     'decision-input integrity',
+    'oracle input integrity',
     'pre-trade assessment',
     'oracle watch',
     'oracle risk',
     'AI agent safety',
   ],
   openGraph: {
-    title: 'Decision Integrity — Pre-Trade Oracle Assessment | Insight',
+    title: 'Decision Integrity — Decision-Input Integrity for DeFi & AI Agents | Insight',
     description:
-      'Inspect the oracle record, assess a proposed action, watch for changed conditions, and retain evidence.',
+      'Verify the oracle inputs a decision would trust. Inspect the oracle record, assess input integrity, watch for changed conditions, and retain evidence.',
     type: 'website',
   },
 };
