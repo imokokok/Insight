@@ -199,11 +199,36 @@ export async function isTursoOpsSchemaCurrent(client: Client): Promise<boolean> 
 }
 
 /**
+ * Column-level evolution step for v5: `CREATE TABLE IF NOT EXISTS` cannot add
+ * a column to a table that already exists from v4, so the enrolled_at column
+ * is checked via PRAGMA and added idempotently. The empty default keeps v4
+ * rows valid; enrollment writes the real timestamp on first insert.
+ */
+async function ensureCoverageTargetsEnrolledAt(client: Client): Promise<void> {
+  const info = await client.execute('PRAGMA table_info(coverage_slo_targets)');
+  // An empty PRAGMA result means the table itself does not exist yet (fresh
+  // database); the CREATE TABLE DDL below then already includes the column.
+  if (info.rows.length === 0) return;
+  const hasColumn = info.rows.some((row) => String(row.name) === 'enrolled_at');
+  if (!hasColumn) {
+    await client.execute(
+      `ALTER TABLE coverage_slo_targets
+       ADD COLUMN enrolled_at TEXT NOT NULL DEFAULT ''`
+    );
+  }
+}
+
+/**
  * Idempotent schema application with the price-domain fast path: a cheap
  * version read short-circuits convergent databases, and DDL only runs when
  * the meta table is missing or behind.
  */
 export async function ensureTursoOpsSchema(client: Client): Promise<void> {
+  // Column evolution runs even when the version marker looks current: a
+  // previous release could have stamped the marker before its evolution step
+  // existed (that is exactly how production lost the enrolled_at column).
+  await ensureCoverageTargetsEnrolledAt(client);
+
   let current = false;
   try {
     current = await isTursoOpsSchemaCurrent(client);
