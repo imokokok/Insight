@@ -26,9 +26,7 @@ import {
   type MarketReferenceRow,
 } from '@/lib/marketReference/collector';
 import { getTursoOpsClient } from '@/lib/turso/ops/client';
-import {
-  ensureTursoOpsSchema,
-} from '@/lib/turso/ops/schema';
+import { ensureTursoOpsSchema } from '@/lib/turso/ops/schema';
 import {
   readTursoMarketRefMode,
   trimTursoMarketReferenceRows,
@@ -47,10 +45,7 @@ async function insertRowsTurso(rows: MarketReferenceRow[]): Promise<number> {
   // Retention rides along with collection so no nightly trim job is needed.
   let trimmed = 0;
   try {
-    trimmed = await trimTursoMarketReferenceRows(
-      client,
-      MARKET_REFERENCE_RETENTION_DAYS
-    );
+    trimmed = await trimTursoMarketReferenceRows(client, MARKET_REFERENCE_RETENTION_DAYS);
   } catch (error) {
     // Window drift is non-fatal; data correctness is unaffected.
     console.warn(

@@ -1,4 +1,3 @@
-import { describe, beforeAll, afterAll, beforeEach, expect, it } from '@jest/globals';
 import { createClient, type Client } from '@libsql/client';
 
 import type { MarketReferenceRow } from '@/lib/marketReference/collector';

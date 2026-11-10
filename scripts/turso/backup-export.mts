@@ -27,11 +27,7 @@ const outDir = join(OUT_ROOT, stamp);
 mkdirSync(outDir, { recursive: true });
 
 /** Internal/ephemeral tables that a restore would rebuild or not need. */
-const SKIP_TABLES = new Set([
-  'ops_schema_meta',
-  'snapshot_ingest_leases',
-  'price_maintenance',
-]);
+const SKIP_TABLES = new Set(['ops_schema_meta', 'snapshot_ingest_leases', 'price_maintenance']);
 
 interface ExportedTable {
   table: string;
@@ -76,9 +72,7 @@ try {
   const tablesResult = await client.execute(
     "SELECT name FROM sqlite_schema WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '\\_%' ESCAPE '\\'"
   );
-  const tables = tablesResult.rows
-    .map((r) => String(r.name))
-    .filter((t) => !SKIP_TABLES.has(t));
+  const tables = tablesResult.rows.map((r) => String(r.name)).filter((t) => !SKIP_TABLES.has(t));
 
   const exported: ExportedTable[] = [];
   for (const table of tables) {
