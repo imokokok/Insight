@@ -211,20 +211,32 @@ export async function readTursoCoverageSummary(
             ORDER BY slot ASC`,
       args: [String(target.id), startSlot, endSlot],
     });
+    // Mirrors the RPC: the newest sample is NOT window-bounded, so a sample
+    // written for the in-progress slot is still visible to alert checks.
+    const newest = await client.execute({
+      sql: `SELECT slot, status, signed_ready, reasons, proof
+            FROM coverage_slo_samples
+            WHERE target_id = ?
+            ORDER BY slot DESC LIMIT 1`,
+      args: [String(target.id)],
+    });
 
     let dataReady = 0;
     let signedReady = 0;
     let unavailable = 0;
-    let latest: TursoCoverageSummaryRow['latest'] = null;
     for (const sample of samples.rows) {
       const status = String(sample.status);
       if (status === 'PASS') dataReady++;
       if (Number(sample.signed_ready) === 1) signedReady++;
       if (status === 'UNAVAILABLE') unavailable++;
+    }
+    const newestRow = newest.rows[0];
+    let latest: TursoCoverageSummaryRow['latest'] = null;
+    if (newestRow) {
       const proof =
-        sample.proof === null || sample.proof === undefined
+        newestRow.proof === null || newestRow.proof === undefined
           ? null
-          : (JSON.parse(String(sample.proof)) as Record<string, unknown>);
+          : (JSON.parse(String(newestRow.proof)) as Record<string, unknown>);
       const providers =
         proof !== null &&
         typeof proof === 'object' &&
@@ -237,10 +249,10 @@ export async function readTursoCoverageSummary(
               .providers
           : undefined;
       latest = {
-        slot: Number(sample.slot),
-        status,
-        signedReady: Number(sample.signed_ready) === 1,
-        reasons: JSON.parse(String(sample.reasons)) as string[],
+        slot: Number(newestRow.slot),
+        status: String(newestRow.status),
+        signedReady: Number(newestRow.signed_ready) === 1,
+        reasons: JSON.parse(String(newestRow.reasons)) as string[],
         providers,
       };
     }
