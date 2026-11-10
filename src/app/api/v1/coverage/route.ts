@@ -2,12 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 import { z } from 'zod';
 
-import {
-  createApiHandler,
-  createOptionsHandler,
-  ApiResponseBuilder,
-  V1_PROTOCOL_TIER_MIDDLEWARES,
-} from '@/lib/api/handler';
+import { createApiHandler, createOptionsHandler, ApiResponseBuilder } from '@/lib/api/handler';
 import { getCoverageDiagnostic } from '@/lib/api/services/coverageDiagnostics';
 import { getCrossChainPriceEvidenceCandidate } from '@/lib/api/services/crossChainPriceEvidenceCandidate';
 import { createCachedJsonResponse } from '@/lib/api/utils';
@@ -35,9 +30,32 @@ const CoverageQuerySchema = z
 
 export const OPTIONS = createOptionsHandler();
 
+/** Presence of a credential header opts the caller into live probes and
+ *  cross-chain evidence collection. Registry-only coverage stays public. */
+function hasApiCredential(request: NextRequest): boolean {
+  return Boolean(request.headers.get('x-api-key') ?? request.headers.get('authorization'));
+}
+
 export const GET = createApiHandler(
-  async (_request: NextRequest, context) => {
+  async (request: NextRequest, context) => {
     const query = context.validated!.query as z.infer<typeof CoverageQuerySchema>;
+
+    if (!hasApiCredential(request) && (query.probe || query.includeCrossChainCandidate)) {
+      return NextResponse.json(
+        ApiResponseBuilder.error(
+          'UNAUTHORIZED',
+          'Authentication required for live probes and cross-chain evidence',
+          {
+            details: {
+              upgradeHint:
+                'Provide an API key (x-api-key header) for probe=true and includeCrossChainCandidate=true queries. Registry coverage is public.',
+            },
+          }
+        ),
+        { status: 401 }
+      );
+    }
+
     const registry = await getAllActiveFeedsByProviderWithStatus();
     if (registry.errored) {
       return NextResponse.json(
@@ -228,8 +246,17 @@ export const GET = createApiHandler(
     );
   },
   {
-    // C2 deep-analysis endpoint (credit-metered)
-    middlewares: V1_PROTOCOL_TIER_MIDDLEWARES,
+    // Registry aggregation is the public discovery surface: it is a cheap
+    // read over the feed registry and already cached (semiStatic) when no
+    // diagnostic ran. Live probes and cross-chain evidence collection hit
+    // external provider endpoints, so those stay behind the authenticated,
+    // credit-metered path.
+    middlewares: {
+      logging: true,
+      auth: { required: false },
+      rateLimit: { preset: 'moderate' },
+      cors: true,
+    },
     validation: { query: CoverageQuerySchema },
   }
 );
