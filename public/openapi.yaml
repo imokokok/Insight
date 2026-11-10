@@ -2293,13 +2293,16 @@ paths:
     get:
       operationId: getDeviation
       tags: [Analytics]
-      summary: Deviation analysis 🔒
+      summary: Deviation analysis
       description: |
         Aggregated deviation analysis across oracle providers for a symbol,
         with timeline data at configurable intervals (1h/6h/24h).
 
-        **Credit-metered** — any API key with sufficient credit balance.
+        Public tier: anonymous callers may request up to a 30-day window.
+        Full-history timelines require an API key. No credits are charged on
+        the public tier.
       security:
+        - {}
         - apiKey: []
       parameters:
         - $ref: '#/components/parameters/symbol'
@@ -2432,13 +2435,18 @@ paths:
     get:
       operationId: getRiskSummary
       tags: [Risk]
-      summary: Composite risk metrics 🔒
+      summary: Composite risk metrics
       description: |
         7-dimensional risk assessment: HHI concentration, diversification, volatility,
         correlation risk, freshness risk, manipulation resistance, and shared-dependency risk.
 
-        **Credit-metered** — any API key with sufficient credit balance.
+        Public tier: anonymous callers may request period <= 168h and up to 4
+        providers. Deeper reads (period up to 8760h, up to 10 providers)
+        require an API key. The response includes a machine-readable
+        `nextActions` block pointing at the signed pre-trade verdict and the
+        attestation schema; a risk summary is context, not authorization.
       security:
+        - {}
         - apiKey: []
       parameters:
         - $ref: '#/components/parameters/symbol'
@@ -4711,8 +4719,12 @@ paths:
       description: |
         Coverage analysis by chain, provider, and symbol. Identifies single-provider risk assets.
 
-        **Credit-metered** — protocol-level intelligence, open to any paying key.
+        Public tier: registry aggregation requires no authentication. Live
+        probes (`probe=true`) and cross-chain evidence
+        (`includeCrossChainCandidate=true`) hit external provider endpoints
+        and require an API key.
       security:
+        - {}
         - apiKey: []
       responses:
         '200':
@@ -4981,6 +4993,37 @@ paths:
                 $ref: '#/components/schemas/PriceExportResponse'
         '402':
           $ref: '#/components/responses/CreditExhausted'
+
+  /reports/latest:
+    get:
+      operationId: getLatestDailyReport
+      tags: [Data]
+      summary: Latest daily risk report
+      description: |
+        Most recently published daily report. Public, no authentication
+        required. Resolves today's report first, then walks back up to 7 days
+        so a temporarily failed publication cycle still serves the newest
+        available report. The payload carries `reportDate` and `ageDays` so
+        consumers can detect staleness explicitly; poll this endpoint rather
+        than expecting push delivery.
+      security: []
+      responses:
+        '200':
+          description: Latest daily report
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reportDate: { type: string, pattern: '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' }
+                  ageDays: { type: integer, minimum: 0, maximum: 7 }
+                  report:
+                    $ref: '#/components/schemas/DailyReportResponse'
+        '404':
+          description: No report published within the lookback window
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiErrorResponse' }
 
   /reports/daily/{date}:
     get:
