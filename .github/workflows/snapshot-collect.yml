@@ -56,6 +56,9 @@ env:
   TURSO_PRICE_AUTH_TOKEN: ${{ secrets.TURSO_PRICE_AUTH_TOKEN }}
   TURSO_PRICE_PARTITION_KEY: ${{ vars.TURSO_PRICE_PARTITION_KEY || 'bootstrap' }}
   TURSO_PRICE_WRITE_MODE: ${{ vars.TURSO_PRICE_WRITE_MODE || 'legacy' }}
+  # Market-reference egress retirement (2026-11): ops client reuses the price
+  # database credentials above; mode advances via the TURSO_MARKET_REF_MODE var.
+  TURSO_MARKET_REF_MODE: ${{ vars.TURSO_MARKET_REF_MODE || 'supabase' }}
   TURSO_PRICE_READ_CUTOVER_AT: ${{ vars.TURSO_PRICE_READ_CUTOVER_AT || '' }}
   SNAPSHOT_TRIGGER_SOURCE: github_actions
   CRON_WORKFLOW: snapshot-collect.yml

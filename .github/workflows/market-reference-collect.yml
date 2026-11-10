@@ -23,6 +23,11 @@ permissions:
 env:
   SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
   SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+  # Market-reference egress retirement (2026-11): the Turso ops data plane
+  # shares the price-domain database credentials.
+  TURSO_OPS_DATABASE_URL: libsql://insight-imokokok.aws-ap-southeast-1.turso.io
+  TURSO_OPS_AUTH_TOKEN: ${{ secrets.TURSO_PRICE_AUTH_TOKEN }}
+  TURSO_MARKET_REF_MODE: ${{ vars.TURSO_MARKET_REF_MODE || 'supabase' }}
 
 jobs:
   collect:
