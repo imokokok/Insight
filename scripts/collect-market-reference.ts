@@ -13,7 +13,10 @@
  * Run locally:
  *   npx tsx --env-file=.env.local scripts/collect-market-reference.ts
  *
- * Requires: SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY.
+ * Requires: SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY, plus TURSO_OPS_*
+ * (or TURSO_PRICE_*) credentials when TURSO_MARKET_REF_MODE is shadow/turso.
+ * `supabase` keeps the pre-migration behaviour; `shadow` writes both stores;
+ * `turso` writes Turso only (Supabase egress retirement, 2026-11).
  */
 import { customerEligibleMarketReferenceVenues } from '@/lib/dataRights/evidenceRights';
 import {
@@ -22,10 +25,47 @@ import {
   MARKET_REFERENCE_SYMBOLS,
   type MarketReferenceRow,
 } from '@/lib/marketReference/collector';
+import { getTursoOpsClient } from '@/lib/turso/ops/client';
+import {
+  ensureTursoOpsSchema,
+} from '@/lib/turso/ops/schema';
+import {
+  readTursoMarketRefMode,
+  trimTursoMarketReferenceRows,
+  upsertTursoMarketReferenceRows,
+} from '@/lib/turso/ops/marketReferenceRepository';
 import { retryIdempotentSupabaseWrite } from '@/lib/supabase/idempotentWrite';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 
-async function insertRows(rows: MarketReferenceRow[]): Promise<number> {
+/** 90-day window, mirroring Supabase migration 0138. */
+const MARKET_REFERENCE_RETENTION_DAYS = 90;
+
+async function insertRowsTurso(rows: MarketReferenceRow[]): Promise<number> {
+  const client = getTursoOpsClient();
+  await ensureTursoOpsSchema(client);
+  const result = await upsertTursoMarketReferenceRows(client, rows);
+  // Retention rides along with collection so no nightly trim job is needed.
+  let trimmed = 0;
+  try {
+    trimmed = await trimTursoMarketReferenceRows(
+      client,
+      MARKET_REFERENCE_RETENTION_DAYS
+    );
+  } catch (error) {
+    // Window drift is non-fatal; data correctness is unaffected.
+    console.warn(
+      `[collect-market-reference] turso retention trim failed: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
+  }
+  if (trimmed > 0) {
+    console.log(`[collect-market-reference] turso retention trimmed=${trimmed}`);
+  }
+  return result.inserted;
+}
+
+async function insertRowsSupabase(rows: MarketReferenceRow[]): Promise<number> {
   if (rows.length === 0) return 0;
   const supabase = createServiceRoleClient();
   await retryIdempotentSupabaseWrite(async () => {
@@ -45,6 +85,34 @@ async function insertRows(rows: MarketReferenceRow[]): Promise<number> {
     }
   }, 'upsert market-reference snapshots');
   return rows.length;
+}
+
+async function insertRows(rows: MarketReferenceRow[]): Promise<number> {
+  if (rows.length === 0) return 0;
+  const mode = readTursoMarketRefMode();
+  if (mode === 'turso') {
+    const inserted = await insertRowsTurso(rows);
+    console.log(
+      `[collect-market-reference] mode=turso rows=${rows.length} inserted=${inserted} (supabase egress retired)`
+    );
+    return inserted;
+  }
+  if (mode === 'shadow') {
+    let tursoInserted = 0;
+    let tursoError: string | null = null;
+    try {
+      tursoInserted = await insertRowsTurso(rows);
+    } catch (error) {
+      tursoError = error instanceof Error ? error.message : String(error);
+    }
+    const supabaseInserted = await insertRowsSupabase(rows);
+    console.log(
+      `[collect-market-reference] mode=shadow rows=${rows.length} supabase=${supabaseInserted} ` +
+        `turso=${tursoInserted}${tursoError ? ` tursoError=${tursoError}` : ''}`
+    );
+    return supabaseInserted;
+  }
+  return insertRowsSupabase(rows);
 }
 
 async function main(): Promise<void> {
