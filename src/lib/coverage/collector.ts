@@ -4,6 +4,7 @@ import {
   enrollTursoCoverageTarget,
   hasTursoCoverageSample,
   insertTursoCoverageSample,
+  readTursoCoverageAlertHistory,
   readTursoCoverageSloMode,
   readTursoCoverageSummary,
   trimTursoCoverageSamples,
@@ -220,16 +221,24 @@ export async function getCoverageAlertChanges(
   if (slots.size !== 1) throw new Error('COVERAGE_SAMPLE_SLOT_MISMATCH');
   const slot = fresh[0].slot;
   const ids = fresh.map((sample) => `${sample.asset}:${sample.chainId}:${COVERAGE_POLICY_ID}`);
-  const db = createServiceRoleClient();
-  const { data, error } = await db
-    .from('coverage_slo_samples')
-    .select('target_id,slot,status,signed_ready')
-    .in('target_id', ids)
-    .gte('slot', slot - 2700)
-    .lt('slot', slot)
-    .abortSignal(databaseDeadline(options.signal));
-  throwIfAborted(options.signal);
-  if (error || !Array.isArray(data)) throw new Error('COVERAGE_ALERT_HISTORY_UNAVAILABLE');
+  let data: { target_id: string; slot: number; status: string; signed_ready: number }[];
+  if (readTursoCoverageSloMode() === 'turso') {
+    data = await readTursoCoverageAlertHistory(getTursoOpsClient(), ids, slot - 2700, slot);
+  } else {
+    const db = createServiceRoleClient();
+    const result = await db
+      .from('coverage_slo_samples')
+      .select('target_id,slot,status,signed_ready')
+      .in('target_id', ids)
+      .gte('slot', slot - 2700)
+      .lt('slot', slot)
+      .abortSignal(databaseDeadline(options.signal));
+    throwIfAborted(options.signal);
+    if (result.error || !Array.isArray(result.data)) {
+      throw new Error('COVERAGE_ALERT_HISTORY_UNAVAILABLE');
+    }
+    data = result.data;
+  }
   const previous = new Map(data.map((row) => [`${row.target_id}:${row.slot}`, row]));
   const current = new Map(summary.targets.map((target) => [target.id, target]));
   const newFailures: { asset: string; chainId: number; status: string; reasons: string[] }[] = [];
