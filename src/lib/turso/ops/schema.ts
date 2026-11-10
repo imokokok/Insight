@@ -15,7 +15,7 @@
 // and tests use the node client against file::memory: databases.
 import type { Client } from '@libsql/client';
 
-export const TURSO_OPS_SCHEMA_VERSION = 5;
+export const TURSO_OPS_SCHEMA_VERSION = 6;
 
 const MARKET_REFERENCE_SNAPSHOTS_DDL = [
   `CREATE TABLE IF NOT EXISTS market_reference_snapshots (
@@ -166,6 +166,79 @@ const COVERAGE_SLO_DDL = [
      ON coverage_slo_samples (recorded_at)`,
 ];
 
+// Feed-health domain (egress retirement v6). Mirrors Supabase
+// public.feed_health_snapshots (migrations 0034 + 0035): append-only Oracle
+// Watch spine, one row per (symbol, chain, evaluated_at), 60-day retention
+// (migration 0137). The collector writes; reads stay on Supabase until the
+// read cutover.
+const FEED_HEALTH_SNAPSHOTS_DDL = [
+  `CREATE TABLE IF NOT EXISTS feed_health_snapshots (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    symbol TEXT NOT NULL,
+    chain TEXT,
+    evaluated_at TEXT NOT NULL,
+    verdict TEXT NOT NULL,
+    recommendation TEXT NOT NULL,
+    reason TEXT NOT NULL,
+    max_deviation_pct REAL,
+    agreement REAL NOT NULL,
+    participant_count INTEGER NOT NULL,
+    outlier_count INTEGER NOT NULL,
+    stale_count INTEGER NOT NULL,
+    consensus_price REAL,
+    ml_risk_score REAL,
+    ml_risk_level TEXT,
+    avg_reputation REAL,
+    min_reputation REAL,
+    quorum_satisfied INTEGER,
+    trust_score REAL,
+    trust_level TEXT,
+    created_at TEXT NOT NULL
+  )`,
+  `CREATE INDEX IF NOT EXISTS feed_health_snapshots_symbol_ts_idx
+     ON feed_health_snapshots (symbol, chain, evaluated_at DESC)`,
+  // 60-day retention support (migration 0137, keyed on evaluated_at).
+  `CREATE INDEX IF NOT EXISTS feed_health_snapshots_retention_idx
+     ON feed_health_snapshots (evaluated_at)`,
+];
+
+// Monad DEX market domain (egress retirement v6). Mirrors Supabase
+// public.dex_market_sync_cursors + public.dex_market_swap_events
+// (migration 0095): cursor is the resumability pointer (one row per
+// (chain_id, dex, pool_address)); swap events are the evidence ledger keyed
+// on the natural identity, 35-day retention (migration 0137).
+const DEX_MARKET_DDL = [
+  `CREATE TABLE IF NOT EXISTS dex_market_sync_cursors (
+    chain_id INTEGER NOT NULL,
+    dex TEXT NOT NULL,
+    pool_address TEXT NOT NULL,
+    last_scanned_block TEXT NOT NULL,
+    last_scanned_timestamp TEXT NOT NULL,
+    coverage_started_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    PRIMARY KEY (chain_id, dex, pool_address)
+  )`,
+  `CREATE TABLE IF NOT EXISTS dex_market_swap_events (
+    chain_id INTEGER NOT NULL,
+    dex TEXT NOT NULL,
+    pool_address TEXT NOT NULL,
+    tx_hash TEXT NOT NULL,
+    log_index TEXT NOT NULL,
+    block_number TEXT NOT NULL,
+    block_hash TEXT NOT NULL,
+    block_timestamp TEXT NOT NULL,
+    amount0_raw TEXT NOT NULL,
+    amount1_raw TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    PRIMARY KEY (chain_id, dex, pool_address, tx_hash, log_index)
+  )`,
+  `CREATE INDEX IF NOT EXISTS dex_market_swap_events_window_idx
+     ON dex_market_swap_events (chain_id, dex, pool_address, block_timestamp DESC)`,
+  // 35-day retention support (migration 0137).
+  `CREATE INDEX IF NOT EXISTS dex_market_swap_events_retention_idx
+     ON dex_market_swap_events (block_timestamp)`,
+];
+
 const OPS_SCHEMA_META_DDL = [
   `CREATE TABLE IF NOT EXISTS ops_schema_meta (
     key TEXT PRIMARY KEY,
@@ -180,6 +253,8 @@ const ALL_DDL: string[] = [
   ...PRICE_SLOT_PROJECTION_RUNS_DDL,
   ...MANIP_COST_POOL_SNAPSHOTS_DDL,
   ...COVERAGE_SLO_DDL,
+  ...FEED_HEALTH_SNAPSHOTS_DDL,
+  ...DEX_MARKET_DDL,
 ];
 
 export function tursoOpsMigrations(): readonly string[] {

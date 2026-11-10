@@ -8,6 +8,13 @@ import {
   type MonadDexRawLog,
 } from '@/lib/dex/monadUniswapV3';
 import { createServiceRoleClient } from '@/lib/supabase/server';
+import { getTursoOpsClient } from '@/lib/turso/ops/client';
+import {
+  loadTursoDexCursor,
+  persistTursoDexWindow,
+  readTursoDexMarketMode,
+  type TursoDexSwapRow,
+} from '@/lib/turso/ops/dexMarketRepository';
 import { mapWithConcurrency } from '@/lib/utils/concurrency';
 
 const DEX = 'uniswap-v3';
@@ -89,6 +96,25 @@ function rawUsdcToNumber(raw: bigint): number | null {
 }
 
 async function loadCursor(): Promise<DexCursor | null> {
+  if (readTursoDexMarketMode() === 'turso') {
+    // Egress-retired end state: the resumability pointer lives on the Turso
+    // ops data plane, so Supabase egress never gates the 10-min cadence.
+    const client = getTursoOpsClient();
+    const cursor = await loadTursoDexCursor(client, {
+      chainId: MONAD_CHAIN_ID,
+      dex: DEX,
+      poolAddress: MONAD_UNISWAP_V3_WMON_USDC.pool.toLowerCase(),
+    });
+    if (cursor === null) return null;
+    if (!/^\d+$/.test(cursor.lastScannedBlock)) {
+      throw new Error('Monad DEX cursor validation failed.');
+    }
+    return {
+      lastScannedBlock: toBigInt(cursor.lastScannedBlock, 'cursor block'),
+      lastScannedTimestamp: cursor.lastScannedTimestamp,
+      coverageStartedAt: cursor.coverageStartedAt,
+    };
+  }
   const supabase = createServiceRoleClient();
   const { data, error } = await supabase
     .from('dex_market_sync_cursors')
@@ -216,45 +242,83 @@ export async function syncMonadUniswapV3Volume(
     rpc.getBlock(toBlock, options.signal),
   ]);
 
-  const supabase = createServiceRoleClient();
-  if (swaps.length > 0) {
-    const rows = swaps.map((swap) => {
+  const coverageStartedAt =
+    cursor?.coverageStartedAt ?? new Date(fromBlockData.timestamp * 1000).toISOString();
+
+  if (readTursoDexMarketMode() === 'turso') {
+    // Egress-retired end state: swap events + cursor advance land on the
+    // Turso ops data plane in one atomic batch (same retryable contract —
+    // the cursor only advances together with the persisted event batch).
+    const client = getTursoOpsClient();
+    const rows: TursoDexSwapRow[] = swaps.map((swap) => {
       const blockTimestamp = blockTimes.get(swap.blockNumber.toString());
       if (!blockTimestamp) throw new Error('Monad DEX Swap event has no block timestamp.');
       return {
+        chainId: MONAD_CHAIN_ID,
+        dex: DEX,
+        poolAddress: MONAD_UNISWAP_V3_WMON_USDC.pool.toLowerCase(),
+        txHash: swap.transactionHash,
+        logIndex: swap.logIndex,
+        blockNumber: swap.blockNumber.toString(),
+        blockHash: swap.blockHash,
+        blockTimestamp,
+        amount0Raw: swap.amount0Raw,
+        amount1Raw: swap.amount1Raw,
+      };
+    });
+    await persistTursoDexWindow(
+      client,
+      {
+        chainId: MONAD_CHAIN_ID,
+        dex: DEX,
+        poolAddress: MONAD_UNISWAP_V3_WMON_USDC.pool.toLowerCase(),
+      },
+      rows,
+      {
+        lastScannedBlock: toBlock.toString(),
+        lastScannedTimestamp: new Date(toBlockData.timestamp * 1000).toISOString(),
+        coverageStartedAt,
+      }
+    );
+  } else {
+    const supabase = createServiceRoleClient();
+    if (swaps.length > 0) {
+      const rows = swaps.map((swap) => {
+        const blockTimestamp = blockTimes.get(swap.blockNumber.toString());
+        if (!blockTimestamp) throw new Error('Monad DEX Swap event has no block timestamp.');
+        return {
+          chain_id: MONAD_CHAIN_ID,
+          dex: DEX,
+          pool_address: MONAD_UNISWAP_V3_WMON_USDC.pool.toLowerCase(),
+          tx_hash: swap.transactionHash,
+          log_index: swap.logIndex,
+          block_number: swap.blockNumber.toString(),
+          block_hash: swap.blockHash,
+          block_timestamp: blockTimestamp,
+          amount0_raw: swap.amount0Raw,
+          amount1_raw: swap.amount1Raw,
+        };
+      });
+      const { error } = await supabase
+        .from('dex_market_swap_events')
+        .upsert(rows, { onConflict: 'chain_id,dex,pool_address,tx_hash,log_index' });
+      if (error) throw new Error('Monad DEX Swap event upsert failed.');
+    }
+
+    const { error: cursorError } = await supabase.from('dex_market_sync_cursors').upsert(
+      {
         chain_id: MONAD_CHAIN_ID,
         dex: DEX,
         pool_address: MONAD_UNISWAP_V3_WMON_USDC.pool.toLowerCase(),
-        tx_hash: swap.transactionHash,
-        log_index: swap.logIndex,
-        block_number: swap.blockNumber.toString(),
-        block_hash: swap.blockHash,
-        block_timestamp: blockTimestamp,
-        amount0_raw: swap.amount0Raw,
-        amount1_raw: swap.amount1Raw,
-      };
-    });
-    const { error } = await supabase
-      .from('dex_market_swap_events')
-      .upsert(rows, { onConflict: 'chain_id,dex,pool_address,tx_hash,log_index' });
-    if (error) throw new Error('Monad DEX Swap event upsert failed.');
+        last_scanned_block: toBlock.toString(),
+        last_scanned_timestamp: new Date(toBlockData.timestamp * 1000).toISOString(),
+        coverage_started_at: coverageStartedAt,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'chain_id,dex,pool_address' }
+    );
+    if (cursorError) throw new Error('Monad DEX cursor upsert failed.');
   }
-
-  const coverageStartedAt =
-    cursor?.coverageStartedAt ?? new Date(fromBlockData.timestamp * 1000).toISOString();
-  const { error: cursorError } = await supabase.from('dex_market_sync_cursors').upsert(
-    {
-      chain_id: MONAD_CHAIN_ID,
-      dex: DEX,
-      pool_address: MONAD_UNISWAP_V3_WMON_USDC.pool.toLowerCase(),
-      last_scanned_block: toBlock.toString(),
-      last_scanned_timestamp: new Date(toBlockData.timestamp * 1000).toISOString(),
-      coverage_started_at: coverageStartedAt,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: 'chain_id,dex,pool_address' }
-  );
-  if (cursorError) throw new Error('Monad DEX cursor upsert failed.');
 
   return {
     fromBlock: fromBlock.toString(),
