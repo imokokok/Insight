@@ -134,6 +134,24 @@ const eslintConfig = defineConfig([
       ],
     },
   },
+  {
+    files: ['src/lib/safety/**/*Policy.ts'],
+    rules: {
+      // Policies stay deterministic and reusable: orchestration, transport and
+      // persistence belong to the application/infrastructure layers.
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@/app/**', '@/mcp/**', '@/lib/api/**', '@/lib/supabase/**', 'next/**'],
+              message: 'Safety policy modules must remain free of transport and persistence imports.',
+            },
+          ],
+        },
+      ],
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

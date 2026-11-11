@@ -33,6 +33,10 @@ The application layer may compose existing capabilities. Transport adapters
 remain responsible for parsing requests, authentication, response formatting
 and payment handling; they do not own safety policy.
 
+`verdictPolicy.ts` is the first dependency-free rule module. It owns threshold
+comparison, verdict ordering and normalization only; it cannot import HTTP,
+MCP, Next.js or Supabase code. Keep future pure rules under the same boundary.
+
 ## Compatibility and migration
 
 The former `@/lib/api/services/preTradeSafetyService` path remains a thin
