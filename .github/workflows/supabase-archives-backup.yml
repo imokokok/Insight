@@ -20,6 +20,14 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
+      # Server runs Postgres 17; pg_dump refuses cross-major-version dumps and
+      # the runner image ships client 16, so pin the matching client.
+      - name: Install matching PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client-17
+          pg_dump --version
+
       - name: Dump snapshot archives
         env:
           PGPASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
