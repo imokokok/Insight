@@ -3,30 +3,34 @@ import { after, type NextRequest, NextResponse } from 'next/server';
 import { type ZodSchema } from 'zod';
 
 import { applyCreditBillingHeaders } from '@/lib/billing/billingHeaders';
-import { consumeCredits, precheckCredits, recordWaivedCredit } from '@/lib/billing/creditWallet';
+import { precheckCredits } from '@/lib/billing/creditWallet';
 import {
   BILLING_ZERO_REASONS,
   classifyBatchZeroReason,
   isDeterministicZeroReason,
   isUpstreamTimeoutError,
 } from '@/lib/billing/exemptions';
+import { batchChargeCredits, REST_BATCH_METERED_PATHS } from '@/lib/billing/metering';
 import {
-  BATCH_UNIT_CREDITS,
-  batchChargeCredits,
-  CREDIT_EXHAUSTED_RETRY_AFTER_SECONDS,
-  REST_BATCH_METERED_PATHS,
-} from '@/lib/billing/metering';
-import {
-  getCachedMcpResult,
   resolveClientIdempotencyKey,
   restIdempotencyMeteringKeys,
   restRequestFingerprint,
-  setCachedMcpResult,
 } from '@/lib/billing/requestIdempotency';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
 import { createZodValidationMiddleware } from '@/lib/validation/middleware';
 
 import { logApiKeyUsage } from './apiKey';
+import {
+  applyRestBillingReceipt,
+  buildConsumeRejectedResponse,
+  buildSettlementUnavailableResponse,
+  chargeRestRequest,
+  countUsableBatchRows,
+  echoBatchBilling,
+  maybeRecordErrorWaiver,
+  recordBatchWaiver,
+  type RestChargeOutcome,
+} from './billing/restBilling';
 import { verifyInternalToken, INTERNAL_COOKIE_NAME } from './internalToken';
 import {
   createAuthMiddleware,
@@ -44,6 +48,12 @@ import {
 } from './middleware';
 import { checkPreAuthBurstLimit } from './middleware/preAuthBurstLimiter';
 import { extractClientIp, rateLimitKeyGenerator } from './middleware/rateLimitMiddleware';
+import {
+  cacheRestReplayResult,
+  getCachedMcpResult,
+  readBodyForFingerprint,
+  shouldCacheRestResult,
+} from './replay/restReplay';
 import { rejectOversizedRequest, rejectStreamedOversizedRequest } from './requestLimits';
 import { ApiResponseBuilder } from './response';
 import { withRouteDeadline } from './routeDeadline';
@@ -54,45 +64,6 @@ import type { ApiSuccessResponse } from './response/ApiResponse';
 const logger = createLogger('api-handler');
 
 const PROTECTED_CACHE_CONTROL = 'private, no-store, max-age=0';
-
-interface RestChargeOutcome {
-  ok: boolean;
-  confirmed?: boolean;
-  idempotent?: boolean;
-  balance?: number;
-  reason?: string;
-}
-
-/**
- * Count rows a batch endpoint actually returned with usable data. Batch
- * requests are priced per requested item, but a response where every item
- * failed carries no usable conclusion and must not be billed.
- *
- * Returns null when the body can't be inspected (non-JSON, stream reuse), in
- * which case the caller keeps the normal charge.
- */
-async function countUsableBatchRows(
-  response: NextResponse
-): Promise<{ usable: number | null; response: NextResponse }> {
-  try {
-    // Read through the shared snapshot helper: some runtimes (jsdom, stream
-    // responses) expose no `clone`, and consuming the body in place would
-    // break the response we still have to deliver.
-    const snapshot = await snapshotResponseForCache(response);
-    const body: unknown = JSON.parse(snapshot.body);
-    if (body === null || typeof body !== 'object')
-      return { usable: null, response: snapshot.response };
-    const rows = (body as { data?: unknown }).data;
-    if (!Array.isArray(rows)) return { usable: null, response: snapshot.response };
-    const usable = rows.filter((row) => {
-      if (row === null || typeof row !== 'object') return false;
-      return (row as { error?: unknown }).error === null;
-    }).length;
-    return { usable, response: snapshot.response };
-  } catch {
-    return { usable: null, response };
-  }
-}
 
 /**
  * Attach the rate-limit, billing, CORS and diagnostic headers to a successful
@@ -135,319 +106,10 @@ function applySuccessTail(params: {
   return params.response;
 }
 
-/** Emit the canonical per-request `X-Credit-*` billing receipt. */
-function applyRestBillingReceipt(
-  response: NextResponse,
-  quotaInfo: QuotaInfo | undefined,
-  charge: RestChargeOutcome | null,
-  exemption?: string,
-  billedItems?: number,
-  receipt?: string | null
-): void {
-  if (quotaInfo?.creditCost === undefined) return;
-  const items = billedItems ?? quotaInfo.billableItems ?? 1;
-  // Batch responses can succeed for fewer items than requested: the receipt
-  // prices and charges the items actually returned, so `X-Credit-Cost` and
-  // `billedItems` stay mutually consistent and caller-verifiable.
-  const priceCredits = exemption
-    ? 0
-    : quotaInfo.creditUnitCost !== undefined
-      ? quotaInfo.creditUnitCost * items
-      : quotaInfo.creditCost;
-  const status = isDeterministicZeroReason(exemption)
-    ? 'waived'
-    : exemption
-      ? 'not_charged'
-      : charge?.confirmed === false
-        ? 'degraded'
-        : charge?.ok
-          ? charge.idempotent
-            ? 'replayed'
-            : 'charged'
-          : 'not_charged';
-  // `consume_credits` returns the POST-debit balance when it charged, and the
-  // current balance otherwise (see migration 0042). Reconstruct the pre-request
-  // balance from the debit so `X-Credit-Balance` and `X-Credit-Balance-After`
-  // bracket the actual movement.
-  const charged = status === 'charged';
-  const unknownBalance = charge?.balance ?? null;
-  const balanceAfter = unknownBalance;
-  const balance =
-    quotaInfo.creditBalance ??
-    (charged && unknownBalance !== null ? unknownBalance + priceCredits : unknownBalance);
-  applyCreditBillingHeaders(response.headers, {
-    costCredits: priceCredits,
-    balance,
-    balanceAfter,
-    status,
-    // A zero charge must say why: no data vs all items failed vs timeout.
-    zeroReason: isDeterministicZeroReason(exemption)
-      ? exemption
-      : exemption === 'upstream_timeout'
-        ? BILLING_ZERO_REASONS.timeout
-        : undefined,
-    receipt,
-  });
-}
-
 /**
- * Read the request body without consuming it, for the idempotency fingerprint.
- * Identical bytes on a retry must produce an identical fingerprint.
- */
-async function readBodyForFingerprint(request: NextRequest): Promise<string> {
-  if (request.method === 'GET' || request.method === 'HEAD') return '';
-  try {
-    return await request.clone().text();
-  } catch {
-    return '';
-  }
-}
-
-/**
- * Snapshot a successful response for the idempotency cache without breaking
- * the response served to the caller. Runtime Response.clone() is used when
- * available; some NextResponse polyfills (notably under jsdom) do not expose
- * it, so fall back to consuming and rebuilding an equivalent response.
- */
-/** 402 when the authoritative debit was rejected after a successful handler. */
-function buildConsumeRejectedResponse(input: {
-  cost: number;
-  quotaInfo: QuotaInfo | undefined;
-  charge: RestChargeOutcome;
-  receiptKey: string;
-}): NextResponse {
-  const response = NextResponse.json(
-    ApiResponseBuilder.error(
-      'CREDIT_EXHAUSTED',
-      `This call requires ${input.cost} credit${
-        input.cost === 1 ? '' : 's'
-      } but the charge could not be applied. Top up at /pricing.`,
-      { retryable: false, details: { reason: input.charge.reason, cost: input.cost } }
-    ),
-    { status: 402 }
-  );
-  response.headers.set('X-Credit-Cost', String(input.cost));
-  response.headers.set('X-Credit-Receipt', input.receiptKey);
-  response.headers.set('X-Credit-Status', 'not_charged');
-  response.headers.set('Retry-After', String(CREDIT_EXHAUSTED_RETRY_AFTER_SECONDS));
-  applyRestBillingReceipt(response, input.quotaInfo, input.charge);
-  return response;
-}
-
-/** 503 when a C4 (>=40 credit) debit could not be confirmed (fail-closed). */
-function buildSettlementUnavailableResponse(input: {
-  cost: number;
-  quotaInfo: QuotaInfo | undefined;
-  charge: RestChargeOutcome;
-}): NextResponse {
-  const response = NextResponse.json(
-    ApiResponseBuilder.error(
-      'CREDIT_SETTLEMENT_UNAVAILABLE',
-      'The credit ledger is temporarily unavailable. Retry shortly; this call was not charged.',
-      { retryable: true, details: { cost: input.cost } }
-    ),
-    { status: 503 }
-  );
-  response.headers.set('Retry-After', '30');
-  applyRestBillingReceipt(response, input.quotaInfo, input.charge);
-  return response;
-}
-
-/** Commit the deferred charge for a successful REST request. */
-async function chargeRestRequest(params: {
-  path: string;
-  pendingCharge: NonNullable<QuotaInfo['pendingCharge']>;
-  quotaInfo: QuotaInfo | undefined;
-  chargedCost: number;
-  chargedItems: number;
-  exemption: string | undefined;
-}): Promise<RestChargeOutcome> {
-  const { pendingCharge } = params;
-  const isBatch = REST_BATCH_METERED_PATHS.has(params.path);
-  const requestedItems = params.quotaInfo?.billableItems ?? 1;
-  const reason = params.exemption
-    ? BILLING_ZERO_REASONS.insufficientData
-    : isBatch
-      ? params.chargedItems < requestedItems
-        ? 'batch_partial'
-        : 'prices.batch'
-      : params.path;
-  return consumeCredits(
-    pendingCharge.apiKeyId,
-    params.chargedCost,
-    pendingCharge.meteringKey,
-    params.path,
-    {
-      reason,
-      requestId: pendingCharge.meteringKey,
-      meta: isBatch ? { requested: requestedItems, charged: params.chargedItems } : undefined,
-      previousMeteringKey: pendingCharge.previousMeteringKey,
-    }
-  );
-}
-
-/** Write the 0-delta `waiver` row for a batch that delivered no usable rows. */
-async function recordBatchWaiver(
-  pendingCharge: NonNullable<QuotaInfo['pendingCharge']>,
-  path: string,
-  quotaInfo: QuotaInfo | undefined
-): Promise<void> {
-  await recordWaivedCredit({
-    keyId: pendingCharge.apiKeyId,
-    meteringKey: pendingCharge.meteringKey,
-    ref: path,
-    // Every requested item failed upstream: no usable row was delivered.
-    reason: BILLING_ZERO_REASONS.upstreamFailed,
-    meta: { requested: quotaInfo?.billableItems ?? 1, charged: 0 },
-  });
-}
-
-function batchEchoStatus(
-  chargedCost: number,
-  chargedItems: number,
-  requestedItems: number,
-  exemption: string | undefined
-): string {
-  if (chargedCost === 0) {
-    return isDeterministicZeroReason(exemption) ? 'waived' : 'not_charged';
-  }
-  return chargedItems < requestedItems ? 'batch_partial' : 'charged';
-}
-
-async function echoBatchBilling(
-  response: NextResponse,
-  quotaInfo: QuotaInfo | undefined,
-  chargedCost: number,
-  chargedItems: number,
-  exemption: string | undefined
-): Promise<NextResponse> {
-  const requestedItems = quotaInfo?.billableItems ?? 1;
-  return attachBatchBillingEcho(response, {
-    itemsRequested: requestedItems,
-    itemsCharged: chargedItems,
-    unitCredits: BATCH_UNIT_CREDITS,
-    costCredits: chargedCost,
-    status: batchEchoStatus(chargedCost, chargedItems, requestedItems, exemption),
-  });
-}
-
-/**
- * Zero-charge audit for the error path: no data or an upstream timeout still
- * writes a 0-delta `waiver` row so the bill proves the call was free. Generic
- * failures write nothing — they were never billable in the first place.
- */
-async function maybeRecordErrorWaiver(params: {
-  keyId: string | undefined;
-  receiptKey: string | null;
-  path: string;
-  exemption: string;
-}): Promise<void> {
-  if (!params.keyId || !params.receiptKey) return;
-  if (
-    params.exemption !== BILLING_ZERO_REASONS.insufficientData &&
-    params.exemption !== 'upstream_timeout'
-  ) {
-    return;
-  }
-  await recordWaivedCredit({
-    keyId: params.keyId,
-    meteringKey: params.receiptKey,
-    ref: params.path,
-    reason:
-      params.exemption === BILLING_ZERO_REASONS.insufficientData
-        ? BILLING_ZERO_REASONS.insufficientData
-        : BILLING_ZERO_REASONS.timeout,
-  });
-}
-
-/** Cache a confirmed success, or a deterministic terminal zero-charge outcome. */
-async function cacheRestReplayResult(params: {
-  replayKey: string;
-  response: NextResponse;
-  chargedCost: number;
-  chargedItems: number;
-  receiptKey: string;
-  zeroReason?: string;
-}): Promise<NextResponse> {
-  try {
-    const snapshot = await snapshotResponseForCache(params.response);
-    setCachedMcpResult(params.replayKey, {
-      priceCredits: params.chargedCost,
-      billableItems: params.chargedItems,
-      zeroReason: params.zeroReason,
-      result: null,
-      rest: {
-        status: snapshot.response.status,
-        contentType: snapshot.response.headers.get('content-type'),
-        body: snapshot.body,
-        receipt: params.receiptKey,
-      },
-    });
-    return snapshot.response;
-  } catch {
-    // Cache population is an optimization; never fail the served request.
-    return params.response;
-  }
-}
-
-/** Cache a confirmed priced success, or a deterministic all-failed batch. */
-function shouldCacheRestResult(
-  exemption: string | undefined,
-  chargedCost: number,
-  charge: RestChargeOutcome | null
-): boolean {
-  if (isDeterministicZeroReason(exemption)) return true;
-  return chargedCost > 0 && charge?.ok === true && charge.confirmed !== false;
-}
-
-/**
- * REST batch responses echo the billing unit so a caller can verify
- * `X-Credit-Cost = 2 × itemsCharged` and `itemsCharged` == non-error rows
- * without trusting the headers alone (pricing review §7.2).
- */
-async function attachBatchBillingEcho(
-  response: NextResponse,
-  input: {
-    itemsRequested: number;
-    itemsCharged: number;
-    unitCredits: number;
-    costCredits: number;
-    status: string;
-  }
-): Promise<NextResponse> {
-  try {
-    const snapshot = await snapshotResponseForCache(response);
-    const parsed = JSON.parse(snapshot.body) as Record<string, unknown> | null;
-    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return response;
-    parsed.billing = input;
-    return new NextResponse(snapshot.body ? JSON.stringify(parsed) : snapshot.body, {
-      status: response.status,
-      headers: response.headers,
-    });
-  } catch {
-    // The echo is an observability guarantee, not a reason to fail the request.
-    return response;
-  }
-}
-
-async function snapshotResponseForCache(
-  response: NextResponse
-): Promise<{ body: string; response: NextResponse }> {
-  if (typeof (response as Response).clone === 'function') {
-    return { body: await response.clone().text(), response };
-  }
-  const body = await response.text();
-  return {
-    body,
-    response: new NextResponse(body, { status: response.status, headers: response.headers }),
-  };
-}
-
-/**
- * Serve a cached REST result for a replayed logical request: identical
- * status/body, zero charge, and an honest receipt (`status: replayed`).
- * The remaining balance is read fresh so the header never shows a stale
- * wallet snapshot.
+ * Serve a cached REST result with a fresh balance and request diagnostics.
+ * Cache storage lives in replay/restReplay; the handler owns these request
+ * lifecycle effects (rate-limit, CORS, logging and protected caching).
  */
 async function buildRestReplayResponse(
   cached: NonNullable<ReturnType<typeof getCachedMcpResult>>,
@@ -464,15 +126,8 @@ async function buildRestReplayResponse(
   applyProtectedCachePolicy(response);
 
   const keyId = apiContext.auth?.apiKey?.keyId;
-  let balance: number | undefined;
-  if (keyId) {
-    balance = (await precheckCredits(keyId, 0)).balance;
-  }
-
+  const balance = keyId ? (await precheckCredits(keyId, 0)).balance : undefined;
   applyCreditBillingHeaders(response.headers, {
-    // A replay re-executes nothing and debits nothing: report 0, not the
-    // original price. The original charge stays visible on the first response
-    // and in the ledger under the same receipt.
     costCredits: 0,
     balance: balance ?? null,
     balanceAfter: balance ?? null,
@@ -480,12 +135,8 @@ async function buildRestReplayResponse(
     zeroReason: 'replay',
     receipt: rest.receipt ?? null,
   });
-  if (apiContext.rateLimitInfo) {
-    applyRateLimitHeaders(response, apiContext.rateLimitInfo);
-  }
-  if (corsHeaders) {
-    applyCorsHeaders(response, corsHeaders);
-  }
+  if (apiContext.rateLimitInfo) applyRateLimitHeaders(response, apiContext.rateLimitInfo);
+  if (corsHeaders) applyCorsHeaders(response, corsHeaders);
   applyDiagnosticHeaders(response, apiContext.requestId, startTime);
   logResponse(apiContext.requestId, response.status, startTime);
   recordApiKeyUsage(request, response.status, startTime, keyId);
