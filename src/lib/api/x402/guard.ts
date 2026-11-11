@@ -39,11 +39,12 @@ const X402_AUDIT_TIMEOUT_MS = 2_000;
 const X402_AUDIT_BACKOFF_MS = 5 * 60_000;
 let x402AuditUnavailableUntil = 0;
 
-// Anonymous quote probes are expected for a pay-per-call API, but a client
-// only needs a handful before submitting a payment signature. Keep this
-// identity-wide (rather than per endpoint) so directory health checks cannot
-// multiply work by cycling through the public safety routes.
-const X402_QUOTE_RATE_LIMIT = { windowMs: 60 * 60_000, maxRequests: 6 };
+// Anonymous quote probes are expected for a pay-per-call API. A directory may
+// make a HEAD request and then the advertised method for every public resource
+// in one discovery sweep. The current manifest has 20 resources, so permit one
+// complete two-request sweep with a small margin while keeping the limit
+// identity-wide rather than per endpoint.
+const X402_QUOTE_RATE_LIMIT = { windowMs: 60 * 60_000, maxRequests: 48 };
 // A valid payer can make more calls, while this still bounds malformed payment
 // signature floods before they repeatedly reach the facilitator.
 const X402_PAYMENT_RATE_LIMIT = { windowMs: 60_000, maxRequests: 60 };
