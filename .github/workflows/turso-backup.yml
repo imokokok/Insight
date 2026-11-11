@@ -47,3 +47,14 @@ jobs:
           path: artifacts/turso-backup/
           retention-days: 90
           if-no-files-found: error
+
+      # Prune AFTER the artifact upload: every deleted row is already in
+      # the 90-day backup trail. Covers snapshot_ingest_leases (>14d),
+      # price_records (ttl-driven) and settlement_window_candles (>365d);
+      # price_snapshots prunes itself daily via pruneExpiredTursoPriceEvents.
+      - name: Retention prune
+        if: always()
+        env:
+          TURSO_OPS_DATABASE_URL: ${{ secrets.TURSO_PRICE_DATABASE_URL }}
+          TURSO_OPS_AUTH_TOKEN: ${{ secrets.TURSO_PRICE_AUTH_TOKEN }}
+        run: npx tsx scripts/turso/retention-prune.mts
