@@ -130,6 +130,8 @@ import { throwIfAborted } from '@/lib/utils/requestDeadline';
 import { Blockchain, type OracleProvider } from '@/types/oracle';
 
 import { buildAssessmentScope, buildSizingBasis } from './diagnostics';
+import { evaluateDepegRule } from './marketAlertPolicy';
+import { evaluateProtocolBufferRule } from './protocolBufferPolicy';
 import {
   clamp01,
   evaluateHighIsBad,
@@ -137,7 +139,6 @@ import {
   normalize,
   pickWorst,
   PRE_TRADE_THRESHOLDS as THRESHOLDS,
-  type RuleVerdict,
 } from './verdictPolicy';
 
 import type {
@@ -149,7 +150,6 @@ import type {
   ProtocolSafetyContext,
   ProviderPriceDetail,
   SafetyVerdict,
-  TradeAction,
 } from './contracts';
 
 const logger = createLogger('pre-trade-safety');
@@ -325,31 +325,6 @@ export interface PreTradeSafetyResult {
  * cleanly separates the two cases.
  */
 const STALE_DIVERGENCE_BLOCK_PCT = 2.0;
-
-/**
- * Protocol-buffer rule thresholds (high-is-bad, % of max-LTV safety buffer
- * consumed by the current cross-oracle deviation). Only applied to lending
- * actions — a swap doesn't open a liquidatable position, so the protocol
- * context stays informational for swaps.
- */
-const PROTOCOL_BUFFER_THRESHOLDS = { caution: 50, danger: 80 } as const;
-/**
- * Borrow is hard-frozen when cross-oracle dispersion consumes this % of the
- * protocol's max-LTV liquidation buffer. Chosen from the threshold simulation
- * (scripts/insight_lending_safety/sim_threshold.mjs): at 95% the real hourly
- * deviation data showed ~0% false-freeze even with the sustained-only gate.
- */
-const LENDING_FREEZE_BUFFER_PCT = 95;
-/**
- * Sustained-only gate for the freeze: the high buffer consumption must also be
- * statistically significant (24h z-score elevated) or still rising (3h deviation
- * velocity > 0). A one-tick spike that happens to cross 95% on otherwise-normal
- * volatility is NOT frozen — this is the anti-false-positive guard.
- */
-const LENDING_FREEZE_ZSCORE_MIN = 1.0;
-// Only borrow opens new debt. Repay/supply/liquidate retain every common
-// oracle gate, but a max-LTV new-borrow heuristic must not freeze these actions.
-const LENDING_ACTIONS: readonly TradeAction[] = ['borrow'];
 
 // ---------------------------------------------------------------------------
 // Audit logging (required before issuance)
@@ -827,146 +802,6 @@ async function resolveRecommendedPositionCap(
     ? `oracle-condition and reviewed-venue-liquidity cap $${recommendedMaxPositionUsd.toLocaleString()}`
     : `oracle-condition advisory cap (not venue liquidity) $${recommendedMaxPositionUsd.toLocaleString()}`;
   return { reviewedLaneEvidence, recommendedMaxPositionUsd, liquidityBasis };
-}
-
-/**
- * Build the concrete, user-executable lending-safety actions from the protocol
- * buffer context. This is the "actionable" half of the cross-oracle dispersion
- * signal: rather than only flagging risk, it tells the borrower exactly what to
- * do (freeze / wait for convergence / add collateral / borrow less).
- */
-function buildLendingActions(args: {
-  protocolSafety: ProtocolSafetyContext;
-  maxDeviationPct: number;
-  frozen: boolean;
-}): LendingSafetyAction[] {
-  const { protocolSafety, maxDeviationPct, frozen } = args;
-  const { bufferConsumedPct, criticalDeviationPct, protocolName } = protocolSafety;
-  // Deviation that brings the buffer back down to the CAUTION line (50%).
-  const targetDeviationPct = roundTo(
-    criticalDeviationPct * (PROTOCOL_BUFFER_THRESHOLDS.caution / 100),
-    2
-  );
-  const actions: LendingSafetyAction[] = [];
-
-  if (frozen) {
-    actions.push({
-      type: 'freeze_borrow',
-      severity: 'block',
-      title: 'New borrowing is frozen',
-      detail: `Cross-oracle dispersion currently consumes ${bufferConsumedPct.toFixed(0)}% of ${protocolName}'s max-LTV liquidation buffer. Borrowing now risks forced liquidation on a single provider tick. Wait for oracle consensus to converge.`,
-    });
-  }
-
-  if (frozen || bufferConsumedPct >= PROTOCOL_BUFFER_THRESHOLDS.danger) {
-    actions.push({
-      type: 'wait_convergence',
-      severity: frozen ? 'danger' : 'caution',
-      title: 'Wait for oracle consensus to converge',
-      detail: `Do not borrow until cross-oracle deviation falls to ≤ ${targetDeviationPct}% (currently ${maxDeviationPct.toFixed(2)}%). This re-widens the liquidation buffer before you take on debt.`,
-      targetDeviationPct,
-    });
-  }
-
-  if (bufferConsumedPct >= PROTOCOL_BUFFER_THRESHOLDS.caution) {
-    actions.push({
-      type: 'add_collateral',
-      severity: bufferConsumedPct >= PROTOCOL_BUFFER_THRESHOLDS.danger ? 'danger' : 'caution',
-      title: 'Add collateral or borrow less',
-      detail: `Oracle dispersion already consumes ${bufferConsumedPct.toFixed(0)}% of the liquidation buffer. Add collateral to re-widen it, or keep the new borrow small.`,
-      targetBufferPct: PROTOCOL_BUFFER_THRESHOLDS.caution,
-    });
-  }
-
-  return actions;
-}
-
-/**
- * Evaluate the cross-oracle dispersion rule for lending actions in isolation,
- * so the (large) preTradeSafetyCheck function stays within its line budget and
- * the rule stays readable. Returns the verdict contribution, contributing
- * factors, warnings, and concrete lending actions — the caller merges them in.
- *
- * Decisive & actionable: when dispersion already consumes a share of the
- * protocol's max-LTV liquidation buffer it (a) escalates the verdict and
- * (b) freezes NEW borrowing once consumption reaches LENDING_FREEZE_BUFFER_PCT
- * AND is sustained (24h z-score elevated OR 3h deviation velocity still
- * rising). Swaps are excluded — a swap opens no liquidatable position, so the
- * context stays informational only. The freeze is deterministic (oracle
- * dispersion + historical sustainedness); the ML manipulation score is
- * intentionally NOT consulted here, since it is unvalidated for
- * manipulation-specific accuracy.
- */
-type ProtocolBufferRuleResult = {
-  verdict: RuleVerdict | null;
-  factors: ContributingFactor[];
-  warnings: string[];
-  actions: LendingSafetyAction[];
-};
-
-function evaluateProtocolBufferRule(args: {
-  protocolSafety: ProtocolSafetyContext | null;
-  action: TradeAction;
-  asset: string;
-  maxDeviationPct: number;
-  historicalState: HistoricalOracleState;
-}): ProtocolBufferRuleResult {
-  const empty: ProtocolBufferRuleResult = { verdict: null, factors: [], warnings: [], actions: [] };
-  // Lending actions only; swaps stay informational (no liquidatable position).
-  if (!args.protocolSafety || !LENDING_ACTIONS.includes(args.action)) return empty;
-  const ps = args.protocolSafety;
-  const b = ps.bufferConsumedPct;
-  const result: ProtocolBufferRuleResult = { ...empty };
-
-  const bufferVerdict: RuleVerdict | null =
-    b >= PROTOCOL_BUFFER_THRESHOLDS.danger
-      ? 'DANGER'
-      : b >= PROTOCOL_BUFFER_THRESHOLDS.caution
-        ? 'CAUTION'
-        : null;
-  if (bufferVerdict) {
-    result.verdict = bufferVerdict;
-    result.factors.push({
-      rule: 'protocol_buffer_consumed',
-      value: b,
-      threshold: PROTOCOL_BUFFER_THRESHOLDS[bufferVerdict.toLowerCase() as 'caution' | 'danger'],
-      triggeredVerdict: bufferVerdict,
-      message: `Current oracle deviation consumes ${b.toFixed(1)}% of ${ps.protocolName}'s max-LTV safety buffer (critical deviation ${ps.criticalDeviationPct.toFixed(2)}%) for ${args.asset}.`,
-    });
-    result.warnings.push(
-      `Oracle deviation vs ${ps.protocolName} liquidation buffer: ${b.toFixed(0)}% consumed.`
-    );
-  }
-
-  // Decisive freeze (lending only): block NEW borrowing once dispersion
-  // consumes >= LENDING_FREEZE_BUFFER_PCT of the buffer, but only when it is
-  // sustained — a one-tick spike on otherwise-normal volatility is NOT frozen
-  // (anti-false-positive), matching the threshold-simulation result (~0%
-  // false-freeze at 95%).
-  const isSustained =
-    args.historicalState.maxDeviationZscore24h >= LENDING_FREEZE_ZSCORE_MIN ||
-    args.historicalState.deviationVelocity3h > 0;
-  const frozen = b >= LENDING_FREEZE_BUFFER_PCT && isSustained;
-  if (frozen) {
-    result.verdict = 'BLOCK';
-    result.factors.push({
-      rule: 'protocol_buffer_frozen',
-      value: b,
-      threshold: LENDING_FREEZE_BUFFER_PCT,
-      triggeredVerdict: 'BLOCK',
-      message: `Borrow frozen: cross-oracle dispersion consumes ${b.toFixed(1)}% of ${ps.protocolName}'s max-LTV liquidation buffer and is sustained (z=${args.historicalState.maxDeviationZscore24h.toFixed(2)}, v3h=${args.historicalState.deviationVelocity3h.toFixed(2)}).`,
-    });
-    result.warnings.push(
-      `Borrowing frozen: oracle dispersion consumes ${b.toFixed(0)}% of ${ps.protocolName}'s liquidation buffer and is not converging.`
-    );
-  }
-
-  result.actions = buildLendingActions({
-    protocolSafety: ps,
-    maxDeviationPct: args.maxDeviationPct,
-    frozen,
-  });
-  return result;
 }
 
 /**
@@ -2093,38 +1928,6 @@ function evaluateStalenessRules(params: {
   }
 
   return { verdict, factors, warnings };
-}
-
-/** Depeg rule: take the worst active depeg warning across the pair. */
-function evaluateDepegRule(params: { depegWarnings: DepegWarning[] }): {
-  verdict: SafetyVerdict | null;
-  factors: ContributingFactor[];
-  warnings: string[];
-} {
-  const factors: ContributingFactor[] = [];
-  const warnings: string[] = [];
-
-  const worstDepeg = params.depegWarnings.reduce<number>(
-    (max, w) => (Math.abs(w.deviationPct) > max ? Math.abs(w.deviationPct) : max),
-    0
-  );
-  const depegVerdict = evaluateHighIsBad(worstDepeg, THRESHOLDS.stablecoinDepegPct);
-  if (depegVerdict) {
-    const worstCoin = params.depegWarnings.reduce<string | null>(
-      (pick, w) => (Math.abs(w.deviationPct) >= worstDepeg ? w.stablecoin : pick),
-      null
-    );
-    factors.push({
-      rule: 'stablecoin_depeg_pct',
-      value: roundTo(worstDepeg, 4),
-      threshold:
-        THRESHOLDS.stablecoinDepegPct[depegVerdict.toLowerCase() as 'caution' | 'danger' | 'block'],
-      triggeredVerdict: depegVerdict,
-      message: `Stablecoin ${worstCoin ?? ''} depeg ${worstDepeg.toFixed(2)}% exceeds ${depegVerdict.toLowerCase()} threshold.`,
-    });
-    warnings.push(`Active stablecoin depeg detected (${worstDepeg.toFixed(2)}%).`);
-  }
-  return { verdict: depegVerdict, factors, warnings };
 }
 
 export async function preTradeSafetyCheck(
