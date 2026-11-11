@@ -145,7 +145,8 @@ const eslintConfig = defineConfig([
           patterns: [
             {
               group: ['@/app/**', '@/mcp/**', '@/lib/api/**', '@/lib/supabase/**', 'next/**'],
-              message: 'Safety policy modules must remain free of transport and persistence imports.',
+              message:
+                'Safety policy modules must remain free of transport and persistence imports.',
             },
           ],
         },
