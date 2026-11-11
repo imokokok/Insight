@@ -12,10 +12,6 @@ import {
   hasMppCredential,
   issueMppPreTradeQuote,
 } from '@/lib/api/mpp/preTrade';
-import {
-  preTradeSafetyCheck,
-  type PreTradeSafetyResult,
-} from '@/lib/api/services/preTradeSafetyService';
 import { CACHE_PRESETS } from '@/lib/api/utils';
 import { getX402Config } from '@/lib/api/x402/config';
 import {
@@ -26,6 +22,7 @@ import {
   type X402AcquisitionSource,
 } from '@/lib/api/x402/guard';
 import { enqueueReputationAnchor } from '@/lib/erc8004/reputationAnchor';
+import { preTradeSafetyCheck, type PreTradeSafetyResult } from '@/lib/safety/preTrade';
 import {
   attachGenericJourneyCheck,
   createJourney,

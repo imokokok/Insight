@@ -5,7 +5,7 @@ import {
   type AuditMeta,
   type PreTradeSafetyInput,
   type PreTradeSafetyResult,
-} from '@/lib/api/services/preTradeSafetyService';
+} from '@/lib/safety/preTrade';
 import { SafeProviderSchema, SafeSymbolSchema } from '@/lib/security/validation';
 
 import {

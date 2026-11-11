@@ -1,15 +1,14 @@
-import type { PreTradeSafetyResult } from '@/lib/api/services/preTradeSafetyService';
-import { preTradeSafetyCheck } from '@/lib/api/services/preTradeSafetyService';
 import { resolveCaip19 } from '@/lib/attestations/caip19';
 import { verifyDecisionInputAssessment } from '@/lib/decisionInputTrust/attestation';
 import { recordDecisionInputExecutionGate } from '@/lib/decisionInputTrust/audit';
 import { getOnchainRouteQuote } from '@/lib/decisionInputTrust/onchainRouteQuote';
+import { preTradeSafetyCheck, type PreTradeSafetyResult } from '@/lib/safety/preTrade';
 
 import { agentBeginTradeTool } from '../tools/agentBeginTradeTools';
 import { AgentBeginTradeInputSchema } from '../tools/schemas';
 import { LEGACY_TOOL_BY_NAME } from '../tools/unified/runtime';
 
-jest.mock('@/lib/api/services/preTradeSafetyService', () => ({
+jest.mock('@/lib/safety/preTrade', () => ({
   preTradeSafetyCheck: jest.fn(),
 }));
 jest.mock('@/lib/attestations/caip19', () => ({

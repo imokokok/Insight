@@ -11,10 +11,7 @@ import {
   parseApiEnvelope,
   requireApiData,
 } from '@/lib/api/client/responseValidation';
-import type {
-  LendingSafetyAction,
-  ProtocolSafetyContext,
-} from '@/lib/api/services/preTradeSafetyService';
+import type { LendingSafetyAction, ProtocolSafetyContext } from '@/lib/safety/preTrade';
 import { useSession } from '@/stores/authStore';
 
 /** Map protocol registry chain string → numeric chainId for the pre-trade API. */

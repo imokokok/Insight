@@ -16,7 +16,6 @@
 
 import { z } from 'zod';
 
-import type { preTradeSafetyCheck } from '@/lib/api/services/preTradeSafetyService';
 import {
   ASTER_FAPI_URL,
   asterReviewedMarketForAsset,
@@ -24,6 +23,7 @@ import {
   type AsterPerpMarketState,
   type AsterReviewedPerpMarket,
 } from '@/lib/dex/asterPerpMarket';
+import type { preTradeSafetyCheck } from '@/lib/safety/preTrade';
 
 import {
   assessBnbPerpGuard,

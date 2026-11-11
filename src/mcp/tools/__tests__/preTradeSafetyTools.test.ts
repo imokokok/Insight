@@ -1,9 +1,9 @@
-import { preTradeSafetyCheck } from '@/lib/api/services/preTradeSafetyService';
+import { preTradeSafetyCheck } from '@/lib/safety/preTrade';
 
 import { preTradeSafetyCheckTool } from '../preTradeSafetyTools';
 
 // Mock the underlying service so we can drive each verdict path.
-jest.mock('@/lib/api/services/preTradeSafetyService', () => ({
+jest.mock('@/lib/safety/preTrade', () => ({
   preTradeSafetyCheck: jest.fn(),
 }));
 

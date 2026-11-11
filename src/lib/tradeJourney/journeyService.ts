@@ -1,11 +1,7 @@
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 
-import type {
-  PreTradeSafetyResult,
-  SafetyVerdict,
-  TradeAction,
-} from '@/lib/api/services/preTradeSafetyService';
 import type { X402AcquisitionSource } from '@/lib/api/x402/guard';
+import type { PreTradeSafetyResult, SafetyVerdict, TradeAction } from '@/lib/safety/preTrade';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
 

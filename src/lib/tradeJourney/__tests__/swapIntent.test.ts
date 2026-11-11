@@ -1,4 +1,4 @@
-import { preTradeSafetyCheck } from '@/lib/api/services/preTradeSafetyService';
+import { preTradeSafetyCheck } from '@/lib/safety/preTrade';
 import { attachJourneyChecks, createJourney, nextActions } from '@/lib/tradeJourney/journeyService';
 
 import {
@@ -7,7 +7,7 @@ import {
   SwapIntentBodySchema,
 } from '../swapIntent';
 
-jest.mock('@/lib/api/services/preTradeSafetyService', () => ({
+jest.mock('@/lib/safety/preTrade', () => ({
   preTradeSafetyCheck: jest.fn(),
 }));
 jest.mock('@/lib/tradeJourney/journeyService', () => ({

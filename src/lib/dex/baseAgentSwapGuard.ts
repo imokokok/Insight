@@ -16,10 +16,7 @@ import {
 } from 'viem';
 import { z } from 'zod';
 
-import {
-  preTradeSafetyCheck,
-  type PreTradeSafetyResult,
-} from '@/lib/api/services/preTradeSafetyService';
+import { preTradeSafetyCheck, type PreTradeSafetyResult } from '@/lib/safety/preTrade';
 import { canonicalJsonString } from '@/lib/utils/canonicalJson';
 
 import {

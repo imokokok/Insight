@@ -7,15 +7,12 @@
 
 import { z } from 'zod';
 
-import {
-  preTradeSafetyCheck,
-  type PreTradeSafetyResult,
-} from '@/lib/api/services/preTradeSafetyService';
 import { getRpcEndpoints } from '@/lib/execution/rpcEndpoints';
 import {
   simulateSolanaTransaction,
   type SolanaSimulationPayload,
 } from '@/lib/execution/solanaSimulation';
+import { preTradeSafetyCheck, type PreTradeSafetyResult } from '@/lib/safety/preTrade';
 
 import {
   KAMINO_LEND_PROGRAM_ID,

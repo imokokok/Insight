@@ -2,8 +2,8 @@ import { type NextResponse } from 'next/server';
 
 import { PreTradeQuerySchema } from '@/app/api/v1/safety/pre-trade/querySchema';
 import { ApiResponseBuilder, createApiHandler } from '@/lib/api/handler';
-import { preTradeSafetyCheck } from '@/lib/api/services/preTradeSafetyService';
 import { CACHE_PRESETS } from '@/lib/api/utils';
+import { preTradeSafetyCheck } from '@/lib/safety/preTrade';
 
 import type { z } from 'zod';
 

@@ -7,9 +7,9 @@ import {
   hasMppCredential,
   issueMppPreTradeQuote,
 } from '@/lib/api/mpp/preTrade';
-import { preTradeSafetyCheck } from '@/lib/api/services/preTradeSafetyService';
 import { getX402Config } from '@/lib/api/x402/config';
 import { handlePaidPreTradeRequest, hasAuthCredentials, isPaidRequest } from '@/lib/api/x402/guard';
+import { preTradeSafetyCheck } from '@/lib/safety/preTrade';
 import {
   attachGenericJourneyCheck,
   createJourney,
@@ -57,7 +57,7 @@ jest.mock('@/lib/api/mpp/preTrade', () => ({
   issueMppPreTradeQuote: jest.fn(),
 }));
 
-jest.mock('@/lib/api/services/preTradeSafetyService', () => ({
+jest.mock('@/lib/safety/preTrade', () => ({
   preTradeSafetyCheck: jest.fn(),
 }));
 

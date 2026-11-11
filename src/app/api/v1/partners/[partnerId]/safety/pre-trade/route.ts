@@ -8,10 +8,10 @@ import {
   createOptionsHandler,
   V1_STANDARD_MIDDLEWARES,
 } from '@/lib/api/handler';
-import { preTradeSafetyCheck } from '@/lib/api/services/preTradeSafetyService';
 import { assertVeritasJointRun1800Admission } from '@/lib/attestations/veritasJointRunValidity';
 import { InternalError } from '@/lib/errors';
 import { PARTNER_IDS, type PartnerId } from '@/lib/protocol/partnerIntegrationRegistry';
+import { preTradeSafetyCheck } from '@/lib/safety/preTrade';
 
 const ParamsSchema = z.object({ partnerId: z.enum(PARTNER_IDS) });
 type Params = { partnerId: PartnerId };

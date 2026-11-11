@@ -21,7 +21,7 @@ import { encodeFunctionData } from 'viem';
 import { z } from 'zod';
 
 import { getConsensusPrice } from '@/lib/api/services/consensusPriceService';
-import type { preTradeSafetyCheck } from '@/lib/api/services/preTradeSafetyService';
+import type { preTradeSafetyCheck } from '@/lib/safety/preTrade';
 
 import {
   BASE_CHAIN_ID,

@@ -23,7 +23,7 @@ const TEST_PRIVATE_KEY = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae78
 const TEST_ATTESTER = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266';
 const NOW_MS = 1700000000000;
 
-jest.mock('@/lib/api/services/preTradeSafetyService', () => ({
+jest.mock('@/lib/safety/preTrade', () => ({
   preTradeSafetyCheck: jest.fn(),
   // Re-export the constant the service under test imports.
   // (Not strictly needed — the mock replaces the module, but the service imports

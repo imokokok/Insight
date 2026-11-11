@@ -11,10 +11,6 @@
 
 import { z } from 'zod';
 
-import {
-  preTradeSafetyCheck,
-  type PreTradeSafetyResult,
-} from '@/lib/api/services/preTradeSafetyService';
 import { getRpcEndpoints } from '@/lib/execution/rpcEndpoints';
 import {
   simulateSolanaTransaction,
@@ -25,6 +21,7 @@ import {
   SolanaLendingTransactionSchema,
   type SolanaLendingTransaction,
 } from '@/lib/lending/solanaLendingAction';
+import { preTradeSafetyCheck, type PreTradeSafetyResult } from '@/lib/safety/preTrade';
 
 import {
   directionAToB,

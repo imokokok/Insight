@@ -27,11 +27,8 @@ import { createHash } from 'node:crypto';
 
 import { z } from 'zod';
 
-import {
-  preTradeSafetyCheck,
-  type PreTradeSafetyResult,
-} from '@/lib/api/services/preTradeSafetyService';
 import type { RejectedVerdictEvidence } from '@/lib/billing/exemptions';
+import { preTradeSafetyCheck, type PreTradeSafetyResult } from '@/lib/safety/preTrade';
 
 import {
   REVIEWED_SOLANA_SWAP_PROFILES,

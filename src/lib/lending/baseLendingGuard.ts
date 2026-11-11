@@ -1,12 +1,9 @@
 import { decodeFunctionResult, encodeFunctionData } from 'viem';
 import { z } from 'zod';
 
-import {
-  preTradeSafetyCheck,
-  type PreTradeSafetyResult,
-} from '@/lib/api/services/preTradeSafetyService';
 import { readContract } from '@/lib/protocols/importer/rpcClient';
 import { fetchProtocolRiskParamsForId } from '@/lib/protocols/services/protocolRiskParamsService';
+import { preTradeSafetyCheck, type PreTradeSafetyResult } from '@/lib/safety/preTrade';
 
 import {
   BaseLendingExactTransactionSchema,

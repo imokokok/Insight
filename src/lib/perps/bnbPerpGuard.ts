@@ -29,7 +29,6 @@
 
 import { z } from 'zod';
 
-import { preTradeSafetyCheck } from '@/lib/api/services/preTradeSafetyService';
 import {
   asterReviewedMarketForAsset,
   fetchAsterPerpMarketState,
@@ -50,6 +49,7 @@ import {
   type PerpGuardOracleCheckSummary,
   type PerpGuardVerdict,
 } from '@/lib/perps/perpGuardKernel';
+import { preTradeSafetyCheck } from '@/lib/safety/preTrade';
 
 export const BNB_PERP_GUARD_ASTER_PROTOCOL_ID = 'aster-perps-bnb-mainnet';
 export const BNB_PERP_GUARD_SCHEMA_VERSION = 'insight.bnb-perp-guard.v1';
