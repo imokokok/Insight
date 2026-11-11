@@ -2391,8 +2391,14 @@ paths:
       description: |
         Feed failure incidents and deviation events with severity classification.
 
-        **Credit-metered** — protocol-level intelligence, open to any paying key.
+        Public tier: anonymous callers may query a window of up to 30 days,
+        up to 50 results and offset 200. Full-depth queries (any window,
+        pages up to 200, deep paging) require an API key. The response
+        carries a machine-readable `evidence` block pointing at the signed
+        incident corpus and the verifiable settlement/attestation surfaces;
+        aggregates describe what was observed, not why it happened.
       security:
+        - {}
         - apiKey: []
       parameters:
         - name: provider
@@ -2427,6 +2433,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IncidentsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '402':
           $ref: '#/components/responses/CreditExhausted'
 
