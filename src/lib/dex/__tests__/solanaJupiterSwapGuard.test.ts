@@ -1,7 +1,7 @@
 /** @jest-environment node */
 
-import type { PreTradeSafetyResult } from '@/lib/api/services/preTradeSafetyService';
 import { assessProductOutcome, missingRejectedEvidenceItems } from '@/lib/billing/exemptions';
+import type { PreTradeSafetyResult } from '@/lib/safety/preTrade';
 
 import { prepareSolanaJupiterSwap } from '../solanaJupiterSwap';
 import {

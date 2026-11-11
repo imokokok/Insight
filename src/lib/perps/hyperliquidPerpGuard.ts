@@ -1,6 +1,5 @@
 import { z } from 'zod';
 
-import { preTradeSafetyCheck } from '@/lib/api/services/preTradeSafetyService';
 import {
   getHyperliquidPerpExecutionMarketState,
   hyperliquidPerpMarketProfile,
@@ -20,6 +19,7 @@ import {
   type PerpGuardOracleCheckSummary,
   type PerpGuardVerdict,
 } from '@/lib/perps/perpGuardKernel';
+import { preTradeSafetyCheck } from '@/lib/safety/preTrade';
 
 /**
  * A read-only, Hyperliquid-only perpetual-futures decision gate for the

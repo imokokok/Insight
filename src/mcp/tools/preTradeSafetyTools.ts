@@ -15,7 +15,7 @@ import {
   preTradeSafetyCheck,
   type PreTradeSafetyResult,
   type PreTradeSafetyInput,
-} from '@/lib/api/services/preTradeSafetyService';
+} from '@/lib/safety/preTrade';
 
 import { formatPercent, formatPrice, buildMlModelMetadataLines } from './formatters';
 import { PreTradeSafetyInputSchema } from './schemas';

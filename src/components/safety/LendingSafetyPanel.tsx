@@ -2,10 +2,7 @@
 
 import { Activity, AlertTriangle, ShieldAlert, ShieldCheck, ShieldX } from 'lucide-react';
 
-import type {
-  LendingSafetyAction,
-  ProtocolSafetyContext,
-} from '@/lib/api/services/preTradeSafetyService';
+import type { LendingSafetyAction, ProtocolSafetyContext } from '@/lib/safety/preTrade';
 
 export const ACTION_SEVERITY_STYLE: Record<LendingSafetyAction['severity'], string> = {
   info: 'bg-blue-100 text-blue-700',

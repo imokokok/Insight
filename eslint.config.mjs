@@ -110,6 +110,30 @@ const eslintConfig = defineConfig([
       'max-lines-per-function': ['error', { max: 500 }],
     },
   },
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    rules: {
+      // `preTradeSafetyCheck` is a product use case shared by HTTP, MCP and
+      // guards; it is not an API implementation detail. Keep callers on its
+      // canonical application boundary so a new adapter cannot reintroduce the
+      // old transport-to-domain dependency by accident.
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@/lib/api/services/preTradeSafetyService',
+              message: 'Import from @/lib/safety/preTrade instead.',
+            },
+            {
+              name: '@/lib/api/services/preTradeSafetyContract',
+              message: 'Import contract types from @/lib/safety/preTrade instead.',
+            },
+          ],
+        },
+      ],
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

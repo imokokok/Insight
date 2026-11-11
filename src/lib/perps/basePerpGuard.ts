@@ -1,9 +1,6 @@
 import { z } from 'zod';
 
-import {
-  preTradeSafetyCheck,
-  type PreTradeSafetyResult,
-} from '@/lib/api/services/preTradeSafetyService';
+import { preTradeSafetyCheck, type PreTradeSafetyResult } from '@/lib/safety/preTrade';
 
 import { BasePerpExactTransactionSchema } from './basePerpAction';
 import { SYNTHETIX_PERPS_V3_BASE_PROTOCOL_ID } from './basePerpConstants';

@@ -23,8 +23,6 @@
 
 import { type z } from 'zod';
 
-import { preTradeSafetyCheck } from '@/lib/api/services/preTradeSafetyService';
-import type { PreTradeSafetyResult } from '@/lib/api/services/preTradeSafetyService';
 import { resolveCaip19 } from '@/lib/attestations/caip19';
 import { verifyDecisionInputAssessment } from '@/lib/decisionInputTrust/attestation';
 import {
@@ -36,6 +34,7 @@ import {
   OnchainRouteQuoteError,
   type OnchainRouteQuote,
 } from '@/lib/decisionInputTrust/onchainRouteQuote';
+import { preTradeSafetyCheck, type PreTradeSafetyResult } from '@/lib/safety/preTrade';
 
 import { AgentBeginTradeInputSchema } from './schemas';
 

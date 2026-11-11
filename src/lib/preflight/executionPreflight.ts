@@ -10,12 +10,12 @@
  * custody, profitability, or transaction execution.
  */
 
+import { getBlockchainByChainId } from '@/lib/oracles/constants/chainMapping';
 import {
   preTradeSafetyCheck,
   type PreTradeSafetyInput,
   type PreTradeSafetyResult,
-} from '@/lib/api/services/preTradeSafetyService';
-import { getBlockchainByChainId } from '@/lib/oracles/constants/chainMapping';
+} from '@/lib/safety/preTrade';
 import { OracleProvider } from '@/types/oracle';
 
 export type ExecutionPreflightVerdict = 'allow' | 'caution' | 'block';

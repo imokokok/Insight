@@ -7,9 +7,9 @@
  */
 
 import { getConsensusPrice } from '@/lib/api/services/consensusPriceService';
-import { preTradeSafetyCheck } from '@/lib/api/services/preTradeSafetyService';
 import { UnsupportedSymbolError } from '@/lib/errors';
 import { readIssuanceControl, resetIssuanceControlCacheForTests } from '@/lib/ops/issuanceControl';
+import { preTradeSafetyCheck } from '@/lib/safety/preTrade';
 import { calculateAllStablecoinSnapshots } from '@/lib/stablecoins/monitor';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 

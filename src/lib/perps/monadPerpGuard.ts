@@ -33,7 +33,6 @@
 
 import { z } from 'zod';
 
-import { preTradeSafetyCheck } from '@/lib/api/services/preTradeSafetyService';
 import {
   AUSD_UNVERIFIED_DESCRIPTOR,
   evaluateAusdCoverage,
@@ -60,6 +59,7 @@ import {
   PERPL_MAINNET_NETWORK,
   type PerplPerpMarketState,
 } from '@/lib/perps/perplPerpMarket';
+import { preTradeSafetyCheck } from '@/lib/safety/preTrade';
 
 export const MONAD_PERP_GUARD_PERPL_PROTOCOL_ID = 'perpl-perps-monad-mainnet';
 export const MONAD_PERP_GUARD_SCHEMA_VERSION = 'insight.monad-perp-guard.v1';

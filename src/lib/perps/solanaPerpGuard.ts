@@ -29,7 +29,6 @@
 import { getProgramDerivedAddress, type Address } from '@solana/kit';
 import { z } from 'zod';
 
-import { preTradeSafetyCheck } from '@/lib/api/services/preTradeSafetyService';
 import { getRpcEndpoints } from '@/lib/execution/rpcEndpoints';
 import { simulateSolanaTransaction } from '@/lib/execution/solanaSimulation';
 import {
@@ -63,6 +62,7 @@ import {
   type DriftPerpDecodedAction,
 } from '@/lib/perps/solanaPerpAction';
 import { enforceReviewedProfile, type ProfileEnforcement } from '@/lib/reviewed/enforcement';
+import { preTradeSafetyCheck } from '@/lib/safety/preTrade';
 
 export const SOLANA_PERP_GUARD_DRIFT_V2_PROTOCOL_ID = 'drift-v2-mainnet';
 export const SOLANA_PERP_GUARD_SCHEMA_VERSION = 'insight.solana-perp-guard.v1';

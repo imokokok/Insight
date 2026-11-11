@@ -20,7 +20,7 @@
  * reviewed values rather than bypassing these constants.
  */
 
-import type { PreTradeSafetyResult } from '@/lib/api/services/preTradeSafetyService';
+import type { PreTradeSafetyResult } from '@/lib/safety/preTrade';
 
 /** Monotonic verdict ladder: BLOCK > CAUTION > ALLOW; escalation never downgrades. */
 export type PerpGuardVerdict = 'ALLOW' | 'CAUTION' | 'BLOCK';

@@ -38,14 +38,13 @@ import {
   signRecheckV3,
   type OracleSafetyRecheckV3,
 } from '@/lib/attestations/oracleSafetyRecheckV3';
-import { createLogger } from '@/lib/utils/logger';
-
 import {
   preTradeSafetyCheck,
   type AuditMeta,
   type PreTradeSafetyInput,
   type PreTradeSafetyResult,
-} from './preTradeSafetyService';
+} from '@/lib/safety/preTrade';
+import { createLogger } from '@/lib/utils/logger';
 
 /** Default drift threshold (percent) above which stillValid flips to false. */
 export const DEFAULT_MAX_DRIFT_PCT = 2;

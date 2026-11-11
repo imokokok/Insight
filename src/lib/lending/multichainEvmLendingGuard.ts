@@ -9,11 +9,8 @@ import { IUiPoolDataProvider_ABI } from '@aave-dao/aave-address-book/abis';
 import { decodeFunctionResult, encodeFunctionData } from 'viem';
 import { z } from 'zod';
 
-import {
-  preTradeSafetyCheck,
-  type PreTradeSafetyResult,
-} from '@/lib/api/services/preTradeSafetyService';
 import { readContract } from '@/lib/protocols/importer/rpcClient';
+import { preTradeSafetyCheck, type PreTradeSafetyResult } from '@/lib/safety/preTrade';
 
 import {
   MultichainEvmLendingActionSchema,

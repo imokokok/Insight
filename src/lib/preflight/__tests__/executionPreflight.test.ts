@@ -1,8 +1,8 @@
-import { preTradeSafetyCheck } from '@/lib/api/services/preTradeSafetyService';
+import { preTradeSafetyCheck } from '@/lib/safety/preTrade';
 
 import { assessExecutionPreflight, composeExecutionPreflight } from '../executionPreflight';
 
-jest.mock('@/lib/api/services/preTradeSafetyService', () => ({
+jest.mock('@/lib/safety/preTrade', () => ({
   preTradeSafetyCheck: jest.fn(),
 }));
 
