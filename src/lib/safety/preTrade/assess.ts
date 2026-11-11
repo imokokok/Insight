@@ -26,7 +26,6 @@ import {
 import {
   EMPTY_HISTORY,
   fetchHistoricalOracleState,
-  median,
   type HistoricalOracleState,
 } from '@/lib/api/services/oracleWatchHistory';
 import { resolveCaip19 } from '@/lib/attestations/caip19';
@@ -100,13 +99,7 @@ import {
 } from '@/lib/ml/inference';
 import { readIssuanceHalt } from '@/lib/ops/issuanceControl';
 import { getBlockchainByChainId } from '@/lib/oracles/constants/chainMapping';
-import {
-  getFeedStalenessBaselineMap,
-  isCadenceStale,
-  CAUTION_STALE_MULTIPLIER,
-  STALE_FLOOR_SECONDS,
-  HARD_STALE_BLOCK_SECONDS,
-} from '@/lib/oracles/feedCadence';
+import { getFeedStalenessBaselineMap, isCadenceStale } from '@/lib/oracles/feedCadence';
 import { getProtocolByIdWithDynamicData } from '@/lib/protocols/dynamicData';
 import { getStablecoinConfig } from '@/lib/stablecoins/config';
 import { calculateAllStablecoinSnapshots } from '@/lib/stablecoins/monitor';
@@ -133,6 +126,7 @@ import { buildAssessmentScope, buildSizingBasis } from './diagnostics';
 import { evaluateDepegRule } from './marketAlertPolicy';
 import { computeMaxDeviation, computeSpread, computeStaleRisk } from './marketMetricsPolicy';
 import { evaluateProtocolBufferRule } from './protocolBufferPolicy';
+import { evaluateStalenessRules } from './stalenessPolicy';
 import {
   clamp01,
   evaluateHighIsBad,
@@ -325,8 +319,6 @@ export interface PreTradeSafetyResult {
  * covers. A genuine dead feed is typically several % off consensus, so 2.0%
  * cleanly separates the two cases.
  */
-const STALE_DIVERGENCE_BLOCK_PCT = 2.0;
-
 // ---------------------------------------------------------------------------
 // Audit logging (required before issuance)
 // ---------------------------------------------------------------------------
@@ -466,73 +458,6 @@ function buildProviderPrices(
     };
   }
   return out;
-}
-
-/**
- * Classify providers whose data age is >= the absolute 7d backstop. Each such
- * provider is a candidate "dead feed" — but a stale timestamp alone must not
- * hard-block, because some oracles (API3 communal dAPIs) report a 7-120d-old
- * `updatedAt` while serving a CURRENT price. We corroborate against the fresh
- * consensus:
- *
- *  - if the stale provider's price diverges from the fresh median by more than
- *    STALE_DIVERGENCE_BLOCK_PCT, the data is genuinely dead -> hard BLOCK;
- *  - if its price still agrees with consensus, it is a timestamp-source anomaly
- *    -> surface as a soft CAUTION, never a block;
- *  - if NO provider is fresh (total oracle outage), we cannot corroborate and
- *    fail closed -> BLOCK on the absolute age.
- */
-function classifyStalenessHardBlock(providerPrices: Record<string, ProviderPriceDetail>): {
-  hardBlock: boolean;
-  hardStaleProviders: string[];
-  timestampAnomalyProviders: string[];
-} {
-  const successful = Object.entries(providerPrices).filter(
-    ([, d]) =>
-      d.status === 'success' &&
-      d.countsTowardOracleQuorum &&
-      d.dataAgeSeconds !== null &&
-      d.price > 0
-  );
-  const absolutelyStale = successful.filter(
-    ([, d]) => (d.dataAgeSeconds as number) >= HARD_STALE_BLOCK_SECONDS
-  );
-  if (absolutelyStale.length === 0) {
-    return { hardBlock: false, hardStaleProviders: [], timestampAnomalyProviders: [] };
-  }
-
-  // Fresh reference = median price of providers that are NOT absolutely stale.
-  const freshPrices = successful
-    .filter(([, d]) => (d.dataAgeSeconds as number) < HARD_STALE_BLOCK_SECONDS)
-    .map(([, d]) => d.price);
-  const hasFreshReference = freshPrices.length > 0;
-  const ref = median(freshPrices.length > 0 ? freshPrices : successful.map(([, d]) => d.price));
-
-  if (!hasFreshReference) {
-    // Every successful provider is >= the backstop old; cannot corroborate
-    // freshness, so treat all as genuinely dead (fail-closed).
-    return {
-      hardBlock: true,
-      hardStaleProviders: absolutelyStale.map(([p]) => p),
-      timestampAnomalyProviders: [],
-    };
-  }
-
-  const hardStaleProviders: string[] = [];
-  const timestampAnomalyProviders: string[] = [];
-  for (const [provider, d] of absolutelyStale) {
-    const deviation = ref > 0 ? (Math.abs(d.price - ref) / ref) * 100 : 0;
-    if (deviation > STALE_DIVERGENCE_BLOCK_PCT) {
-      hardStaleProviders.push(provider);
-    } else {
-      timestampAnomalyProviders.push(provider);
-    }
-  }
-  return {
-    hardBlock: hardStaleProviders.length > 0,
-    hardStaleProviders,
-    timestampAnomalyProviders,
-  };
 }
 
 async function fetchDepegWarnings(
@@ -1767,88 +1692,6 @@ async function buildUnavailablePreTradeResult(
   );
   await logAudit(input, result, meta);
   return result;
-}
-
-/** Cadence-relative staleness CAUTION plus the consensus-aware hard backstop.
- *  Extracted from preTradeSafetyCheck to keep it within its lint budget; the
- *  rule semantics live here. */
-function evaluateStalenessRules(params: {
-  providerPrices: Record<string, ProviderPriceDetail>;
-  stalenessBaselines: Map<string, number | null>;
-  maxAge: number;
-  staleProviders: string[];
-  staleRisk: boolean;
-}): { verdict: SafetyVerdict | null; factors: ContributingFactor[]; warnings: string[] } {
-  const factors: ContributingFactor[] = [];
-  const warnings: string[] = [];
-  let verdict: SafetyVerdict | null = null;
-  const escalate = (next: SafetyVerdict) => {
-    verdict = verdict === null ? next : pickWorst(verdict, next);
-  };
-
-  // Cadence-relative staleness: a SOFT CAUTION only — never blocks. A feed is
-  // stale only vs its own observed cadence (feedCadence.isCadenceStale), so
-  // naturally-slow sources are never falsely flagged and never blocked. The
-  // absolute 7-day threshold (THRESHOLDS.dataStaleSeconds.block) is the only
-  // hard-block backstop, for feeds that are genuinely stuck.
-  if (params.staleRisk) {
-    escalate('CAUTION');
-    // Representative effective threshold: K × the tightest stale baseline.
-    const staleBaselines = params.staleProviders
-      .map((p) => params.stalenessBaselines.get(p) ?? 0)
-      .filter((b) => b > 0);
-    const effectiveThreshold =
-      staleBaselines.length > 0
-        ? CAUTION_STALE_MULTIPLIER * Math.min(...staleBaselines)
-        : STALE_FLOOR_SECONDS;
-    factors.push({
-      rule: 'data_stale_seconds',
-      value: params.maxAge,
-      threshold: effectiveThreshold,
-      triggeredVerdict: 'CAUTION',
-      message: `Stale oracle data: ${params.staleProviders.join(', ')} exceed their observed update cadence (max age ${params.maxAge}s).`,
-    });
-    warnings.push(`Oracle data is stale vs its own cadence (max age ${params.maxAge}s).`);
-  }
-
-  // Hard backstop (consensus-aware): a feed is only BLOCKED as "extremely stale"
-  // when it is BOTH >= the absolute backstop age AND its price diverges from the
-  // fresh consensus (proving the data is genuinely dead, not just a stale
-  // timestamp). A stale timestamp whose price still agrees with consensus is a
-  // timestamp-source anomaly (e.g. API3 communal dAPIs report 7-120d-old
-  // `updatedAt` while serving current prices) and must NOT hard-block — it
-  // surfaces as a soft CAUTION instead. When NO provider is fresh (total oracle
-  // outage) we cannot corroborate and fall back to the absolute age -> BLOCK.
-  const hardStale = classifyStalenessHardBlock(params.providerPrices);
-  for (const [provider, detail] of Object.entries(params.providerPrices)) {
-    detail.timestampAnomaly = hardStale.timestampAnomalyProviders.includes(provider);
-  }
-  if (hardStale.hardBlock) {
-    escalate('BLOCK');
-    factors.push({
-      rule: 'data_stale_seconds',
-      value: params.maxAge,
-      threshold: THRESHOLDS.dataStaleSeconds.block,
-      triggeredVerdict: 'BLOCK',
-      message: `Oracle data extremely stale AND diverges from consensus: ${hardStale.hardStaleProviders.join(', ')} (max age ${params.maxAge}s >= ${THRESHOLDS.dataStaleSeconds.block}s absolute backstop).`,
-    });
-    warnings.push(`Oracle data is extremely stale (max age ${params.maxAge}s).`);
-  }
-  if (hardStale.timestampAnomalyProviders.length > 0) {
-    escalate('CAUTION');
-    factors.push({
-      rule: 'data_stale_timestamp_anomaly',
-      value: params.maxAge,
-      threshold: THRESHOLDS.dataStaleSeconds.block,
-      triggeredVerdict: 'CAUTION',
-      message: `Stale timestamp but price in consensus: ${hardStale.timestampAnomalyProviders.join(', ')} (max age ${params.maxAge}s) — likely a timestamp-source anomaly, not dead data.`,
-    });
-    warnings.push(
-      `Stale timestamp reported by ${hardStale.timestampAnomalyProviders.join(', ')} but price agrees with consensus (possible timestamp-source anomaly).`
-    );
-  }
-
-  return { verdict, factors, warnings };
 }
 
 export async function preTradeSafetyCheck(
