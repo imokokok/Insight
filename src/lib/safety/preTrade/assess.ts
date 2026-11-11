@@ -130,6 +130,15 @@ import { throwIfAborted } from '@/lib/utils/requestDeadline';
 import { Blockchain, type OracleProvider } from '@/types/oracle';
 
 import { buildAssessmentScope, buildSizingBasis } from './diagnostics';
+import {
+  clamp01,
+  evaluateHighIsBad,
+  evaluateLowIsBad,
+  normalize,
+  pickWorst,
+  PRE_TRADE_THRESHOLDS as THRESHOLDS,
+  type RuleVerdict,
+} from './verdictPolicy';
 
 import type {
   AuditMeta,
@@ -301,26 +310,6 @@ export interface PreTradeSafetyResult {
 // Phase 1 rule thresholds (high-is-bad unless noted)
 // ---------------------------------------------------------------------------
 
-interface ThresholdSet {
-  caution: number;
-  danger: number;
-  block: number;
-}
-
-const THRESHOLDS = {
-  maxProviderDeviationPct: { caution: 1.0, danger: 3.0, block: 8.0 } as ThresholdSet,
-  crossProviderSpreadPct: { caution: 0.5, danger: 2.0, block: 5.0 } as ThresholdSet,
-  // Staleness is now cadence-relative (see feedCadence.isCadenceStale): a feed
-  // is stale only vs ITS OWN observed cadence, surfaced as a soft CAUTION that
-  // never blocks. The `block` value here is the ABSOLUTE hard backstop (7 days)
-  // for feeds that are genuinely stuck regardless of cadence. `caution`/`danger`
-  // are retained for reference only — the cadence gate does not escalate to them.
-  dataStaleSeconds: { caution: 60, danger: 180, block: HARD_STALE_BLOCK_SECONDS } as ThresholdSet,
-  // agreement is low-is-bad: below the threshold triggers the verdict
-  crossProviderAgreement: { caution: 0.95, danger: 0.85, block: 0.7 } as ThresholdSet,
-  stablecoinDepegPct: { caution: 0.3, danger: 1.0, block: 3.0 } as ThresholdSet,
-} as const;
-
 /**
  * A provider whose data is >= the 7d hard-backstop is only escalated to BLOCK
  * when its price ALSO diverges from the fresh consensus by more than this %,
@@ -361,47 +350,6 @@ const LENDING_FREEZE_ZSCORE_MIN = 1.0;
 // Only borrow opens new debt. Repay/supply/liquidate retain every common
 // oracle gate, but a max-LTV new-borrow heuristic must not freeze these actions.
 const LENDING_ACTIONS: readonly TradeAction[] = ['borrow'];
-
-const VERDICT_RANK: Record<SafetyVerdict, number> = {
-  PASS: 0,
-  CAUTION: 1,
-  DANGER: 2,
-  BLOCK: 3,
-};
-
-function pickWorst(current: SafetyVerdict, candidate: SafetyVerdict): SafetyVerdict {
-  return VERDICT_RANK[candidate] > VERDICT_RANK[current] ? candidate : current;
-}
-
-/** A non-PASS verdict produced by a rule. PASS is never returned by a rule —
- *  its absence (null) is what keeps the overall verdict at PASS. */
-type RuleVerdict = 'CAUTION' | 'DANGER' | 'BLOCK';
-
-/** For metrics where a HIGH value is bad (deviation, spread, staleness, depeg). */
-function evaluateHighIsBad(value: number, t: ThresholdSet, abs = false): RuleVerdict | null {
-  const v = abs ? Math.abs(value) : value;
-  if (v >= t.block) return 'BLOCK';
-  if (v >= t.danger) return 'DANGER';
-  if (v >= t.caution) return 'CAUTION';
-  return null;
-}
-
-/** For metrics where a LOW value is bad (agreement). */
-function evaluateLowIsBad(value: number, t: ThresholdSet): RuleVerdict | null {
-  if (value <= t.block) return 'BLOCK';
-  if (value <= t.danger) return 'DANGER';
-  if (value <= t.caution) return 'CAUTION';
-  return null;
-}
-
-function clamp01(n: number): number {
-  return Math.max(0, Math.min(1, n));
-}
-
-function normalize(value: number, max: number): number {
-  if (max <= 0) return 0;
-  return clamp01(value / max);
-}
 
 // ---------------------------------------------------------------------------
 // Audit logging (required before issuance)
