@@ -82,6 +82,20 @@ const TABLE_SPECS: TableSpec[] = [
     boolCols: [],
     jsonCols: [],
   },
+  {
+    // Reputation domain (v7 schema, 2026-11). history is append-only on
+    // Supabase too; the 7-day retention window caps the copy size.
+    table: 'reputation_history',
+    conflictKeys: [],
+    boolCols: ['is_success'],
+    jsonCols: ['signal_vector', 'consensus_context'],
+  },
+  {
+    table: 'oracle_reputation',
+    conflictKeys: ['provider'],
+    boolCols: [],
+    jsonCols: [],
+  },
 ];
 
 function parseArgs(): { dryRun: boolean; only?: string; pageSize: number } {

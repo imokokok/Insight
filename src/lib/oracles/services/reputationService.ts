@@ -6,6 +6,15 @@ import { getAllActiveFeedsByProvider } from '@/lib/oracles/utils/dynamicFeedReso
 import { extractBaseSymbol } from '@/lib/oracles/utils/oracleDataUtils';
 import { type OracleFeed } from '@/lib/supabase/queries';
 import { createServiceRoleClient } from '@/lib/supabase/server';
+import { getTursoOpsClient } from '@/lib/turso/ops/client';
+import {
+  aggregateTursoOracleReputation,
+  insertTursoReputationHistory,
+  readTursoReputationMode,
+  trimTursoReputationHistory,
+  type TursoReputationHistoryRow,
+} from '@/lib/turso/ops/reputationRepository';
+import { ensureTursoOpsSchema } from '@/lib/turso/ops/schema';
 import { TTLCache } from '@/lib/utils/cache';
 import { mapWithConcurrency } from '@/lib/utils/concurrency';
 import { roundTo } from '@/lib/utils/format';
@@ -238,27 +247,35 @@ class ReputationService {
       try {
         const snapshotTime = new Date(now).toISOString();
         const historyRows = entries.map((entry) => this.buildHistoryInsertRow(entry, snapshotTime));
-        await this.insertReputationHistory(supabase, historyRows);
-
         const uniqueProviders = [...new Set(entries.map((e) => e.provider))];
-        await Promise.all(
-          uniqueProviders.map(async (provider) => {
-            try {
-              const providerConfig = PROVIDER_TYPE_CONFIG[provider as OracleProvider];
-              await supabase.rpc('aggregate_oracle_reputation_v4', {
-                p_provider: provider,
-                p_lookback_days: 7,
-                p_latency_baseline: providerConfig?.latencyBaseline ?? 1000,
-                p_provider_type: providerConfig?.type ?? 'api',
-              });
-            } catch (rpcError) {
-              logger.warn(
-                `Failed to aggregate reputation for ${provider}`,
-                rpcError instanceof Error ? rpcError : undefined
-              );
-            }
-          })
-        );
+
+        // Data-plane mode (Supabase egress retirement, 2026-11): 'turso'
+        // persists reputation_history + aggregates to the Turso ops plane
+        // and skips Supabase entirely; 'supabase' keeps the legacy path.
+        if (readTursoReputationMode() === 'turso') {
+          await this.persistReputationTurso(historyRows, uniqueProviders);
+        } else {
+          await this.insertReputationHistory(supabase, historyRows);
+
+          await Promise.all(
+            uniqueProviders.map(async (provider) => {
+              try {
+                const providerConfig = PROVIDER_TYPE_CONFIG[provider as OracleProvider];
+                await supabase.rpc('aggregate_oracle_reputation_v4', {
+                  p_provider: provider,
+                  p_lookback_days: 7,
+                  p_latency_baseline: providerConfig?.latencyBaseline ?? 1000,
+                  p_provider_type: providerConfig?.type ?? 'api',
+                });
+              } catch (rpcError) {
+                logger.warn(
+                  `Failed to aggregate reputation for ${provider}`,
+                  rpcError instanceof Error ? rpcError : undefined
+                );
+              }
+            })
+          );
+        }
 
         // Fresh aggregations were persisted, drop the list cache so the next
         // read sees the new scores immediately.
@@ -412,6 +429,51 @@ class ReputationService {
     }
 
     logger.warn(`Inserted ${insertedCount}/${rows.length} reputation history rows after fallback`);
+  }
+
+  /**
+   * Turso ops data-plane persistence (TURSO_REPUTATION_MODE=turso, Supabase
+   * egress retirement 2026-11). Writes the snapshot samples, recomputes the
+   * aggregate_oracle_reputation_v4 aggregate per provider locally, then
+   * trims the 7-day retention window. Per-provider aggregate failures warn
+   * (not fail) exactly like the legacy RPC loop; retention-trim failures
+   * only drift the window. ensureTursoOpsSchema is idempotent and applies
+   * v7 on the first run.
+   */
+  private async persistReputationTurso(
+    rows: TursoReputationHistoryRow[],
+    providers: readonly string[]
+  ): Promise<void> {
+    const client = getTursoOpsClient();
+    await ensureTursoOpsSchema(client);
+    await insertTursoReputationHistory(client, rows);
+
+    for (const provider of providers) {
+      try {
+        const providerConfig = PROVIDER_TYPE_CONFIG[provider as OracleProvider];
+        await aggregateTursoOracleReputation(client, provider, {
+          lookbackDays: 7,
+          latencyBaseline: providerConfig?.latencyBaseline ?? 1000,
+        });
+      } catch (aggregateError) {
+        logger.warn(
+          `Failed to aggregate reputation for ${provider}`,
+          aggregateError instanceof Error ? aggregateError : undefined
+        );
+      }
+    }
+
+    try {
+      const trimmed = await trimTursoReputationHistory(client, 7);
+      if (trimmed > 0) {
+        logger.info(`Turso reputation retention trimmed ${trimmed} rows`);
+      }
+    } catch (trimError) {
+      logger.warn(
+        'Turso reputation retention trim failed',
+        trimError instanceof Error ? trimError : undefined
+      );
+    }
   }
 
   private resolveChainForSymbol(client: BaseOracleClient, symbol: string): Blockchain | undefined {
