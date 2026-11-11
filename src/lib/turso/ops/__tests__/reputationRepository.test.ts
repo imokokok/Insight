@@ -168,24 +168,23 @@ describe('aggregateTursoOracleReputation', () => {
     // 10 rows, 1 failure, wide deviation → low scores pulled toward 75.
     await insertTursoReputationHistory(
       client,
-      consensusBatch(9, { provider: 'pyth', symbol: 'BTC', deviation_pct: 1.8 })
-        .concat([
-          historyRow({
-            provider: 'pyth',
-            symbol: 'BTC',
-            is_success: false,
-            price: 0,
-            consensus_price: null,
-            deviation_pct: null,
-            latency_ms: null,
-            confidence: null,
-            data_age_seconds: null,
-            error_message: 'Price returned invalid value',
-            failure_mode: 'invalid_response',
-            signal_vector: null,
-            consensus_context: null,
-          }),
-        ])
+      consensusBatch(9, { provider: 'pyth', symbol: 'BTC', deviation_pct: 1.8 }).concat([
+        historyRow({
+          provider: 'pyth',
+          symbol: 'BTC',
+          is_success: false,
+          price: 0,
+          consensus_price: null,
+          deviation_pct: null,
+          latency_ms: null,
+          confidence: null,
+          data_age_seconds: null,
+          error_message: 'Price returned invalid value',
+          failure_mode: 'invalid_response',
+          signal_vector: null,
+          consensus_context: null,
+        }),
+      ])
     );
     const aggregate = await aggregateTursoOracleReputation(client, 'pyth', {
       lookbackDays: 7,

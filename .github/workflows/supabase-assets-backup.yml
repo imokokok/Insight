@@ -1,0 +1,72 @@
+name: Supabase Assets Backup
+on:
+  schedule:
+    # Daily pg_dump of the Supabase-only asset tables (money path, evidence,
+    # registries). The free plan ships no automated backups, and Turso does
+    # not mirror these tables, so this artifact is the second copy. 18:35 UTC
+    # = 02:35 Beijing.
+    - cron: '35 18 * * *'
+  workflow_dispatch: {}
+permissions:
+  contents: read
+concurrency:
+  group: supabase-assets-backup
+  cancel-in-progress: false
+env:
+  SUPABASE_DB_HOST: aws-1-ap-south-1.pooler.supabase.com
+  SUPABASE_DB_USER: postgres.naevwrexybqodxinkrug
+  # Ephemeral auth state is intentionally excluded (refresh_tokens,
+  # sessions, one_time_tokens, scim_users): low recovery value, security-
+  # sensitive. Rebuildable telemetry (rate_limits, caches, cron ledgers) is
+  # excluded too.
+  SUPABASE_ASSET_TABLES: >-
+    --table=x402_settlements
+    --table=credit_ledger
+    --table=api_keys
+    --table=api_key_usage
+    --table=users
+    --table=subscriptions
+    --table=oracle_feeds
+    --table=pre_trade_checks
+    --table=execution_receipts
+    --table=turso_price_slot_receipts
+    --table=oracle_watch_checks
+    --table=oracle_reputation
+    --table=reputation_history
+    --table=protocol_asset_risk_params
+    --table=protocol_metrics
+    --table=schema_migrations
+jobs:
+  dump:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      # Server runs Postgres 17; pg_dump refuses cross-major-version dumps and
+      # Ubuntu noble only ships client 16. Run the dump inside the official
+      # postgres:17 image instead of adding the PGDG apt repository.
+      - name: Dump asset tables
+        env:
+          PGPASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          BACKUP_DATE=$(date -u +%Y%m%d)
+          mkdir -p backup
+          docker run --rm \
+            -e PGPASSWORD -e PGSSLMODE=require \
+            -v "$PWD/backup:/backup" \
+            postgres:17-alpine \
+            pg_dump \
+              "postgresql://${SUPABASE_DB_USER}@${SUPABASE_DB_HOST}:5432/postgres" \
+              --no-owner --no-privileges \
+              ${SUPABASE_ASSET_TABLES} \
+              --file "/backup/supabase-assets-${BACKUP_DATE}.sql"
+          gzip -f "backup/supabase-assets-${BACKUP_DATE}.sql"
+          test -s "backup/supabase-assets-${BACKUP_DATE}.sql.gz"
+          ls -la backup/
+
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: supabase-assets-backup
+          path: backup/supabase-assets-*.sql.gz
+          if-no-files-found: error
+          retention-days: 21

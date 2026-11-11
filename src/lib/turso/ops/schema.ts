@@ -15,7 +15,7 @@
 // and tests use the node client against file::memory: databases.
 import type { Client } from '@libsql/client';
 
-export const TURSO_OPS_SCHEMA_VERSION = 7;
+export const TURSO_OPS_SCHEMA_VERSION = 8;
 
 const MARKET_REFERENCE_SNAPSHOTS_DDL = [
   `CREATE TABLE IF NOT EXISTS market_reference_snapshots (
@@ -239,15 +239,43 @@ const DEX_MARKET_DDL = [
      ON dex_market_swap_events (block_timestamp)`,
 ];
 
-// Reputation domain (egress retirement v7, 2026-11). Transcribed from
-// Supabase public.reputation_history / public.oracle_reputation
-// (migration 0002): uuid identity → INTEGER PRIMARY KEY AUTOINCREMENT,
-// numeric → REAL, boolean → INTEGER CHECK, jsonb → TEXT (JSON),
-// timestamptz → TEXT (ISO-8601 UTC). reputation_history rows are per-run
-// snapshot samples without a natural unique key — inserts are plain, not
-// duplicate-tolerant. oracle_reputation is the aggregate target keyed on
-// provider (see reputationRepository.aggregateTursoOracleReputation, the
-// TypeScript port of the Postgres RPC aggregate_oracle_reputation_v4).
+// Daily-report domain (egress retirement v7). Mirrors Supabase
+// public.daily_reports (one row per UTC report_date, upsert on publish).
+// JSON payloads stored as TEXT — stringify on write, parse on read so the
+// caller sees the same shapes Supabase REST returned.
+const DAILY_REPORTS_DDL = [
+  `CREATE TABLE IF NOT EXISTS daily_reports (
+    report_date TEXT PRIMARY KEY,
+    report_title TEXT NOT NULL,
+    summary TEXT NOT NULL,
+    recommendations TEXT NOT NULL,
+    metrics TEXT NOT NULL,
+    top_assets TEXT,
+    provider_rankings TEXT,
+    deviation_events TEXT,
+    anomaly_summary TEXT,
+    coverage_matrix TEXT,
+    failure_breakdown TEXT,
+    previous_day_comparison TEXT,
+    risk_impacts TEXT,
+    protocol_liquidation_risks TEXT,
+    stablecoin_depeg TEXT,
+    wrapped_asset_peg TEXT,
+    settlement_evidence TEXT,
+    generated_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  )`,
+  `CREATE INDEX IF NOT EXISTS daily_reports_date_idx
+     ON daily_reports (report_date DESC)`,
+];
+
+const OPS_SCHEMA_META_DDL = [
+  `CREATE TABLE IF NOT EXISTS ops_schema_meta (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+  )`,
+];
+
 const REPUTATION_HISTORY_DDL = [
   `CREATE TABLE IF NOT EXISTS reputation_history (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -273,7 +301,6 @@ const REPUTATION_HISTORY_DDL = [
   `CREATE INDEX IF NOT EXISTS reputation_history_retention_idx
      ON reputation_history (snapshot_time)`,
 ];
-
 const ORACLE_REPUTATION_DDL = [
   `CREATE TABLE IF NOT EXISTS oracle_reputation (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -296,13 +323,6 @@ const ORACLE_REPUTATION_DDL = [
   )`,
 ];
 
-const OPS_SCHEMA_META_DDL = [
-  `CREATE TABLE IF NOT EXISTS ops_schema_meta (
-    key TEXT PRIMARY KEY,
-    value TEXT NOT NULL
-  )`,
-];
-
 const ALL_DDL: string[] = [
   ...OPS_SCHEMA_META_DDL,
   ...MARKET_REFERENCE_SNAPSHOTS_DDL,
@@ -314,6 +334,7 @@ const ALL_DDL: string[] = [
   ...DEX_MARKET_DDL,
   ...REPUTATION_HISTORY_DDL,
   ...ORACLE_REPUTATION_DDL,
+  ...DAILY_REPORTS_DDL,
 ];
 
 export function tursoOpsMigrations(): readonly string[] {

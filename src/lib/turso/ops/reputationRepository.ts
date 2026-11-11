@@ -164,16 +164,14 @@ export async function aggregateTursoOracleReputation(
   // PG's GREATEST/LEAST propagate NULL, so a consensus row with a NULL
   // deviation contributes NULL to the CASE and is ignored by AVG/STDDEV
   // (it still counts toward v_consensus_count, which has no NULL filter).
-  const consensusDeviationRows = consensusRows.filter(
-    (row) => row.deviationPct !== null
-  );
+  const consensusDeviationRows = consensusRows.filter((row) => row.deviationPct !== null);
 
   // Accuracy: 100 - min(|dev|*15, 85) per consensus row, floored at 0; the
   // v4 default (85) applies when no row qualifies.
   const accuracy = (() => {
     if (consensusDeviationRows.length === 0) return 85;
-    const values = consensusDeviationRows.map(
-      (row) => Math.max(0, 100 - Math.min(Math.abs(row.deviationPct ?? 0) * 15, 85))
+    const values = consensusDeviationRows.map((row) =>
+      Math.max(0, 100 - Math.min(Math.abs(row.deviationPct ?? 0) * 15, 85))
     );
     return values.reduce((a, b) => a + b, 0) / values.length;
   })();
@@ -184,8 +182,8 @@ export async function aggregateTursoOracleReputation(
   // separate curve so reliability penalizes deviation harder), default 85.
   const reliability = (() => {
     if (consensusDeviationRows.length === 0) return 85;
-    const values = consensusDeviationRows.map(
-      (row) => Math.max(0, 100 - Math.min(Math.abs(row.deviationPct ?? 0) * 20, 80))
+    const values = consensusDeviationRows.map((row) =>
+      Math.max(0, 100 - Math.min(Math.abs(row.deviationPct ?? 0) * 20, 80))
     );
     return values.reduce((a, b) => a + b, 0) / values.length;
   })();
@@ -226,8 +224,7 @@ export async function aggregateTursoOracleReputation(
     const values = consensusDeviationRows.map((row) => Math.abs(row.deviationPct ?? 0));
     if (values.length < 2) return 0;
     const mean = values.reduce((a, b) => a + b, 0) / values.length;
-    const variance =
-      values.reduce((a, b) => a + (b - mean) * (b - mean), 0) / (values.length - 1);
+    const variance = values.reduce((a, b) => a + (b - mean) * (b - mean), 0) / (values.length - 1);
     return Math.sqrt(variance);
   })();
 
@@ -277,10 +274,9 @@ export async function aggregateTursoOracleReputation(
       latencyScore * 0.1 +
       deviationScore * 0.05
   );
-  const overallSampled = pgRound2(
-    overallRaw * sampleFactor + 75 * (1 - sampleFactor)
-  );
-  const coverageBonus = testedSymbols >= 9 ? 3 : testedSymbols >= 7 ? 2 : testedSymbols >= 5 ? 1 : 0;
+  const overallSampled = pgRound2(overallRaw * sampleFactor + 75 * (1 - sampleFactor));
+  const coverageBonus =
+    testedSymbols >= 9 ? 3 : testedSymbols >= 7 ? 2 : testedSymbols >= 5 ? 1 : 0;
   const overall = clamp(overallSampled + coverageBonus, 0, 100);
 
   const aggregate: ReputationAggregateResult = {

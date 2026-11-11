@@ -20,6 +20,11 @@
  * presented as the manipulation cost of a different chain's reference market.
  */
 
+import { getTursoOpsClient } from '@/lib/turso/ops/client';
+import {
+  readTursoManipCostAdvisoryRows,
+  readTursoManipCostMode,
+} from '@/lib/turso/ops/manipCostRepository';
 import { TTLCache } from '@/lib/utils/cache';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -225,18 +230,36 @@ async function loadManipCostAdvisory(
   const maxAgeMs = opts?.maxAgeMs ?? MANIP_COST_MAX_AGE_MS;
 
   try {
-    // Over-fetch slightly so a single missing pool is distinguishable from a
-    // short result window; dedupe to the newest row per pool below.
-    const { data, error } = await supabase
-      .from('manip_cost_pool_snapshots')
-      .select('pool_key, dex, fee_tier, snapshot_ts, block_number, mid_price, tvl_usd, cost_curve')
-      .in('pool_key', keys)
-      .eq('is_success', true)
-      .order('snapshot_ts', { ascending: false })
-      .limit(keys.length * 10);
+    // Egress retirement (2026-11): under TURSO_MANIP_COST_MODE=turso the
+    // advisory reads the Turso ops data plane (backfilled history + collector
+    // writes) instead of the PostgREST gateway.
+    let data: SnapshotRow[];
+    if (readTursoManipCostMode() === 'turso') {
+      const tursoRows = await readTursoManipCostAdvisoryRows(
+        getTursoOpsClient(),
+        keys,
+        keys.length * 10
+      );
+      // Text-ORDER BY mixes collector rows (".000Z") with backfilled rows
+      // ("+00:00"); re-sort by the parsed timestamp for exact freshness.
+      data = tursoRows.sort((a, b) => Date.parse(b.snapshot_ts) - Date.parse(a.snapshot_ts));
+    } else {
+      // Over-fetch slightly so a single missing pool is distinguishable from a
+      // short result window; dedupe to the newest row per pool below.
+      const { data: rows, error } = await supabase
+        .from('manip_cost_pool_snapshots')
+        .select(
+          'pool_key, dex, fee_tier, snapshot_ts, block_number, mid_price, tvl_usd, cost_curve'
+        )
+        .in('pool_key', keys)
+        .eq('is_success', true)
+        .order('snapshot_ts', { ascending: false })
+        .limit(keys.length * 10);
 
-    if (error) throw new Error(error.message);
-    if (!data || data.length === 0) return null;
+      if (error) throw new Error(error.message);
+      data = (rows ?? []) as SnapshotRow[];
+    }
+    if (data.length === 0) return null;
 
     const freshestByPool = new Map<string, SnapshotRow>();
     for (const row of data as SnapshotRow[]) {

@@ -1,4 +1,6 @@
 import { loadArchivedSnapshots } from '@/lib/supabase/snapshotArchives';
+import { getTursoOpsClient } from '@/lib/turso/ops/client';
+import { readTursoPriceProjectionMode } from '@/lib/turso/ops/hourlyPriceProjectionRepository';
 
 import type { SnapshotRow } from './types';
 import type { SupabaseClient } from '@supabase/supabase-js';
@@ -86,6 +88,72 @@ async function loadHourlySnapshotsForWindow(
 }
 
 /**
+ * Turso-side window read (egress retirement 2026-11, TURSO_PRICE_PROJECTION_
+ * MODE=turso): the ops data plane holds the full hourly history — backfilled
+ * through 2026-11-09 plus collector writes after the projection cutover — so
+ * the daily-report publisher no longer touches Supabase REST. Supabase's
+ * snapshot_archive cold store is intentionally not consulted here: the Turso
+ * branch serves the ≤7-day report windows this module exists for.
+ */
+async function loadHourlySnapshotsFromTurso(
+  startAt: string,
+  endAt: string
+): Promise<SnapshotRow[]> {
+  const client = getTursoOpsClient();
+  const snapshots: SnapshotRow[] = [];
+  const seenIds = new Set<string>();
+  for (let offset = 0; ; offset += PAGE_SIZE) {
+    const result = await client.execute({
+      sql: `SELECT id, snapshot_hour, provider, symbol, chain_id, price,
+                   consensus_price, deviation_pct, latency_ms, data_age_seconds,
+                   confidence, is_success, error_message
+            FROM hourly_price_snapshots
+            WHERE snapshot_hour >= ? AND snapshot_hour < ?
+            ORDER BY snapshot_hour ASC, id ASC
+            LIMIT ${PAGE_SIZE} OFFSET ${offset}`,
+      args: [startAt, endAt],
+    });
+    for (const row of result.rows) {
+      const id = String(row.id);
+      if (seenIds.has(id)) {
+        throw new Error(`Hourly snapshot pagination returned a duplicate ID at offset ${offset}`);
+      }
+      seenIds.add(id);
+      snapshots.push({
+        snapshot_hour: String(row.snapshot_hour),
+        provider: String(row.provider),
+        symbol: String(row.symbol),
+        chain_id: Number(row.chain_id),
+        price: Number(row.price),
+        consensus_price:
+          row.consensus_price === null || row.consensus_price === undefined
+            ? null
+            : Number(row.consensus_price),
+        deviation_pct:
+          row.deviation_pct === null || row.deviation_pct === undefined
+            ? null
+            : Number(row.deviation_pct),
+        latency_ms:
+          row.latency_ms === null || row.latency_ms === undefined ? null : Number(row.latency_ms),
+        data_age_seconds:
+          row.data_age_seconds === null || row.data_age_seconds === undefined
+            ? null
+            : Number(row.data_age_seconds),
+        confidence:
+          row.confidence === null || row.confidence === undefined ? null : Number(row.confidence),
+        is_success: Number(row.is_success) === 1,
+        error_message:
+          row.error_message === null || row.error_message === undefined
+            ? null
+            : String(row.error_message),
+      });
+    }
+    if (result.rows.length < PAGE_SIZE) break;
+  }
+  return snapshots.sort((a, b) => Date.parse(a.snapshot_hour) - Date.parse(b.snapshot_hour));
+}
+
+/**
  * Read a report/backfill range in seven-day windows. This preserves complete
  * history for long maintenance jobs while preventing one request from
  * expanding months of compressed archive payload at once.
@@ -101,6 +169,10 @@ export async function loadHourlySnapshotsForRange(
     throw new Error('Invalid hourly snapshot read window');
   }
   if (end === start) return [];
+
+  if (readTursoPriceProjectionMode() === 'turso') {
+    return loadHourlySnapshotsFromTurso(startAt, endAt);
+  }
 
   const merged = new Map<string, SnapshotRow>();
   for (let cursor = start; cursor < end; cursor += MAX_HISTORY_READ_WINDOW_MS) {

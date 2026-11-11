@@ -1,5 +1,5 @@
 import { createRequire as __createRequire } from 'node:module'; import { fileURLToPath as __fileURLToPath } from 'node:url'; import { dirname as __pathDirname } from 'node:path'; const require = __createRequire(import.meta.url); const __filename = __fileURLToPath(import.meta.url); const __dirname = __pathDirname(__filename);
-var TURSO_OPS_SCHEMA_VERSION=7,MARKET_REFERENCE_SNAPSHOTS_DDL=[`CREATE TABLE IF NOT EXISTS market_reference_snapshots (
+var TURSO_OPS_SCHEMA_VERSION=8,MARKET_REFERENCE_SNAPSHOTS_DDL=[`CREATE TABLE IF NOT EXISTS market_reference_snapshots (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     snapshot_ts TEXT NOT NULL,
     symbol TEXT NOT NULL,
@@ -142,7 +142,31 @@ var TURSO_OPS_SCHEMA_VERSION=7,MARKET_REFERENCE_SNAPSHOTS_DDL=[`CREATE TABLE IF 
     PRIMARY KEY (chain_id, dex, pool_address, tx_hash, log_index)
   )`,`CREATE INDEX IF NOT EXISTS dex_market_swap_events_window_idx
      ON dex_market_swap_events (chain_id, dex, pool_address, block_timestamp DESC)`,`CREATE INDEX IF NOT EXISTS dex_market_swap_events_retention_idx
-     ON dex_market_swap_events (block_timestamp)`],REPUTATION_HISTORY_DDL=[`CREATE TABLE IF NOT EXISTS reputation_history (
+     ON dex_market_swap_events (block_timestamp)`],DAILY_REPORTS_DDL=[`CREATE TABLE IF NOT EXISTS daily_reports (
+    report_date TEXT PRIMARY KEY,
+    report_title TEXT NOT NULL,
+    summary TEXT NOT NULL,
+    recommendations TEXT NOT NULL,
+    metrics TEXT NOT NULL,
+    top_assets TEXT,
+    provider_rankings TEXT,
+    deviation_events TEXT,
+    anomaly_summary TEXT,
+    coverage_matrix TEXT,
+    failure_breakdown TEXT,
+    previous_day_comparison TEXT,
+    risk_impacts TEXT,
+    protocol_liquidation_risks TEXT,
+    stablecoin_depeg TEXT,
+    wrapped_asset_peg TEXT,
+    settlement_evidence TEXT,
+    generated_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  )`,`CREATE INDEX IF NOT EXISTS daily_reports_date_idx
+     ON daily_reports (report_date DESC)`],OPS_SCHEMA_META_DDL=[`CREATE TABLE IF NOT EXISTS ops_schema_meta (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+  )`],REPUTATION_HISTORY_DDL=[`CREATE TABLE IF NOT EXISTS reputation_history (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     provider TEXT NOT NULL,
     symbol TEXT NOT NULL,
@@ -179,10 +203,7 @@ var TURSO_OPS_SCHEMA_VERSION=7,MARKET_REFERENCE_SNAPSHOTS_DDL=[`CREATE TABLE IF 
     created_at TEXT,
     updated_at TEXT,
     CONSTRAINT oracle_reputation_provider_unique UNIQUE (provider)
-  )`],OPS_SCHEMA_META_DDL=[`CREATE TABLE IF NOT EXISTS ops_schema_meta (
-    key TEXT PRIMARY KEY,
-    value TEXT NOT NULL
-  )`],ALL_DDL=[...OPS_SCHEMA_META_DDL,...MARKET_REFERENCE_SNAPSHOTS_DDL,...HOURLY_PRICE_SNAPSHOTS_DDL,...PRICE_SLOT_PROJECTION_RUNS_DDL,...MANIP_COST_POOL_SNAPSHOTS_DDL,...COVERAGE_SLO_DDL,...FEED_HEALTH_SNAPSHOTS_DDL,...DEX_MARKET_DDL,...REPUTATION_HISTORY_DDL,...ORACLE_REPUTATION_DDL];function tursoOpsMigrations(){return ALL_DDL}async function isTursoOpsSchemaCurrent(client){try{let result=await client.execute("SELECT value FROM ops_schema_meta WHERE key = 'schema_version'");return Number(result.rows[0]?.value)===7}catch{return!1}}async function ensureCoverageTargetsEnrolledAt(client){let info=await client.execute("PRAGMA table_info(coverage_slo_targets)");if(info.rows.length===0)return;info.rows.some(row=>String(row.name)==="enrolled_at")||await client.execute(`ALTER TABLE coverage_slo_targets
+  )`],ALL_DDL=[...OPS_SCHEMA_META_DDL,...MARKET_REFERENCE_SNAPSHOTS_DDL,...HOURLY_PRICE_SNAPSHOTS_DDL,...PRICE_SLOT_PROJECTION_RUNS_DDL,...MANIP_COST_POOL_SNAPSHOTS_DDL,...COVERAGE_SLO_DDL,...FEED_HEALTH_SNAPSHOTS_DDL,...DEX_MARKET_DDL,...REPUTATION_HISTORY_DDL,...ORACLE_REPUTATION_DDL,...DAILY_REPORTS_DDL];function tursoOpsMigrations(){return ALL_DDL}async function isTursoOpsSchemaCurrent(client){try{let result=await client.execute("SELECT value FROM ops_schema_meta WHERE key = 'schema_version'");return Number(result.rows[0]?.value)===8}catch{return!1}}async function ensureCoverageTargetsEnrolledAt(client){let info=await client.execute("PRAGMA table_info(coverage_slo_targets)");if(info.rows.length===0)return;info.rows.some(row=>String(row.name)==="enrolled_at")||await client.execute(`ALTER TABLE coverage_slo_targets
        ADD COLUMN enrolled_at TEXT NOT NULL DEFAULT ''`)}async function ensureTursoOpsSchema(client){await ensureCoverageTargetsEnrolledAt(client);let current=!1;try{current=await isTursoOpsSchemaCurrent(client)}catch{current=!1}if(!current){for(let ddl of ALL_DDL)await client.execute(ddl);await client.execute(`INSERT INTO ops_schema_meta (key, value)
-     VALUES ('schema_version', '7')
+     VALUES ('schema_version', '8')
      ON CONFLICT(key) DO UPDATE SET value = excluded.value`)}}export{TURSO_OPS_SCHEMA_VERSION,tursoOpsMigrations,isTursoOpsSchemaCurrent,ensureTursoOpsSchema};

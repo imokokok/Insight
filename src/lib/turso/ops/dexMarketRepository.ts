@@ -140,3 +140,63 @@ export async function trimTursoDexSwapEvents(
   });
   return Number(result.rowsAffected ?? 0);
 }
+
+export interface TursoDexVolumeWindow {
+  swapCount: number;
+  /** Decimal string of sum(abs(amount1_raw)) — raw quote units, BigInt-precise. */
+  grossQuoteVolumeRaw: string;
+}
+
+/**
+ * JS port of the get_dex_market_volume_window RPC (migration 0095):
+ * swap count + sum(abs(amount1_raw)) over (windowStart, windowEnd].
+ * amount1_raw is stored as decimal TEXT to keep integer precision past 2^53,
+ * so the sum runs in BigInt and renders back to a decimal string.
+ *
+ * Window bounds ride on ISO text ordering: collector rows carry ".000Z"
+ * stamps while backfilled rows use "+00:00" offsets. '+' sorts before '.', so
+ * a "+00:00" row at the exclusive start second is correctly excluded and at
+ * the inclusive end second correctly included — matching the RPC semantics.
+ */
+export async function readTursoDexVolumeWindow(
+  client: Client,
+  params: {
+    chainId: number;
+    dex: string;
+    poolAddress: string;
+    windowStart: string;
+    windowEnd: string;
+  }
+): Promise<TursoDexVolumeWindow> {
+  const startMs = Date.parse(params.windowStart);
+  const endMs = Date.parse(params.windowEnd);
+  if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs <= startMs) {
+    throw new Error('Invalid DEX volume window');
+  }
+  const result = await client.execute({
+    sql: `SELECT amount1_raw
+          FROM dex_market_swap_events
+          WHERE chain_id = ? AND dex = ? AND pool_address = ?
+            AND block_timestamp > ? AND block_timestamp <= ?`,
+    args: [
+      params.chainId,
+      params.dex,
+      params.poolAddress.toLowerCase(),
+      params.windowStart,
+      params.windowEnd,
+    ],
+  });
+  let swapCount = 0;
+  let gross = 0n;
+  for (const row of result.rows) {
+    const raw = String(row.amount1_raw);
+    if (!/^-?\d+$/.test(raw)) {
+      // Same contract as the RPC: a non-numeric amount breaks the sum.
+      throw new Error('Invalid persisted DEX swap amount');
+    }
+    const value = BigInt(raw);
+    swapCount++;
+    gross += value < 0n ? -value : value;
+  }
+  return { swapCount, grossQuoteVolumeRaw: gross.toString() };
+}
