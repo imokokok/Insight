@@ -136,11 +136,7 @@ async function fetchSupabasePage(
   return { rows, hasMore: rows.length === pageSize, totalEstimate };
 }
 
-function toTursoValue(
-  value: unknown,
-  spec: TableSpec,
-  column: string
-): string | number | null {
+function toTursoValue(value: unknown, spec: TableSpec, column: string): string | number | null {
   if (value === null || value === undefined) return null;
   if (spec.boolCols.includes(column)) return value === true ? 1 : 0;
   if (spec.jsonCols.includes(column)) {
