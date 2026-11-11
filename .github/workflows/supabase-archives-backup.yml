@@ -1,0 +1,45 @@
+name: Supabase Archives Backup
+on:
+  schedule:
+    # Monthly pg_dump of snapshot_archives — the only copy of compressed
+    # price history older than the hot-store retention window. -Fc format
+    # (custom, zlib-compressed). Monthly is sufficient: archives grow slowly
+    # and are immutable once written. 18:50 UTC on the 1st = 02:50 Beijing.
+    - cron: '50 18 1 * *'
+  workflow_dispatch: {}
+permissions:
+  contents: read
+concurrency:
+  group: supabase-archives-backup
+  cancel-in-progress: false
+env:
+  SUPABASE_DB_HOST: aws-1-ap-south-1.pooler.supabase.com
+  SUPABASE_DB_USER: postgres.naevwrexybqodxinkrug
+jobs:
+  dump:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Dump snapshot archives
+        env:
+          PGPASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          PGSSLMODE: require
+        run: |
+          BACKUP_DATE=$(date -u +%Y%m%d)
+          mkdir -p backup
+          pg_dump \
+            "postgresql://${SUPABASE_DB_USER}@${SUPABASE_DB_HOST}:5432/postgres" \
+            --no-owner --no-privileges \
+            --table=snapshot_archives \
+            --format=custom \
+            --file "backup/snapshot-archives-${BACKUP_DATE}.dump"
+          test -s "backup/snapshot-archives-${BACKUP_DATE}.dump"
+          ls -la backup/
+
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: snapshot-archives-backup
+          path: backup/snapshot-archives-*.dump
+          if-no-files-found: error
+          retention-days: 180
