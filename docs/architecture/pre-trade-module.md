@@ -35,10 +35,9 @@ and payment handling; they do not own safety policy.
 
 ## Compatibility and migration
 
-The former `@/lib/api/services/preTradeSafetyService` and
-`preTradeSafetyContract` paths remain thin compatibility facades. New source
-imports are blocked by ESLint. Delete those facades only after downstream
-integrators have migrated.
+The former `@/lib/api/services/preTradeSafetyService` path remains a thin
+compatibility facade. New source imports are blocked by ESLint. Delete that
+facade only after downstream integrators have migrated.
 
 ## Next extraction seam
 
