@@ -2,7 +2,6 @@ import { after, type NextRequest, NextResponse } from 'next/server';
 
 import { type ZodSchema } from 'zod';
 
-import { corsExposeHeaders } from '@/lib/api/x402/corsExposeHeaders';
 import { applyCreditBillingHeaders } from '@/lib/billing/billingHeaders';
 import { consumeCredits, precheckCredits, recordWaivedCredit } from '@/lib/billing/creditWallet';
 import {
@@ -48,6 +47,7 @@ import { extractClientIp, rateLimitKeyGenerator } from './middleware/rateLimitMi
 import { rejectOversizedRequest, rejectStreamedOversizedRequest } from './requestLimits';
 import { ApiResponseBuilder } from './response';
 import { withRouteDeadline } from './routeDeadline';
+import { applyCorsHeaders, getCorsHeaders, type CorsOptions } from './transport/cors';
 
 import type { ApiSuccessResponse } from './response/ApiResponse';
 
@@ -605,13 +605,6 @@ interface MiddlewareConfig {
   quota?: QuotaMiddlewareOptions | boolean;
 }
 
-interface CorsOptions {
-  origin?: string;
-  methods?: string[];
-  headers?: string[];
-  maxAge?: number;
-}
-
 interface ValidationConfig<
   TBody = Record<string, unknown>,
   TQuery = Record<string, unknown>,
@@ -645,53 +638,12 @@ interface CreateApiHandlerOptions<
   maxBodyBytes?: number;
 }
 
-const DEFAULT_CORS_HEADERS = [
-  'Content-Type',
-  'Authorization',
-  'X-Request-Id',
-  'Cache-Control',
-  'X-API-Key',
-  // x402 v2 payment headers: browser-resident agents must be able to send the
-  // signed payment on the retry, or their CORS preflight is rejected.
-  'PAYMENT-SIGNATURE',
-  // Bounded, optional attribution for aggregate conversion analysis. It never
-  // conveys caller identity and has no effect on auth or payment handling.
-  'X-Insight-Entry-Source',
-];
-
-export function getCorsHeaders(options: CorsOptions): Record<string, string> {
-  const {
-    origin = '*',
-    methods = ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
-    headers = DEFAULT_CORS_HEADERS,
-    maxAge = 86400,
-  } = options;
-
-  return {
-    'Access-Control-Allow-Origin': origin,
-    'Access-Control-Allow-Methods': methods.join(', '),
-    'Access-Control-Allow-Headers': headers.join(', '),
-    // Shared with the MCP transport and the MPP pre-trade bridge so the
-    // x-insight-* hints on a bare 402 stay readable in a browser.
-    'Access-Control-Expose-Headers': corsExposeHeaders(),
-    'Access-Control-Max-Age': String(maxAge),
-  };
-}
+export { getCorsHeaders } from './transport/cors';
 
 function applyRateLimitHeaders(response: NextResponse, rateLimitInfo: RateLimitInfo): NextResponse {
   response.headers.set('X-RateLimit-Limit', String(rateLimitInfo.limit));
   response.headers.set('X-RateLimit-Remaining', String(rateLimitInfo.remaining));
   response.headers.set('X-RateLimit-Reset', String(Math.floor(rateLimitInfo.resetTime / 1000)));
-  return response;
-}
-
-function applyCorsHeaders(
-  response: NextResponse,
-  corsHeaders: Record<string, string>
-): NextResponse {
-  for (const [key, value] of Object.entries(corsHeaders)) {
-    response.headers.set(key, value);
-  }
   return response;
 }
 
