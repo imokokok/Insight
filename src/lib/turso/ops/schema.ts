@@ -15,7 +15,7 @@
 // and tests use the node client against file::memory: databases.
 import type { Client } from '@libsql/client';
 
-export const TURSO_OPS_SCHEMA_VERSION = 6;
+export const TURSO_OPS_SCHEMA_VERSION = 7;
 
 const MARKET_REFERENCE_SNAPSHOTS_DDL = [
   `CREATE TABLE IF NOT EXISTS market_reference_snapshots (
@@ -239,6 +239,63 @@ const DEX_MARKET_DDL = [
      ON dex_market_swap_events (block_timestamp)`,
 ];
 
+// Reputation domain (egress retirement v7, 2026-11). Transcribed from
+// Supabase public.reputation_history / public.oracle_reputation
+// (migration 0002): uuid identity → INTEGER PRIMARY KEY AUTOINCREMENT,
+// numeric → REAL, boolean → INTEGER CHECK, jsonb → TEXT (JSON),
+// timestamptz → TEXT (ISO-8601 UTC). reputation_history rows are per-run
+// snapshot samples without a natural unique key — inserts are plain, not
+// duplicate-tolerant. oracle_reputation is the aggregate target keyed on
+// provider (see reputationRepository.aggregateTursoOracleReputation, the
+// TypeScript port of the Postgres RPC aggregate_oracle_reputation_v4).
+const REPUTATION_HISTORY_DDL = [
+  `CREATE TABLE IF NOT EXISTS reputation_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    provider TEXT NOT NULL,
+    symbol TEXT NOT NULL,
+    price REAL,
+    consensus_price REAL,
+    deviation_pct REAL,
+    latency_ms INTEGER,
+    confidence REAL,
+    is_success INTEGER NOT NULL DEFAULT 1 CHECK (is_success IN (0, 1)),
+    error_message TEXT,
+    snapshot_time TEXT NOT NULL,
+    created_at TEXT,
+    data_age_seconds INTEGER,
+    failure_mode TEXT NOT NULL DEFAULT 'none',
+    signal_vector TEXT,
+    consensus_context TEXT
+  )`,
+  `CREATE INDEX IF NOT EXISTS reputation_history_provider_ts_idx
+     ON reputation_history (provider, snapshot_time)`,
+  // 7-day retention support (migration 0138 / cleanup_old_reputation_history).
+  `CREATE INDEX IF NOT EXISTS reputation_history_retention_idx
+     ON reputation_history (snapshot_time)`,
+];
+
+const ORACLE_REPUTATION_DDL = [
+  `CREATE TABLE IF NOT EXISTS oracle_reputation (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    provider TEXT NOT NULL,
+    overall_score REAL NOT NULL DEFAULT 0,
+    accuracy_score REAL NOT NULL DEFAULT 0,
+    uptime_percentage REAL NOT NULL DEFAULT 100,
+    avg_latency_ms INTEGER NOT NULL DEFAULT 0,
+    avg_deviation_pct REAL NOT NULL DEFAULT 0,
+    reliability_score REAL NOT NULL DEFAULT 0,
+    freshness_score REAL NOT NULL DEFAULT 0,
+    total_queries INTEGER NOT NULL DEFAULT 0,
+    failed_queries INTEGER NOT NULL DEFAULT 0,
+    supported_symbols_count INTEGER NOT NULL DEFAULT 0,
+    supported_chains_count INTEGER NOT NULL DEFAULT 0,
+    last_calculated_at TEXT,
+    created_at TEXT,
+    updated_at TEXT,
+    CONSTRAINT oracle_reputation_provider_unique UNIQUE (provider)
+  )`,
+];
+
 const OPS_SCHEMA_META_DDL = [
   `CREATE TABLE IF NOT EXISTS ops_schema_meta (
     key TEXT PRIMARY KEY,
@@ -255,6 +312,8 @@ const ALL_DDL: string[] = [
   ...COVERAGE_SLO_DDL,
   ...FEED_HEALTH_SNAPSHOTS_DDL,
   ...DEX_MARKET_DDL,
+  ...REPUTATION_HISTORY_DDL,
+  ...ORACLE_REPUTATION_DDL,
 ];
 
 export function tursoOpsMigrations(): readonly string[] {

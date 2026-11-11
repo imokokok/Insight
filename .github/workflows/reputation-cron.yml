@@ -33,6 +33,13 @@ env:
   SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
   CRON_WORKFLOW: reputation-cron.yml
   CRON_DISPATCH_ID: ${{ inputs.dispatch_id || '' }}
+  # Egress retirement (2026-11): the reputation data plane defaults to Turso
+  # so this pipeline recovers from the Supabase restricted window without a
+  # manual repo-variable flip. Set repo variable TURSO_REPUTATION_MODE=supabase
+  # to force the legacy path back on.
+  TURSO_OPS_DATABASE_URL: libsql://insight-imokokok.aws-ap-southeast-1.turso.io
+  TURSO_OPS_AUTH_TOKEN: ${{ secrets.TURSO_PRICE_AUTH_TOKEN }}
+  TURSO_REPUTATION_MODE: ${{ vars.TURSO_REPUTATION_MODE || 'turso' }}
 
 jobs:
   calculate:
