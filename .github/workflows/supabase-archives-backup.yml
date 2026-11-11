@@ -21,26 +21,24 @@ jobs:
     timeout-minutes: 30
     steps:
       # Server runs Postgres 17; pg_dump refuses cross-major-version dumps and
-      # the runner image ships client 16, so pin the matching client.
-      - name: Install matching PostgreSQL client
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y postgresql-client-17
-          pg_dump --version
-
+      # Ubuntu noble only ships client 16. Run the dump inside the official
+      # postgres:17 image instead of adding the PGDG apt repository.
       - name: Dump snapshot archives
         env:
           PGPASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-          PGSSLMODE: require
         run: |
           BACKUP_DATE=$(date -u +%Y%m%d)
           mkdir -p backup
-          pg_dump \
-            "postgresql://${SUPABASE_DB_USER}@${SUPABASE_DB_HOST}:5432/postgres" \
-            --no-owner --no-privileges \
-            --table=snapshot_archives \
-            --format=custom \
-            --file "backup/snapshot-archives-${BACKUP_DATE}.dump"
+          docker run --rm \
+            -e PGPASSWORD -e PGSSLMODE=require \
+            -v "$PWD/backup:/backup" \
+            postgres:17-alpine \
+            pg_dump \
+              "postgresql://${SUPABASE_DB_USER}@${SUPABASE_DB_HOST}:5432/postgres" \
+              --no-owner --no-privileges \
+              --table=snapshot_archives \
+              --format=custom \
+              --file "/backup/snapshot-archives-${BACKUP_DATE}.dump"
           test -s "backup/snapshot-archives-${BACKUP_DATE}.dump"
           ls -la backup/
 
