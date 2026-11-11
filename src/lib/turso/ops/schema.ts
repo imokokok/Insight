@@ -15,7 +15,7 @@
 // and tests use the node client against file::memory: databases.
 import type { Client } from '@libsql/client';
 
-export const TURSO_OPS_SCHEMA_VERSION = 6;
+export const TURSO_OPS_SCHEMA_VERSION = 7;
 
 const MARKET_REFERENCE_SNAPSHOTS_DDL = [
   `CREATE TABLE IF NOT EXISTS market_reference_snapshots (
@@ -239,6 +239,36 @@ const DEX_MARKET_DDL = [
      ON dex_market_swap_events (block_timestamp)`,
 ];
 
+// Daily-report domain (egress retirement v7). Mirrors Supabase
+// public.daily_reports (one row per UTC report_date, upsert on publish).
+// JSON payloads stored as TEXT — stringify on write, parse on read so the
+// caller sees the same shapes Supabase REST returned.
+const DAILY_REPORTS_DDL = [
+  `CREATE TABLE IF NOT EXISTS daily_reports (
+    report_date TEXT PRIMARY KEY,
+    report_title TEXT NOT NULL,
+    summary TEXT NOT NULL,
+    recommendations TEXT NOT NULL,
+    metrics TEXT NOT NULL,
+    top_assets TEXT,
+    provider_rankings TEXT,
+    deviation_events TEXT,
+    anomaly_summary TEXT,
+    coverage_matrix TEXT,
+    failure_breakdown TEXT,
+    previous_day_comparison TEXT,
+    risk_impacts TEXT,
+    protocol_liquidation_risks TEXT,
+    stablecoin_depeg TEXT,
+    wrapped_asset_peg TEXT,
+    settlement_evidence TEXT,
+    generated_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  )`,
+  `CREATE INDEX IF NOT EXISTS daily_reports_date_idx
+     ON daily_reports (report_date DESC)`,
+];
+
 const OPS_SCHEMA_META_DDL = [
   `CREATE TABLE IF NOT EXISTS ops_schema_meta (
     key TEXT PRIMARY KEY,
@@ -255,6 +285,7 @@ const ALL_DDL: string[] = [
   ...COVERAGE_SLO_DDL,
   ...FEED_HEALTH_SNAPSHOTS_DDL,
   ...DEX_MARKET_DDL,
+  ...DAILY_REPORTS_DDL,
 ];
 
 export function tursoOpsMigrations(): readonly string[] {
