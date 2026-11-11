@@ -316,7 +316,7 @@ describe('x402 guard', () => {
 
     it('rejects quote floods before payment handling', async () => {
       incrementRateLimitMock.mockResolvedValue({
-        count: 7,
+        count: 49,
         resetTime: Date.now() + 60_000,
       });
       const processHTTPRequest = jest.fn();
@@ -325,8 +325,30 @@ describe('x402 guard', () => {
       const res = await handlePaidPreTradeRequest(makeRequest(), CFG, OK_BUSINESS);
 
       expect(res.status).toBe(429);
+      expect(res.headers.get('X-RateLimit-Limit')).toBe('48');
       expect(processHTTPRequest).not.toHaveBeenCalled();
       expect(mockedGetServer).not.toHaveBeenCalled();
+    });
+
+    it('allows the final quote in one full directory discovery sweep', async () => {
+      incrementRateLimitMock.mockResolvedValue({
+        count: 48,
+        resetTime: Date.now() + 60_000,
+      });
+      const processHTTPRequest = jest.fn().mockResolvedValue({
+        type: 'payment-error',
+        response: {
+          status: 402,
+          headers: { 'PAYMENT-REQUIRED': 'quote' },
+          body: { error: 'payment required' },
+        },
+      });
+      mockedGetServer.mockResolvedValue({ processHTTPRequest });
+
+      const res = await handlePaidPreTradeRequest(makeRequest(), CFG, OK_BUSINESS);
+
+      expect(res.status).toBe(402);
+      expect(processHTTPRequest).toHaveBeenCalledTimes(1);
     });
 
     it('settles after a 2xx business response and attaches settlement headers', async () => {
