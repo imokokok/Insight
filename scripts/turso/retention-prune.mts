@@ -42,7 +42,12 @@ interface PrunePolicy {
 const PRUNE_POLICIES: readonly PrunePolicy[] = [
   { table: 'snapshot_ingest_leases', column: 'slot_ms', days: 14, note: 'ephemeral leases' },
   { table: 'price_records', column: 'ttl_ms', days: 0, note: 'ttl-driven 24h cache' },
-  { table: 'settlement_window_candles', column: 'collected_at_ms', days: 365, note: 'evidence-derived candles' },
+  {
+    table: 'settlement_window_candles',
+    column: 'collected_at_ms',
+    days: 365,
+    note: 'evidence-derived candles',
+  },
 ];
 
 const MAINTENANCE_TASK_KEY = 'retention-prune';
@@ -76,12 +81,16 @@ try {
   });
 
   const totalDeleted = summary.reduce((sum, item) => sum + item.deleted, 0);
-  console.log(`[turso-retention] done: ${totalDeleted} rows pruned across ${summary.length} tables`);
+  console.log(
+    `[turso-retention] done: ${totalDeleted} rows pruned across ${summary.length} tables`
+  );
 
   if (totalDeleted > 1_000_000) {
     // Far above the steady-state churn — surface it instead of silently
     // burning the write budget (e.g. after a long pause in scheduled runs).
-    throw new Error(`retention prune deleted an abnormally large number of rows (${totalDeleted}); verify retention windows`);
+    throw new Error(
+      `retention prune deleted an abnormally large number of rows (${totalDeleted}); verify retention windows`
+    );
   }
 } finally {
   client.close();
