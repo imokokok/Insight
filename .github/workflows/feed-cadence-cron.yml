@@ -31,6 +31,13 @@ env:
   SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
   CRON_WORKFLOW: feed-cadence-cron.yml
   CRON_DISPATCH_ID: ${{ inputs.dispatch_id || '' }}
+  # Egress retirement (2026-11): the baseline refresh computes from the Turso
+  # raw stream + mirrored feed registry by default, recovering this pipeline
+  # from the Supabase restricted window without a repo-variable flip. Set
+  # repo variable TURSO_FEED_CADENCE_MODE=supabase to force the legacy path.
+  TURSO_PRICE_DATABASE_URL: libsql://insight-imokokok.aws-ap-southeast-1.turso.io
+  TURSO_PRICE_AUTH_TOKEN: ${{ secrets.TURSO_PRICE_AUTH_TOKEN }}
+  TURSO_FEED_CADENCE_MODE: ${{ vars.TURSO_FEED_CADENCE_MODE || 'turso' }}
 
 jobs:
   backfill:

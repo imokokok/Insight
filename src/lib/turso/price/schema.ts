@@ -6,9 +6,12 @@ import type { Client, InStatement } from '@libsql/client';
 // settlement-evidence tables (prediction-market watch, settlement-window
 // candles, signed evidence packs). Version 7 adds the Turso copy of
 // `price_records`, the 24-hour cache that can be moved independently of the
-// raw stream. Keep this local to Turso so a degraded Supabase control plane
+// raw stream. Version 8 adds `feed_cadence_baselines`, the collector-side
+// mirror of oracle_feeds.observed_data_age_p90_s computed from the raw
+// stream (egress retirement: the Supabase RPC path is restricted).
+// Keep this local to Turso so a degraded Supabase control plane
 // cannot stop raw capture.
-export const TURSO_PRICE_SCHEMA_VERSION = 7;
+export const TURSO_PRICE_SCHEMA_VERSION = 8;
 
 export const DEFAULT_TURSO_PRICE_POLICIES = [
   {
@@ -258,6 +261,16 @@ const ddl: InStatement[] = [
     ON price_records(ttl_ms)`,
   `CREATE INDEX IF NOT EXISTS price_records_timestamp_idx
     ON price_records(timestamp_ms DESC)`,
+  `CREATE TABLE IF NOT EXISTS feed_cadence_baselines (
+    provider TEXT NOT NULL,
+    symbol TEXT NOT NULL,
+    chain_id INTEGER NOT NULL CHECK (chain_id >= 0),
+    p90_seconds INTEGER,
+    updated_at_ms INTEGER NOT NULL,
+    PRIMARY KEY (provider, symbol, chain_id)
+  )`,
+  `CREATE INDEX IF NOT EXISTS feed_cadence_baselines_symbol_idx
+    ON feed_cadence_baselines(symbol)`,
 ];
 
 const migrationStatements: Readonly<Record<number, readonly InStatement[]>> = {
@@ -359,6 +372,17 @@ const migrationStatements: Readonly<Record<number, readonly InStatement[]>> = {
     'CREATE INDEX IF NOT EXISTS price_records_latest_idx ON price_records(provider, symbol, chain, timestamp_ms DESC)',
     'CREATE INDEX IF NOT EXISTS price_records_ttl_idx ON price_records(ttl_ms)',
     'CREATE INDEX IF NOT EXISTS price_records_timestamp_idx ON price_records(timestamp_ms DESC)',
+  ],
+  8: [
+    `CREATE TABLE IF NOT EXISTS feed_cadence_baselines (
+      provider TEXT NOT NULL,
+      symbol TEXT NOT NULL,
+      chain_id INTEGER NOT NULL CHECK (chain_id >= 0),
+      p90_seconds INTEGER,
+      updated_at_ms INTEGER NOT NULL,
+      PRIMARY KEY (provider, symbol, chain_id)
+    )`,
+    'CREATE INDEX IF NOT EXISTS feed_cadence_baselines_symbol_idx ON feed_cadence_baselines(symbol)',
   ],
 };
 

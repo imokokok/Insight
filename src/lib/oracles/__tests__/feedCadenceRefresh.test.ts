@@ -55,4 +55,60 @@ describe('updateAllFeedStalenessBaselines', () => {
       'invalid scanned count'
     );
   });
+
+  describe('TURSO_FEED_CADENCE_MODE branch', () => {
+    const ORIGINAL_MODE = process.env.TURSO_FEED_CADENCE_MODE;
+
+    afterEach(() => {
+      if (ORIGINAL_MODE === undefined) delete process.env.TURSO_FEED_CADENCE_MODE;
+      else process.env.TURSO_FEED_CADENCE_MODE = ORIGINAL_MODE;
+      jest.resetModules();
+    });
+
+    it('defaults to the legacy Supabase RPC when the mode is unset', async () => {
+      delete process.env.TURSO_FEED_CADENCE_MODE;
+      const rpc = jest.fn().mockResolvedValue({
+        data: [{ updated_count: 5, scanned_count: 5 }],
+        error: null,
+      });
+
+      await expect(updateAllFeedStalenessBaselines({ rpc } as never)).resolves.toBe(5);
+      expect(rpc).toHaveBeenCalledTimes(1);
+    });
+
+    it('rejects an unknown mode instead of silently picking a plane', async () => {
+      process.env.TURSO_FEED_CADENCE_MODE = 'shadow';
+      const rpc = jest.fn();
+
+      await expect(updateAllFeedStalenessBaselines({ rpc } as never)).rejects.toThrow(
+        'TURSO_FEED_CADENCE_MODE must be supabase or turso'
+      );
+      expect(rpc).not.toHaveBeenCalled();
+    });
+
+    it('routes to the Turso raw stream when the mode is turso', async () => {
+      process.env.TURSO_FEED_CADENCE_MODE = 'turso';
+      jest.doMock('@/lib/turso/price/client', () => ({
+        getTursoPriceClient: jest.fn(() => ({ __tursoClient: true })),
+      }));
+      jest.doMock('@/lib/turso/price/cadenceRepository', () => ({
+        refreshTursoFeedCadenceBaselines: jest.fn().mockResolvedValue({
+          updated: 42,
+          scanned: 42,
+        }),
+      }));
+
+      // Re-import with the mocks applied so the branch binds the fakes.
+      const { updateAllFeedStalenessBaselines: branchRunner } =
+        await import('@/lib/oracles/feedCadence');
+      const { refreshTursoFeedCadenceBaselines } =
+        await import('@/lib/turso/price/cadenceRepository');
+
+      const rpc = jest.fn();
+      await expect(branchRunner({ rpc } as never)).resolves.toBe(42);
+      expect(refreshTursoFeedCadenceBaselines).toHaveBeenCalledTimes(1);
+      expect(refreshTursoFeedCadenceBaselines).toHaveBeenCalledWith({ __tursoClient: true });
+      expect(rpc).not.toHaveBeenCalled();
+    });
+  });
 });
