@@ -1,14 +1,9 @@
 name: Turso Backup
 
-# Nightly logical export of every Turso table to a GH Actions artifact,
-# followed by the retention prune. The Turso free tier keeps only 1 day of
-# point-in-time restore; this 90-day artifact trail is the durable safety
-# net for the Supabase egress-retirement migration (2026-11).
-#
-# Order matters: export first, prune second — every deleted row already
-# lives in the exported artifact. The prune enforces the bounded raw-stream
-# retention window the price schema promises (price_snapshots grows
-# ~21-25k rows/day and would hit the 5 GB free-tier storage cap unbounded).
+# Nightly logical export of every Turso table to a GH Actions artifact.
+# The Turso free tier keeps only 1 day of point-in-time restore; this
+# 90-day artifact trail is the durable safety net for the Supabase
+# egress-retirement migration (2026-11).
 
 on:
   schedule:
@@ -25,7 +20,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  backup-and-prune:
+  backup:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -52,9 +47,3 @@ jobs:
           path: artifacts/turso-backup/
           retention-days: 90
           if-no-files-found: error
-
-      - name: Prune expired rows (retention)
-        env:
-          TURSO_OPS_DATABASE_URL: ${{ secrets.TURSO_PRICE_DATABASE_URL }}
-          TURSO_OPS_AUTH_TOKEN: ${{ secrets.TURSO_PRICE_AUTH_TOKEN }}
-        run: npx tsx scripts/turso/retention-prune.mts
