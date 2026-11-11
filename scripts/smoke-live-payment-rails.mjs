@@ -8,6 +8,9 @@
 //      WWW-Authenticate bound to the request URL.
 //   2. MCP pre-trade: an unpaid tools/call must fail with a JSON-RPC 402
 //      challenge whose scope binds the tool name and arguments.
+//   3. Public discovery surface: the symbol catalog must serve a non-empty
+//      registry (or the hardcoded fallback), and the public risk-summary tier
+//      must not answer with an authentication lockout.
 //
 // Configuration:
 //   SMOKE_BASE_URL    Base URL to probe (default https://www.oracleinsight.xyz)
@@ -344,10 +347,85 @@ async function smokeMcpRail() {
   console.log(`[mcp] 402 challenge OK (scope=${scope ?? 'n/a'})`);
 }
 
+// Public discovery surface. The catalog must never be empty: a healthy registry
+// serves the live feed set, and an unavailable database must fall back to the
+// hardcoded supported-symbol list (never zero). This is the assertion that was
+// missing when the empty-catalog regression shipped: the registry read failed,
+// the error was swallowed into "a legitimately empty catalog", and the release
+// passed every build-and-payments check. A floor (not an exact count) keeps the
+// check stable as the fallback list evolves.
+const SYMBOL_CATALOG_FLOOR = 50;
+
+async function smokePublicCatalog() {
+  const response = await fetchWithRetry(
+    `${BASE_URL}/api/v1/symbols`,
+    { headers: { accept: 'application/json' } },
+    'catalog'
+  );
+  if (response.status !== 200) {
+    failStatus('catalog', 200, response.status);
+    return;
+  }
+  let payload;
+  try {
+    payload = await response.json();
+  } catch {
+    fail('catalog', 'response is not JSON');
+    return;
+  }
+  const data = payload?.data;
+  if (!data || !Array.isArray(data.symbols)) {
+    fail('catalog', 'response has no symbols array');
+    return;
+  }
+  if (data.symbols.length < SYMBOL_CATALOG_FLOOR) {
+    fail(
+      'catalog',
+      `symbol catalog served ${data.symbols.length} symbols (floor ${SYMBOL_CATALOG_FLOOR}); an empty or near-empty catalog means the registry read failed without engaging the fallback`
+    );
+    return;
+  }
+  const populatedProviders = Object.values(data.oracleSymbols ?? {}).filter(
+    (symbols) => Array.isArray(symbols) && symbols.length > 0
+  ).length;
+  if (populatedProviders === 0) {
+    fail(
+      'catalog',
+      'oracleSymbols served no populated provider; the catalog body is present but blind'
+    );
+    return;
+  }
+  console.log(
+    `[catalog] ${data.symbols.length} symbols across ${populatedProviders} populated providers OK`
+  );
+}
+
+// The public risk read tier must never regress behind authentication. Only a
+// lockout (401/403) is an application failure here: 5xx answers are typically a
+// degraded database (which this smoke must not roll back on) and a 200 needs no
+// opinion from a smoke probe.
+async function smokePublicRiskTierUnlocked() {
+  const response = await fetchWithRetry(
+    `${BASE_URL}/api/v1/risk/summary?symbol=BTC&providers=chainlink`,
+    { headers: { accept: 'application/json' } },
+    'risk-tier'
+  );
+  if (response.status === 401 || response.status === 403) {
+    fail(
+      'risk-tier',
+      `public risk summary answered ${response.status}; the free read tier regressed behind authentication`
+    );
+    return;
+  }
+  console.log(`[risk-tier] public tier reachable (HTTP ${response.status}) OK`);
+}
+
 try {
   await smokeRestRail();
   await smokeFixedScopeParity();
   await smokeMcpRail();
+  await smokePublicCatalog();
+  await smokePublicRiskTierUnlocked();
 } catch (error) {
   failures.push({
     kind: error instanceof LiveSmokeInfrastructureError ? 'infrastructure' : 'application',
