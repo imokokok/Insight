@@ -131,6 +131,7 @@ import { Blockchain, type OracleProvider } from '@/types/oracle';
 
 import { buildAssessmentScope, buildSizingBasis } from './diagnostics';
 import { evaluateDepegRule } from './marketAlertPolicy';
+import { computeMaxDeviation, computeSpread, computeStaleRisk } from './marketMetricsPolicy';
 import { evaluateProtocolBufferRule } from './protocolBufferPolicy';
 import {
   clamp01,
@@ -465,86 +466,6 @@ function buildProviderPrices(
     };
   }
   return out;
-}
-
-/**
- * Providers the consensus engine has already rejected as outliers must not feed
- * the dispersion metrics. They were excluded precisely because they do not
- * describe the asset, so letting their distance from consensus drive the verdict
- * would silently undo the exclusion — a single contaminated source could keep a
- * healthy feed pinned at BLOCK. Falls back to the unfiltered set when every
- * provider was excluded, so a genuinely divergent market still reports its real
- * spread instead of collapsing to zero.
- */
-function inConsensusOrAll<T>(filtered: [string, T][], isOutlier: (d: T) => boolean): [string, T][] {
-  const kept = filtered.filter(([, d]) => !isOutlier(d));
-  return kept.length > 0 ? kept : filtered;
-}
-
-function computeMaxDeviation(
-  providerPrices: Record<string, ProviderPriceDetail>,
-  targetProviders?: string[]
-): number {
-  const entries = Object.entries(providerPrices);
-  const filtered =
-    targetProviders && targetProviders.length > 0
-      ? entries.filter(([provider]) => targetProviders.includes(provider))
-      : entries;
-  const successful = filtered.filter(
-    ([, d]) => d.status === 'success' && d.countsTowardOracleQuorum && d.deviationPct !== null
-  );
-  if (successful.length === 0) return 0;
-  const scored = inConsensusOrAll(successful, (d) => d.isOutlier);
-  return Math.max(...scored.map(([, d]) => Math.abs(d.deviationPct as number)));
-}
-
-function computeSpread(
-  providerPrices: Record<string, ProviderPriceDetail>,
-  targetProviders?: string[]
-): number {
-  const entries = Object.entries(providerPrices);
-  const filtered =
-    targetProviders && targetProviders.length > 0
-      ? entries.filter(([provider]) => targetProviders.includes(provider))
-      : entries;
-  const successful = filtered.filter(
-    ([, d]) => d.status === 'success' && d.countsTowardOracleQuorum && d.price > 0
-  );
-  const scored = inConsensusOrAll(successful, (d) => d.isOutlier);
-  const prices = scored.map(([, d]) => d.price);
-  if (prices.length < 2) return 0;
-  const min = Math.min(...prices);
-  const max = Math.max(...prices);
-  const ref = (min + max) / 2;
-  return ref > 0 ? ((max - min) / ref) * 100 : 0;
-}
-
-function computeStaleRisk(
-  providerPrices: Record<string, ProviderPriceDetail>,
-  stalenessBaselines: Map<string, number | null>
-): {
-  staleRisk: boolean;
-  maxAge: number;
-  staleProviders: string[];
-} {
-  const entries = Object.entries(providerPrices).filter(
-    ([, d]) => d.status === 'success' && d.countsTowardOracleQuorum && d.dataAgeSeconds !== null
-  );
-  if (entries.length === 0) return { staleRisk: false, maxAge: 0, staleProviders: [] };
-
-  let maxAge = 0;
-  const staleProviders: string[] = [];
-  for (const [provider, d] of entries) {
-    const age = d.dataAgeSeconds as number;
-    maxAge = Math.max(maxAge, age);
-    // Cadence-relative: stale only vs the feed's own observed rhythm. A feed
-    // with no baseline (not backfilled) is never flagged here — the 7-day
-    // absolute hard-block backstop still catches genuinely dead feeds.
-    if (isCadenceStale(age, stalenessBaselines.get(provider) ?? null)) {
-      staleProviders.push(provider);
-    }
-  }
-  return { staleRisk: staleProviders.length > 0, maxAge, staleProviders };
 }
 
 /**
