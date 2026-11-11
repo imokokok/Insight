@@ -13,6 +13,7 @@ import {
   loadTursoDexCursor,
   persistTursoDexWindow,
   readTursoDexMarketMode,
+  readTursoDexVolumeWindow,
   type TursoDexSwapRow,
 } from '@/lib/turso/ops/dexMarketRepository';
 import { mapWithConcurrency } from '@/lib/utils/concurrency';
@@ -332,6 +333,24 @@ export async function syncMonadUniswapV3Volume(
 async function loadWindow(asOf: string, windowSeconds: number): Promise<MonadDexVolumeWindow> {
   const endMs = toTimestamp(asOf, 'index timestamp');
   const start = new Date(endMs - windowSeconds * 1000).toISOString();
+  // Egress retirement (2026-11): under TURSO_DEX_MARKET_MODE=turso the 35-day
+  // swap-event ledger lives in the Turso ops data plane and the volume rollup
+  // is computed locally (JS port of the get_dex_market_volume_window RPC).
+  if (readTursoDexMarketMode() === 'turso') {
+    const window = await readTursoDexVolumeWindow(getTursoOpsClient(), {
+      chainId: MONAD_CHAIN_ID,
+      dex: DEX,
+      poolAddress: MONAD_UNISWAP_V3_WMON_USDC.pool.toLowerCase(),
+      windowStart: start,
+      windowEnd: asOf,
+    });
+    const raw = toBigInt(window.grossQuoteVolumeRaw, 'volume');
+    return {
+      windowSeconds,
+      swapCount: window.swapCount,
+      grossUsdcVolume: rawUsdcToNumber(raw),
+    };
+  }
   const supabase = createServiceRoleClient();
   const { data, error } = await supabase
     .rpc('get_dex_market_volume_window', {

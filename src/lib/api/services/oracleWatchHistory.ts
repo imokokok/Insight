@@ -1,5 +1,10 @@
 import { z } from 'zod';
 
+import { getTursoOpsClient } from '@/lib/turso/ops/client';
+import {
+  readTursoOracleHistoryBaseline,
+  readTursoPriceProjectionMode,
+} from '@/lib/turso/ops/hourlyPriceProjectionRepository';
 import { TTLCache } from '@/lib/utils/cache';
 import { roundTo } from '@/lib/utils/format';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
@@ -125,15 +130,26 @@ async function loadCompletedHistory(asset: string, now: number): Promise<HourlyP
   const pending = historyReads.get(key);
   if (pending) return pending;
   const read = (async () => {
-    const { createServiceRoleClient } = await import('@/lib/supabase/server');
-    const { data, error } = await createServiceRoleClient()
-      .rpc('get_oracle_history_baseline', {
-        p_symbol: symbol,
-        p_since: new Date(since).toISOString(),
-        p_before: new Date(hour).toISOString(),
-      })
-      .abortSignal(AbortSignal.timeout(10_000));
-    if (error) throw error;
+    // Egress retirement (2026-11): under TURSO_PRICE_PROJECTION_MODE=turso the
+    // hourly snapshot history lives in the Turso ops data plane (backfilled
+    // through 2026-11-09 + collector writes), so the 30h baseline is computed
+    // locally (JS port of the get_oracle_history_baseline RPC) instead of via
+    // the PostgREST gateway.
+    let data: unknown;
+    if (readTursoPriceProjectionMode() === 'turso') {
+      data = await readTursoOracleHistoryBaseline(getTursoOpsClient(), symbol, since, hour);
+    } else {
+      const { createServiceRoleClient } = await import('@/lib/supabase/server');
+      const { data: rpcData, error } = await createServiceRoleClient()
+        .rpc('get_oracle_history_baseline', {
+          p_symbol: symbol,
+          p_since: new Date(since).toISOString(),
+          p_before: new Date(hour).toISOString(),
+        })
+        .abortSignal(AbortSignal.timeout(10_000));
+      if (error) throw error;
+      data = rpcData;
+    }
     const rows = baselineSchema.parse(data);
     const seen = new Set<number>();
     const points = rows

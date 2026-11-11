@@ -106,6 +106,29 @@ const TABLE_SPECS: TableSpec[] = [
     jsonCols: [],
     dropCols: [],
   },
+  {
+    table: 'daily_reports',
+    conflictKeys: ['report_date'],
+    boolCols: [],
+    jsonCols: [
+      'recommendations',
+      'metrics',
+      'top_assets',
+      'provider_rankings',
+      'deviation_events',
+      'anomaly_summary',
+      'coverage_matrix',
+      'failure_breakdown',
+      'previous_day_comparison',
+      'risk_impacts',
+      'protocol_liquidation_risks',
+      'stablecoin_depeg',
+      'wrapped_asset_peg',
+    ],
+    // Supabase has a surrogate id; the Turso mirror keys on report_date.
+    // (settlement_evidence exists only in Turso and backfills as NULL.)
+    dropCols: ['id'],
+  },
 ];
 
 function parseArgs(): { dryRun: boolean; only?: string } {

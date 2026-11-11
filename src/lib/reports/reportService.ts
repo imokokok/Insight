@@ -3,6 +3,19 @@ import { getModelStatus } from '@/lib/ml/inference';
 import { listEvidencePacks } from '@/lib/settlementEvidence/repository';
 import { retryIdempotentSupabaseWrite } from '@/lib/supabase/idempotentWrite';
 import { createServiceRoleClient } from '@/lib/supabase/server';
+import { getTursoOpsClient } from '@/lib/turso/ops/client';
+import {
+  listTursoDailyReportSummaries,
+  listTursoDailyReports,
+  readTursoDailyReportByDate,
+  readTursoDailyReportsMode,
+  upsertTursoDailyReport,
+} from '@/lib/turso/ops/dailyReportsRepository';
+import {
+  readTursoPriceProjectionMode,
+  upsertTursoHourlySnapshots,
+} from '@/lib/turso/ops/hourlyPriceProjectionRepository';
+import { ensureTursoOpsSchema } from '@/lib/turso/ops/schema';
 import { createLogger } from '@/lib/utils/logger';
 
 import { calculatePercentageChange, sanitizeJsonValue } from './helpers';
@@ -64,6 +77,31 @@ const logger = createLogger('ReportService');
 class ReportService {
   async upsertHourlySnapshots(inputs: HourlySnapshotInput[]): Promise<number> {
     if (inputs.length === 0) return 0;
+
+    // Egress retirement (2026-11): under TURSO_PRICE_PROJECTION_MODE=turso the
+    // hourly evidence lands in the Turso ops data plane (JS port of the
+    // upsert_hourly_price_snapshots RPC, same dedupe + failure→success rules).
+    if (readTursoPriceProjectionMode() === 'turso') {
+      const client = getTursoOpsClient();
+      await ensureTursoOpsSchema(client);
+      return upsertTursoHourlySnapshots(
+        client,
+        inputs.map((input) => ({
+          snapshot_hour: input.snapshotHour.toISOString(),
+          provider: input.provider,
+          symbol: input.symbol,
+          chain_id: input.chainId ?? 0,
+          price: input.price,
+          consensus_price: input.consensusPrice ?? null,
+          deviation_pct: input.deviationPct ?? null,
+          latency_ms: input.latencyMs ?? null,
+          data_age_seconds: input.dataAgeSeconds ?? null,
+          confidence: input.confidence ?? null,
+          is_success: input.isSuccess,
+          error_message: input.errorMessage ?? null,
+        }))
+      );
+    }
 
     const supabase = createServiceRoleClient();
     const rows = inputs.map((input) => ({
@@ -206,8 +244,6 @@ class ReportService {
   }
 
   async persistReport(report: DailyReportData): Promise<void> {
-    const supabase = createServiceRoleClient();
-
     const payload = {
       report_date: report.reportDate,
       report_title: report.reportTitle,
@@ -235,6 +271,15 @@ class ReportService {
       updated_at: new Date().toISOString(),
     };
 
+    // Egress retirement (2026-11): under TURSO_DAILY_REPORTS_MODE=turso the
+    // report artifact lands in the Turso ops data plane instead of the
+    // PostgREST gateway.
+    if (readTursoDailyReportsMode() === 'turso') {
+      await upsertTursoDailyReport(getTursoOpsClient(), payload);
+      return;
+    }
+
+    const supabase = createServiceRoleClient();
     const { error } = await supabase
       .from('daily_reports')
       .upsert(payload, { onConflict: 'report_date' });
@@ -246,6 +291,10 @@ class ReportService {
   }
 
   async getReportByDate(dateStr: string): Promise<DailyReportData | null> {
+    if (readTursoDailyReportsMode() === 'turso') {
+      const row = await readTursoDailyReportByDate(getTursoOpsClient(), dateStr);
+      return row === null ? null : this.mapDbRowToReport(row);
+    }
     const supabase = createServiceRoleClient();
     const { data, error } = await supabase
       .from('daily_reports')
@@ -265,6 +314,10 @@ class ReportService {
   }
 
   async listReports(limit: number = 30, offset: number = 0): Promise<DailyReportData[]> {
+    if (readTursoDailyReportsMode() === 'turso') {
+      const rows = await listTursoDailyReports(getTursoOpsClient(), limit, offset);
+      return rows.map((row) => this.mapDbRowToReport(row));
+    }
     const supabase = createServiceRoleClient();
     const { data, error } = await supabase
       .from('daily_reports')
@@ -287,6 +340,10 @@ class ReportService {
    * dominate the row size. Returns a trimmed ReportSummary.
    */
   async listReportSummaries(limit: number = 30, offset: number = 0): Promise<ReportSummary[]> {
+    if (readTursoDailyReportsMode() === 'turso') {
+      const rows = await listTursoDailyReportSummaries(getTursoOpsClient(), limit, offset);
+      return rows.map((row) => this.buildReportSummary(row));
+    }
     const supabase = createServiceRoleClient();
     const { data, error } = await supabase
       .from('daily_reports')
@@ -299,23 +356,25 @@ class ReportService {
       throw error;
     }
 
-    return (data ?? []).map((row: Record<string, unknown>) => {
-      const metrics = (row.metrics as DailyReportMetrics | null) ?? ({} as DailyReportMetrics);
-      const deviationEvents = (row.deviation_events as DeviationEvent[] | null) ?? [];
-      return {
-        reportDate: String(row.report_date),
-        summary: String(row.summary ?? ''),
-        metrics: {
-          criticalEvents: metrics.criticalEvents ?? 0,
-          highEvents: metrics.highEvents ?? 0,
-          overallSuccessRate: metrics.overallSuccessRate ?? 0,
-          avgDeviationPct: metrics.avgDeviationPct ?? 0,
-          activeProviders: metrics.activeProviders ?? 0,
-          activeAssets: metrics.activeAssets ?? 0,
-        },
-        topDeviationEvent: deviationEvents[0] ?? null,
-      };
-    });
+    return (data ?? []).map((row: Record<string, unknown>) => this.buildReportSummary(row));
+  }
+
+  private buildReportSummary(row: Record<string, unknown>): ReportSummary {
+    const metrics = (row.metrics as DailyReportMetrics | null) ?? ({} as DailyReportMetrics);
+    const deviationEvents = (row.deviation_events as DeviationEvent[] | null) ?? [];
+    return {
+      reportDate: String(row.report_date),
+      summary: String(row.summary ?? ''),
+      metrics: {
+        criticalEvents: metrics.criticalEvents ?? 0,
+        highEvents: metrics.highEvents ?? 0,
+        overallSuccessRate: metrics.overallSuccessRate ?? 0,
+        avgDeviationPct: metrics.avgDeviationPct ?? 0,
+        activeProviders: metrics.activeProviders ?? 0,
+        activeAssets: metrics.activeAssets ?? 0,
+      },
+      topDeviationEvent: deviationEvents[0] ?? null,
+    };
   }
 
   private mapDbRowToReport(row: Record<string, unknown>): DailyReportData {

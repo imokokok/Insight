@@ -95,3 +95,65 @@ export async function trimTursoManipCostRows(
   });
   return Number(result.rowsAffected ?? 0);
 }
+
+export interface TursoManipCostAdvisoryRow {
+  pool_key: string;
+  dex: string;
+  fee_tier: string | null;
+  snapshot_ts: string;
+  block_number: number | null;
+  mid_price: number | null;
+  tvl_usd: number | null;
+  /** Parsed cost-curve JSON (same shape Supabase REST returned). */
+  cost_curve: unknown;
+}
+
+/**
+ * Hot-path read for the pre-trade manipulation-cost advisory
+ * (src/lib/manipCost/baseline.ts). Mirrors the Supabase read: freshest
+ * successful rows for the symbol's pools, over-fetched so a missing pool is
+ * distinguishable from a short window; the caller dedupes newest-per-pool.
+ */
+export async function readTursoManipCostAdvisoryRows(
+  client: Client,
+  poolKeys: string[],
+  limit: number
+): Promise<TursoManipCostAdvisoryRow[]> {
+  if (poolKeys.length === 0) return [];
+  const boundedLimit = Math.max(1, Math.floor(limit));
+  const placeholders = poolKeys.map(() => '?').join(', ');
+  const result = await client.execute({
+    sql: `SELECT pool_key, dex, fee_tier, snapshot_ts, block_number, mid_price,
+                 tvl_usd, cost_curve
+          FROM manip_cost_pool_snapshots
+          WHERE pool_key IN (${placeholders}) AND is_success = 1
+          ORDER BY snapshot_ts DESC
+          LIMIT ${boundedLimit}`,
+    args: poolKeys,
+  });
+  return result.rows.map((row) => {
+    const curveRaw = row.cost_curve;
+    let curve: unknown = null;
+    if (typeof curveRaw === 'string' && curveRaw.length > 0) {
+      try {
+        curve = JSON.parse(curveRaw);
+      } catch {
+        curve = null; // malformed curve → caller withholds (fail-closed)
+      }
+    }
+    return {
+      pool_key: String(row.pool_key),
+      dex: String(row.dex),
+      fee_tier: row.fee_tier === null || row.fee_tier === undefined ? null : String(row.fee_tier),
+      snapshot_ts: String(row.snapshot_ts),
+      block_number:
+        row.block_number === null || row.block_number === undefined
+          ? null
+          : Number(row.block_number),
+      mid_price:
+        row.mid_price === null || row.mid_price === undefined ? null : Number(row.mid_price),
+      tvl_usd: row.tvl_usd === null || row.tvl_usd === undefined ? null : Number(row.tvl_usd),
+      cost_curve: curve,
+    };
+  });
+}

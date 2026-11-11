@@ -2,6 +2,7 @@ import { createClient, type Client } from '@libsql/client';
 
 import type { ManipCostRow } from '@/lib/manipCost/collector';
 import {
+  readTursoManipCostAdvisoryRows,
   readTursoManipCostMode,
   trimTursoManipCostRows,
   upsertTursoManipCostRows,
@@ -114,5 +115,40 @@ describe('trimTursoManipCostRows', () => {
 
   it('rejects a non-positive retention window', async () => {
     await expect(trimTursoManipCostRows(client, 0)).rejects.toThrow('positive integer');
+  });
+});
+
+describe('readTursoManipCostAdvisoryRows', () => {
+  it('returns only successful rows for the requested pools with parsed curves', async () => {
+    await upsertTursoManipCostRows(client, [
+      row(),
+      row({
+        snapshot_ts: '2026-11-11T04:00:00.000Z',
+        is_success: false,
+        error_message: 'rpc timeout',
+      }),
+      row({ snapshot_ts: '2026-11-11T05:00:00.000Z', pool_key: 'univ3-wbtc-weth-030' }),
+    ]);
+
+    const rows = await readTursoManipCostAdvisoryRows(
+      client,
+      ['univ3-eth-usdc-500', 'univ3-wbtc-weth-030'],
+      20
+    );
+    expect(rows).toHaveLength(2);
+    const eth = rows.find((r) => r.pool_key === 'univ3-eth-usdc-500')!;
+    expect(eth.dex).toBe('uniswap-v3');
+    expect(eth.fee_tier).toBe('500');
+    expect(eth.block_number).toBe(23_456_789);
+    expect(eth.mid_price).toBeCloseTo(3_200.5);
+    expect(eth.cost_curve).toEqual([{ size_eth: 10, cost_bps: 25 }]);
+
+    const wbtc = rows.find((r) => r.pool_key === 'univ3-wbtc-weth-030')!;
+    expect(wbtc).toBeDefined();
+    expect(rows.every((r) => r.pool_key !== 'unrelated')).toBe(true);
+  });
+
+  it('returns an empty array for an empty pool list', async () => {
+    expect(await readTursoManipCostAdvisoryRows(client, [], 10)).toEqual([]);
   });
 });
