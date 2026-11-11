@@ -1,9 +1,29 @@
+import { refreshTursoFeedCadenceBaselines } from '@/lib/turso/price/cadenceRepository';
+import { getTursoPriceClient } from '@/lib/turso/price/client';
 import { TTLCache } from '@/lib/utils/cache';
 import { createLogger } from '@/lib/utils/logger';
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 const logger = createLogger('feed-cadence');
+
+export type TursoFeedCadenceMode = 'supabase' | 'turso';
+
+/**
+ * Egress retirement (2026-11): the baseline refresh reads the raw stream and
+ * the mirrored feed registry from Turso and writes `feed_cadence_baselines`
+ * there, because the Supabase RPC path 402s under the restricted project.
+ * Code default stays `supabase` so local/tooling behaviour is unchanged; the
+ * cron workflow defaults the variable to `turso`. Set
+ * TURSO_FEED_CADENCE_MODE=supabase to force the legacy path back on.
+ */
+export function readTursoFeedCadenceMode(
+  value: string | undefined = process.env.TURSO_FEED_CADENCE_MODE
+): TursoFeedCadenceMode {
+  if (value === undefined || value === '' || value === 'supabase') return 'supabase';
+  if (value === 'turso') return value;
+  throw new Error('TURSO_FEED_CADENCE_MODE must be supabase or turso');
+}
 
 /**
  * Cadence baselines are a collector-produced, non-price input to the pre-trade
@@ -98,6 +118,15 @@ export function isCadenceStale(
  * Returns the number of active feeds written by the database operation.
  */
 export async function updateAllFeedStalenessBaselines(supabase: SupabaseClient): Promise<number> {
+  if (readTursoFeedCadenceMode() === 'turso') {
+    const result = await refreshTursoFeedCadenceBaselines(getTursoPriceClient());
+    logger.info('updateAllFeedStalenessBaselines complete (turso)', {
+      updated: result.updated,
+      scanned: result.scanned,
+    });
+    return result.updated;
+  }
+
   const { data, error } = await supabase.rpc('refresh_oracle_feed_cadence_baselines', {
     p_lookback_hours: 48,
     p_min_samples: 12,
