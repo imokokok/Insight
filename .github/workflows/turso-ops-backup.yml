@@ -1,0 +1,60 @@
+name: Turso Ops Backup
+on:
+  schedule:
+    # Daily logical dump of the whole Turso data plane (price domain + ops
+    # domain — price_snapshots is the only copy of post-2026-11-09 collector
+    # price history). 18:05 UTC = 02:05 Beijing, off-cycle from collectors.
+    - cron: '5 18 * * *'
+  workflow_dispatch: {}
+permissions:
+  contents: read
+concurrency:
+  group: turso-ops-backup
+  cancel-in-progress: false
+env:
+  TURSO_OPS_DATABASE_URL: libsql://insight-imokokok.aws-ap-southeast-1.turso.io
+  TURSO_OPS_AUTH_TOKEN: ${{ secrets.TURSO_PRICE_AUTH_TOKEN }}
+jobs:
+  dump:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - name: Set up cached Node.js
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 22.23.2
+          cache: npm
+
+      - name: Install runner dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Dump and verify
+        run: |
+          BACKUP_DATE=$(date -u +%Y%m%d)
+          mkdir -p backup
+          node --import tsx scripts/turso/dump-ops.ts --output "backup/turso-ops-${BACKUP_DATE}.sql"
+          gzip -f "backup/turso-ops-${BACKUP_DATE}.sql"
+          ls -la backup/
+
+      # Restorability is proven before the file exists (the dump script
+      # replays every statement into an in-memory database and compares row
+      # counts, failing the run instead of writing a broken dump).
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: turso-ops-backup
+          path: backup/turso-ops-*.sql.gz
+          if-no-files-found: error
+          retention-days: 7
+
+      # Consolidated from the former turso-backup.yml (PR #567): every deleted
+      # row is already in the verified backup above, so prune runs after the
+      # upload. Covers snapshot_ingest_leases (>14d), price_records
+      # (ttl-driven) and settlement_window_candles (>365d); price_snapshots
+      # prunes itself daily via pruneExpiredTursoPriceEvents.
+      - name: Retention prune
+        if: always()
+        run: node --import tsx scripts/turso/retention-prune.mts
