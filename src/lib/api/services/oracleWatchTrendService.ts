@@ -1,4 +1,10 @@
 import { createServiceRoleClient } from '@/lib/supabase/server';
+import { getTursoOpsClient } from '@/lib/turso/ops/client';
+import {
+  readTursoOracleWatchHistory,
+  readTursoOracleWatchHistoryMode,
+} from '@/lib/turso/ops/oracleWatchHistoryRepository';
+import { ensureTursoOpsSchema } from '@/lib/turso/ops/schema';
 import { TTLCache } from '@/lib/utils/cache';
 
 import type { OracleWatchMlRiskLevel, OracleWatchTrustLevel } from './oracleWatchService';
@@ -269,18 +275,33 @@ async function fetchOracleWatchHistoryRows(args: {
   const cached = historyRowsCache.get<OracleWatchHistoryRpcRow[]>(cacheKey);
   if (cached !== null) return cached;
 
-  const supabase = createServiceRoleClient();
-  const { data, error } = await supabase.rpc('get_oracle_watch_history', {
-    p_symbol: args.symbol,
-    p_chain: args.chain ?? null,
-    p_days: args.days,
-    p_interval: args.interval,
-  });
-  if (error) {
-    throw new Error(`Failed to fetch Oracle Watch history: ${error.message}`);
+  let rows: OracleWatchHistoryRpcRow[];
+  if (readTursoOracleWatchHistoryMode() === 'turso') {
+    // Egress-retired read path: the bounded rollup (TS port of the
+    // get_oracle_watch_history RPC, migration 0048) runs against the Turso
+    // ops feed_health_snapshots mirror, so history reads never touch
+    // Supabase REST.
+    const tursoDb = getTursoOpsClient();
+    await ensureTursoOpsSchema(tursoDb);
+    rows = (await readTursoOracleWatchHistory(tursoDb, {
+      symbol: args.symbol,
+      chain: args.chain ?? null,
+      days: args.days,
+      interval: args.interval,
+    })) as unknown as OracleWatchHistoryRpcRow[];
+  } else {
+    const supabase = createServiceRoleClient();
+    const { data, error } = await supabase.rpc('get_oracle_watch_history', {
+      p_symbol: args.symbol,
+      p_chain: args.chain ?? null,
+      p_days: args.days,
+      p_interval: args.interval,
+    });
+    if (error) {
+      throw new Error(`Failed to fetch Oracle Watch history: ${error.message}`);
+    }
+    rows = (data ?? []) as OracleWatchHistoryRpcRow[];
   }
-
-  const rows = (data ?? []) as OracleWatchHistoryRpcRow[];
   historyRowsCache.set(cacheKey, rows, HISTORY_CACHE_TTL_MS);
   return rows;
 }

@@ -135,3 +135,66 @@ describe('summarizeOracleWatchSeries', () => {
     expect(summary.maxDeviationPct).toBe(4.2);
   });
 });
+
+describe('TURSO_ORACLE_WATCH_HISTORY_MODE branch', () => {
+  const ORIGINAL_MODE = process.env.TURSO_ORACLE_WATCH_HISTORY_MODE;
+
+  beforeEach(() => {
+    // The file's static import already bound the real data-plane modules;
+    // clear the registry so doMock + dynamic re-import bind the fakes.
+    jest.resetModules();
+  });
+
+  afterEach(() => {
+    if (ORIGINAL_MODE === undefined) delete process.env.TURSO_ORACLE_WATCH_HISTORY_MODE;
+    else process.env.TURSO_ORACLE_WATCH_HISTORY_MODE = ORIGINAL_MODE;
+    jest.resetModules();
+  });
+
+  it('routes to the Turso mirror when the mode is turso', async () => {
+    process.env.TURSO_ORACLE_WATCH_HISTORY_MODE = 'turso';
+    const readTursoOracleWatchHistory = jest.fn().mockResolvedValue([
+      {
+        bucket_at: '2026-11-12T00:00:00.000Z',
+        last_observed_at: '2026-11-12T00:30:00.000Z',
+        verdict: 'normal',
+        recommendation: 'proceed',
+        max_deviation_pct: 0.4,
+        agreement: 0.99,
+        participant_count: 5,
+        ml_risk_score: null,
+        ml_risk_level: null,
+        trust_score: 92,
+        trust_level: 'high',
+      },
+    ]);
+    const supabaseRpc = jest.fn();
+    jest.doMock('@/lib/supabase/server', () => ({
+      createServiceRoleClient: jest.fn(() => ({ rpc: supabaseRpc })),
+    }));
+    jest.doMock('@/lib/turso/ops/client', () => ({
+      getTursoOpsClient: jest.fn(() => ({ __tursoClient: true })),
+    }));
+    jest.doMock('@/lib/turso/ops/schema', () => ({
+      ensureTursoOpsSchema: jest.fn(),
+    }));
+    jest.doMock('@/lib/turso/ops/oracleWatchHistoryRepository', () => ({
+      readTursoOracleWatchHistoryMode: jest.fn(() => 'turso'),
+      readTursoOracleWatchHistory,
+    }));
+
+    // Re-import with the mocks applied so the branch binds the fakes.
+    const { getOracleWatchHistory } = await import('@/lib/api/services/oracleWatchTrendService');
+
+    const result = await getOracleWatchHistory({ symbol: 'btc', days: 7 });
+    expect(readTursoOracleWatchHistory).toHaveBeenCalledTimes(1);
+    expect(readTursoOracleWatchHistory).toHaveBeenCalledWith(
+      { __tursoClient: true },
+      { symbol: 'btc', chain: null, days: 7, interval: '30min' }
+    );
+    expect(supabaseRpc).not.toHaveBeenCalled();
+    expect(result.series).toHaveLength(1);
+    expect(result.series[0].evaluatedAt).toBe('2026-11-12T00:00:00.000Z');
+    expect(result.series[0].trustLevel).toBe('high');
+  });
+});
