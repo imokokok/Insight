@@ -1842,9 +1842,28 @@ export async function preTradeSafetyCheck(
     .filter((s): s is number => s !== null);
   const minReputation = reputationScores.length > 0 ? Math.min(...reputationScores) : 75;
 
+  // 4a-prefetch. Needs only maxDeviationPct + consensus (both already
+  // resolved), and nothing before the protocol-safety read below depends on
+  // it — start it now so it overlaps that read instead of paying two serial
+  // DB hops.
+  const historicalStatePromise = timeStep('historical_state', () =>
+    fetchHistoricalOracleState(input.asset, {
+      maxDeviationPct,
+      consensusPrice: consensus.consensusPrice,
+      participantCount: consensus.participantCount,
+    }).catch((error: unknown) => {
+      logger.warn('Historical oracle state fetch failed; lending freeze uses snapshot only', {
+        asset: input.asset,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return EMPTY_HISTORY;
+    })
+  );
+
   // 4b. Protocol safety context (optional — only when protocolId is provided).
   // Derives a position-free safety buffer from the protocol's own published,
   // scheduled-fetched risk params. Non-blocking: null when unavailable.
+  // Runs concurrently with the historical-state prefetch started above.
   const protocolId = input.protocolId;
   const protocolAssessment = protocolId
     ? await timeStep('protocol_safety', () =>
@@ -1861,22 +1880,11 @@ export async function preTradeSafetyCheck(
       `Protocol max-LTV buffer is informational for ${input.action}; only new borrowing uses the borrow-buffer gate. Position, recipient and execution authorization require separate checks.`
     );
 
-  // 4c. One bounded historical fetch — also reused by the ML/anomaly layer below
-  // (step 6) so we pay a single DB round-trip. The lending freeze rule uses it to
-  // distinguish a sustained buffer erosion from a one-tick volatility spike.
-  let historicalState: HistoricalOracleState = EMPTY_HISTORY;
-  try {
-    historicalState = await fetchHistoricalOracleState(input.asset, {
-      maxDeviationPct,
-      consensusPrice: consensus.consensusPrice,
-      participantCount: consensus.participantCount,
-    });
-  } catch (error) {
-    logger.warn('Historical oracle state fetch failed; lending freeze uses snapshot only', {
-      asset: input.asset,
-      error: error instanceof Error ? error.message : String(error),
-    });
-  }
+  // 4c. One bounded historical fetch, started as a prefetch next to the
+  // protocol-safety read (4a) so the two DB hops overlap. Reused by the
+  // ML/anomaly layer (step 6) and the lending freeze rule. The prefetch
+  // downgrades its own failures to EMPTY_HISTORY, so this cannot throw.
+  const historicalState: HistoricalOracleState = await historicalStatePromise;
 
   // Concrete, user-executable lending actions (decisive & actionable layer).
   // Populated by the protocol_buffer_consumed rule below; empty when dispersion
@@ -2141,27 +2149,29 @@ export async function preTradeSafetyCheck(
     });
   }
 
-  await timeStep('decision_input_attach', () =>
-    attachDecisionInputAssessment(
-      input,
-      result,
-      decisionInputReferenceEvidence,
-      reviewedUniswapV3Evidence,
-      reviewedAerodromeSlipstreamEvidence,
-      manipulationCost ?? null
-    )
-  );
-
-  // 7. Advisory evidence lanes (see attachTokenSecurityEvidence): signed
-  // third-party capture + parsed view, omitted on any failure.
-  await timeStep('token_security_attach', () =>
-    attachTokenSecurityEvidence(
-      input,
-      result,
-      tokenSecurityLane.fetch,
-      tokenSecurityLane.getOutcome
-    )
-  );
+  // Both attaches consume only the issued attestation (uid as transaction
+  // context) and write disjoint result fields, so they run together. logAudit
+  // stays after both: a verdict must be accounted for before it is returned.
+  await Promise.all([
+    timeStep('decision_input_attach', () =>
+      attachDecisionInputAssessment(
+        input,
+        result,
+        decisionInputReferenceEvidence,
+        reviewedUniswapV3Evidence,
+        reviewedAerodromeSlipstreamEvidence,
+        manipulationCost ?? null
+      )
+    ),
+    timeStep('token_security_attach', () =>
+      attachTokenSecurityEvidence(
+        input,
+        result,
+        tokenSecurityLane.fetch,
+        tokenSecurityLane.getOutcome
+      )
+    ),
+  ]);
 
   // Single structured timing record per check (the attribution sink). Steps
   // overlap, so they do not sum to totalMs — the point is to expose which

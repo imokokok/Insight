@@ -10,6 +10,9 @@ export const SEVERITY_ORDER: Record<SeverityLevel, number> = {
   critical: 3,
 };
 
+/** Row cap for the reputation_history pull in getIncidentAggregation. */
+const INCIDENT_HISTORY_MAX_ROWS = 5000;
+
 export interface FeedFailureIncident {
   type: 'feed_failure';
   severity: SeverityLevel;
@@ -109,7 +112,14 @@ export async function getIncidentAggregation(
     .gte('snapshot_time', from)
     .lt('snapshot_time', addDay(to))
     .or('is_success.eq.false,deviation_pct.gt.1')
-    .order('snapshot_time', { ascending: false });
+    .order('snapshot_time', { ascending: false })
+    // Bound the worst case: every provider writes hourly rows per symbol, so an
+    // incident storm inside the window could otherwise pull an unbounded row
+    // set back into JS before the severity filter (Nano disk tier — see
+    // migration 0144). Rows are ordered newest-first, so the cap drops the
+    // OLDEST events only; retention (7d reputation_history) keeps normal
+    // windows far below it.
+    .limit(INCIDENT_HISTORY_MAX_ROWS);
 
   if (provider) {
     historyQuery = historyQuery.eq('provider', provider);
