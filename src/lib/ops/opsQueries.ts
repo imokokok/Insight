@@ -2,8 +2,12 @@ import { getIncidentAggregation } from '@/lib/api/services/incidentService';
 import { getAllActiveFeedsByProviderWithStatus } from '@/lib/oracles/utils/dynamicFeedResolver';
 import { ORACLE_WATCH_HISTORY_UNIVERSE } from '@/lib/reports/oracleWatchUniverse';
 import { createServiceRoleClient } from '@/lib/supabase/server';
+import { TTLCache } from '@/lib/utils/cache';
 import { get7dAgoUtc, getTodayUtc } from '@/lib/utils/date';
 import { roundTo } from '@/lib/utils/format';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('ops-queries');
 
 // All queries here run with the service-role client (bypass RLS) and are meant
 // for the internal /ops console only. Aggregation is done in TS (not SQL) so no
@@ -58,6 +62,17 @@ interface ApiUsageRow {
  */
 const PAGE_SIZE = 1000;
 
+/**
+ * Hard bound on pages accumulated by one `pagedSelect` call (50 pages × 1000
+ * rows = 50k rows). The loop otherwise runs until the table window is drained,
+ * which on the Nano free tier (5 MB/s disk baseline — see migration 0144) can
+ * burn the IO budget in one bad /ops render if a retention window ever leaks
+ * unbounded rows. The cap converts that from an outage risk into a logged,
+ * visibly-truncated aggregate. Window tables have retention (90d api_key_usage,
+ * 7d reputation), so hitting the cap means something upstream regressed.
+ */
+const PAGED_SELECT_MAX_PAGES = 50;
+
 export async function pagedSelect<T>(
   buildPage: (
     from: number,
@@ -74,7 +89,65 @@ export async function pagedSelect<T>(
     all.push(...data);
     if (data.length < PAGE_SIZE) return { data: all, error: null };
     from += PAGE_SIZE;
+    if (from >= PAGED_SELECT_MAX_PAGES * PAGE_SIZE) {
+      logger.warn('pagedSelect hit the page cap; aggregate is truncated', {
+        pages: PAGED_SELECT_MAX_PAGES,
+        rows: all.length,
+      });
+      return { data: all, error: null };
+    }
   }
+}
+
+// ---------------------------------------------------------------------------
+// Window-query cache: /ops re-runs the same full-window aggregates on every
+// page render (HealthStrip runs getOverviewStats on ALL /ops routes), and each
+// aggregate fans out into paged reads on the Nano-tier database. A short TTL
+// with in-flight dedup turns N renders into at most one read set per minute
+// without changing any panel semantics.
+// ---------------------------------------------------------------------------
+
+const OPS_WINDOW_CACHE = new TTLCache({ maxSize: 64 });
+const OPS_WINDOW_CACHE_TTL_MS = 60_000;
+const opsWindowInFlight = new Map<string, Promise<unknown>>();
+
+/**
+ * Cache a window aggregate for {@link OPS_WINDOW_CACHE_TTL_MS} with in-flight
+ * dedup. Failed reads are never cached (same principle as issuanceControl): a
+ * result flagged `errored` / `partial` (or with an `errored` summary) is
+ * returned to the caller but not stored, so recovery from a database outage is
+ * observed on the very next request instead of after a full TTL.
+ */
+async function withOpsWindowCache<T>(
+  name: string,
+  windowHours: number,
+  fn: () => Promise<T>
+): Promise<T> {
+  const key = `${name}:${windowHours}`;
+  const cached = OPS_WINDOW_CACHE.get<T>(key);
+  if (cached !== null) return cached;
+  const pending = opsWindowInFlight.get(key);
+  if (pending) return pending as Promise<T>;
+  const promise = (async () => {
+    try {
+      const value = await fn();
+      const v = value as Record<string, unknown> | null;
+      const summary = v?.summary as Record<string, unknown> | undefined;
+      const degraded =
+        v != null &&
+        (v.errored === true ||
+          v.partial === true ||
+          (summary != null && typeof summary === 'object' && summary.errored === true));
+      if (!degraded) {
+        OPS_WINDOW_CACHE.set(key, value, OPS_WINDOW_CACHE_TTL_MS);
+      }
+      return value;
+    } finally {
+      opsWindowInFlight.delete(key);
+    }
+  })();
+  opsWindowInFlight.set(key, promise);
+  return promise;
 }
 
 // ---------------------------------------------------------------------------
@@ -122,7 +195,14 @@ export interface SigningIntegrity {
   unsignedBlocks: UnsignedBlockRow[];
 }
 
-export async function getSigningIntegrity(windowHours = 24): Promise<SigningIntegrity> {
+/** Cached entry point — see {@link withOpsWindowCache} for the TTL rationale. */
+export function getSigningIntegrity(windowHours = 24): Promise<SigningIntegrity> {
+  return withOpsWindowCache('signing-integrity', windowHours, () =>
+    computeSigningIntegrity(windowHours)
+  );
+}
+
+async function computeSigningIntegrity(windowHours = 24): Promise<SigningIntegrity> {
   const supabase = createServiceRoleClient();
   const since = hoursAgoIso(windowHours);
 
@@ -377,7 +457,12 @@ export interface ApiUsage {
   errored?: boolean;
 }
 
-export async function getApiUsage(windowHours = 24): Promise<ApiUsage> {
+/** Cached entry point — see {@link withOpsWindowCache} for the TTL rationale. */
+export function getApiUsage(windowHours = 24): Promise<ApiUsage> {
+  return withOpsWindowCache('api-usage', windowHours, () => computeApiUsage(windowHours));
+}
+
+async function computeApiUsage(windowHours = 24): Promise<ApiUsage> {
   const supabase = createServiceRoleClient();
   const since = hoursAgoIso(windowHours);
 
@@ -608,7 +693,12 @@ export interface CreditUsage {
   errored?: boolean;
 }
 
-export async function getCreditUsage(windowHours = 24): Promise<CreditUsage> {
+/** Cached entry point — see {@link withOpsWindowCache} for the TTL rationale. */
+export function getCreditUsage(windowHours = 24): Promise<CreditUsage> {
+  return withOpsWindowCache('credit-usage', windowHours, () => computeCreditUsage(windowHours));
+}
+
+async function computeCreditUsage(windowHours = 24): Promise<CreditUsage> {
   const supabase = createServiceRoleClient();
   const since = hoursAgoIso(windowHours);
 
@@ -812,7 +902,12 @@ function percentage(numerator: number, denominator: number): number | null {
   return denominator > 0 ? roundTo((numerator / denominator) * 100, 1) : null;
 }
 
-export async function getX402Ops(windowHours = 24): Promise<X402Ops> {
+/** Cached entry point — see {@link withOpsWindowCache} for the TTL rationale. */
+export function getX402Ops(windowHours = 24): Promise<X402Ops> {
+  return withOpsWindowCache('x402-ops', windowHours, () => computeX402Ops(windowHours));
+}
+
+async function computeX402Ops(windowHours = 24): Promise<X402Ops> {
   const supabase = createServiceRoleClient();
   const since = hoursAgoIso(windowHours);
   const { data, error } = await pagedSelect<X402OpsDbRow>((from, to) =>
@@ -1145,7 +1240,16 @@ export interface OverviewStats {
   partial?: boolean;
 }
 
-export async function getOverviewStats(windowHours = 24): Promise<OverviewStats> {
+/**
+ * Cached entry point. This is the hottest ops read in the app — HealthStrip
+ * calls it on EVERY /ops page render — so even a short TTL pays for itself in
+ * Nano-disk IO. See {@link withOpsWindowCache} for the failure-caching policy.
+ */
+export function getOverviewStats(windowHours = 24): Promise<OverviewStats> {
+  return withOpsWindowCache('overview-stats', windowHours, () => computeOverviewStats(windowHours));
+}
+
+async function computeOverviewStats(windowHours = 24): Promise<OverviewStats> {
   const supabase = createServiceRoleClient();
   const [feedResult, signing, incidentResult, cron, inactiveResult] = await Promise.all([
     getAllActiveFeedsByProviderWithStatus(),

@@ -301,6 +301,13 @@ async function loadStablecoinDepegSnapshot(
     throw new Error(`Stablecoin not configured: ${symbol}`);
   }
 
+  // === Step 0: Kick off the DEX market fetch (Step 2 below) as a prefetch.
+  // DEX quotes do not depend on the oracle medians computed in Step 1, so the
+  // two fan-outs overlap instead of paying their latencies back to back —
+  // these snapshots sit behind a short cache TTL, so high-frequency stablecoin
+  // pre-trade checks re-pay both hops on every miss.
+  const dexPromise = fetchDexPrices(symbol, config.dexPools, options.signal);
+
   // === Step 1: Fetch Oracle prices (existing logic) ===
   const fetchResults = await Promise.all(
     config.sources.map(async (source) => {
@@ -365,8 +372,8 @@ async function loadStablecoinDepegSnapshot(
   const oracleSpread =
     oracleReferencePrice > 0 ? ((oracleMaxPrice - oracleMinPrice) / oracleReferencePrice) * 100 : 0;
 
-  // === Step 2: Fetch DEX market prices (new) ===
-  const dexResults = await fetchDexPrices(symbol, config.dexPools, options.signal);
+  // === Step 2: Fetch DEX market prices (new) — started as a prefetch above ===
+  const dexResults = await dexPromise;
 
   const marketSources: SourcePriceSnapshot[] = dexResults.map((r) => ({
     sourceId: `dex:${r.pool.dexName}:${r.pool.chain}:${symbol}`,

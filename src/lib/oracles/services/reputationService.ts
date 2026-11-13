@@ -46,6 +46,9 @@ const REPUTATION_FETCH_CONCURRENCY = 6;
 const REPUTATIONS_CACHE_TTL_MS = 15 * 1000;
 const REPUTATIONS_CACHE_KEY = 'all';
 
+/** Row cap for the per-provider 30d trend pull in getReputationTrend. */
+const REPUTATION_TREND_MAX_ROWS = 5000;
+
 // Fallback "test basket" used when the DB is unreachable or empty. These
 // 9 symbols cover major crypto + stablecoins so reputation scoring can
 // still produce a meaningful cross-provider comparison.
@@ -754,7 +757,12 @@ class ReputationService {
       .select('snapshot_time, is_success, deviation_pct, latency_ms')
       .eq('provider', provider)
       .gte('snapshot_time', since)
-      .order('snapshot_time', { ascending: true });
+      .order('snapshot_time', { ascending: true })
+      // Safety bound: the hourly writer emits one row per symbol per provider,
+      // and this feed is retention-bounded (7d), but a cap keeps a retention
+      // regression from pulling an unbounded history into JS day-bucketing.
+      // Ordered ascending, so the cap drops the OLDEST rows only.
+      .limit(REPUTATION_TREND_MAX_ROWS);
 
     if (error) {
       logger.error(`Failed to get reputation trend for ${provider}`, error);
@@ -806,34 +814,39 @@ class ReputationService {
     const supabase = createServiceRoleClient();
     const providers = Object.values(OracleProvider);
 
-    for (const provider of providers) {
+    // One batched upsert instead of one round-trip per provider: this runs on
+    // the pre-trade/consensus path whenever the cache misses and a provider
+    // row is missing, so 10 serial writes would block the first arriving
+    // request for the full fan-out latency.
+    const rows = providers.map((provider) => {
       const symbols = oracleSupportedSymbols[
         provider as keyof typeof oracleSupportedSymbols
       ] as readonly string[];
       const chains = this.getSupportedChainsCount(provider);
 
-      const { error } = await supabase.from('oracle_reputation').upsert(
-        {
-          provider,
-          overall_score: 75,
-          accuracy_score: 80,
-          uptime_percentage: 99,
-          avg_latency_ms: 500,
-          avg_deviation_pct: 0.5,
-          reliability_score: 78,
-          freshness_score: 82,
-          total_queries: 100,
-          failed_queries: 2,
-          supported_symbols_count: symbols?.length ?? 0,
-          supported_chains_count: chains,
-          last_calculated_at: new Date().toISOString(),
-        },
-        { onConflict: 'provider', ignoreDuplicates: true }
-      );
+      return {
+        provider,
+        overall_score: 75,
+        accuracy_score: 80,
+        uptime_percentage: 99,
+        avg_latency_ms: 500,
+        avg_deviation_pct: 0.5,
+        reliability_score: 78,
+        freshness_score: 82,
+        total_queries: 100,
+        failed_queries: 2,
+        supported_symbols_count: symbols?.length ?? 0,
+        supported_chains_count: chains,
+        last_calculated_at: new Date().toISOString(),
+      };
+    });
 
-      if (error) {
-        logger.warn(`Failed to seed reputation for ${provider}`, error);
-      }
+    const { error } = await supabase
+      .from('oracle_reputation')
+      .upsert(rows, { onConflict: 'provider', ignoreDuplicates: true });
+
+    if (error) {
+      logger.warn('Failed to seed initial reputations', error);
     }
 
     this.reputationsCache.delete(REPUTATIONS_CACHE_KEY);
