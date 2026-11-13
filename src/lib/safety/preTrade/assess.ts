@@ -1704,6 +1704,22 @@ export async function preTradeSafetyCheck(
   const warnings: string[] = [];
   const contributingFactors: ContributingFactor[] = [];
 
+  // Step-timing instrumentation: production p50 is ~6s but the pipeline had no
+  // per-step attribution, so nobody could tell consensus fetches from advisory
+  // reads, lane reviews, or serial waits. Wall-clock spans around every awaited
+  // step are collected here and logged once per check (see the log call before
+  // logAudit) — Vercel logs are the sink; no schema change. Steps overlap by
+  // design (prefetches), so steps do NOT sum to latencyMs; they attribute it.
+  const stepTimings: Record<string, number> = {};
+  const timeStep = async <T>(name: string, fn: () => Promise<T>): Promise<T> => {
+    const t0 = Date.now();
+    try {
+      return await fn();
+    } finally {
+      stepTimings[name] = Date.now() - t0;
+    }
+  };
+
   // Resolve chain name (Blockchain string) from numeric chainId.
   const chain = resolveEvidenceBlockchain(input.chainId);
   if (!Number.isInteger(input.chainId) || input.chainId < 0 || (input.chainId > 0 && !chain)) {
@@ -1717,7 +1733,9 @@ export async function preTradeSafetyCheck(
   // call: while halted, every surface receives a signed BLOCK and no upstream
   // data is consulted. See src/lib/ops/issuanceControl.ts for the deliberate
   // (and loudly logged) fail-open behaviour when the switch is unreadable.
-  const halted = await haltedCheckResult(input, meta, chain, startedAt);
+  const halted = await timeStep('kill_switch', () =>
+    haltedCheckResult(input, meta, chain, startedAt)
+  );
   throwIfAborted(options.signal);
   if (halted) return halted;
 
@@ -1726,11 +1744,23 @@ export async function preTradeSafetyCheck(
   const reviewedUniswapV3Evidence = startReviewedUniswapV3Fetch(input);
   const reviewedAerodromeSlipstreamEvidence = startReviewedAerodromeSlipstreamFetch(input);
 
+  // 2a. Stablecoin depeg warnings are advisory and fully independent of the
+  // consensus read, so start them here and let them overlap consensus (see
+  // step 1). A stablecoin pair fans out into multiple oracle/RPC calls, which
+  // previously ran strictly AFTER consensus and paid their whole cost at the
+  // tail; fetchDepegWarnings never rejects (internal catch), so a dangling
+  // prefetch is safe, and the consensus-failure short-circuit below still
+  // awaits it before reading `depeg.available`.
+  const depegStartedAt = Date.now();
+  const depegPromise = fetchDepegWarnings(input.asset, input.destinationAsset, options.signal);
+
   // 1. Cross-oracle consensus price (also embeds reputation + agreement).
   let consensus: ConsensusPriceResponse | undefined;
   let consensusFailed = false;
   try {
-    consensus = await fetchConsensusForPreTrade(input, chain, options.signal);
+    consensus = await timeStep('consensus', () =>
+      fetchConsensusForPreTrade(input, chain, options.signal)
+    );
   } catch (error) {
     throwIfAborted(options.signal);
     if (error instanceof UnsupportedSymbolError) {
@@ -1752,8 +1782,11 @@ export async function preTradeSafetyCheck(
     }
   }
 
-  // 2. Stablecoin depeg warnings (non-blocking).
-  const depeg = await fetchDepegWarnings(input.asset, input.destinationAsset, options.signal);
+  // 2. Stablecoin depeg warnings (non-blocking). Elapsed includes the
+  // prefetch overlap: on a stablecoin pair this is now the max(depeg, ...)
+  // residual rather than a strictly serial addition to consensus.
+  const depeg = await depegPromise;
+  stepTimings.depeg = Date.now() - depegStartedAt;
   throwIfAborted(options.signal);
   const depegWarnings = depeg.warnings;
   if (!depeg.available)
@@ -1788,10 +1821,9 @@ export async function preTradeSafetyCheck(
   const manipulationCostPromise = fetchManipCostAdvisorySafe(input.asset, input.chainId);
   const tokenSecurityLane = createTokenSecurityLane(input);
   const stalenessBaselinesPromise = loadStalenessBaselines(input.asset);
-  const [manipulationCost, stalenessBaselines] = await Promise.all([
-    manipulationCostPromise,
-    stalenessBaselinesPromise,
-  ]);
+  const [manipulationCost, stalenessBaselines] = await timeStep('advisories', () =>
+    Promise.all([manipulationCostPromise, stalenessBaselinesPromise])
+  );
 
   const providerPrices = buildProviderPrices(consensus, stalenessBaselines);
 
@@ -1813,8 +1845,11 @@ export async function preTradeSafetyCheck(
   // 4b. Protocol safety context (optional — only when protocolId is provided).
   // Derives a position-free safety buffer from the protocol's own published,
   // scheduled-fetched risk params. Non-blocking: null when unavailable.
-  const protocolAssessment = input.protocolId
-    ? await computeProtocolSafety(input.protocolId, input.asset, maxDeviationPct, input.chainId)
+  const protocolId = input.protocolId;
+  const protocolAssessment = protocolId
+    ? await timeStep('protocol_safety', () =>
+        computeProtocolSafety(protocolId, input.asset, maxDeviationPct, input.chainId)
+      )
     : { context: null, unavailableReason: null };
   const protocolSafety = protocolAssessment.context;
   if (protocolAssessment.unavailableReason)
@@ -2093,34 +2128,51 @@ export async function preTradeSafetyCheck(
   };
 
   try {
-    result.attestation = await issueAttestation(input, result, consensus, {
-      maxAge,
-      worstDepegPct,
-      meta,
-    });
+    result.attestation = await timeStep('attestation_sign', () =>
+      issueAttestation(input, result, consensus, {
+        maxAge,
+        worstDepegPct,
+        meta,
+      })
+    );
   } catch (error) {
     logger.warn('Failed to issue attestation', {
       error: error instanceof Error ? error.message : String(error),
     });
   }
 
-  await attachDecisionInputAssessment(
-    input,
-    result,
-    decisionInputReferenceEvidence,
-    reviewedUniswapV3Evidence,
-    reviewedAerodromeSlipstreamEvidence,
-    manipulationCost ?? null
+  await timeStep('decision_input_attach', () =>
+    attachDecisionInputAssessment(
+      input,
+      result,
+      decisionInputReferenceEvidence,
+      reviewedUniswapV3Evidence,
+      reviewedAerodromeSlipstreamEvidence,
+      manipulationCost ?? null
+    )
   );
 
   // 7. Advisory evidence lanes (see attachTokenSecurityEvidence): signed
   // third-party capture + parsed view, omitted on any failure.
-  await attachTokenSecurityEvidence(
-    input,
-    result,
-    tokenSecurityLane.fetch,
-    tokenSecurityLane.getOutcome
+  await timeStep('token_security_attach', () =>
+    attachTokenSecurityEvidence(
+      input,
+      result,
+      tokenSecurityLane.fetch,
+      tokenSecurityLane.getOutcome
+    )
   );
+
+  // Single structured timing record per check (the attribution sink). Steps
+  // overlap, so they do not sum to totalMs — the point is to expose which
+  // step dominates and whether a prefetch actually hid its cost.
+  logger.info('pre-trade step timings', {
+    asset: input.asset,
+    chainId: input.chainId,
+    verdict: result.verdict,
+    totalMs: result.latencyMs,
+    steps: stepTimings,
+  });
 
   // Do not issue a safety verdict that cannot be accounted for later.
   await logAudit(input, result, meta);
