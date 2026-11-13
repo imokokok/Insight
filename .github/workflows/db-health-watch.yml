@@ -20,9 +20,20 @@ name: DB Health Watch
 # fast while authenticated queries hung, so the probe must carry the key).
 # Retries 3x before declaring unhealthy to avoid flapping on transient blips.
 #
-# The watch never auto-restarts the database: that would require the Supabase
-# management token in CI, which conflicts with the repo posture that powerful
-# production credentials stay out of Actions. Restart stays a manual/ops step.
+# Posture change (2026-11-13): the watch now auto-restarts the database.
+# Rationale: the 2026-11-12 incident left the instance down for ~10 hours
+# (19:50-23:50 UTC crash window, not recovered until a manual management-API
+# restart at 05:58 UTC). The GitHub-issue alert fired correctly but nobody was
+# watching; a restart performed by the watch at first detection would have cut
+# the outage to minutes. The tradeoff is accepted deliberately: the Supabase
+# access token lives in Actions secrets (SUPABASE_ACCESS_TOKEN), and a
+# transient platform blip can trigger one unnecessary ~2-8 min restart. To
+# keep that bounded, restart is gated by a 45-minute cooldown marker on the
+# incident issue, so at most one restart per 45 minutes.
+#
+# Restart mechanics: POST /v1/projects/{ref}/restart {"restart_type":
+# "postgresql"} against api.supabase.com, then a follow-up probe documents
+# the outcome on the incident issue.
 
 on:
   schedule:
@@ -113,6 +124,7 @@ jobs:
           fi
 
       - name: File or update incident issue (unhealthy)
+        id: incident
         if: steps.probe.outputs.healthy == 'false' || steps.freshness.outputs.stale == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
@@ -128,14 +140,92 @@ jobs:
           body="🚨 Data-plane incident detected at ${stamp}.
           - Authenticated REST probe: ${PROBE_HEALTHY:-unknown} (false = failed 3x at 20s); known signature is db+rest UNHEALTHY with queries hanging while unauthenticated 401s stay fast.
           - Collector heartbeat: stale=${STALE:-unknown}, last Snapshot Collect run ${LAST_RUN:-unknown} (threshold 45m; the DB-owned clock dispatches every 15m).
-          Ops runbook: restart via \`POST /v1/projects/{ref}/restart {\"restart_type\":\"postgresql\"}\` (management token is local-only, never in CI)."
+          The watch will attempt an automatic restart (45-min cooldown between attempts)."
           if [ -n "${existing:-}" ]; then
             gh issue comment "$existing" --repo "$REPO" --body "$body"
+            echo "number=$existing" >> "$GITHUB_OUTPUT"
             echo "updated issue #$existing"
           else
-            gh issue create --repo "$REPO" --title "🚨 $marker (auto-watch)" --body "$body"
-            echo "created issue"
+            num="$(gh issue create --repo "$REPO" --title "🚨 $marker (auto-watch)" --body "$body" --json number --jq '.number')"
+            echo "number=$num" >> "$GITHUB_OUTPUT"
+            echo "created issue #$num"
           fi
+
+      # Auto-restart gate: probe-hard-failure only (a stale heartbeat alone can
+      # be a GitHub throttling artifact, not a DB outage). Cooldown: at most
+      # one restart attempt per 45 minutes, enforced via an [auto-restart]
+      # marker comment on the incident issue.
+      - name: Auto-restart database (probe unhealthy)
+        if: steps.probe.outputs.healthy == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          INCIDENT: ${{ steps.incident.outputs.number }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: naevwrexybqodxinkrug
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          set -eu
+          if [ -z "${SUPABASE_ACCESS_TOKEN:-}" ]; then
+            echo "::warning::SUPABASE_ACCESS_TOKEN not set; skipping auto-restart (manual runbook applies)."
+            exit 0
+          fi
+          # Cooldown check: skip if a restart was attempted on this incident
+          # within the last 45 minutes.
+          if [ -n "${INCIDENT:-}" ]; then
+            last_restart="$(gh api "repos/$REPO/issues/$INCIDENT/comments" \
+              --jq '[.[] | select(.body | contains("[auto-restart]")) | .created_at] | sort | last // empty')"
+            if [ -n "$last_restart" ]; then
+              age=$(( ( $(date -u +%s) - $(date -u -d "$last_restart" +%s) ) / 60 ))
+              if [ "$age" -lt 45 ]; then
+                echo "restart attempted ${age}m ago; cooldown active, skipping."
+                exit 0
+              fi
+            fi
+          fi
+          echo "attempting postgresql restart at $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          http="$(curl -sS -o /tmp/restart.json -w '%{http_code}' -m 90 -X POST \
+            "https://api.supabase.com/v1/projects/${SUPABASE_PROJECT_REF}/restart" \
+            -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d '{"restart_type":"postgresql"}' || echo "000")"
+          echo "restart HTTP ${http}: $(head -c 300 /tmp/restart.json || true)"
+          note="[auto-restart] attempted at $(date -u +%Y-%m-%dT%H:%M:%SZ), HTTP ${http}."
+          # Give the instance time to come back (measured: ~8 min including
+          # crash recovery), then re-probe once and record the outcome.
+          sleep 300
+          if node -e '
+            const url = process.env.SUPABASE_URL.replace(/\/$/, "");
+            const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+            const headers = { apikey: key, Authorization: "Bearer " + key };
+            (async () => {
+              for (let i = 1; i <= 3; i++) {
+                const ac = new AbortController();
+                const timer = setTimeout(() => ac.abort(), 20000);
+                try {
+                  const r = await fetch(url + "/rest/v1/x402_settlements?select=*&limit=1", { headers, signal: ac.signal });
+                  if (r.status < 500) { console.log("recovered (attempt " + i + ")"); process.exit(0); }
+                } catch {} finally { clearTimeout(timer); }
+                await new Promise((r) => setTimeout(r, 10000));
+              }
+              process.exit(10);
+            })();
+          '; then
+            note="$note Follow-up probe: RECOVERED."
+          else
+            note="$note Follow-up probe: still unhealthy after 5 min; next attempt no earlier than 45 min after this marker."
+          fi
+          if [ -n "${INCIDENT:-}" ]; then
+            gh issue comment "$INCIDENT" --repo "$REPO" --body "$note"
+          else
+            echo "$note"
+          fi
+
+      - name: Fail the run when unhealthy (watch signal)
+        if: steps.probe.outputs.healthy == 'false' || steps.freshness.outputs.stale == 'true'
+        run: |
+          echo "unhealthy: probe=${{ steps.probe.outputs.healthy }} stale=${{ steps.freshness.outputs.stale }}"
           exit 1
 
       - name: Auto-recover incident issue (healthy again)
