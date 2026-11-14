@@ -28,6 +28,9 @@ import { privateKeyToAccount } from 'viem/accounts';
 const BASE_URL = (process.env.X402_E2E_BASE_URL ?? 'https://priorseal.xyz').replace(/\/+$/, '');
 const PATH = '/v1/integration-readiness';
 const NETWORK = 'eip155:8453' as const;
+// The endpoint requires chainId + subjectAddress; without a rehearsal key
+// fall back to the zero address for quote-only runs.
+const QUOTE_QUERY = '?chainId=8453&subjectAddress=0x0000000000000000000000000000000000000000';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -43,7 +46,7 @@ function decodeBase64Json(value: string): Record<string, unknown> {
 }
 
 async function stage1Quote(): Promise<void> {
-  const res = await fetch(`${BASE_URL}${PATH}`, {
+  const res = await fetch(`${BASE_URL}${PATH}${QUOTE_QUERY}`, {
     headers: { accept: 'application/json' },
   });
 
@@ -78,12 +81,13 @@ async function stage2PaidCall(): Promise<void> {
   }
 
   const signer = privateKeyToAccount(rawKey as `0x${string}`);
+  const paidQuery = `?chainId=8453&subjectAddress=${signer.address}`;
   const client = x402Client.fromConfig({
     schemes: [{ network: NETWORK, client: new ExactEvmScheme(signer), x402Version: 2 }],
   });
   const paidFetch = wrapFetchWithPayment(globalThis.fetch, client);
 
-  const res = await paidFetch(`${BASE_URL}${PATH}`, {
+  const res = await paidFetch(`${BASE_URL}${PATH}${paidQuery}`, {
     headers: { accept: 'application/json' },
   });
 
