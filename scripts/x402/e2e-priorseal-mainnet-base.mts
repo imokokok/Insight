@@ -45,8 +45,20 @@ function decodeBase64Json(value: string): Record<string, unknown> {
   return parsed;
 }
 
+// The endpoint rejects the zero address (400 INVALID_REQUEST): quote stage must
+// present a real payer address when a rehearsal key is available.
+function payerAddressForQuote(): string | null {
+  const rawKey = process.env.X402_E2E_PRIVATE_KEY?.trim();
+  if (rawKey && /^0x[0-9a-fA-F]{64}$/.test(rawKey)) {
+    return privateKeyToAccount(rawKey as `0x${string}`).address;
+  }
+  return null;
+}
+
 async function stage1Quote(): Promise<void> {
-  const res = await fetch(`${BASE_URL}${PATH}${QUOTE_QUERY}`, {
+  const payer = payerAddressForQuote();
+  const query = payer ? `?chainId=8453&subjectAddress=${payer}` : QUOTE_QUERY;
+  const res = await fetch(`${BASE_URL}${PATH}${query}`, {
     headers: { accept: 'application/json' },
   });
 
