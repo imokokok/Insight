@@ -28,7 +28,8 @@
     "/api/v1/safety/decision-input/verify": {
       "get": {
         "operationId": "decisionInputAttestationDescriptor",
-        "summary": "Get the decision-input attester and EIP-712 schema",
+        "summary": "Verify — get the decision-input attester and EIP-712 schema",
+        "description": "Verify function: fetch the decision-input attester identity and its EIP-712 schema so third parties can independently verify signed decision-input assessments.",
         "tags": ["Safety"],
         "responses": {
           "200": {
@@ -38,7 +39,8 @@
       },
       "post": {
         "operationId": "verifyDecisionInputAssessment",
-        "summary": "Verify a signed decision-input assessment",
+        "summary": "Verify — verify a signed decision-input assessment",
+        "description": "Verify function: cryptographically verify a signed decision-input assessment (EIP-712) against the published attester; free, no payment wall.",
         "tags": ["Safety"],
         "requestBody": {
           "required": true,
@@ -69,7 +71,7 @@
     "/api/v1/safety/pre-trade": {
       "get": {
         "operationId": "preTradeSafetyCheck",
-        "summary": "Pre-trade safety check with verifiable attestation",
+        "summary": "Decision Integrity — pre-trade safety check with verifiable attestation",
         "tags": ["Safety"],
         "parameters": [
           {
@@ -424,7 +426,7 @@
     "/api/v1/safety/preflight": {
       "get": {
         "operationId": "executionPreflight",
-        "summary": "Chain-neutral execution preflight decision",
+        "summary": "Decision Integrity — execution preflight (chain-neutral ALLOW/CAUTION/BLOCK)",
         "tags": ["Safety"],
         "description": "Returns an action-facing ALLOW, CAUTION, or BLOCK result by combining the strict oracle safety assessment with an optional caller-supplied venue quote. The result covers data sufficiency only, not contract security, custody, MEV outcome, execution, or profitability. Monad requests surface Pyth Core evidence when available.",
         "parameters": [
@@ -552,7 +554,7 @@
     "/api/mcp": {
       "post": {
         "operationId": "mcpToolCall",
-        "summary": "MCP tools/call over JSON-RPC 2.0 (streamable HTTP), x402 pay-per-call",
+        "summary": "Unified MCP entry to the four product functions — Oracle Evidence, Risk Intelligence, Decision Integrity, Verify (x402 pay-per-call)",
         "tags": ["MCP"],
         "description": "Pay-per-call access to the Insight oracle tool catalog (20 advertised names: the four product tools trade_guard, trade_proof, oracle_watch_window and position_lifecycle, plus 16 deprecated aliases that are callable at the same price until 2027-01-06) for x402 agents without an API key. Product prices: Trade Guard $0.002-$0.040 per call (op-priced; $0.040 for check_safety / prepare_swap / prepare_perp_order), Trade Proof $0.040, Oracle Watch $0.500 per 24h window, Position Lifecycle $0.550. Other calls scale with the metering class (C1=$0.002, C2=$0.004, C3=$0.02, C4=$0.04). tools/list and initialize are free. Every paid response carries a verifiable EIP-712 attestation receipt.",
         "requestBody": {
