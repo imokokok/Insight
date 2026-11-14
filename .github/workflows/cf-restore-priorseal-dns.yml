@@ -1,0 +1,88 @@
+name: cf restore priorseal dns
+
+# One-shot repair: the priorseal.xyz Workers Custom Domain DNS records
+# disappeared from the Cloudflare zone (authoritative NS answers SOA but no
+# A records), taking priorseal.xyz off the internet. Re-attaching the custom
+# domains via the Workers Domains API recreates the DNS records. Run manually
+# with workflow_dispatch. Remove the CLOUDFLARE_API_TOKEN secret afterwards.
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: cf-restore-priorseal-dns
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  CF_API: https://api.cloudflare.com/client/v4
+  CF_ACCOUNT_ID: f7f2f006794867870d3dffb22abafaf3
+  CF_ZONE_ID: 0990d9fc04b83fc5f672fac00dfd0ba3
+  CF_ZONE_NAME: priorseal.xyz
+  WORKER_SERVICE: priorseal
+
+jobs:
+  restore:
+    name: Re-attach Workers custom domains (recreates DNS records)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Verify token and inspect current state
+        run: |
+          set -euo pipefail
+          echo "=== token verify ==="
+          curl -sS "$CF_API/user/tokens/verify" -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" | head -c 300; echo
+          echo "=== current workers custom domains (account) ==="
+          curl -sS "$CF_API/accounts/$CF_ACCOUNT_ID/workers/domains" -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" > /tmp/domains.json
+          python3 -c "
+          import json
+          d = json.load(open('/tmp/domains.json'))
+          if not d.get('success'): print('ERR:', d.get('errors'))
+          for r in d.get('result') or []:
+              if 'priorseal' in r.get('hostname',''):
+                  print(r['hostname'], '->', r.get('service'), r.get('environment'), 'zone:', r.get('zone_id','')[:8])
+          "
+          echo "=== current zone dns records ==="
+          curl -sS "$CF_API/zones/$CF_ZONE_ID/dns_records?per_page=100" -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" > /tmp/dns.json
+          python3 -c "
+          import json
+          d = json.load(open('/tmp/dns.json'))
+          if not d.get('success'): print('ERR:', d.get('errors'))
+          for r in d.get('result') or []:
+              print(r['type'], r['name'], '->', str(r['content'])[:60])
+          "
+
+      - name: Re-attach custom domains
+        run: |
+          set -euo pipefail
+          for HOST in priorseal.xyz www.priorseal.xyz; do
+            echo "=== attach $HOST ==="
+            curl -sS -X PUT "$CF_API/accounts/$CF_ACCOUNT_ID/workers/domains" \
+              -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d "{\"zone_id\":\"$CF_ZONE_ID\",\"hostname\":\"$HOST\",\"service\":\"$WORKER_SERVICE\",\"environment\":\"production\"}" \
+              > /tmp/attach-$HOST.json
+            head -c 400 /tmp/attach-$HOST.json; echo
+          done
+
+      - name: Verify DNS restored
+        run: |
+          set -euo pipefail
+          sleep 20
+          echo "=== zone dns records after attach ==="
+          curl -sS "$CF_API/zones/$CF_ZONE_ID/dns_records?per_page=100" -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" > /tmp/dns-after.json
+          python3 -c "
+          import json
+          d = json.load(open('/tmp/dns-after.json'))
+          for r in d.get('result') or []:
+              print(r['type'], r['name'], '->', str(r['content'])[:60])
+          "
+          echo "=== public resolution ==="
+          sleep 15
+          for H in priorseal.xyz www.priorseal.xyz; do
+            echo "$H via 1.1.1.1: $(dig +short $H @1.1.1.1 | tr '\n' ' ')"
+          done
+          echo "=== https health ==="
+          curl -sS -o /dev/null -w "priorseal.xyz/health: %{http_code}\n" --max-time 20 https://priorseal.xyz/health || true
