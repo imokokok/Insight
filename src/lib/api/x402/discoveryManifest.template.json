@@ -1,14 +1,14 @@
 {
   "x402Version": 2,
   "kind": "resource-server",
-  "name": "Insight Pre-Trade Safety API",
-  "description": "Decision-input integrity for AI agents trading onchain: before a trade is signed, check whether the price it relies on is trustworthy — multi-provider oracle consensus, manipulation-risk scoring, and feed health, with verifiable EIP-712 attestations. This production manifest advertises x402 settlement rails that are statically discoverable and enabled in the live payment challenge; callers must select an option from the live 402 response before signing.",
+  "name": "Insight Decision-Input Trust API",
+  "description": "Decision-input trust for AI agents trading onchain, offered as four product functions: Oracle Evidence (inspect and record what price sources actually report), Risk Intelligence (prepaid continuous monitoring for live positions), Decision Integrity (per-action signed pre-trade verdicts across guard families), and Verify (independent, always-free offline re-verification of signed evidence).",
   "docs": "https://www.oracleinsight.xyz/openapi.json",
   "resources": [
     {
       "url": "https://www.oracleinsight.xyz/api/v1/safety/pre-trade",
       "method": "GET",
-      "description": "Pre-trade decision-input integrity check: is the price this action relies on trustworthy? Cross-provider consensus, deviation, freshness, and manipulation risk for one trade, with verifiable EIP-712 attestation support. BLOCK verdicts are complete checks and are charged.",
+      "description": "Decision Integrity — Pre-trade decision-input integrity check: is the price this action relies on trustworthy? Cross-provider consensus, deviation, freshness, and manipulation risk for one trade, with verifiable EIP-712 attestation support. BLOCK verdicts are complete checks and are charged.",
       "accepts": [
         {
           "scheme": "exact",
@@ -29,7 +29,7 @@
     {
       "url": "https://www.oracleinsight.xyz/api/v1/safety/monad-lending-guard",
       "method": "GET",
-      "description": "Monad Lending Guard: a read-only, pre-signing decision for direct Aave V3 Monad calls or exact Morpho Blue Monad markets. GET returns a preview; POST binds one unsigned direct call and may return an Insight EIP-712 decision attestation. It never authorizes or broadcasts a transaction.",
+      "description": "Decision Integrity — Monad Lending Guard: a read-only, pre-signing decision for direct Aave V3 Monad calls or exact Morpho Blue Monad markets. GET returns a preview; POST binds one unsigned direct call and may return an Insight EIP-712 decision attestation. It never authorizes or broadcasts a transaction.",
       "accepts": [
         {
           "scheme": "exact",
@@ -50,7 +50,7 @@
     {
       "url": "https://www.oracleinsight.xyz/api/v1/safety/hyperevm-lending-guard",
       "method": "GET",
-      "description": "HyperEVM Lending Guard: a read-only, pre-signing decision for direct HyperLend Core (Aave V3 fork) supply or borrow on HyperEVM chain 999 with reviewed WHYPE, WSTHYPE, UBTC, UETH, USDe, sUSDe, USDT0, KHYPE, and USDC markets. GET returns a preview; POST binds one unsigned direct call and may return an Insight EIP-712 decision attestation. It never authorizes or broadcasts a transaction.",
+      "description": "Decision Integrity — HyperEVM Lending Guard: a read-only, pre-signing decision for direct HyperLend Core (Aave V3 fork) supply or borrow on HyperEVM chain 999 with reviewed WHYPE, WSTHYPE, UBTC, UETH, USDe, sUSDe, USDT0, KHYPE, and USDC markets. GET returns a preview; POST binds one unsigned direct call and may return an Insight EIP-712 decision attestation. It never authorizes or broadcasts a transaction.",
       "accepts": [
         {
           "scheme": "exact",
@@ -71,13 +71,13 @@
     {
       "url": "https://www.oracleinsight.xyz/api/v1/safety/monad-perp-guard",
       "method": "GET",
-      "description": "Monad Perp Guard: a read-only, pre-trade decision gate for opening a Perpl AUSD-margined perpetual position on Monad mainnet (reviewed BTC, MON, ETH, and SOL markets). It evaluates the underlying cross-oracle consensus integrity on canonical mainnet feeds, binds the declared leverage to a reviewed static profile capped by the live Perpl initial-margin ratio, and attaches disclosed venue evidence (Perpl mark/oracle divergence, funding rate, open interest, market status, consensus-vs-oracle deviation; the AUSD margin peg is disclosed as not independently verified). It never signs, submits, or authorizes an order.",
+      "description": "Decision Integrity — Monad Perp Guard: a read-only, pre-trade decision gate for opening a Perpl AUSD-margined perpetual position on Monad mainnet (reviewed BTC, MON, ETH, and SOL markets). It evaluates the underlying cross-oracle consensus integrity on canonical mainnet feeds, binds the declared leverage to a reviewed static profile capped by the live Perpl initial-margin ratio, and attaches disclosed venue evidence (Perpl mark/oracle divergence, funding rate, open interest, market status, consensus-vs-oracle deviation; the AUSD margin peg is disclosed as not independently verified). It never signs, submits, or authorizes an order.",
       "accepts": []
     },
     {
       "url": "https://www.oracleinsight.xyz/api/mcp",
       "method": "POST",
-      "description": "MCP tools/call over JSON-RPC (streamable HTTP): pay-per-call access to the Insight MCP catalog for x402 agents without an API key. The catalog exposes 20 discoverable names: the product tools trade_guard, trade_proof, oracle_watch_window and position_lifecycle, plus 16 deprecated alias spellings callable at the same price until 2027-01-06. trade_guard's check_safety op returns a PASS, CAUTION, DANGER or BLOCK verdict with reasons; prepare_swap and prepare_perp_order return an unsigned exchange payload. MCP prices are $0.040 per trade_guard or trade_proof call, $0.500 per oracle_watch_window and $0.550 per position_lifecycle. The shelf amount below is $0.040 (40000 atomic units), the trade_guard safety-op price that Bazaar indexes; the live 402 quote is authoritative and prices each call from its tool metering class (C1=2000, C2=4000, C3=20000, C4=40000 atomic). The C3 $0.02 price is the REST /api/v1/safety/pre-trade route, not the MCP trade_guard safety-op price.",
+      "description": "Unified MCP entry to Insight's four product functions — Oracle Evidence, Risk Intelligence, Decision Integrity, and Verify (verify itself is free and off-catalog) — via tools/call over JSON-RPC (streamable HTTP): pay-per-call access to the Insight MCP catalog for x402 agents without an API key. The catalog exposes 20 discoverable names: the product tools trade_guard, trade_proof, oracle_watch_window and position_lifecycle, plus 16 deprecated alias spellings callable at the same price until 2027-01-06. trade_guard's check_safety op returns a PASS, CAUTION, DANGER or BLOCK verdict with reasons; prepare_swap and prepare_perp_order return an unsigned exchange payload. MCP prices are $0.040 per trade_guard or trade_proof call, $0.500 per oracle_watch_window and $0.550 per position_lifecycle. The shelf amount below is $0.040 (40000 atomic units), the trade_guard safety-op price that Bazaar indexes; the live 402 quote is authoritative and prices each call from its tool metering class (C1=2000, C2=4000, C3=20000, C4=40000 atomic). The C3 $0.02 price is the REST /api/v1/safety/pre-trade route, not the MCP trade_guard safety-op price.",
       "accepts": [
         {
           "scheme": "exact",
@@ -98,7 +98,7 @@
     {
       "url": "https://www.oracleinsight.xyz/api/v1/safety/preflight",
       "method": "GET",
-      "description": "Execution preflight: a chain-neutral ALLOW/CAUTION/BLOCK data-sufficiency decision for one declared action. A complete BLOCK result is charged; settlement occurs only after a successful response.",
+      "description": "Decision Integrity — Execution preflight: a chain-neutral ALLOW/CAUTION/BLOCK data-sufficiency decision for one declared action. A complete BLOCK result is charged; settlement occurs only after a successful response.",
       "accepts": [
         {
           "scheme": "exact",
@@ -119,7 +119,7 @@
     {
       "url": "https://www.oracleinsight.xyz/api/v1/safety/base-lending-guard",
       "method": "GET",
-      "description": "Base Lending Guard: a read-only, pre-signing decision for Aave V3, exact Morpho Blue markets, Compound V3 Base USDC Comet, or reviewed Moonwell Base markets. GET returns a preview; POST accepts one unsigned direct call and may return an Insight EIP-712 decision attestation. It never authorizes or broadcasts a transaction.",
+      "description": "Decision Integrity — Base Lending Guard: a read-only, pre-signing decision for Aave V3, exact Morpho Blue markets, Compound V3 Base USDC Comet, or reviewed Moonwell Base markets. GET returns a preview; POST accepts one unsigned direct call and may return an Insight EIP-712 decision attestation. It never authorizes or broadcasts a transaction.",
       "accepts": [
         {
           "scheme": "exact",
@@ -140,7 +140,7 @@
     {
       "url": "https://www.oracleinsight.xyz/api/v1/safety/base-perp-guard",
       "method": "GET",
-      "description": "Base Perp Guard: a read-only, pre-trade decision-input integrity gate for opening a Synthetix Perps V3 position on Base (reviewed BTC, ETH, SOL, XRP, DOGE, and PEPE markets, USDC margin). It separately evaluates the underlying and USDC margin oracle integrity and checks caller-declared post-action leverage against reviewed market caps. GET returns a preview; POST accepts one unsigned direct PerpsMarketProxy commitOrder call and may return an Insight EIP-712 decision attestation. It never signs, broadcasts, or authorizes an order.",
+      "description": "Decision Integrity — Base Perp Guard: a read-only, pre-trade decision-input integrity gate for opening a Synthetix Perps V3 position on Base (reviewed BTC, ETH, SOL, XRP, DOGE, and PEPE markets, USDC margin). It separately evaluates the underlying and USDC margin oracle integrity and checks caller-declared post-action leverage against reviewed market caps. GET returns a preview; POST accepts one unsigned direct PerpsMarketProxy commitOrder call and may return an Insight EIP-712 decision attestation. It never signs, broadcasts, or authorizes an order.",
       "accepts": [
         {
           "scheme": "exact",
@@ -161,7 +161,7 @@
     {
       "url": "https://www.oracleinsight.xyz/api/v1/safety/hyperliquid-perp-guard",
       "method": "GET",
-      "description": "Hyperliquid Perp Guard: a read-only, pre-trade decision-input integrity gate for one declared Hyperliquid HyperCore order intent (asset index, size, leverage, price). It evaluates underlying oracle integrity and the declared leverage against Hyperliquid margin requirements, and POST binds the exact unsigned exchange envelope — including intent hash, asset index, size, price, and expiry — into an Insight EIP-712 decision attestation. It never signs, submits, or authorizes an order.",
+      "description": "Decision Integrity — Hyperliquid Perp Guard: a read-only, pre-trade decision-input integrity gate for one declared Hyperliquid HyperCore order intent (asset index, size, leverage, price). It evaluates underlying oracle integrity and the declared leverage against Hyperliquid margin requirements, and POST binds the exact unsigned exchange envelope — including intent hash, asset index, size, price, and expiry — into an Insight EIP-712 decision attestation. It never signs, submits, or authorizes an order.",
       "accepts": [
         {
           "scheme": "exact",
@@ -182,19 +182,19 @@
     {
       "url": "https://www.oracleinsight.xyz/api/v1/safety/bnb-perp-guard",
       "method": "GET",
-      "description": "BNB Perp Guard: a read-only, pre-trade decision gate for opening an Aster Perps USDT-margined perpetual position on BNB Smart Chain (reviewed BTCUSDT and ETHUSDT markets). It separately evaluates the underlying and USDT margin cross-oracle consensus integrity on canonical mainnet feeds, binds the declared leverage to a reviewed static profile capped by the live Aster required-margin ratio, and attaches disclosed venue evidence (Aster mark/index divergence, funding rate, open interest, market status, consensus-vs-index deviation). It never signs, submits, or authorizes an order.",
+      "description": "Decision Integrity — BNB Perp Guard: a read-only, pre-trade decision gate for opening an Aster Perps USDT-margined perpetual position on BNB Smart Chain (reviewed BTCUSDT and ETHUSDT markets). It separately evaluates the underlying and USDT margin cross-oracle consensus integrity on canonical mainnet feeds, binds the declared leverage to a reviewed static profile capped by the live Aster required-margin ratio, and attaches disclosed venue evidence (Aster mark/index divergence, funding rate, open interest, market status, consensus-vs-index deviation). It never signs, submits, or authorizes an order.",
       "accepts": []
     },
     {
       "url": "https://www.oracleinsight.xyz/api/v1/safety/prediction-guard",
       "method": "GET",
-      "description": "Prediction Guard: a read-only screening gate for one Polymarket market entry. Cross-oracle consensus is deliberately not applied to event markets; the guard verifies machine-parseable price-contract metadata, lifecycle and resolution timing, quoted-probability integrity, and whether the declared settlement venue can be verified post-hoc by the settlement-evidence pipeline. It never signs, submits, or authorizes an order.",
+      "description": "Decision Integrity — Prediction Guard: a read-only screening gate for one Polymarket market entry. Cross-oracle consensus is deliberately not applied to event markets; the guard verifies machine-parseable price-contract metadata, lifecycle and resolution timing, quoted-probability integrity, and whether the declared settlement venue can be verified post-hoc by the settlement-evidence pipeline. It never signs, submits, or authorizes an order.",
       "accepts": []
     },
     {
       "url": "https://www.oracleinsight.xyz/api/v1/safety/multichain-evm-lending-guard",
       "method": "GET",
-      "description": "Multichain EVM Lending Guard: a read-only, pre-signing decision for direct Aave V3 calls on Polygon, Arbitrum or BNB Chain; Venus Core or Lista Moolah isolated-market calls on BNB Chain; Compound V3, Dolomite, Euler v2, and Fluid T1 collateral-only supply on Arbitrum; Euler v2 and Fluid T1 collateral-only supply on Base; and exact Morpho Blue markets on Polygon or Arbitrum. GET returns a preview; POST binds one unsigned direct call and may return an Insight EIP-712 decision attestation. It never authorizes or broadcasts a transaction.",
+      "description": "Decision Integrity — Multichain EVM Lending Guard: a read-only, pre-signing decision for direct Aave V3 calls on Polygon, Arbitrum or BNB Chain; Venus Core or Lista Moolah isolated-market calls on BNB Chain; Compound V3, Dolomite, Euler v2, and Fluid T1 collateral-only supply on Arbitrum; Euler v2 and Fluid T1 collateral-only supply on Base; and exact Morpho Blue markets on Polygon or Arbitrum. GET returns a preview; POST binds one unsigned direct call and may return an Insight EIP-712 decision attestation. It never authorizes or broadcasts a transaction.",
       "accepts": [
         {
           "scheme": "exact",
@@ -215,7 +215,7 @@
     {
       "url": "https://www.oracleinsight.xyz/api/v1/safety/solana-lending-guard",
       "method": "POST",
-      "description": "Solana Lending Guard: a read-only, pre-signing decision for one direct Kamino Lend, Marginfi v2, Jupiter Lend Earn deposit, or Save Lend reserve-liquidity deposit instruction. POST verifies program-owned accounts and simulates the exact unsigned Solana message before optionally returning an Insight Ed25519 decision attestation. It never authorizes or broadcasts a transaction.",
+      "description": "Decision Integrity — Solana Lending Guard: a read-only, pre-signing decision for one direct Kamino Lend, Marginfi v2, Jupiter Lend Earn deposit, or Save Lend reserve-liquidity deposit instruction. POST verifies program-owned accounts and simulates the exact unsigned Solana message before optionally returning an Insight Ed25519 decision attestation. It never authorizes or broadcasts a transaction.",
       "accepts": [
         {
           "scheme": "exact",
@@ -236,7 +236,7 @@
     {
       "url": "https://www.oracleinsight.xyz/api/v1/safety/solana-perp-guard",
       "method": "GET",
-      "description": "Solana Perp Guard: a read-only, pre-trade decision gate for opening a Drift Protocol v2 perpetual position on Solana mainnet (reviewed SOL, BTC, and ETH markets, USDC margin). It evaluates underlying and USDC cross-oracle consensus integrity on canonical mainnet feeds, checks caller-declared post-action leverage against a reviewed static profile capped by the live Drift margin ratio, and attaches disclosed on-chain venue evidence (Drift mark price vs Pyth Lazer oracle deviation, funding rate, open interest, market status). It never signs, submits, or authorizes an order.",
+      "description": "Decision Integrity — Solana Perp Guard: a read-only, pre-trade decision gate for opening a Drift Protocol v2 perpetual position on Solana mainnet (reviewed SOL, BTC, and ETH markets, USDC margin). It evaluates underlying and USDC cross-oracle consensus integrity on canonical mainnet feeds, checks caller-declared post-action leverage against a reviewed static profile capped by the live Drift margin ratio, and attaches disclosed on-chain venue evidence (Drift mark price vs Pyth Lazer oracle deviation, funding rate, open interest, market status). It never signs, submits, or authorizes an order.",
       "accepts": [
         {
           "scheme": "exact",
@@ -257,7 +257,7 @@
     {
       "url": "https://www.oracleinsight.xyz/api/v1/safety/solana-swap-guard",
       "method": "POST",
-      "description": "Solana Swap Guard: a read-only, pre-signing decision for exactly one unsigned Orca Whirlpool USDC/USDT 0.01% swap on Solana mainnet (both directions). POST canonical-decodes the single Whirlpool swap instruction, re-verifies the pool, vaults, tick array, oracle, and both user token accounts from live mainnet state, prices the pool from its own sqrtPrice against independent oracle consensus, and simulates the exact unsigned message before optionally returning an Insight Ed25519 decision attestation bound to the message hash. CAUTION or BLOCK returns no executable payload. It never authorizes or broadcasts a transaction.",
+      "description": "Decision Integrity — Solana Swap Guard: a read-only, pre-signing decision for exactly one unsigned Orca Whirlpool USDC/USDT 0.01% swap on Solana mainnet (both directions). POST canonical-decodes the single Whirlpool swap instruction, re-verifies the pool, vaults, tick array, oracle, and both user token accounts from live mainnet state, prices the pool from its own sqrtPrice against independent oracle consensus, and simulates the exact unsigned message before optionally returning an Insight Ed25519 decision attestation bound to the message hash. CAUTION or BLOCK returns no executable payload. It never authorizes or broadcasts a transaction.",
       "accepts": [
         {
           "scheme": "exact",
@@ -278,7 +278,7 @@
     {
       "url": "https://www.oracleinsight.xyz/api/v1/safety/loopscale-vault-deposit",
       "method": "POST",
-      "description": "Loopscale Vault Deposit Guard: a read-only, pre-signing preparation for one official Loopscale Solana lending-vault deposit. POST validates live vault metadata and principal mint, accepts only a single returned message with no preliminary transactions, resolves address lookup tables, simulates the exact unsigned message, and may return an Insight Ed25519 decision attestation. It never authorizes or broadcasts a transaction.",
+      "description": "Decision Integrity — Loopscale Vault Deposit Guard: a read-only, pre-signing preparation for one official Loopscale Solana lending-vault deposit. POST validates live vault metadata and principal mint, accepts only a single returned message with no preliminary transactions, resolves address lookup tables, simulates the exact unsigned message, and may return an Insight Ed25519 decision attestation. It never authorizes or broadcasts a transaction.",
       "accepts": [
         {
           "scheme": "exact",
@@ -299,7 +299,7 @@
     {
       "url": "https://www.oracleinsight.xyz/api/v1/markets/settlement-evidence/grade",
       "method": "POST",
-      "description": "Settlement Evidence Grade (legacy): an on-demand, idempotent historical record of one settled Polymarket price contract. POST takes a market slug only; the declared outcome is always read from the Insight watch list, never from the caller. Returns a signed EIP-712 evidence pack carrying derived analytics: declared versus independently observed outcome, bps deltas, and coverage statistics. The grade describes a market that has already resolved. It is NOT a safety assessment, NOT a recommendation, and NOT a verdict about any live configuration. Retained for existing integrations. For a signed, advisory, independently recomputable record of an oracle configuration and its source state, use POST /api/v1/oracle-config/snapshot instead. Existing packs are returned cached and are never downgraded.",
+      "description": "Oracle Evidence — Settlement Evidence Grade (legacy): an on-demand, idempotent historical record of one settled Polymarket price contract. POST takes a market slug only; the declared outcome is always read from the Insight watch list, never from the caller. Returns a signed EIP-712 evidence pack carrying derived analytics: declared versus independently observed outcome, bps deltas, and coverage statistics. The grade describes a market that has already resolved. It is NOT a safety assessment, NOT a recommendation, and NOT a verdict about any live configuration. Retained for existing integrations. For a signed, advisory, independently recomputable record of an oracle configuration and its source state, use POST /api/v1/oracle-config/snapshot instead. Existing packs are returned cached and are never downgraded.",
       "accepts": [
         {
           "scheme": "exact",
@@ -320,7 +320,7 @@
     {
       "url": "https://www.oracleinsight.xyz/api/v1/oracle-config/snapshot",
       "method": "POST",
-      "description": "Oracle Config Snapshot (signed record): an advisory, idempotent EIP-712 record of one oracle configuration and its independent-source state at a point in time. The request names chainId, protocolId and assetSymbol only; all observable configuration and sources are read server-side. This is NOT a safety assessment and makes no safe or unsafe claim. Derived analytics only, no custody, no execution authority.",
+      "description": "Oracle Evidence — Oracle Config Snapshot (signed record): an advisory, idempotent EIP-712 record of one oracle configuration and its independent-source state at a point in time. The request names chainId, protocolId and assetSymbol only; all observable configuration and sources are read server-side. This is NOT a safety assessment and makes no safe or unsafe claim. Derived analytics only, no custody, no execution authority.",
       "accepts": [
         {
           "scheme": "exact",
@@ -341,7 +341,7 @@
     {
       "url": "https://www.oracleinsight.xyz/api/v1/safety/swap-intent",
       "method": "GET",
-      "description": "Verified Swap Intent: two signed schema-v3 Pre-Trade gates for one same-chain swap, plus one Execution Receipt credit after x402 settlement. A BLOCK is a complete, charged decision.",
+      "description": "Decision Integrity — Verified Swap Intent: two signed schema-v3 Pre-Trade gates for one same-chain swap, plus one Execution Receipt credit after x402 settlement. A BLOCK is a complete, charged decision.",
       "accepts": [
         {
           "scheme": "exact",
@@ -362,7 +362,7 @@
     {
       "url": "https://www.oracleinsight.xyz/api/v1/safety/oracle-watch-window",
       "method": "POST",
-      "description": "Oracle Watch Monitored Window (24h): one settlement pre-pays continuous Oracle Watch halt/proceed signal coverage for one (symbol, chain) position for 24 hours. The purchase returns a one-time window token; in-window signal polls are token-authenticated and never charged per call. Assessment and evidence only — no custody, no execution authority.",
+      "description": "Risk Intelligence — Oracle Watch Monitored Window (24h): one settlement pre-pays continuous Oracle Watch halt/proceed signal coverage for one (symbol, chain) position for 24 hours. The purchase returns a one-time window token; in-window signal polls are token-authenticated and never charged per call. Assessment and evidence only — no custody, no execution authority.",
       "accepts": [
         {
           "scheme": "exact",
@@ -383,7 +383,7 @@
     {
       "url": "https://www.oracleinsight.xyz/api/v1/safety/position-lifecycle",
       "method": "POST",
-      "description": "Position Lifecycle Bundle (24h): one settlement pre-pays a full monitored lifecycle for one (symbol, chain) position — an embedded Oracle Watch window (48 free signal polls), 4 bundled guard assessments across any position-guard family, and 1 attested execution receipt. The purchase returns a one-time lifecycle token; bundled calls are token-authenticated and never charged per call. Assessment and evidence only — no custody, no execution authority.",
+      "description": "Risk Intelligence — Position Lifecycle Bundle (24h): one settlement pre-pays a full monitored lifecycle for one (symbol, chain) position — an embedded Oracle Watch window (48 free signal polls), 4 bundled guard assessments across any position-guard family, and 1 attested execution receipt. The purchase returns a one-time lifecycle token; bundled calls are token-authenticated and never charged per call. Assessment and evidence only — no custody, no execution authority.",
       "accepts": [
         {
           "scheme": "exact",
@@ -405,5 +405,5 @@
   "attestation": {
     "type": "none"
   },
-  "updated": "2026-11-03T00:00:00Z"
+  "updated": "2026-11-14"
 }
