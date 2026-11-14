@@ -4,7 +4,13 @@ name: cf restore priorseal dns
 # disappeared from the Cloudflare zone (authoritative NS answers SOA but no
 # A records), taking priorseal.xyz off the internet. Re-attaching the custom
 # domains via the Workers Domains API recreates the DNS records. Run manually
-# with workflow_dispatch. Remove the CLOUDFLARE_API_TOKEN secret afterwards.
+# with workflow_dispatch. Remove both temporary secrets afterwards.
+#
+# Two credentials:
+#   - CLOUDFLARE_API_TOKEN (account API token): verified OK but lacks
+#     Workers Custom Domains / DNS permissions (CF error 9106).
+#   - CLOUDFLARE_OAUTH_TOKEN (wrangler OAuth): has workers_routes write and
+#     performs the actual attach.
 
 on:
   workflow_dispatch:
@@ -18,6 +24,7 @@ permissions:
 
 env:
   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  CLOUDFLARE_OAUTH_TOKEN: ${{ secrets.CLOUDFLARE_OAUTH_TOKEN }}
   CF_API: https://api.cloudflare.com/client/v4
   CF_ACCOUNT_ID: f7f2f006794867870d3dffb22abafaf3
   CF_ZONE_ID: 0990d9fc04b83fc5f672fac00dfd0ba3
@@ -30,56 +37,58 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
-      - name: Verify token and inspect current state
+      - name: Attach custom domains via wrangler OAuth token
         run: |
           set -euo pipefail
-          echo "=== token verify ==="
-          curl -sS "$CF_API/user/tokens/verify" -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" | head -c 300; echo
-          echo "=== current workers custom domains (account) ==="
-          curl -sS "$CF_API/accounts/$CF_ACCOUNT_ID/workers/domains" -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" > /tmp/domains.json
-          python3 -c "
+          echo "=== attach priorseal.xyz ==="
+          curl -sS -X PUT "$CF_API/accounts/$CF_ACCOUNT_ID/workers/domains" \
+            -H "Authorization: Bearer $CLOUDFLARE_OAUTH_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"zone_id\":\"$CF_ZONE_ID\",\"hostname\":\"priorseal.xyz\",\"service\":\"$WORKER_SERVICE\",\"environment\":\"production\"}" \
+            > /tmp/attach-apex.json
+          head -c 500 /tmp/attach-apex.json; echo
+          echo "=== attach www.priorseal.xyz ==="
+          curl -sS -X PUT "$CF_API/accounts/$CF_ACCOUNT_ID/workers/domains" \
+            -H "Authorization: Bearer $CLOUDFLARE_OAUTH_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"zone_id\":\"$CF_ZONE_ID\",\"hostname\":\"www.priorseal.xyz\",\"service\":\"$WORKER_SERVICE\",\"environment\":\"production\"}" \
+            > /tmp/attach-www.json
+          head -c 500 /tmp/attach-www.json; echo
+          python3 - << 'EOF'
           import json
-          d = json.load(open('/tmp/domains.json'))
-          if not d.get('success'): print('ERR:', d.get('errors'))
-          for r in d.get('result') or []:
-              if 'priorseal' in r.get('hostname',''):
-                  print(r['hostname'], '->', r.get('service'), r.get('environment'), 'zone:', r.get('zone_id','')[:8])
-          "
-          echo "=== current zone dns records ==="
-          curl -sS "$CF_API/zones/$CF_ZONE_ID/dns_records?per_page=100" -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" > /tmp/dns.json
-          python3 -c "
-          import json
-          d = json.load(open('/tmp/dns.json'))
-          if not d.get('success'): print('ERR:', d.get('errors'))
-          for r in d.get('result') or []:
-              print(r['type'], r['name'], '->', str(r['content'])[:60])
-          "
-
-      - name: Re-attach custom domains
-        run: |
-          set -euo pipefail
-          for HOST in priorseal.xyz www.priorseal.xyz; do
-            echo "=== attach $HOST ==="
-            curl -sS -X PUT "$CF_API/accounts/$CF_ACCOUNT_ID/workers/domains" \
-              -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-              -H "Content-Type: application/json" \
-              -d "{\"zone_id\":\"$CF_ZONE_ID\",\"hostname\":\"$HOST\",\"service\":\"$WORKER_SERVICE\",\"environment\":\"production\"}" \
-              > /tmp/attach-$HOST.json
-            head -c 400 /tmp/attach-$HOST.json; echo
-          done
+          ok = True
+          for f in ['/tmp/attach-apex.json', '/tmp/attach-www.json']:
+              try:
+                  d = json.load(open(f))
+                  if not d.get('success'):
+                      ok = False
+                      print(f, 'ERR:', d.get('errors'))
+                  else:
+                      r = d['result']
+                      print(f, 'OK:', r.get('hostname'), '->', r.get('service'), r.get('status'))
+              except Exception as e:
+                  ok = False
+                  print(f, 'PARSE-ERR:', e)
+          if not ok:
+              raise SystemExit('custom domain attach failed')
+          EOF
 
       - name: Verify DNS restored
         run: |
           set -euo pipefail
           sleep 20
           echo "=== zone dns records after attach ==="
-          curl -sS "$CF_API/zones/$CF_ZONE_ID/dns_records?per_page=100" -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" > /tmp/dns-after.json
+          curl -sS "$CF_API/zones/$CF_ZONE_ID/dns_records?per_page=100" -H "Authorization: Bearer $CLOUDFLARE_OAUTH_TOKEN" > /tmp/dns-after.json || true
           python3 -c "
           import json
-          d = json.load(open('/tmp/dns-after.json'))
-          for r in d.get('result') or []:
-              print(r['type'], r['name'], '->', str(r['content'])[:60])
-          "
+          try:
+              d = json.load(open('/tmp/dns-after.json'))
+              if not d.get('success'): print('ERR:', d.get('errors'))
+              for r in d.get('result') or []:
+                  print(r['type'], r['name'], '->', str(r['content'])[:60])
+          except Exception as e:
+              print('dns read skipped:', e)
+          " || true
           echo "=== public resolution ==="
           sleep 15
           for H in priorseal.xyz www.priorseal.xyz; do
@@ -87,3 +96,4 @@ jobs:
           done
           echo "=== https health ==="
           curl -sS -o /dev/null -w "priorseal.xyz/health: %{http_code}\n" --max-time 20 https://priorseal.xyz/health || true
+          curl -sS -o /dev/null -w "www.priorseal.xyz/health: %{http_code}\n" --max-time 20 https://www.priorseal.xyz/health || true
