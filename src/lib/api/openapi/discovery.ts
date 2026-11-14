@@ -96,7 +96,11 @@ export function buildOpenApiDiscovery(config: OpenApiPaymentConfig): OpenApiDocu
   const mcpAccess = config.x402Enabled ? 'x402 or API key' : 'API key';
 
   document.info.description =
-    'Oracle-immune-system pre-trade safety checks with verifiable EIP-712 attestations. ' +
+    'Decision-input trust for AI agents trading onchain, offered as four product functions: ' +
+    'Oracle Evidence (inspect and record what price sources actually report), Risk Intelligence ' +
+    '(prepaid continuous monitoring for live positions), Decision Integrity (per-action signed ' +
+    'pre-trade verdicts across guard families), and Verify (independent, always-free offline ' +
+    're-verification of signed evidence). ' +
     'The REST pre-trade endpoint accepts API-key access and advertises configured x402/MPP ' +
     'payment rails. The MPP MCP pilot exposes pre_trade_safety_check on its dedicated endpoint; ' +
     'the full MCP tool catalog remains on /api/mcp.';

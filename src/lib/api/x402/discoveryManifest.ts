@@ -194,7 +194,7 @@ export function buildX402DiscoveryManifest(cfg: X402Config): X402DiscoveryManife
   return {
     ...manifestTemplate,
     description:
-      'Decision-input integrity for AI agents trading onchain. Static accepts are generated from the same route-scoped configuration as live x402 challenges. Request-bound and HyperCore options are explicitly identified so callers retrieve their binding terms from the live unpaid 402 response.',
+      'Decision-input trust for AI agents trading onchain, offered as four product functions: Oracle Evidence (inspect and record what price sources actually report), Risk Intelligence (prepaid continuous monitoring for live positions), Decision Integrity (per-action signed pre-trade verdicts across guard families), and Verify (independent, always-free offline re-verification of signed evidence). Static accepts are generated from the same route-scoped configuration as live x402 challenges. Request-bound and HyperCore options are explicitly identified so callers retrieve their binding terms from the live unpaid 402 response.',
     dynamicPaymentOptions,
     requestBoundResources,
     resources,

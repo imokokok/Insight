@@ -1,13 +1,13 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Insight Pre-Trade Safety API",
+    "title": "Insight Decision-Input Trust API",
     "version": "1.0.0",
     "contact": {
       "name": "YuTao Peng (Insight)",
       "email": "imokokok123@gmail.com"
     },
-    "description": "Oracle-immune-system pre-trade safety checks with verifiable EIP-712 attestation support. The REST pre-trade endpoint supports x402 and optional MPP; the MPP MCP pilot exposes pre_trade_safety_check on a dedicated endpoint. The full MCP tool catalog remains on /api/mcp.",
+    "description": "Decision-input trust for AI agents trading onchain, offered as four product functions: Oracle Evidence, Risk Intelligence, Decision Integrity, and Verify (always free, off-catalog). Pre-trade verdicts carry verifiable EIP-712 attestations. The REST pre-trade endpoint supports x402 and optional MPP; the MPP MCP pilot exposes pre_trade_safety_check on a dedicated endpoint. The full MCP tool catalog remains on /api/mcp.",
     "x-guidance": "REST: GET /api/v1/safety/pre-trade with asset, chainId, action, and tradeAmountUsd. The full MCP catalog uses POST /api/mcp (x402 or API key). The MPP MCP pilot uses POST /api/mcp/mpp and only accepts pre_trade_safety_check. MPP is shown only when enabled; its challenge is authoritative. Every paid result is settled only after the tool succeeds."
   },
   "servers": [
