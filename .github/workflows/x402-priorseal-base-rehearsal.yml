@@ -1,0 +1,35 @@
+name: x402 PriorSeal Base rehearsal
+
+# One-off paid rehearsal against priorseal.xyz from GitHub's network vantage
+# point. The local machine's egress has intermittent SNI interference against
+# Cloudflare-hosted origins, which makes the x402 client (which must reach both
+# the seller origin and the CDP facilitator) unusable locally. Runners have
+# unrestricted egress. Requires the temporary secret X402_E2E_PRIVATE_KEY (the
+# dedicated low-balance payer key) — delete the secret after use.
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: x402-priorseal-base-rehearsal
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  rehearsal:
+    name: Paid x402 rehearsal on Base mainnet (priorseal.xyz)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 22.23.2
+          cache: npm
+      - run: npm ci
+      - name: Stage 1 + 2 (quote, then pay $0.02 via CDP facilitator)
+        run: npx tsx scripts/x402/e2e-priorseal-mainnet-base.mts
+        env:
+          X402_E2E_PRIVATE_KEY: ${{ secrets.X402_E2E_PRIVATE_KEY }}
