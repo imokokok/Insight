@@ -5135,12 +5135,7 @@ paths:
         - apiKey: []
         - {}
       parameters:
-        - {
-            name: asset,
-            in: query,
-            required: true,
-            schema: { type: string, example: TSLAc },
-          }
+        - { name: asset, in: query, required: true, schema: { type: string, example: TSLAc } }
         - {
             name: action,
             in: query,
