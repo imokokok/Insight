@@ -1,0 +1,128 @@
+{
+  "sample": "insight-hyperevm-decision-input-evidence-sample/v1",
+  "capturedAt": "2026-11-15T15:35:31.000Z",
+  "rpc": "https://rpc.hyperliquid.xyz/evm",
+  "chainId": 999,
+  "blockNumber": 51341641,
+  "blockTimestamp": 1794756931,
+  "policyDeclaredBySample": {
+    "freshnessThresholdSeconds": 14400,
+    "requiredDecimals": 8,
+    "valueScale": "1e8",
+    "note": "These thresholds are declared by this sample, not by any production Insight guard."
+  },
+  "observations": [
+    {
+      "provider": "chainlink",
+      "feedId": "eip155:999:0x71A2017296De30F4597B36FBD90b7e8Ec6E97A82",
+      "value": "6475449940747",
+      "timestamp": "1794753082",
+      "dataAgeSeconds": "3849",
+      "included": true,
+      "exclusionReason": ""
+    },
+    {
+      "provider": "chainlink",
+      "feedId": "eip155:999:0x017151e74fB3a393673B5B5149F53578c0Fa55B0",
+      "value": "180846224833",
+      "timestamp": "1794754256",
+      "dataAgeSeconds": "2675",
+      "included": true,
+      "exclusionReason": ""
+    },
+    {
+      "provider": "chainlink",
+      "feedId": "eip155:999:0xa5a72eF19F82A579431186402425593a559ed352",
+      "value": "6729779800",
+      "timestamp": "1794756047",
+      "dataAgeSeconds": "884",
+      "included": true,
+      "exclusionReason": ""
+    },
+    {
+      "provider": "chainlink",
+      "feedId": "eip155:999:0x20935EE640be2F556E6f45F7C9092364C464224D",
+      "value": "7136398300",
+      "timestamp": "1794753974",
+      "dataAgeSeconds": "2957",
+      "included": true,
+      "exclusionReason": ""
+    },
+    {
+      "provider": "chainlink",
+      "feedId": "eip155:999:0xA0Adc43ce7AfE3EE7d7eac3C994E178D0620223B",
+      "value": "99976500",
+      "timestamp": "1794675401",
+      "dataAgeSeconds": "81530",
+      "included": false,
+      "exclusionReason": "stale"
+    },
+    {
+      "provider": "chainlink",
+      "feedId": "eip155:999:0x9114446540B4f8E0E310041981f7c1Be6181Ed07",
+      "value": "99924099",
+      "timestamp": "1794675283",
+      "dataAgeSeconds": "81648",
+      "included": false,
+      "exclusionReason": "stale"
+    },
+    {
+      "provider": "chainlink",
+      "feedId": "eip155:999:0xC66B2fbDE3879b6Dd9E7a5c6359037CE773D9bcc",
+      "value": "6913441462",
+      "timestamp": "1794756373",
+      "dataAgeSeconds": "558",
+      "included": false,
+      "exclusionReason": "unsupported"
+    }
+  ],
+  "derived": {
+    "includedCount": 4,
+    "excludedCount": 3,
+    "crossProviderAgreement": "not_applicable",
+    "agreementNote": "This snapshot spans heterogeneous assets (collateral-side and stablecoin-side feeds). crossProviderAgreement is defined for multiple providers quoting the same asset and is deliberately not reported here."
+  },
+  "canonicalization": {
+    "schema": "insight-provider-observations-hash/v1",
+    "entryAbi": [
+      {
+        "name": "provider",
+        "type": "string"
+      },
+      {
+        "name": "feedId",
+        "type": "string"
+      },
+      {
+        "name": "value",
+        "type": "uint256"
+      },
+      {
+        "name": "timestamp",
+        "type": "uint256"
+      },
+      {
+        "name": "dataAgeSeconds",
+        "type": "uint256"
+      },
+      {
+        "name": "included",
+        "type": "bool"
+      },
+      {
+        "name": "exclusionReason",
+        "type": "string"
+      }
+    ],
+    "valueSemantics": "non-negative observed price scaled by 1e8; uint256; negative values reject",
+    "pipeline": [
+      "ABI encode each entry with entryAbi in the listed field order",
+      "keccak256 each encoded entry",
+      "sort the 32-byte entry hashes lexicographically by byte value",
+      "concatenate the sorted entry hashes without separators",
+      "keccak256 the concatenation"
+    ],
+    "emptyInput": "keccak256 of empty bytes = 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+  },
+  "providerObservationsHash": "0xdf59bac2948a1464b284946ff4948a8b53578c40f97eddcdddd5db384be33d08"
+}
