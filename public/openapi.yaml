@@ -5117,6 +5117,82 @@ paths:
         '200': { description: Complete ALLOW, CAUTION, or BLOCK screening decision. }
         '400': { $ref: '#/components/responses/ValidationError' }
         '402': { $ref: '#/components/responses/CreditExhausted' }
+  /safety/tokenized-stock-guard:
+    get:
+      operationId: assessTokenizedStockGuard
+      tags: [Safety]
+      summary: Tokenized stock decision-input guard
+      description: >-
+        Read-only, pre-signing decision-input check for one Coinbase-tokenized
+        stock (B20) on Base, evaluated against the issuer's official NAV
+        reference. Applies a dedicated staleness lane for equity references —
+        24h heartbeat, off-hours freeze (a documented design, not a fault),
+        paused features, total-return multiplier, and caller-price deviation —
+        and may return an Insight EIP-712 decision attestation. It never
+        signs, submits, or authorizes an order. API-key access or x402
+        payment is accepted.
+      security:
+        - apiKey: []
+        - {}
+      parameters:
+        - {
+            name: asset,
+            in: query,
+            required: true,
+            schema: { type: string, example: TSLAc },
+          }
+        - {
+            name: action,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [swap, borrow, lend, liquidate, repay] },
+          }
+        - {
+            name: tradeAmountUsd,
+            in: query,
+            required: true,
+            schema: { type: number, exclusiveMinimum: 0 },
+          }
+        - {
+            name: decisionPriceUsd,
+            in: query,
+            required: false,
+            schema: { type: number, exclusiveMinimum: 0 },
+          }
+        - {
+            name: maxDeviationBps,
+            in: query,
+            required: false,
+            schema: { type: integer, minimum: 0, maximum: 10000 },
+          }
+      responses:
+        '200': { description: Complete ALLOW, WAIT, BLOCK, or NOT_PRICEABLE decision. }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+  /safety/tokenized-stock-guard/verify:
+    get:
+      operationId: getTokenizedStockGuardVerificationSchema
+      tags: [Safety]
+      summary: Get tokenized stock guard attestation schema
+      security: []
+      responses:
+        '200': { description: Attester status and supported EIP-712 schema. }
+    post:
+      operationId: verifyTokenizedStockGuardDecision
+      tags: [Safety]
+      summary: Verify a tokenized stock guard decision
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: { type: object, additionalProperties: true }
+      responses:
+        '200': { description: Cryptographic verification result and expiry state. }
   /safety/preflight:
     get:
       operationId: executionPreflight
