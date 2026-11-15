@@ -1,0 +1,21 @@
+name: x402 Bazaar status check
+on:
+  workflow_dispatch: {}
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Query CDP x402 Bazaar discovery search
+        run: |
+          for q in priorseal oracleinsight; do
+            curl -sS --max-time 30 \
+              "https://api.cdp.coinbase.com/platform/v2/x402/discovery/search?query=$q" |
+              jq -r '"BAZAAR_HITS \(.resources | length)", (.resources[]? | "- \(.resource) networks: \([.accepts[].network] | unique | join(","))")'
+          done
+      - name: Check seller discovery manifest
+        run: |
+          curl -sS --max-time 30 "https://priorseal.xyz/.well-known/x402" |
+            jq '"MANIFEST_RESOURCES \(.resources | length)"' ||
+            echo "MANIFEST_UNREACHABLE"
