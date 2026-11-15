@@ -11,23 +11,11 @@ jobs:
         run: |
           for q in priorseal oracleinsight; do
             curl -sS --max-time 30 \
-              "https://api.cdp.coinbase.com/platform/v2/x402/discovery/search?query=$q" \
-              | python3 -c "
-import json,sys
-d=json.load(sys.stdin)
-rs=d.get('resources',[])
-print('BAZAAR_HITS', len(rs))
-for r in rs:
-    print('-', r.get('resource',''))
-    a=r.get('accepts') or []
-    print('  networks:', sorted({x.get('network','') for x in a}))
-"
+              "https://api.cdp.coinbase.com/platform/v2/x402/discovery/search?query=$q" |
+              jq -r '"BAZAAR_HITS \(.resources | length)", (.resources[]? | "- \(.resource) networks: \([.accepts[].network] | unique | join(","))")'
           done
       - name: Check seller discovery manifest
         run: |
-          curl -sS --max-time 30 "https://priorseal.xyz/.well-known/x402" \
-            | python3 -c "
-import json,sys
-d=json.load(sys.stdin)
-print('MANIFEST_RESOURCES', len(d.get('resources',[])))
-" || echo "MANIFEST_UNREACHABLE"
+          curl -sS --max-time 30 "https://priorseal.xyz/.well-known/x402" |
+            jq '"MANIFEST_RESOURCES \(.resources | length)"' ||
+            echo "MANIFEST_UNREACHABLE"
