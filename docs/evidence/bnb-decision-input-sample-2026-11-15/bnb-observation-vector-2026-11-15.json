@@ -1,0 +1,117 @@
+{
+  "sample": "insight-bnb-decision-input-evidence-sample/v1",
+  "capturedAt": "2026-11-15T16:14:16.000Z",
+  "rpc": "https://bsc-dataseed.bnbchain.org",
+  "chainId": 56,
+  "blockNumber": 133765751,
+  "blockTimestamp": 1794759256,
+  "policyDeclaredBySample": {
+    "freshnessThresholdSeconds": 14400,
+    "requiredDecimals": 8,
+    "valueScale": "1e8",
+    "note": "These thresholds are declared by this sample, not by any production Insight guard."
+  },
+  "feedCatalogProvenance": "Feed addresses come from the Insight production feed catalog (oracle_feeds, chain_id=56, source=chainlink-rdd), ingested from Chainlink's public feed directory. Every address was independently verified on-chain at the pinned block via latestRoundData() and decimals().",
+  "observations": [
+    {
+      "provider": "chainlink",
+      "feedId": "eip155:56:0x264990fbd0A4796A3E3d8E37C4d5F87a3aCa5Ebf",
+      "value": "6452756248575",
+      "timestamp": "1794759227",
+      "dataAgeSeconds": "29",
+      "included": true,
+      "exclusionReason": ""
+    },
+    {
+      "provider": "chainlink",
+      "feedId": "eip155:56:0x9ef1B8c0E4F7dc8bF5719Ea496883DC6401d5b2e",
+      "value": "180612000000",
+      "timestamp": "1794759247",
+      "dataAgeSeconds": "9",
+      "included": true,
+      "exclusionReason": ""
+    },
+    {
+      "provider": "chainlink",
+      "feedId": "eip155:56:0x0567F2323251f0Aab15c8dFb1967E4e8A7D42aeE",
+      "value": "58943964000",
+      "timestamp": "1794759237",
+      "dataAgeSeconds": "19",
+      "included": true,
+      "exclusionReason": ""
+    },
+    {
+      "provider": "chainlink",
+      "feedId": "eip155:56:0xB97Ad0E74fa7d920791E90258A6E2085088b4320",
+      "value": "99939000",
+      "timestamp": "1794758835",
+      "dataAgeSeconds": "421",
+      "included": true,
+      "exclusionReason": ""
+    },
+    {
+      "provider": "chainlink",
+      "feedId": "eip155:56:0x51597f405303C4377E36123cBc172b13269EA163",
+      "value": "99980000",
+      "timestamp": "1794759200",
+      "dataAgeSeconds": "56",
+      "included": true,
+      "exclusionReason": ""
+    },
+    {
+      "provider": "chainlink",
+      "feedId": "eip155:56:0xEEA2ae9c074E87596A85ABE698B2Afebc9B57893",
+      "value": "38947000000",
+      "timestamp": "1794689955",
+      "dataAgeSeconds": "69301",
+      "included": false,
+      "exclusionReason": "stale"
+    },
+    {
+      "provider": "chainlink",
+      "feedId": "eip155:56:0xb7Ed5bE7977d61E83534230f3256C021e0fae0B6",
+      "value": "35574500000",
+      "timestamp": "1794688169",
+      "dataAgeSeconds": "71087",
+      "included": false,
+      "exclusionReason": "stale"
+    },
+    {
+      "provider": "chainlink",
+      "feedId": "eip155:56:0x2Ab73dc1C8A23bcDDb4850Ff811850E0d2a0c72f",
+      "value": "99930015",
+      "timestamp": "1794691430",
+      "dataAgeSeconds": "67826",
+      "included": false,
+      "exclusionReason": "unsupported"
+    }
+  ],
+  "derived": {
+    "includedCount": 5,
+    "excludedCount": 3,
+    "crossProviderAgreement": "not_applicable",
+    "agreementNote": "This snapshot spans heterogeneous assets (crypto, stablecoin, tokenized-equity and a stablecoin exchange-rate feed). crossProviderAgreement is defined for multiple providers quoting the same asset and is deliberately not reported here."
+  },
+  "canonicalization": {
+    "schema": "insight-provider-observations-hash/v1",
+    "entryAbi": [
+      { "name": "provider", "type": "string" },
+      { "name": "feedId", "type": "string" },
+      { "name": "value", "type": "uint256" },
+      { "name": "timestamp", "type": "uint256" },
+      { "name": "dataAgeSeconds", "type": "uint256" },
+      { "name": "included", "type": "bool" },
+      { "name": "exclusionReason", "type": "string" }
+    ],
+    "valueSemantics": "non-negative observed price normalized to USD scale and re-scaled by 1e8; uint256; negative values reject. The 18-decimal feed is normalized before scaling, so its raw answer (1e18 scale) is not the value recorded here.",
+    "pipeline": [
+      "ABI encode each entry with entryAbi in the listed field order",
+      "keccak256 each encoded entry",
+      "sort the 32-byte entry hashes lexicographically by byte value",
+      "concatenate the sorted entry hashes without separators",
+      "keccak256 the concatenation"
+    ],
+    "emptyInput": "keccak256 of empty bytes = 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+  },
+  "providerObservationsHash": "0x71bb3ffa56d3253d3d6f318ef25f13174129f08c8502ae4c90af221ac7bb63d3"
+}
