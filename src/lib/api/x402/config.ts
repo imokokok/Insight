@@ -191,6 +191,15 @@ export interface X402SolanaConfig {
    * settlement RPC; otherwise it is safer to leave this unset.
    */
   rpcUrl: string | null;
+  /**
+   * Operator-confirmed Solana fee payer override for quote hints. Some
+   * facilitators (PayAI observed 2026-11) advertise a public /supported lane
+   * whose feePayer differs from the wallet their settlement lane actually
+   * manages, so every buyer is rejected with "feePayer not managed". When
+   * set, this address replaces the facilitator-advertised feePayer in the
+   * quote hint. Empty/unset = trust the facilitator's advertisement.
+   */
+  feePayerOverride: string | null;
 }
 
 export interface X402PaymentOption {
@@ -591,6 +600,10 @@ export function parseX402Config(env: NodeJS.ProcessEnv = process.env): X402Confi
     const solanaNetwork = SolanaNetworkSchema.parse(env.X402_SOLANA_NETWORK ?? SOLANA_DEVNET_CAIP2);
     const solanaPriceUsd = parsePriceUsd(env.X402_SOLANA_PRICE_USD ?? env.X402_PRICE_USD);
     const solanaRpcUrl = parseOptionalHttpsUrl(env.X402_SOLANA_RPC_URL, 'X402_SOLANA_RPC_URL');
+    const rawFeePayerOverride = env.X402_SOLANA_FEE_PAYER?.trim() ?? '';
+    if (rawFeePayerOverride !== '' && !isSolanaPublicKey(rawFeePayerOverride)) {
+      throw new Error('X402_SOLANA_FEE_PAYER must be a valid Solana public key (base58)');
+    }
     solana = {
       network: solanaNetwork,
       payTo: solanaPayTo,
@@ -598,6 +611,7 @@ export function parseX402Config(env: NodeJS.ProcessEnv = process.env): X402Confi
       amountAtomic: usdToAtomicUnits(solanaPriceUsd),
       priceUsd: solanaPriceUsd,
       rpcUrl: solanaRpcUrl,
+      feePayerOverride: rawFeePayerOverride === '' ? null : rawFeePayerOverride,
     };
   }
 

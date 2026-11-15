@@ -520,6 +520,61 @@ describe('x402 SVM resource-server registration', () => {
     });
   });
 
+  it('overrides the facilitator-advertised fee payer when X402_SOLANA_FEE_PAYER is set', async () => {
+    const fetchMock = jest.fn(async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url !== 'https://facilitator.example/supported') {
+        throw new Error(`unexpected fetch: ${url}`);
+      }
+      return Response.json({
+        kinds: [
+          {
+            x402Version: 2,
+            scheme: 'exact',
+            network: SOLANA_DEVNET_CAIP2,
+            extra: {
+              feePayer: FEE_PAYER,
+              recentBlockhash: BLOCKHASH,
+              lastValidBlockHeight: '123',
+            },
+          },
+        ],
+        extensions: [],
+        signers: {},
+      });
+    });
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    const cfg = parseX402Config({
+      X402_ENABLED: 'true',
+      X402_EVM_ENABLED: 'false',
+      X402_SOLANA_ENABLED: 'true',
+      X402_SOLANA_NETWORK: SOLANA_DEVNET_CAIP2,
+      X402_SOLANA_PAY_TO: PAY_TO,
+      X402_SOLANA_FACILITATOR_URL: 'https://facilitator.example',
+      X402_SOLANA_FEE_PAYER: REFRESHED_FEE_PAYER,
+    });
+    const server = await buildX402HttpServer(cfg);
+    const result = await server.processHTTPRequest({
+      adapter: new TestRequestAdapter(),
+      path: '/api/v1/safety/pre-trade',
+      method: 'GET',
+    });
+
+    expect(result.type).toBe('payment-error');
+    if (result.type !== 'payment-error') throw new Error('expected a payment quote');
+    const quote = JSON.parse(
+      Buffer.from(result.response.headers['PAYMENT-REQUIRED'] ?? '', 'base64url').toString('utf8')
+    ) as { accepts: Array<{ network: string; extra?: Record<string, string> }> };
+    const solana = quote.accepts.find((entry) => entry.network === SOLANA_DEVNET_CAIP2);
+
+    expect(solana?.extra).toMatchObject({
+      feePayer: REFRESHED_FEE_PAYER,
+      recentBlockhash: BLOCKHASH,
+      lastValidBlockHeight: '123',
+    });
+  });
+
   it('refreshes a PayAI hint when the initial SVM kind retains only its fee payer', async () => {
     let supportedCalls = 0;
     const fetchMock = jest.fn(async (input: string | URL | Request) => {
