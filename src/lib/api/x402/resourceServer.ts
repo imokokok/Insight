@@ -127,7 +127,8 @@ class FacilitatorHintExactSvmScheme extends ExactSvmScheme {
       timeoutMs: number;
       bearerToken: string | null;
     } | null,
-    options?: { rpcUrl: string }
+    options?: { rpcUrl: string },
+    private readonly feePayerOverride: string | null = null
   ) {
     super(options);
   }
@@ -183,7 +184,14 @@ class FacilitatorHintExactSvmScheme extends ExactSvmScheme {
           kind.network === supportedKind.network
       );
       if (!currentKind || !isRecord(currentKind.extra)) return requirements;
-      const hint = parseFacilitatorPaymentHint(currentKind.extra);
+      let hint = parseFacilitatorPaymentHint(currentKind.extra);
+      if (hint && this.feePayerOverride) {
+        // The facilitator's public advertisement can diverge from the wallet
+        // its settlement lane manages (PayAI, observed 2026-11). Trust the
+        // operator-confirmed override for the fee payer while keeping the
+        // advertised blockhash tuple.
+        hint = { ...hint, feePayer: this.feePayerOverride };
+      }
       return hint ? { ...requirements, extra: { ...requirements.extra, ...hint } } : requirements;
     } catch {
       return requirements;
@@ -997,7 +1005,14 @@ export async function buildX402HttpServer(
         }
       : null;
     for (const network of networks) {
-      server.register(network, new FacilitatorHintExactSvmScheme(svmHintSource, svmSchemeOptions));
+      server.register(
+        network,
+        new FacilitatorHintExactSvmScheme(
+          svmHintSource,
+          svmSchemeOptions,
+          cfg.solana?.feePayerOverride ?? null
+        )
+      );
     }
   }
   // Enriches the declared discovery extension with the actual HTTP method and
