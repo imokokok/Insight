@@ -137,11 +137,21 @@ class FacilitatorHintExactSvmScheme extends ExactSvmScheme {
     supportedKind: SvmSupportedKind,
     extensionKeys: string[]
   ) {
-    const requirements = await super.enhancePaymentRequirements(
+    let requirements = await super.enhancePaymentRequirements(
       paymentRequirements,
       supportedKind,
       extensionKeys
     );
+    // The override applies to every hint source: the upstream scheme picks
+    // its own fee payer from the facilitator's /supported response when an
+    // operator RPC is configured, so this cannot wait for the hint-refresh
+    // branch below.
+    if (this.feePayerOverride && isRecord(requirements.extra) && requirements.extra.feePayer) {
+      requirements = {
+        ...requirements,
+        extra: { ...requirements.extra, feePayer: this.feePayerOverride },
+      };
+    }
     // An explicitly configured, operator-confirmed RPC has precedence. The
     // upstream scheme already fetched its current hash in that case.
     if (requirements.extra?.recentBlockhash || this.hintSource === null) return requirements;
