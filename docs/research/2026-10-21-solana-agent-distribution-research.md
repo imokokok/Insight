@@ -63,3 +63,25 @@
 - 官方 MCP Registry 双产品已收录是最大存量资产，Glama 会跟随索引。
 - Solana 侧最大缺口：sendaifun/skills（Oracles 类目精确触达）与 Solana 系 x402 facilitator discovery（PayAI Bazaar）——后者是把付费→收录→流量飞轮从 Base 复制到 Solana 的钥匙。
 - 本机网络对 mcp.so / mcpservers.org / x402scan / PulseMCP 均不可达（代理下 TLS/403），凡表单类均需用户浏览器操作；GitHub API 当日也不稳（TLS 超时），PR 类动作需在网络窗口内完成。
+
+## 2026-11-16 复核（Solana 上架专项）
+
+生态面新数据：x402 在 Solana 已真实起量（单周 330 万笔 USDC agent 转账，约占全网 38–70%，累计 3500 万+；Ramp 2026-08 已给 7 万家企业发 Solana agent 钱包）。买家被平台级制造、卖家稀缺——上架窗口成立。
+
+### 实测确认（API/线上直查，非推断）
+
+1. **Insight 生产 pre-trade 的 Solana 结算价签已 live**：`https://www.oracleinsight.xyz/api/v1/safety/pre-trade` 的 402（`x402Version: 2`）`accepts` 含 `solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp` + 官方 USDC mint `EPjFWdd5…TDt1v` + payTo `BfVX9j…GWf4`，bazaar discovery 扩展完整。响应头含 `sendaifun|solana_directory` 来源追踪提示。
+2. **PriorSeal 生产为 V2 但 Solana 未放行**：`PRIORSEAL_X402_NETWORKS` 此前只开 `eip155:8453,eip155:999`；Solana payTo、PayAI facilitator 映射、rail 定义与测试本就齐备。已开 PR 修复（imokokok/PriorSeal#194，一行放行 + wrangler types 再生成，617/617 测试绿）。
+3. **分发 PR 状态复核**：sendaifun/skills#113、awesome-solana-ai#275（REVIEW_REQUIRED）、awesome-solana-mcp-servers#56、cryptoskills#1 均仍 OPEN，内容无需改动，等 maintainer。
+4. **Agent Registry（SATI，ERC-8004 on Solana）**：程序 `satiRkxEiwZ51cv8PRu8UMzuaqeaNU9jABo6oAFMsLe`（主网/开发网同 ID），SDK `@cascade-fyi/sati-sdk`，注册费 ~0.003–0.01 SOL，注册文件为 ERC-8004 `registration-v1` 格式且 `registrations` 数组支持跨链互链（可挂 BNB eip155:56 agentId 375779，实取自 bnbconfig.json）。注册脚本已入库：`scripts/x402/agent-registry-register.mts`（默认干跑，`SATI_EXECUTE=true` 才上链）。
+
+### 阻塞项（资金）
+
+x402 Solana payer `DZJeasENbqrMzi7Dv78VpM3YMCxK9hFBJNtTQfTBZWyJ`（`~/.workbuddy/secrets/x402-solana-payer.json`）主网余额为 0 SOL。注资 ~0.02–0.05 SOL 后可解锁两件事：
+
+- SATI 注册（脚本 dry-run 已验证到余额门槛，RPC 用 Helius 直连可达：`SATI_RPC_URL` 传入）。
+- 首笔经 PayAI facilitator 的真实 Solana settle（Insight pre-trade 与/或 PriorSeal evidence bundle，各 ~0.02 USDC + feePayer 代付 gas）——这是 PayAI Bazaar 收录的钥匙，等价于 Base 侧 CDP settle 规则。
+
+### 网络坑（新增）
+
+- `api.mainnet-beta.solana.com` 直连超时（DNS 指向异常 IP），curl 走 7890 代理可通；node fetch 直连不可用。`mainnet.helius-rpc.com` 直连可达——脚本/演练一律用 Helius。
