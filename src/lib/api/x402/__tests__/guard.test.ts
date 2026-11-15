@@ -314,6 +314,55 @@ describe('x402 guard', () => {
       expect(mockInsert).not.toHaveBeenCalled();
     });
 
+    it('never appends a HyperCore quote (non-CAIP-2 network) to the bare 402 accepts', async () => {
+      const originalFetch = global.fetch;
+      const facilitatorFetch = jest.fn();
+      global.fetch = facilitatorFetch as unknown as typeof fetch;
+      try {
+        const processHTTPRequest = jest.fn().mockResolvedValue({
+          type: 'payment-error',
+          response: {
+            status: 402,
+            headers: { 'PAYMENT-REQUIRED': 'quote' },
+            body: {
+              x402Version: 2,
+              error: 'Payment required',
+              accepts: [{ scheme: 'exact', network: 'eip155:8453', amount: '20000' }],
+            },
+          },
+        });
+        mockedGetServer.mockResolvedValue({ processHTTPRequest });
+
+        const config: X402Config = {
+          ...CFG,
+          hypercore: {
+            network: 'hyperliquid:mainnet',
+            payTo: '0xdef0000000000000000000000000000000000002',
+            facilitatorUrl: 'https://hypercore-facilitator.example',
+            merchantId: 'insight',
+            merchantSecret: 'a-merchant-secret-that-is-long-enough',
+            timeoutMs: 15_000,
+            maxTimeoutSeconds: 60,
+          },
+        };
+        const res = await handlePaidPreTradeRequest(makeRequest(), config, OK_BUSINESS);
+
+        expect(res.status).toBe(402);
+        const body = (await res.json()) as { accepts?: Array<{ network?: string }> };
+        const networks = (body.accepts ?? []).map((entry) => entry.network ?? '');
+        expect(networks.length).toBeGreaterThan(0);
+        for (const network of networks) {
+          expect(network.startsWith('eip155:') || network.startsWith('solana:')).toBe(true);
+        }
+        // The Core rail is not advertised on discovery-visible endpoints: the
+        // self-hosted facilitator is its own resource and must never be hit
+        // just to embellish a bare 402.
+        expect(facilitatorFetch).not.toHaveBeenCalled();
+      } finally {
+        global.fetch = originalFetch;
+      }
+    });
+
     it('rejects quote floods before payment handling', async () => {
       incrementRateLimitMock.mockResolvedValue({
         count: 49,
