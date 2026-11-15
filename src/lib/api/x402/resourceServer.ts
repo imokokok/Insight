@@ -931,11 +931,74 @@ function advertisedPaymentOptions(
   return [...amounts].flatMap((amount) => getX402PaymentOptions(cfg, amount));
 }
 
-export function buildFacilitatorClients(
+export interface FacilitatorRoute {
+  /** Payment networks that must use this facilitator. */
+  networks: ReadonlySet<string>;
+  client: FacilitatorClient;
+}
+
+/**
+ * Routes each verify/settle call to the facilitator intentionally mapped to
+ * the requirement's network. `x402ResourceServer` picks the FIRST client
+ * whose /supported lists a (network, scheme) kind, so a default facilitator
+ * that newly advertises a network with an intentional override (CDP added
+ * Solana mainnet V2 exact in 2026-10 while this deployment pins PayAI) would
+ * otherwise steal verify/settle routing and reject every payment with
+ * "feePayer not managed" (live-observed 2026-11-16; the identical payload
+ * verified isValid against PayAI directly). This wrapper removes the race:
+ * the network owner is decided by configuration, not advertisement order.
+ */
+class NetworkRoutedFacilitatorClient implements FacilitatorClient {
+  constructor(private readonly routes: readonly FacilitatorRoute[]) {}
+
+  private routeFor(network: string): FacilitatorClient {
+    const route = this.routes.find((candidate) => candidate.networks.has(network));
+    if (!route) {
+      throw new Error(`no facilitator is mapped for payment network ${network}`);
+    }
+    return route.client;
+  }
+
+  async verify(
+    paymentPayload: Parameters<FacilitatorClient['verify']>[0],
+    paymentRequirements: Parameters<FacilitatorClient['verify']>[1]
+  ): Promise<Awaited<ReturnType<FacilitatorClient['verify']>>> {
+    return this.routeFor(paymentRequirements.network).verify(paymentPayload, paymentRequirements);
+  }
+
+  async settle(
+    paymentPayload: Parameters<FacilitatorClient['settle']>[0],
+    paymentRequirements: Parameters<FacilitatorClient['settle']>[1]
+  ): Promise<Awaited<ReturnType<FacilitatorClient['settle']>>> {
+    return this.routeFor(paymentRequirements.network).settle(paymentPayload, paymentRequirements);
+  }
+
+  async getSupported(): Promise<Awaited<ReturnType<FacilitatorClient['getSupported']>>> {
+    const kinds: Awaited<ReturnType<FacilitatorClient['getSupported']>>['kinds'] = [];
+    const extensions = new Set<string>();
+    const signers: Record<string, string[]> = {};
+    for (const route of this.routes) {
+      try {
+        const supported = await route.client.getSupported();
+        kinds.push(...supported.kinds);
+        for (const extension of supported.extensions ?? []) extensions.add(extension);
+        for (const [key, values] of Object.entries(supported.signers ?? {})) {
+          signers[key] = values;
+        }
+      } catch {
+        // Inner resilient clients already serve their offline fallback kinds;
+        // a route that cannot advertise anything must not break the others.
+      }
+    }
+    return { kinds, extensions: [...extensions], signers };
+  }
+}
+
+export function buildFacilitatorRoutes(
   cfg: X402Config,
   deps?: Partial<X402ServerDeps>,
   options: ReturnType<typeof getX402PaymentOptions> = getX402PaymentOptions(cfg)
-): FacilitatorClient[] {
+): FacilitatorRoute[] {
   const timeoutMs = deps?.facilitatorTimeoutMs ?? cfg.facilitatorTimeoutMs;
   const urls = new Set<string>();
   if (deps?.facilitatorUrl) {
@@ -986,13 +1049,16 @@ export function buildFacilitatorClients(
       );
     }
     const bearerToken = bearerTokens.values().next().value ?? cfg.facilitatorBearerToken ?? null;
-    return createResilientFacilitator({
-      url,
-      timeoutMs,
-      cdpAuth: isCdp ? cfg.facilitatorCdpAuth : null,
-      bearerToken: isCdp ? null : bearerToken,
-      fallbackKinds,
-    });
+    return {
+      networks: new Set(routed.map((option) => option.network)),
+      client: createResilientFacilitator({
+        url,
+        timeoutMs,
+        cdpAuth: isCdp ? cfg.facilitatorCdpAuth : null,
+        bearerToken: isCdp ? null : bearerToken,
+        fallbackKinds,
+      }),
+    };
   });
 }
 
@@ -1002,7 +1068,11 @@ export async function buildX402HttpServer(
   options?: { mcpAmountAtomic?: string; mcpDiscoveryToolName?: string }
 ): Promise<x402HTTPResourceServer> {
   const paymentOptions = advertisedPaymentOptions(cfg, options?.mcpAmountAtomic);
-  const facilitators = buildFacilitatorClients(cfg, deps, paymentOptions);
+  const facilitatorRoutes = buildFacilitatorRoutes(cfg, deps, paymentOptions);
+  const facilitators: FacilitatorClient =
+    facilitatorRoutes.length === 1
+      ? facilitatorRoutes[0].client
+      : new NetworkRoutedFacilitatorClient(facilitatorRoutes);
 
   const server = new x402ResourceServer(facilitators);
   if (paymentOptions.some((option) => option.family === 'evm')) {
