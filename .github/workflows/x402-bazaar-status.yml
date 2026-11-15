@@ -5,7 +5,7 @@ permissions:
   contents: read
 jobs:
   check:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Query CDP x402 Bazaar discovery search
         run: |
