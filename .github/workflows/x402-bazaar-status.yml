@@ -1,0 +1,35 @@
+name: x402 Bazaar status check
+on:
+  workflow_dispatch:
+    inputs:
+      query:
+        description: "Bazaar search query (e.g. priorseal)"
+        default: priorseal
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Query CDP x402 Bazaar discovery search
+        run: |
+          curl -sS --max-time 30 \
+            "https://api.cdp.coinbase.com/platform/v2/x402/discovery/search?query=${{ inputs.query }}" \
+            | python3 -c "
+import json,sys
+d=json.load(sys.stdin)
+rs=d.get('resources',[])
+print('BAZAAR_HITS', len(rs))
+for r in rs:
+    print('-', r.get('resource',''))
+    a=r.get('accepts') or []
+    print('  networks:', sorted({x.get('network','') for x in a}))
+"
+      - name: Check seller discovery manifest
+        run: |
+          curl -sS --max-time 30 "https://priorseal.xyz/.well-known/x402" \
+            | python3 -c "
+import json,sys
+d=json.load(sys.stdin)
+print('MANIFEST_RESOURCES', len(d.get('resources',[])))
+" || echo "MANIFEST_UNREACHABLE"
