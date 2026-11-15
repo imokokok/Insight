@@ -1,5 +1,5 @@
 import { getX402PaymentOptions, parseX402Config, SOLANA_MAINNET_CAIP2 } from '../config';
-import { buildFacilitatorClients } from '../resourceServer';
+import { buildFacilitatorRoutes } from '../resourceServer';
 
 const PAY_TO = 'seFkxFkXEY9JGEpCyPfCWTuPZG9WK6ucf95zvKCfsRX';
 const PAYAI_FACILITATOR_URL = 'https://facilitator.payai.network';
@@ -40,12 +40,15 @@ describe('x402 facilitator claim order', () => {
       X402_SOLANA_FACILITATOR_URL: PAYAI_FACILITATOR_URL,
     });
     const options = getX402PaymentOptions(cfg);
-    const clients = buildFacilitatorClients(cfg, undefined, options);
-    expect(clients.length).toBeGreaterThan(0);
+    const routes = buildFacilitatorRoutes(cfg, undefined, options);
+    expect(routes.length).toBeGreaterThan(0);
+    // The explicitly mapped Solana facilitator owns exactly the Solana rail.
+    const payai = routes.find((route) => route.networks.has(SOLANA_MAINNET_CAIP2));
+    expect(payai).toBeDefined();
 
-    // Force the same initialize()-order discovery the resource server uses.
-    for (const client of clients) {
-      await client.getSupported();
+    // Resolve the same /supported discovery the resource server uses.
+    for (const route of routes) {
+      await route.client.getSupported();
     }
 
     const first = supportedUrls[0];
