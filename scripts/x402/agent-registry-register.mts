@@ -29,11 +29,7 @@
 
 import fs from 'node:fs';
 
-import {
-  Sati,
-  createSatiUploader,
-  type RegistrationEntry,
-} from '@cascade-fyi/sati-sdk';
+import { Sati, createSatiUploader, type RegistrationEntry } from '@cascade-fyi/sati-sdk';
 import { createKeyPairSignerFromPrivateKeyBytes, type KeyPairSigner } from '@solana/kit';
 
 const NETWORK = (process.env.SATI_NETWORK ?? 'mainnet') as 'mainnet' | 'devnet';
@@ -69,13 +65,9 @@ function loadKeyPairSigner(): Promise<KeyPairSigner> {
   if (Array.isArray(parsed)) {
     const bytes = Uint8Array.from(parsed as number[]);
     secret = bytes.length === 64 ? bytes.slice(0, 32) : bytes;
-  } else if (
-    typeof parsed === 'object' &&
-    parsed !== null &&
-    'secretKeyBase64' in parsed
-  ) {
+  } else if (typeof parsed === 'object' && parsed !== null && 'secretKeyBase64' in parsed) {
     secret = Uint8Array.from(
-      Buffer.from((parsed as { secretKeyBase64: string }).secretKeyBase64, 'base64'),
+      Buffer.from((parsed as { secretKeyBase64: string }).secretKeyBase64, 'base64')
     ).slice(0, 32);
   } else {
     throw new Error('unsupported keypair JSON shape');
@@ -87,7 +79,9 @@ async function getBalanceSol(payer: KeyPairSigner): Promise<number> {
   const { createSolanaRpc } = await import('@solana/kit');
   const rpcUrl =
     process.env.SATI_RPC_URL ??
-    (NETWORK === 'mainnet' ? 'https://api.mainnet-beta.solana.com' : 'https://api.devnet.solana.com');
+    (NETWORK === 'mainnet'
+      ? 'https://api.mainnet-beta.solana.com'
+      : 'https://api.devnet.solana.com');
   const rpc = createSolanaRpc(rpcUrl);
   const { value } = await rpc.getBalance(payer.address).send();
   return Number(value) / 1e9;
@@ -102,9 +96,7 @@ function registrationFilePreview() {
     description: AGENT.description,
     image: AGENT.image,
     externalUrl: AGENT.externalUrl,
-    services: [
-      { name: 'MCP', url: AGENT.mcpUrl, version: '2025-06-18' },
-    ],
+    services: [{ name: 'MCP', url: AGENT.mcpUrl, version: '2025-06-18' }],
     registrations: [BNB_REGISTRATION],
     supportedTrust: ['reputation'],
     active: true,
@@ -125,7 +117,7 @@ async function main(): Promise<void> {
 
   if (balance < MIN_BALANCE_SOL) {
     throw new Error(
-      `payer balance ${balance.toFixed(9)} SOL is below the ${MIN_BALANCE_SOL} SOL safety floor; fund it first`,
+      `payer balance ${balance.toFixed(9)} SOL is below the ${MIN_BALANCE_SOL} SOL safety floor; fund it first`
     );
   }
 
@@ -156,7 +148,10 @@ async function main(): Promise<void> {
   console.log('agent mint  :', result.mint);
   console.log('member no.  :', result.memberNumber);
   console.log('signature   :', result.signature);
-  console.log('agentId     :', `solana:${NETWORK === 'mainnet' ? '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' : 'EtWTRABZaYq6iMfeYKouRu166VU2xqa1'}:${result.mint}`);
+  console.log(
+    'agentId     :',
+    `solana:${NETWORK === 'mainnet' ? '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' : 'EtWTRABZaYq6iMfeYKouRu166VU2xqa1'}:${result.mint}`
+  );
 }
 
 try {
