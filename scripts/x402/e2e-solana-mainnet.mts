@@ -85,7 +85,10 @@ async function main(): Promise<void> {
   const hintFeePayer = (solAccept.extra as Record<string, unknown> | undefined)?.feePayer;
   console.log('quote feePayer:', hintFeePayer);
   if (FEE_PAYER_OVERRIDE && hintFeePayer !== FEE_PAYER_OVERRIDE) {
-    solAccept.extra = { ...(solAccept.extra as Record<string, unknown>), feePayer: FEE_PAYER_OVERRIDE };
+    solAccept.extra = {
+      ...(solAccept.extra as Record<string, unknown>),
+      feePayer: FEE_PAYER_OVERRIDE,
+    };
     console.log('override    : feePayer ->', FEE_PAYER_OVERRIDE);
   }
 
@@ -95,7 +98,9 @@ async function main(): Promise<void> {
   const res2 = await fetch(url, { headers: { ...headers, accept: 'application/json' } });
   const receiptHeader = res2.headers.get('payment-response');
   if (!res2.ok || !receiptHeader) {
-    console.error(`FAIL: status ${res2.status}, payment-response: ${receiptHeader ? 'present' : 'missing'}`);
+    console.error(
+      `FAIL: status ${res2.status}, payment-response: ${receiptHeader ? 'present' : 'missing'}`
+    );
     console.error((await res2.text()).slice(0, 600));
     process.exit(1);
   }
@@ -114,7 +119,8 @@ async function main(): Promise<void> {
   const validTransaction = typeof transaction === 'string' && transaction.length >= 80;
   const validPayer = typeof payerAddr === 'string' && payerAddr === signer.address;
   if (receipt.success !== true || receipt.network !== NETWORK || !validPayer || !validTransaction) {
-    const reason = typeof receipt.errorReason === 'string' ? receipt.errorReason : 'settlement_receipt_invalid';
+    const reason =
+      typeof receipt.errorReason === 'string' ? receipt.errorReason : 'settlement_receipt_invalid';
     console.error(`FAIL: settlement not confirmed (${reason})`);
     console.error('raw receipt:', JSON.stringify(receipt, null, 2));
     process.exit(1);
@@ -126,6 +132,9 @@ async function main(): Promise<void> {
 }
 
 main().catch((err: unknown) => {
-  console.error('e2e-solana-mainnet error:', err instanceof Error ? (err.stack ?? err.message) : err);
+  console.error(
+    'e2e-solana-mainnet error:',
+    err instanceof Error ? (err.stack ?? err.message) : err
+  );
   process.exit(1);
 });
