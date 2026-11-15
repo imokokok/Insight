@@ -332,6 +332,7 @@ describe('x402 config', () => {
       amountAtomic: '20000',
       priceUsd: 0.02,
       rpcUrl: null,
+      feePayerOverride: null,
     });
   });
 

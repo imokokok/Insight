@@ -51,7 +51,7 @@ const BNB_REGISTRATION: RegistrationEntry = {
   agentRegistry: 'eip155:56:0x8004A169FB4a3325136EB29fA0ceB6D2e539a432',
 };
 
-const MIN_BALANCE_SOL = 0.02; // registration ~0.003-0.01 SOL; keep headroom for fees
+const MIN_BALANCE_SOL = Number(process.env.SATI_MIN_BALANCE_SOL ?? 0.02); // registration ~0.003-0.01 SOL; keep headroom for fees
 
 function loadKeyPairSigner(): Promise<KeyPairSigner> {
   const inline = process.env.SATI_PAYER_KEYPAIR_JSON;
@@ -126,7 +126,13 @@ async function main(): Promise<void> {
     return;
   }
 
-  const sati = new Sati({ network: NETWORK });
+  const satiRpc = process.env.SATI_RPC_URL;
+  const sati = new Sati({
+    network: NETWORK,
+    ...(satiRpc
+      ? { rpcUrl: satiRpc, photonRpcUrl: satiRpc, wsUrl: satiRpc.replace(/^http/, 'ws') }
+      : {}),
+  });
   const builder = sati
     .createAgentBuilder(AGENT.name, AGENT.description, AGENT.image)
     .setMCP(AGENT.mcpUrl, '2025-06-18')
