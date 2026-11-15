@@ -30,11 +30,7 @@
     "acceptedTokens": ["USDC"],
     "networks": [
       "eip155:8453",
-      "eip155:137",
-      "eip155:42161",
-      "eip155:143",
       "eip155:999",
-      "eip155:56",
       "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"
     ],
     "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231"
