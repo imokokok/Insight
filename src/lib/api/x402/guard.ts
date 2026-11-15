@@ -674,10 +674,6 @@ function encodePaymentHeader(value: unknown): string {
   return Buffer.from(JSON.stringify(value), 'utf8').toString('base64');
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
 async function hypercorePaymentRequired(
   request: NextRequest,
   config: HypercoreX402Config,
@@ -906,45 +902,6 @@ async function handleHypercorePayment(
   return businessResponse;
 }
 
-async function appendHypercoreQuote(
-  response: NextResponse,
-  request: NextRequest,
-  config: HypercoreX402Config,
-  amountAtomic: string
-): Promise<NextResponse> {
-  const client = createHypercoreFacilitatorClient(config);
-  const requirement = await client.quote(
-    request.nextUrl.toString(),
-    coreUsdAmountFromAtomic(amountAtomic)
-  );
-  let body: Record<string, unknown>;
-  try {
-    const parsed: unknown = await response.clone().json();
-    body =
-      isRecord(parsed) && Array.isArray(parsed.accepts)
-        ? parsed
-        : {
-            x402Version: 2,
-            error: 'Payment required',
-            resource: { url: request.nextUrl.toString() },
-            accepts: [],
-          };
-  } catch {
-    body = {
-      x402Version: 2,
-      error: 'Payment required',
-      resource: { url: request.nextUrl.toString() },
-      accepts: [],
-    };
-  }
-  const accepts = Array.isArray(body.accepts) ? body.accepts : [];
-  const nextBody = { ...body, accepts: [...accepts, requirement] };
-  const headers = new Headers(response.headers);
-  headers.set('payment-required', encodePaymentHeader(nextBody));
-  headers.set('cache-control', 'no-store');
-  return new NextResponse(JSON.stringify(nextBody), { status: response.status, headers });
-}
-
 /**
  * Run the x402 lifecycle for one pre-trade request.
  *
@@ -1031,7 +988,7 @@ export async function handlePaidPreTradeRequest(
     } else {
       logUnsignedQuoteSample(requestId, request.nextUrl.pathname);
     }
-    let response = toNextResponse(result.response);
+    const response = toNextResponse(result.response);
     if (!hasPaymentSignature) {
       // A bare 402 leaves an agent with no machine-readable next step. These
       // are advisory headers for SDK/agent clients, not browser-facing UI, and
@@ -1040,23 +997,15 @@ export async function handlePaidPreTradeRequest(
         response.headers.set(name, value);
       }
     }
-    if (!hasPaymentSignature && cfg.hypercore) {
-      try {
-        response = await appendHypercoreQuote(
-          response,
-          request,
-          cfg.hypercore,
-          options?.amountAtomic ?? cfg.amountAtomic
-        );
-      } catch (error) {
-        // A Core-beta outage must not suppress established EVM/SVM payment
-        // options. Return the ordinary x402 quote and emit a useful signal.
-        logger.warn('HyperCore quote omitted because facilitator is unavailable', {
-          requestId,
-          error: error instanceof Error ? error.message : String(error),
-        });
-      }
-    }
+    // HyperCore quotes are deliberately NOT appended to bare-402 accepts[]:
+    // `hyperliquid:mainnet` is an application protocol identifier, not a
+    // CAIP-2 network, and one malformed entry fails CDP/Bazaar discovery
+    // validation for the whole manifest (observed 2026-11-15). Core-USDC
+    // payments remain fully accepted through the payment-signature path,
+    // with requirements obtained directly from the self-hosted HyperCore
+    // facilitator (its own, separately discoverable resource). This mirrors
+    // the discovery manifest rule that request-bound quotes are disclosed as
+    // dynamicPaymentOptions, never fabricated into accepts[].
     response.headers.set('X-Request-Id', requestId);
     return response;
   }
