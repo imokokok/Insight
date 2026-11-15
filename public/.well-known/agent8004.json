@@ -1,7 +1,7 @@
 {
   "type": "https://eips.ethereum.org/EIPS/eip-8004#registration-v1",
   "name": "Insight",
-  "description": "Decision-input integrity for onchain AI agents: before a trade, borrow, or perp order is signed, check whether the price and action it relies on are trustworthy. Cross-oracle consensus (13 providers, 40+ chains) with manipulation-risk verdicts and verifiable EIP-712 attestations, plus pre-signing guard families for Base, Monad, multichain EVM, Solana lending, Base and Hyperliquid perps, a Base swap guard, 24h Oracle Watch monitored windows, and Position Lifecycle bundles. Pay-per-call via x402 v2 in USDC.",
+  "description": "Decision-input integrity for onchain AI agents: before a trade, borrow, or perp order is signed, check whether the price and action it relies on are trustworthy. Cross-oracle consensus (13 providers, 40+ chains) with manipulation-risk verdicts and verifiable EIP-712 attestations, plus pre-signing guard families for Base, Monad, multichain EVM, Solana lending, Base and Hyperliquid perps, a Base swap guard, 24h Oracle Watch monitored windows, and Position Lifecycle bundles. Reproducible decision-input evidence samples (HyperEVM and BNB Smart Chain, independently re-computable) are published under docs/evidence/ in this repository. Pay-per-call via x402 v2 in USDC.",
   "services": [
     {
       "name": "A2A",
