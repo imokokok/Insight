@@ -30,10 +30,10 @@ BNB Chain's own 2026 AI-agent landscape names four things an agent economy needs
 
 Two publicly reported BNB-ecosystem events illustrate the evidentiary gap this sample addresses:
 
-| Date       | Venue / surface       | Reported event                                                                                                     | Secondary source |
-| ---------- | --------------------- | ------------------------------------------------------------------------------------------------------------------ | ---------------- |
-| 2026-10-12 | Aster DEX (APM/USDT)  | Internal mark price printed from <$0.01 to $45 (~4,400×) with **zero movement on any other venue**; accounts were liquidated even at 5× margin | CoinsProbe (unverified — see §9) |
-| 2026-09/10 | BNB Chain hackathon brief | The official Tokenized Stocks brief opens with: markets close Friday, on-chain trading continues, "priced off a reference that has not updated in two days… almost nobody has built anything that acts on it" | bnbchain.org (official) |
+| Date       | Venue / surface           | Reported event                                                                                                                                                                                                | Secondary source                 |
+| ---------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
+| 2026-10-12 | Aster DEX (APM/USDT)      | Internal mark price printed from <$0.01 to $45 (~4,400×) with **zero movement on any other venue**; accounts were liquidated even at 5× margin                                                                | CoinsProbe (unverified — see §9) |
+| 2026-09/10 | BNB Chain hackathon brief | The official Tokenized Stocks brief opens with: markets close Friday, on-chain trading continues, "priced off a reference that has not updated in two days… almost nobody has built anything that acts on it" | bnbchain.org (official)          |
 
 The common structure across both is **not** "the price was wrong". It is that _the input set a decision relied on, its freshness, and its exclusion rules were not independently reconstructable afterwards_. The Aster dispute cannot currently be argued from recomputable facts; the tokenized-stocks weekend gap is visible to everyone and acted on by almost no one.
 
@@ -43,24 +43,24 @@ This sample exists to make that second claim concrete on BNB specifically: an **
 
 ## 2. Measured inputs (all fetched, none inferred)
 
-| Field           | Value                                                          |
-| --------------- | -------------------------------------------------------------- |
-| RPC             | `https://bsc-dataseed.bnbchain.org`                            |
-| chainId         | 56 (BNB Smart Chain mainnet)                                   |
-| block number    | 133,765,751                                                    |
-| block timestamp | 1,794,759,256 → 2026-11-15T16:14:16Z                           |
+| Field           | Value                                                                                               |
+| --------------- | --------------------------------------------------------------------------------------------------- |
+| RPC             | `https://bsc-dataseed.bnbchain.org`                                                                 |
+| chainId         | 56 (BNB Smart Chain mainnet)                                                                        |
+| block number    | 133,765,751                                                                                         |
+| block timestamp | 1,794,759,256 → 2026-11-15T16:14:16Z                                                                |
 | method          | `eth_call` `latestRoundData()` (`0xfeaf968c`) and `decimals()` (`0x313ce567`), pinned to that block |
 
-| Symbol | Feed (last 8) | dec |               raw answer |          value |  updatedAt |       age |
-| ------ | ------------- | --: | -----------------------: | -------------: | ---------: | --------: |
-| BTC    | `3aCa5Ebf`    |   8 |        6,452,756,248,575 | 64,527.56248575 | 1794759227 |      29 s |
-| ETH    | `401d5b2e`    |   8 |          180,612,000,000 |    1,806.120000 | 1794759247 |       9 s |
-| BNB    | `7D42aeE`     |   8 |           58,943,964,000 |    589.43964000 | 1794759237 |      19 s |
-| USDT   | `88b4320`     |   8 |               99,939,000 |      0.99939000 | 1794758835 |     421 s |
-| USDC   | `69EA163`     |   8 |               99,980,000 |      0.99980000 | 1794759200 |      56 s |
-| TSLA   | `c9B57893`    |   8 |           38,947,000,000 |    389.47000000 | 1794689955 |  69,301 s |
-| AAPL   | `e0fae0B6`    |   8 |           35,574,500,000 |    355.74500000 | 1794688169 |  71,087 s |
-| U      | `7D2a0c72f`   |  18 |  999,300,150,000,000,000 |      0.99930015 | 1794691430 |  67,826 s |
+| Symbol | Feed (last 8) | dec |              raw answer |           value |  updatedAt |      age |
+| ------ | ------------- | --: | ----------------------: | --------------: | ---------: | -------: |
+| BTC    | `3aCa5Ebf`    |   8 |       6,452,756,248,575 | 64,527.56248575 | 1794759227 |     29 s |
+| ETH    | `401d5b2e`    |   8 |         180,612,000,000 |    1,806.120000 | 1794759247 |      9 s |
+| BNB    | `7D42aeE`     |   8 |          58,943,964,000 |    589.43964000 | 1794759237 |     19 s |
+| USDT   | `88b4320`     |   8 |              99,939,000 |      0.99939000 | 1794758835 |    421 s |
+| USDC   | `69EA163`     |   8 |              99,980,000 |      0.99980000 | 1794759200 |     56 s |
+| TSLA   | `c9B57893`    |   8 |          38,947,000,000 |    389.47000000 | 1794689955 | 69,301 s |
+| AAPL   | `e0fae0B6`    |   8 |          35,574,500,000 |    355.74500000 | 1794688169 | 71,087 s |
+| U      | `7D2a0c72f`   |  18 | 999,300,150,000,000,000 |      0.99930015 | 1794691430 | 67,826 s |
 
 Full addresses are in the JSON vector. Feed addresses come from the Insight production feed catalog (`oracle_feeds`, `chain_id=56`, `source=chainlink-rdd` — ingested from Chainlink's public feed directory). Every address was independently verified on-chain at the pinned block by the reads above (fresh round data and the expected `decimals()`).
 
@@ -86,11 +86,11 @@ The `U / USD` feed is 18-decimal, which the catalog explicitly notes must never 
 
 Eight feeds were read. Five were included, three excluded:
 
-| Feed                  | included | exclusionReason | why                                       |
-| --------------------- | -------- | --------------- | ----------------------------------------- |
-| BTC, ETH, BNB, USDT, USDC | true | `''`            | within 4 h, 8-decimal                     |
-| TSLA, AAPL            | false    | `stale`         | age 69,301 s / 71,087 s > 14,400 s        |
-| U                     | false    | `unsupported`   | 18 decimals, requires a separate decoder  |
+| Feed                      | included | exclusionReason | why                                      |
+| ------------------------- | -------- | --------------- | ---------------------------------------- |
+| BTC, ETH, BNB, USDT, USDC | true     | `''`            | within 4 h, 8-decimal                    |
+| TSLA, AAPL                | false    | `stale`         | age 69,301 s / 71,087 s > 14,400 s       |
+| U                         | false    | `unsupported`   | 18 decimals, requires a separate decoder |
 
 **Excluded observations remain in the hash.** A record that omits discarded inputs cannot be audited: a reviewer cannot tell whether a divergent source was never seen, or was seen and silently dropped.
 
