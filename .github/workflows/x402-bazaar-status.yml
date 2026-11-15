@@ -1,10 +1,6 @@
 name: x402 Bazaar status check
 on:
-  workflow_dispatch:
-    inputs:
-      query:
-        description: "Bazaar search query (e.g. priorseal)"
-        default: priorseal
+  workflow_dispatch: {}
 permissions:
   contents: read
 jobs:
@@ -13,9 +9,10 @@ jobs:
     steps:
       - name: Query CDP x402 Bazaar discovery search
         run: |
-          curl -sS --max-time 30 \
-            "https://api.cdp.coinbase.com/platform/v2/x402/discovery/search?query=${{ inputs.query }}" \
-            | python3 -c "
+          for q in priorseal oracleinsight; do
+            curl -sS --max-time 30 \
+              "https://api.cdp.coinbase.com/platform/v2/x402/discovery/search?query=$q" \
+              | python3 -c "
 import json,sys
 d=json.load(sys.stdin)
 rs=d.get('resources',[])
@@ -25,6 +22,7 @@ for r in rs:
     a=r.get('accepts') or []
     print('  networks:', sorted({x.get('network','') for x in a}))
 "
+          done
       - name: Check seller discovery manifest
         run: |
           curl -sS --max-time 30 "https://priorseal.xyz/.well-known/x402" \
