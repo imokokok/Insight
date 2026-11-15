@@ -184,6 +184,7 @@
   },
   "devDependencies": {
     "@aave-dao/aave-address-book": "^4.75.6",
+    "@cascade-fyi/sati-sdk": "^0.15.1",
     "@electric-sql/pglite": "0.5.14",
     "@next/bundle-analyzer": "^16.4.5",
     "@playwright/test": "^1.64.1",
