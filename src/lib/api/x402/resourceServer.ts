@@ -931,7 +931,7 @@ function advertisedPaymentOptions(
   return [...amounts].flatMap((amount) => getX402PaymentOptions(cfg, amount));
 }
 
-function buildFacilitatorClients(
+export function buildFacilitatorClients(
   cfg: X402Config,
   deps?: Partial<X402ServerDeps>,
   options: ReturnType<typeof getX402PaymentOptions> = getX402PaymentOptions(cfg)
@@ -944,7 +944,20 @@ function buildFacilitatorClients(
   } else if (options.length === 0) {
     urls.add(cfg.facilitatorUrl);
   } else {
-    for (const option of options) {
+    // Explicit per-network mappings must claim their x402 core routing slot
+    // first. `x402ResourceServer.initialize()` assigns each advertised
+    // (network, scheme) kind to the FIRST facilitator client that lists it,
+    // so a default facilitator that also advertises a network with an
+    // intentional override (e.g. CDP adding Solana mainnet while the operator
+    // pins PayAI) would otherwise steal verify/settle routing and reject
+    // payments with "feePayer not managed" (observed 2026-11-16).
+    const explicit = options.filter(
+      (option) => cfg.facilitatorUrls?.[option.network] !== undefined
+    );
+    const defaulted = options.filter(
+      (option) => cfg.facilitatorUrls?.[option.network] === undefined
+    );
+    for (const option of [...explicit, ...defaulted]) {
       urls.add(facilitatorUrlForNetwork(cfg, option.network));
     }
   }
