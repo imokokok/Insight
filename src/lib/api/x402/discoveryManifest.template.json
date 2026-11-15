@@ -192,6 +192,27 @@
       "accepts": []
     },
     {
+      "url": "https://www.oracleinsight.xyz/api/v1/safety/tokenized-stock-guard",
+      "method": "GET",
+      "description": "Decision Integrity — Tokenized Stock Guard: a read-only, pre-signing decision-input check for one Coinbase-tokenized stock (B20) on Base. GET applies the issuer NAV policy — 24h heartbeat, off-hours freeze, paused features, total-return multiplier, and caller-price deviation — and may return an Insight EIP-712 decision attestation. It never authorizes or broadcasts a transaction.",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "amount": "20000",
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "assetSymbol": "USDC",
+          "assetDecimals": 6,
+          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
+          "maxTimeoutSeconds": 60,
+          "extra": {
+            "name": "USDC",
+            "version": "2"
+          }
+        }
+      ]
+    },
+    {
       "url": "https://www.oracleinsight.xyz/api/v1/safety/multichain-evm-lending-guard",
       "method": "GET",
       "description": "Decision Integrity — Multichain EVM Lending Guard: a read-only, pre-signing decision for direct Aave V3 calls on Polygon, Arbitrum or BNB Chain; Venus Core or Lista Moolah isolated-market calls on BNB Chain; Compound V3, Dolomite, Euler v2, and Fluid T1 collateral-only supply on Arbitrum; Euler v2 and Fluid T1 collateral-only supply on Base; and exact Morpho Blue markets on Polygon or Arbitrum. GET returns a preview; POST binds one unsigned direct call and may return an Insight EIP-712 decision attestation. It never authorizes or broadcasts a transaction.",
@@ -405,5 +426,5 @@
   "attestation": {
     "type": "none"
   },
-  "updated": "2026-11-14"
+  "updated": "2026-11-16"
 }
