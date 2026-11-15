@@ -16,6 +16,7 @@ We do **not** claim:
 - that this is a production Insight guard decision. There is **no EIP-712 signature, no PriorSeal checkpoint, no on-chain anchor and no transaction** in this sample.
 - any judgement about whether any HIP-3 market price was right or wrong. We do not sell conclusions.
 - that any Chainlink feed is unhealthy. `stale` below is a freshness threshold **declared by this sample**, not a feed failure; the catalogued heartbeat for these feeds is 86,400 s.
+- that the optional `eip155` external-anchor mode is live in production. It is implemented and tested but **not enabled** as of 2026-11-15; production transparency evidence is file-based anchor records plus issuer-signed checkpoints (see §8).
 - conformance with AAT, SCITT, RFC 8785, RFC 6962 or RFC 3161, or any regulatory compliance.
 - any modification to the signed `oracle-incident-corpus` v1.0.0. Adding incidents requires re-signing, and that has **not** been done.
 - that we cover HIP-3 pricing. HIP-3 deployer quotes are not on-chain; the Chainlink feeds below are HyperEVM (chain 999) feeds. This sample cannot and does not perform a HIP-3 pre-trade guard.
@@ -139,7 +140,9 @@ Note the dependency honesty: the PriorSeal verification-bundle path is zero-depe
 
 ## 8. Boundaries, restated
 
-Without a signature and an external anchor, this sample **cannot prove that this observation set existed at the stated time** — it proves only that the encoding is deterministic and independently recomputable from the published vector. The production path closes that gap with an EIP-712 `HyperEvmLendingGuardDecision` attestation, a PriorSeal signed checkpoint, and an `eip155` anchor transaction with independent RPC re-verification (including rejection of anchors later than execution). Those components exist in the two repositories; **none of them were run for this sample**.
+Without a signature and an external anchor, this sample **cannot prove that this observation set existed at the stated time** — it proves only that the encoding is deterministic and independently recomputable from the published vector.
+
+The two repositories implement the complementary production path: an EIP-712 `HyperEvmLendingGuardDecision` attestation and a PriorSeal issuer-signed checkpoint with file-based anchor records, plus an **optional** `eip155` anchor transaction with independent RPC re-verification (including rejection of anchors later than execution). Activation status matters here: as of 2026-11-15 that optional external-anchor mode is implemented and tested but **not enabled in production** — `PRIORSEAL_REQUIRE_EXTERNAL_ANCHOR=false` and the anchor contract/transaction variables are empty. This was stated as a factual correction on 2026-11-15 in messages to the SCITT mailing list, the AAT author and the Solana grants team, and is repeated here so this note does not reintroduce the overstatement. None of these components were run for this sample.
 
 Nothing here changes the paid API, adds a chain, adds a protocol, or constitutes outreach. It is a format demonstration.
 
@@ -149,13 +152,15 @@ Nothing here changes the paid API, adds a chain, adds a protocol, or constitutes
 
 **Fetched in this session (primary):** HyperEVM JSON-RPC `eth_blockNumber`, `eth_getBlockByNumber`, `eth_chainId`, `eth_call` at block 51,341,641; Hyperliquid `info` endpoint `perpDexs` and `metaAndAssetCtxs` on 2026-11-15; DefiLlama `/v2/chains`; the production `GET /api/v1/safety/hyperevm-lending-guard` 402 response; Insight migration `0131_hyperevm_chainlink_feeds.sql` and `docs/hyperevm-lending-guard.md`.
 
+**Project records (primary, internal):** PriorSeal `.env.example` and runtime configuration for `PRIORSEAL_REQUIRE_EXTERNAL_ANCHOR=false` / empty anchor contract and transaction, and the 2026-11-15 factual-correction messages sent to the SCITT list, the AAT author and the Solana grants team.
+
 **Public reporting (secondary, not individually verified — verify before external citation):** the four HIP-3 incident dates and liquidation figures; Galaxy Research's SK Hynix oracle-input finding; Blockaid's 2026-08-04 blog post; Chainlink's Hyperliquid feed directory. One discrepancy is unresolved: a July 2026 report puts HIP-3 above 50% of total Hyperliquid volume, while the 2026-11-15 `metaAndAssetCtxs` measurement puts the ten builder dexes at 8.3% of combined notional. The two figures use different periods or scopes and must not be added or substituted.
 
 ---
 
 ## 10. Where this goes (and where it does not)
 
-**Publish, do not submit.** This artefact's value is _being citable and independently replayable_. A message sinks; a stable, version-pinned URL does not. So the first action is publication, not outreach. Publication is complete as of 2026-11-15; every outreach condition below remains unmet, and nothing has been sent.
+**Publish, do not submit.** This artefact's value is _being citable and independently replayable_. A message sinks; a stable, version-pinned URL does not. So the first action is publication, not outreach. Publication is complete as of 2026-11-15; this artefact itself has **not** been sent to any list or recipient, and every outreach condition below remains unmet. (Other project correspondence did go out on 2026-11-15 — a fit inquiry, an IETF SCITT implementation data point, and three factual corrections — so adding this note to those threads would be a second ping, not a first contact.)
 
 **Canonical location (published):** the public `imokokok/Insight` repository, directory `docs/evidence/hyperevm-decision-input-sample-2026-11-15/`, holding this note as `README.md`, the JSON vector and the verifier. The three files landed together in one squashed commit on `main` and are pinned by the annotated tag `evidence-hyperevm-sample-2026-11-15`; cite the tag URL in the header, not a moving branch path. Insight already publishes comparable technical notes (`docs/evidence-pack.md`, `docs/decision-input-assessment.md`, `docs/hyperevm-lending-guard.md`). **Do not put it in `oracle-incident-corpus`**: that corpus is signed at v1.0.0 and any change requires re-signing; adding these incidents there would break existing citations.
 
