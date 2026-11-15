@@ -17,7 +17,12 @@ describe('createCdpAuthHeaders', () => {
       expect(entry!.Authorization).toMatch(
         /^Bearer ey[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/
       );
+      expect(entry!['Correlation-Context']).toBe('sdkLanguage=typescript,source=insight');
     }
+  });
+
+  it('rejects an invalid configured facilitator URL before attempting to sign', () => {
+    expect(() => createCdpAuthHeaders(KEY, 'not a URL')).toThrow('Invalid CDP facilitator URL');
   });
 
   it('produces a fresh JWT on every invocation (no stale token reuse)', async () => {

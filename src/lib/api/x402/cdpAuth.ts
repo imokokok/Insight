@@ -13,8 +13,8 @@ import { generateJwt } from '@coinbase/cdp-sdk/auth';
 
 import { FACILITATOR_HOSTS } from './facilitators';
 
-const CDP_API_HOST = FACILITATOR_HOSTS.CDP;
-const CDP_X402_BASE_PATH = '/platform/v2/x402';
+const CDP_FACILITATOR_URL = `https://${FACILITATOR_HOSTS.CDP}/platform/v2/x402`;
+const CDP_CORRELATION_CONTEXT = 'sdkLanguage=typescript,source=insight';
 
 /** Shape expected by `HTTPFacilitatorClient`'s `createAuthHeaders` option. */
 export type FacilitatorAuthHeaders = {
@@ -36,24 +36,38 @@ export interface CdpApiKey {
  * required by the `HTTPFacilitatorClient` contract (a flat headers object
  * would silently drop auth and is rejected by the client).
  */
-export function createCdpAuthHeaders(key: CdpApiKey): () => Promise<FacilitatorAuthHeaders> {
+export function createCdpAuthHeaders(
+  key: CdpApiKey,
+  facilitatorUrl = CDP_FACILITATOR_URL
+): () => Promise<FacilitatorAuthHeaders> {
+  let parsedUrl: URL;
+  try {
+    parsedUrl = new URL(facilitatorUrl);
+  } catch {
+    throw new Error(`Invalid CDP facilitator URL: ${facilitatorUrl}`);
+  }
+  const basePath = parsedUrl.pathname.replace(/\/$/, '');
+
   const makeHeader = async (method: string, path: string): Promise<Record<string, string>> => {
     const token = await generateJwt({
       apiKeyId: key.apiKeyId,
       apiKeySecret: key.apiKeySecret,
       requestMethod: method,
-      requestHost: CDP_API_HOST,
+      requestHost: parsedUrl.host,
       requestPath: path,
       expiresIn: 120,
     });
-    return { Authorization: `Bearer ${token}` };
+    return {
+      Authorization: `Bearer ${token}`,
+      'Correlation-Context': CDP_CORRELATION_CONTEXT,
+    };
   };
 
   return () =>
     Promise.all([
-      makeHeader('POST', `${CDP_X402_BASE_PATH}/verify`),
-      makeHeader('POST', `${CDP_X402_BASE_PATH}/settle`),
-      makeHeader('GET', `${CDP_X402_BASE_PATH}/supported`),
+      makeHeader('POST', `${basePath}/verify`),
+      makeHeader('POST', `${basePath}/settle`),
+      makeHeader('GET', `${basePath}/supported`),
     ]).then(([verify, settle, supported]) => ({ verify, settle, supported }));
 }
 

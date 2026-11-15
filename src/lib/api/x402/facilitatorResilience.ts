@@ -112,7 +112,7 @@ export function createResilientFacilitator(
     throw new Error('a facilitator cannot use both CDP credentials and a static Bearer token');
   }
   const createAuthHeaders = cdpAuth
-    ? createCdpAuthHeaders(cdpAuth)
+    ? createCdpAuthHeaders(cdpAuth, url)
     : bearerToken
       ? createStaticBearerAuthHeaders(bearerToken)
       : undefined;
