@@ -755,6 +755,16 @@ export const X402_BNB_PERP_GUARD_ROUTE = '/api/v1/safety/bnb-perp-guard';
  */
 export const X402_PREDICTION_GUARD_ROUTE = '/api/v1/safety/prediction-guard';
 
+/**
+ * Coinbase Tokenized Stocks (B20) decision-input guard. GET evaluates one
+ * pre-trade request against the issuer's official NAV reference for these
+ * Base-native assets (24h heartbeat, off-hours freeze, paused features,
+ * total-return multiplier, caller-price deviation) and may return an Insight
+ * EIP-712 decision attestation. It never signs, submits, or authorizes an
+ * order.
+ */
+export const X402_TOKENIZED_STOCK_GUARD_ROUTE = '/api/v1/safety/tokenized-stock-guard';
+
 /** Official-API-built Loopscale Solana lending-vault deposit gate. */
 export const X402_LOOPSCALE_VAULT_DEPOSIT_ROUTE = '/api/v1/safety/loopscale-vault-deposit';
 
@@ -830,6 +840,7 @@ export const X402_PAID_REST_ROUTE_PATHS = [
   X402_SOLANA_SWAP_GUARD_ROUTE,
   X402_BNB_PERP_GUARD_ROUTE,
   X402_PREDICTION_GUARD_ROUTE,
+  X402_TOKENIZED_STOCK_GUARD_ROUTE,
   X402_LOOPSCALE_VAULT_DEPOSIT_ROUTE,
   X402_SWAP_INTENT_ROUTE,
   X402_ORACLE_WATCH_WINDOW_ROUTE,

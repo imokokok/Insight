@@ -30,6 +30,7 @@ import {
   X402_SOLANA_SWAP_GUARD_ROUTE,
   X402_BNB_PERP_GUARD_ROUTE,
   X402_PREDICTION_GUARD_ROUTE,
+  X402_TOKENIZED_STOCK_GUARD_ROUTE,
   X402_SETTLEMENT_EVIDENCE_GRADE_ROUTE,
   X402_ORACLE_CONFIG_SNAPSHOT_ROUTE,
   X402_LOOPSCALE_VAULT_DEPOSIT_ROUTE,
@@ -703,6 +704,52 @@ function routeConfigWithoutDiscovery(
   };
 }
 
+/** Marketplace contract for the Coinbase Tokenized Stocks decision-input guard. */
+export const BAZAAR_TOKENIZED_STOCK_GUARD_DISCOVERY_EXTENSION = declareDiscoveryExtension({
+  input: {
+    asset: 'TSLAc',
+    action: 'borrow',
+    tradeAmountUsd: 10000,
+    decisionPriceUsd: 412.5,
+  },
+  inputSchema: {
+    type: 'object',
+    properties: {
+      asset: {
+        type: 'string',
+        description:
+          'Tokenized stock symbol from the Coinbase issuer directory, e.g. TSLAc, GOOGLc',
+      },
+      action: {
+        type: 'string',
+        enum: ['swap', 'borrow', 'lend', 'liquidate', 'repay'],
+        description: 'Type of DeFi operation the caller intends to price with this asset',
+      },
+      tradeAmountUsd: { type: 'number', description: 'Trade size in USD' },
+      decisionPriceUsd: {
+        type: 'number',
+        description:
+          'Optional USD per unit price the caller intends to use; compared against the NAV x multiplier reference',
+      },
+      maxDeviationBps: {
+        type: 'number',
+        description:
+          'Maximum allowed decision-price deviation from the reference, in bps (default 1000)',
+      },
+    },
+    required: ['asset', 'action', 'tradeAmountUsd'],
+  },
+  output: {
+    example: {
+      schema: 'insight.tokenized-stock-guard.v1',
+      verdict: 'WAIT',
+      actionability: 'TRADE_ONLY',
+      reasons: ['NAV_FROZEN_OFF_HOURS_TRADE_ONLY'],
+      reference: { referenceTokenPriceUsd: 412.33, navAgeHours: 41.2, multiplier: 1 },
+    },
+  },
+});
+
 /**
  * The `tools/list` catalog is the single source of truth for the 16-tool
  * surface. An MCP discovery extension must declare the exact tool the quote
@@ -1031,6 +1078,11 @@ export async function buildX402HttpServer(
     [X402_PREDICTION_GUARD_ROUTE]: routeConfigWithoutDiscovery(
       cfg,
       'Prediction Guard: a read-only screening gate for one Polymarket market entry. Cross-oracle consensus is deliberately not applied to event markets; the guard verifies machine-parseable price-contract metadata, lifecycle and resolution timing, quoted-probability integrity, and whether the declared settlement venue can be verified post-hoc by the settlement-evidence pipeline. It never signs, submits, or authorizes an order.'
+    ),
+    [X402_TOKENIZED_STOCK_GUARD_ROUTE]: routeConfigFor(
+      cfg,
+      BAZAAR_TOKENIZED_STOCK_GUARD_DISCOVERY_EXTENSION,
+      'Tokenized Stock Guard: a read-only, pre-signing decision-input check for one Coinbase-tokenized stock (B20) on Base. GET applies the issuer NAV policy — 24h heartbeat, off-hours freeze, paused features, total-return multiplier, and caller-price deviation — and may return an Insight EIP-712 decision attestation. It never signs, submits, or authorizes an order.'
     ),
     [X402_LOOPSCALE_VAULT_DEPOSIT_ROUTE]: routeConfigWithoutDiscovery(
       cfg,
