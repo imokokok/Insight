@@ -138,6 +138,7 @@
   },
   "dependencies": {
     "@api3/contracts": "^27.4.0",
+    "@cascade-fyi/sati-sdk": "^0.15.1",
     "@coinbase/cdp-sdk": "1.60.0",
     "@libsql/client": "^0.18.0",
     "@modelcontextprotocol/sdk": "^1.32.2",

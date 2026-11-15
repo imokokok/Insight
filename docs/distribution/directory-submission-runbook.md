@@ -34,10 +34,11 @@ creation, or wallet signature. Never place those secrets in a Skill archive.
 | Awesome Solana AI               | `awesome-solana-ai-entry.md`                     | [#275](https://github.com/solana-foundation/awesome-solana-ai/pull/275) |
 | Awesome Solana MCP Servers      | `awesome-solana-mcp-entry.md`                    | [#56](https://github.com/sendaifun/awesome-solana-mcp-servers/pull/56)  |
 
-All three PRs were opened 2026-10-30 and remain open as of 2026-11-06. #275
-has a clean automated review (Greptile 5/5, low impact). The remaining action
-is maintainer review, not new content. If a maintainer requests a change, edit
-the corresponding prepared entry here first, then update the PR.
+All three PRs were opened 2026-10-30. Recheck 2026-11-16: all three are still
+OPEN (`#275` shows `REVIEW_REQUIRED`); `naruto11eth/cryptoskills#1` is also
+still OPEN. No content changes are needed — the remaining action is maintainer
+review. If a maintainer requests a change, edit the corresponding prepared
+entry here first, then update the PR.
 
 Shared facts for every form or listing:
 
