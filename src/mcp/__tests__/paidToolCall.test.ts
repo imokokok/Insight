@@ -120,6 +120,13 @@ function mcpPost(body: unknown, headers: Record<string, string> = {}): Request {
   });
 }
 
+function bareMcpPost(): Request {
+  return new Request('http://localhost:3000/api/mcp', {
+    method: 'POST',
+    headers: { accept: 'application/json, text/event-stream' },
+  });
+}
+
 function toolsCallBody(name = 'get_symbols', args: Record<string, unknown> = {}) {
   return {
     jsonrpc: '2.0',
@@ -685,6 +692,31 @@ describe('unauthenticated GET indexer probes', () => {
     expect(body.x402Version).toBe(2);
     // The probe quote is priced by the flagship tool and mirrors the POST
     // handshake's method so directory metadata stays accurate.
+    expect(getMcpX402HttpServerMock).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: true }),
+      priceAtomicForTool('check_trade_safety'),
+      'check_trade_safety'
+    );
+    expect(processHTTPRequest).toHaveBeenCalledWith(expect.objectContaining({ method: 'POST' }));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(mockInsert).not.toHaveBeenCalled();
+  });
+
+  it('answers a bare POST indexer probe with the same non-binding x402 quote', async () => {
+    processHTTPRequest.mockResolvedValue({
+      type: 'payment-error',
+      response: {
+        status: 402,
+        headers: { 'PAYMENT-REQUIRED': 'base64quote' },
+        body: { x402Version: 2, accepts: [{ scheme: 'exact', amount: '40000' }] },
+      },
+    });
+
+    const { response, cleanup } = await handleMcpHttpRequest(bareMcpPost());
+    await cleanup();
+
+    expect(response.status).toBe(402);
+    expect(response.headers.get('payment-required')).toBe('base64quote');
     expect(getMcpX402HttpServerMock).toHaveBeenCalledWith(
       expect.objectContaining({ enabled: true }),
       priceAtomicForTool('check_trade_safety'),

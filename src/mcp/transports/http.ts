@@ -355,6 +355,21 @@ function sseRequested(request: Request): boolean {
   return (request.headers.get('accept') ?? '').toLowerCase().includes('text/event-stream');
 }
 
+/**
+ * A bare POST is the POST-shaped counterpart to the directory indexer's GET
+ * probe. It carries no JSON-RPC method or tool call, so it is safe to answer
+ * with the unsigned shelf quote; a real `tools/call` still goes through the
+ * normal paid bridge below and cannot execute without a payment signature.
+ */
+async function isBarePostProbe(request: Request): Promise<boolean> {
+  if (request.method !== 'POST' || request.headers.has('payment-signature')) return false;
+  try {
+    return (await request.clone().text()).trim().length === 0;
+  } catch {
+    return false;
+  }
+}
+
 /** Per-minute IP rate limit for the unauthenticated x402 tools/call tier. */
 const PAID_TOOLS_RATE_LIMIT = { windowMs: 60_000, maxRequests: 60 };
 
@@ -705,6 +720,19 @@ export async function handleMcpHttpRequest(
     const anonymous = await tryAnonymousDiscovery(request, Boolean(mppConfig?.mcpEnabled));
     if (anonymous) {
       return anonymous;
+    }
+    // Agentic Market/CDP Bazaar also validates POST resources with an empty
+    // POST body. Treat that request as a non-binding shelf probe, matching
+    // the GET indexer path above. Keep malformed JSON-RPC and real
+    // tools/call requests on the existing 401/x402 paths.
+    if (await isBarePostProbe(request)) {
+      const probeCfg = x402Config ?? getX402Config();
+      if (probeCfg) {
+        return {
+          response: withCors(await handleMcpIndexerQuote(request, probeCfg)),
+          cleanup: async () => {},
+        };
+      }
     }
     // The only remaining anonymous POSTs need the SDK transport (for example
     // an x402 tools/call). Normalize their Accept header lazily so successful
