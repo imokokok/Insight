@@ -1,0 +1,127 @@
+{
+  "schema": "insight-priorseal.portfolio-discovery.v1",
+  "name": "Insight + PriorSeal",
+  "version": "1.0.0",
+  "updated": "2026-11-16",
+  "sourceOfTruth": true,
+  "description": "Machine-readable capability directory for the independent Insight and PriorSeal products and their integrated decision-to-evidence workflow.",
+  "products": [
+    {
+      "id": "insight",
+      "name": "Insight",
+      "role": "decision-input-integrity",
+      "registrationFile": "https://www.oracleinsight.xyz/.well-known/agent8004.json",
+      "agentCard": "https://www.oracleinsight.xyz/.well-known/agent-card.json",
+      "mcp": "https://www.oracleinsight.xyz/api/mcp",
+      "openapi": "https://www.oracleinsight.xyz/openapi.json",
+      "x402Manifest": "https://www.oracleinsight.xyz/.well-known/x402",
+      "identity": [
+        {
+          "agentRegistry": "eip155:8453:0x8004A169FB4a3325136EB29fA0ceB6D2e539a432",
+          "agentId": 1201765
+        }
+      ],
+      "builderCode": {
+        "standard": "ERC-8021",
+        "value": "bc_mukkhhgf",
+        "network": "eip155:8453"
+      },
+      "capabilities": [
+        {
+          "id": "pre-trade-safety",
+          "kind": "decision-input-check",
+          "chains": [
+            "eip155:8453",
+            "eip155:56",
+            "eip155:143",
+            "eip155:999",
+            "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"
+          ],
+          "outputs": ["PASS", "CAUTION", "DANGER", "BLOCK"],
+          "execution": "Read-only assessment; never signs, authorizes, routes, or broadcasts a transaction."
+        },
+        {
+          "id": "base-lending-guard",
+          "kind": "pre-signing-guard",
+          "chains": ["eip155:8453"],
+          "protocols": ["Aave V3", "Morpho Blue", "Compound V3", "Moonwell"],
+          "execution": "Binds the declared unsigned call and returns an assessment; the user or executor remains responsible for signing."
+        },
+        {
+          "id": "base-swap-guard",
+          "kind": "pre-signing-guard",
+          "chains": ["eip155:8453"],
+          "protocols": ["Aerodrome Slipstream", "PancakeSwap V3"],
+          "execution": "Checks a reviewed exact swap profile and returns unsigned calldata for human confirmation; it never submits the swap."
+        },
+        {
+          "id": "base-perp-guard",
+          "kind": "pre-signing-guard",
+          "chains": ["eip155:8453"],
+          "protocols": ["Synthetix Perps V3"],
+          "execution": "Evaluates oracle integrity, leverage, and the declared call before signing; it never opens a position."
+        },
+        {
+          "id": "oracle-watch-and-position-lifecycle",
+          "kind": "monitoring-and-evidence",
+          "chains": [
+            "eip155:8453",
+            "eip155:56",
+            "eip155:143",
+            "eip155:999",
+            "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"
+          ],
+          "execution": "Provides monitored halt/proceed signals and portable evidence; it does not custody assets or execute trades."
+        }
+      ]
+    },
+    {
+      "id": "priorseal",
+      "name": "PriorSeal",
+      "role": "bounded-authorization-and-execution-evidence",
+      "registrationFile": "https://priorseal.xyz/.well-known/sati-agent.json",
+      "integrationManifest": "https://priorseal.xyz/.well-known/priorseal-agent.json",
+      "mcp": "https://priorseal.xyz/mcp",
+      "openapi": "https://priorseal.xyz/openapi/v1.json",
+      "capabilitiesEndpoint": "https://priorseal.xyz/v1/capabilities",
+      "capabilities": [
+        {
+          "id": "exact-call-authorization",
+          "kind": "pre-signing-authorization",
+          "chains": ["eip155:8453", "eip155:56", "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"],
+          "execution": "Binds an exact action to an explicit principal signature; PriorSeal never requests or stores the principal's signing key."
+        },
+        {
+          "id": "execution-observation",
+          "kind": "post-execution-evidence",
+          "chains": ["eip155:8453", "eip155:56", "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"],
+          "execution": "Observes a submitted execution against its authorization and emits independently verifiable receipt evidence; it never broadcasts."
+        },
+        {
+          "id": "verification-bundle",
+          "kind": "offline-verification",
+          "chains": ["chain-agnostic"],
+          "execution": "Exports portable evidence and verification metadata for independent checking; it is not custody, execution authority, or a profit guarantee."
+        }
+      ]
+    },
+    {
+      "id": "insight-priorseal-integrated",
+      "name": "Insight + PriorSeal",
+      "role": "decision-authorization-execution-evidence",
+      "flow": [
+        "Insight evaluates the decision input.",
+        "PriorSeal binds the exact call and authorization.",
+        "The user-controlled wallet or executor signs and broadcasts.",
+        "PriorSeal observes the result and emits portable evidence."
+      ],
+      "boundaries": ["no custody", "no signing", "no broadcast", "no profit guarantee"],
+      "capabilities": [
+        "pre-trade-safety",
+        "exact-call-authorization",
+        "execution-observation",
+        "verification-bundle"
+      ]
+    }
+  ]
+}

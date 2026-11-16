@@ -19,6 +19,28 @@
       "version": "1.0.0"
     }
   ],
+  "registrations": [
+    {
+      "agentRegistry": "eip155:8453:0x8004A169FB4a3325136EB29fA0ceB6D2e539a432",
+      "agentId": 1201765
+    },
+    {
+      "agentRegistry": "eip155:56:0x8004A169FB4a3325136EB29fA0ceB6D2e539a432",
+      "agentId": 375779
+    },
+    {
+      "agentRegistry": "eip155:143:0x8004A169FB4a3325136EB29fA0ceB6D2e539a432",
+      "agentId": 10414
+    }
+  ],
+  "capabilityCatalog": "https://www.oracleinsight.xyz/.well-known/portfolio-capabilities.json",
+  "x-base": {
+    "chainId": 8453,
+    "agentRegistry": "eip155:8453:0x8004A169FB4a3325136EB29fA0ceB6D2e539a432",
+    "agentId": 1201765,
+    "builderCode": "bc_mukkhhgf",
+    "builderCodeStandard": "ERC-8021"
+  },
   "x402Support": true,
   "x402": {
     "paymentEndpoint": "https://www.oracleinsight.xyz/api/v1/safety/pre-trade",
