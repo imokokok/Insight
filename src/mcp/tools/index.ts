@@ -103,7 +103,7 @@ const logger = createLogger(`mcp-tools`);
 /**
  * Default `core` advertises the 4 canonical product tools; the 16 deprecated
  * alias spellings stay resolvable via canonicalization but are not listed.
- * `MCP_TOOL_PROFILE=legacy` re-exposes the compatibility tools for rollback only
+ * `MCP_TOOL_PROFILE=legacy` re-exposes the 81 legacy tools for rollback only
  * until LEGACY_TOOL_REMOVAL_DATE.
  */
 function toolProfile(): 'core' | 'legacy' {
