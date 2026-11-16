@@ -83,8 +83,8 @@ import {
   solanaSwapGuardTool,
   verifySolanaSwapGuardSettlementTool,
 } from './solanaSwapGuardTools';
-import { UNIFIED_MCP_TOOLS, UNIFIED_TOOL_BY_NAME } from './unified';
-import { canonicalizeAlias } from './unified/aliases';
+import { UNIFIED_MCP_TOOLS, UNIFIED_RESOLVABLE_TOOLS, UNIFIED_TOOL_BY_NAME } from './unified';
+import { ALIAS_TOOL_NAMES, canonicalizeAlias } from './unified/aliases';
 import {
   LEGACY_MCP_TOOLS,
   LEGACY_TOOL_BY_NAME,
@@ -97,9 +97,10 @@ import type { McpToolCallContext, McpToolCallResult, McpToolDefinition } from '.
 const logger = createLogger(`mcp-tools`);
 
 /**
- * Default `core` lists the 4 canonical product tools plus their 16 deprecated
- * alias spellings. `MCP_TOOL_PROFILE=legacy` re-exposes the 81 legacy tools for
- * rollback only until LEGACY_TOOL_REMOVAL_DATE.
+ * Default `core` advertises the 4 canonical product tools; the 16 deprecated
+ * alias spellings stay resolvable via canonicalization but are not listed.
+ * `MCP_TOOL_PROFILE=legacy` re-exposes the 81 legacy tools for rollback only
+ * until LEGACY_TOOL_REMOVAL_DATE.
  */
 function toolProfile(): 'core' | 'legacy' {
   return process.env.MCP_TOOL_PROFILE === `legacy` ? `legacy` : `core`;
@@ -556,7 +557,7 @@ const JSON_SCHEMA_MAP: Record<
 // Wire schemas are separate from runtime validators because Zod transforms
 // cannot always be represented in JSON Schema. Legacy tools must keep their
 // advertised schema for the compatibility window; unified tools carry theirs.
-for (const tool of UNIFIED_MCP_TOOLS) {
+for (const tool of UNIFIED_RESOLVABLE_TOOLS) {
   if (!tool.inputSchema) {
     throw new Error(
       `Unified MCP tool "${tool.name}" is missing an inputSchema. Add one in ./unified/schemas.`
@@ -580,7 +581,9 @@ for (const tool of LEGACY_MCP_TOOLS) {
  *
  * Order: canonical product names are always unified; a deprecated alias under
  * the legacy profile resolves to the real legacy implementation when one
- * exists; every other alias is unified (it canonicalizes onto its product);
+ * exists; every other alias is unified (it canonicalizes onto its product) but
+ * stops resolving after LEGACY_TOOL_REMOVAL_DATE — the alias names are no
+ * longer advertised, so expiry only affects hardcoded legacy callers;
  * remaining unified names follow; legacy is the last fallback.
  */
 export function resolveToolSource(name: string): 'unified' | 'legacy' | 'unknown' {
@@ -588,7 +591,9 @@ export function resolveToolSource(name: string): 'unified' | 'legacy' | 'unknown
   if (toolProfile() === 'legacy' && legacy && !legacyToolsExpired()) {
     return 'legacy';
   }
-  if (UNIFIED_TOOL_BY_NAME.has(name)) return 'unified';
+  if (UNIFIED_TOOL_BY_NAME.has(name) && !(ALIAS_TOOL_NAMES.has(name) && legacyToolsExpired())) {
+    return 'unified';
+  }
   if (legacy && !legacyToolsExpired()) return 'legacy';
   return 'unknown';
 }
@@ -665,8 +670,8 @@ export async function executeTool(
   const dispatched = resolveDispatchedTool(name, args);
   if (!dispatched) {
     const removalHint =
-      LEGACY_TOOL_BY_NAME.has(name) && legacyToolsExpired()
-        ? ` (legacy name removed on ${LEGACY_TOOL_REMOVAL_DATE})`
+      (LEGACY_TOOL_BY_NAME.has(name) || ALIAS_TOOL_NAMES.has(name)) && legacyToolsExpired()
+        ? ` (name removed on ${LEGACY_TOOL_REMOVAL_DATE}; use the unified product tools)`
         : ``;
     return {
       content: [{ type: `text`, text: `Unknown tool: ${name}${removalHint}` }],

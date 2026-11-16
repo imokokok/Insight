@@ -8,22 +8,10 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 
 const UNIFIED_TOOL_NAMES = [
-  'get_oracle_price',
-  'get_price_analytics',
-  'get_oracle_health',
-  'search_oracle_registry',
-  'get_market_quote',
-  'check_trade_safety',
-  'begin_trade_evidence',
-  'prepare_swap',
-  'prepare_perp_order',
-  'issue_execution_receipt',
-  'verify_evidence',
-  'oracle_watch',
-  'oracle_watch_window_begin',
-  'oracle_watch_window_control',
-  'position_lifecycle_begin',
-  'position_lifecycle_step',
+  'trade_guard',
+  'trade_proof',
+  'oracle_watch_window',
+  'position_lifecycle',
 ];
 
 describe('MCP Server end-to-end', () => {
@@ -46,14 +34,15 @@ describe('MCP Server end-to-end', () => {
     await client.close();
   });
 
-  it('lists exactly the 20 consolidated tools', async () => {
+  it('lists exactly the 4 product tools with aliases unadvertised', async () => {
     const tools = await client.listTools();
-    expect(tools.tools.length).toBe(20);
+    expect(tools.tools.length).toBe(4);
 
     const names = tools.tools.map((t) => t.name);
     expect(names).toEqual(UNIFIED_TOOL_NAMES);
 
-    // Legacy names stay callable for 60 days but must not be advertised.
+    // Deprecated aliases stay resolvable but must not be advertised.
+    expect(names).not.toContain('check_trade_safety');
     expect(names).not.toContain('get_symbols');
     expect(names).not.toContain('pre_trade_safety_check');
     expect(names).not.toContain('assess_rwa_evidence');

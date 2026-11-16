@@ -249,17 +249,18 @@ describe('x402 capability payment bindings', () => {
       .map((tool) => tool.name)
       .filter((name) => !entitlementCoveredTools.includes(name))
       .sort();
-    // Only the exposed catalog needs a per-call realm. Legacy names remain
-    // callable for 60 days and already carry their original declarations.
+    // Only the exposed catalog needs a per-call realm. Deprecated aliases are
+    // canonicalized onto their product tool before pricing, so they inherit
+    // that realm without their own declaration; legacy names remain callable
+    // for 60 days and already carry their original declarations.
     const boundNames = [...Object.keys(X402_MCP_PAYMENT_SCOPE_BY_TOOL), ...dynamicTools]
       .filter((name) => catalogNames.includes(name))
       .sort();
 
     expect(boundNames).toEqual(catalogNames);
-    expect(entitlementCoveredTools).toEqual([
-      'oracle_watch_window_control',
-      'position_lifecycle_step',
-    ]);
+    // The four canonical products are all paid per call; the entitlement-
+    // covered aliases dropped out of the advertised catalog with them.
+    expect(entitlementCoveredTools).toEqual([]);
   });
 
   it('derives guard prepare scopes from the profileId prefix and fails closed on unknown ones', () => {

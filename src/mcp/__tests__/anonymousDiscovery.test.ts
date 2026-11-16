@@ -94,8 +94,11 @@ describe('anonymous MCP discovery', () => {
     const body = await readJson(response);
     const tools = (body.result as { tools?: Array<{ name: string }> }).tools ?? [];
     expect(tools).toEqual(MCP_TOOL_CATALOG);
-    expect(tools.length).toBe(20);
-    expect(tools.map((t) => t.name)).toContain('search_oracle_registry');
+    expect(tools.length).toBe(4);
+    expect(tools.map((t) => t.name)).toContain('trade_guard');
+    // Deprecated aliases stay resolvable via canonicalization but are no
+    // longer advertised in tools/list.
+    expect(tools.map((t) => t.name)).not.toContain('check_trade_safety');
     expect(tools.map((t) => t.name)).not.toContain('get_symbols');
     await cleanup();
   });

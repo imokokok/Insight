@@ -43,39 +43,34 @@ function textOf(result: { content: Array<{ type: string; text?: string }> }): st
 
 /** Names both registries implement — the only place dispatch can diverge. */
 const OVERLAP_TOOL_NAMES = new Set(
-  UNIFIED_MCP_TOOLS.map((tool) => tool.name).filter((name) => LEGACY_TOOL_BY_NAME.has(name))
+  [...ALIAS_TOOL_NAMES].filter((name) => LEGACY_TOOL_BY_NAME.has(name))
 );
 
 describe('consolidated MCP surface', () => {
-  it('exposes exactly 4 product tools plus 16 deprecated aliases', () => {
+  it('advertises 4 product tools; the 16 aliases stay resolvable but unlisted', () => {
     expect(CORE_MCP_TOOLS).toHaveLength(11);
     expect(LEGACY_PRODUCT_MCP_TOOLS).toHaveLength(5);
     expect(ALIAS_MCP_TOOLS).toHaveLength(16);
     expect(PRODUCT_MCP_TOOLS).toHaveLength(4);
-    expect(UNIFIED_MCP_TOOLS).toHaveLength(20);
+    expect(UNIFIED_MCP_TOOLS).toHaveLength(4);
 
     const names = UNIFIED_MCP_TOOLS.map((tool) => tool.name);
-    expect(new Set(names).size).toBe(20);
-
-    const advertised = getToolDefinitions();
-    expect(advertised).toHaveLength(20);
-    expect(advertised.map((tool) => tool.name)).toEqual(names);
-    // Canonical products lead; the 16 deprecated names follow.
-    expect(names.slice(0, 4)).toEqual([
+    expect(names).toEqual([
       'trade_guard',
       'trade_proof',
       'oracle_watch_window',
       'position_lifecycle',
     ]);
-    expect(names.slice(4)).toEqual(
-      expect.arrayContaining([
-        'get_oracle_price',
-        'check_trade_safety',
-        'begin_trade_evidence',
-        'position_lifecycle_step',
-      ])
-    );
-    for (const tool of advertised) {
+
+    const advertised = getToolDefinitions().map((tool) => tool.name);
+    // tools/list no longer carries the deprecated alias names.
+    expect(advertised).toEqual(names);
+    for (const alias of ALIAS_TOOL_NAMES) {
+      expect(advertised).not.toContain(alias);
+      // ...but a hardcoded old name still dispatches in the core profile.
+      expect(resolveToolSource(alias)).toBe('unified');
+    }
+    for (const tool of getToolDefinitions()) {
       expect(tool.inputSchema?.type).toBe('object');
       expect(tool.inputSchema?.properties).toBeDefined();
     }

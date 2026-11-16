@@ -5,7 +5,8 @@
 /**
  * Guards every agent-facing discovery surface against drift from the live MCP
  * catalog. The failure mode this test targets is real: the tool code and
- * `tools/list` moved to the consolidated 20-name catalog and the
+ * `tools/list` moved to the consolidated 4-name product catalog (with the 16
+ * deprecated aliases resolvable but unadvertised) and the
  * PASS/CAUTION/DANGER/BLOCK verdicts, while static copy (agent card, skill
  * manual, x402 manifest, server card, 402 bazaar descriptions) kept the older
  * pre-merge names and verdicts.
@@ -69,23 +70,23 @@ function expectNoStaleSafetyVerdicts(text: string, surface: string): void {
 }
 
 describe('MCP catalog shape', () => {
-  it('exposes exactly 20 discoverable names: 4 products plus 16 aliases', () => {
-    expect(entries).toHaveLength(20);
-    expect(entries.map((entry) => entry.name).sort()).toEqual([...ALL_NAMES].sort());
-    expect(
-      entries
-        .filter((entry) => !entry.deprecated)
-        .map((entry) => entry.name)
-        .sort()
-    ).toEqual([...PRODUCT_NAMES].sort());
-    expect(entries.filter((entry) => entry.deprecated)).toHaveLength(16);
+  it('advertises exactly the 4 product tools; aliases are resolvable but unlisted', () => {
+    expect(entries).toHaveLength(4);
+    expect(entries.map((entry) => entry.name).sort()).toEqual([...PRODUCT_NAMES].sort());
+    // Nothing advertised is deprecated, and no alias name leaks into the list.
+    expect(entries.filter((entry) => entry.deprecated)).toHaveLength(0);
+    for (const alias of ALIAS_NAMES) {
+      expect(entries.map((entry) => entry.name)).not.toContain(alias);
+    }
   });
 
-  it('sets the same sunset date on every alias and names its replacement', () => {
+  it('still documents the alias sunset and replacements in the static agent card', () => {
+    // Aliases are hidden from tools/list but keep working until the sunset;
+    // the static surfaces remain the compatibility documentation for them.
+    const raw = readPublicFile('public/.well-known/agent-card.json');
+    expect(raw).toContain(SUNSET);
     for (const alias of ALIAS_NAMES) {
-      const entry = entryByName(alias);
-      expect(entry.deprecated?.sunset).toBe(SUNSET);
-      expect(PRODUCT_NAMES).toContain(entry.deprecated?.replacedBy);
+      expect(raw).toContain(alias);
     }
   });
 
@@ -102,18 +103,19 @@ describe('MCP catalog shape', () => {
   });
 
   it('describes check_safety with PASS/CAUTION/DANGER/BLOCK only', () => {
-    for (const name of ['trade_guard', 'check_trade_safety']) {
-      const { description } = entryByName(name);
-      expect(description).toContain('PASS/CAUTION/DANGER/BLOCK');
-      expectNoStaleSafetyVerdicts(description, `catalog:${name}`);
-    }
+    // check_trade_safety is now a hidden alias; the catalog carries the
+    // verdict vocabulary only on trade_guard, the static agent card on the
+    // pre-trade skill.
+    const { description } = entryByName('trade_guard');
+    expect(description).toContain('PASS/CAUTION/DANGER/BLOCK');
+    expectNoStaleSafetyVerdicts(description, 'catalog:trade_guard');
   });
 
   it('keeps the generated server card in sync with the catalog descriptions', () => {
     const serverCard = JSON.parse(readPublicFile('public/.well-known/mcp/server-card.json')) as {
       tools: Array<{ description: string; name: string }>;
     };
-    expect(serverCard.tools.map((tool) => tool.name).sort()).toEqual([...ALL_NAMES].sort());
+    expect(serverCard.tools.map((tool) => tool.name).sort()).toEqual([...PRODUCT_NAMES].sort());
     for (const tool of serverCard.tools) {
       expect(tool.description).toBe(entryByName(tool.name).description);
     }
