@@ -141,11 +141,21 @@ describe('x402 config', () => {
     ).toThrow(/no recipient/);
   });
 
-  it('maps BNB Smart Chain to the bridged USDC contract with the AEON mandate domain', () => {
+  it('maps BNB Smart Chain to the bridged USDC contract with the PayAI Permit2 flow', () => {
     expect(usdcForNetwork('eip155:56')).toBe('0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d');
     expect(tokenNameForNetwork('eip155:56')).toBe('USD Coin');
     expect(tokenDecimalsForNetwork('eip155:56')).toBe(18);
     expect(() => eip3009TokenNameForNetwork('eip155:56')).toThrow(/no EIP-3009/);
+  });
+
+  it('carries assetTransferMethod=permit2 only on rails whose facilitator settles Permit2', () => {
+    const cfg = parseX402Config({
+      ...BASE_ENV,
+      X402_EVM_NETWORKS: 'eip155:8453,eip155:56',
+    });
+    const byNetwork = new Map(getX402PaymentOptions(cfg).map((option) => [option.network, option]));
+    expect(byNetwork.get('eip155:56')?.assetTransferMethod).toBe('permit2');
+    expect(byNetwork.get('eip155:8453')?.assetTransferMethod).toBeUndefined();
   });
 
   it('converts the micro-USDC amount to 18-decimal atomic units for eip155:56', () => {

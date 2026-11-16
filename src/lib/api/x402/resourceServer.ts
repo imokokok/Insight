@@ -677,9 +677,18 @@ function acceptsFor(cfg: X402Config, amountOverride?: string) {
     // Use a deterministic atomic amount; the accepted mint is network-specific.
     price: { asset: option.asset, amount: option.amountAtomic },
     maxTimeoutSeconds: cfg.maxTimeoutSeconds,
-    // EIP-712 metadata only applies to the EVM transferWithAuthorization flow.
+    // EIP-712 metadata only applies to the EVM transferWithAuthorization flow;
+    // assetTransferMethod flags rails whose facilitator settles Permit2.
     ...(option.family === 'evm' && option.tokenName
-      ? { extra: { name: option.tokenName, version: '2' } }
+      ? {
+          extra: {
+            name: option.tokenName,
+            version: '2',
+            ...(option.assetTransferMethod
+              ? { assetTransferMethod: option.assetTransferMethod }
+              : {}),
+          },
+        }
       : {}),
   }));
 }
