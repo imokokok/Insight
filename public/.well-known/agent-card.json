@@ -7,6 +7,17 @@
     "organization": "Insight",
     "url": "https://www.oracleinsight.xyz"
   },
+  "metadata": {
+    "capabilityCatalog": "https://www.oracleinsight.xyz/.well-known/portfolio-capabilities.json",
+    "erc8004": {
+      "agentRegistry": "eip155:8453:0x8004A169FB4a3325136EB29fA0ceB6D2e539a432",
+      "agentId": 1201765
+    },
+    "base": {
+      "builderCode": "bc_mukkhhgf",
+      "builderCodeStandard": "ERC-8021"
+    }
+  },
   "version": "1.4.0",
   "capabilities": {
     "streaming": false,

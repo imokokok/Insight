@@ -4,6 +4,13 @@
   "name": "Insight Decision-Input Trust API",
   "description": "Decision-input trust for AI agents trading onchain, offered as four product functions: Oracle Evidence (inspect and record what price sources actually report), Risk Intelligence (prepaid continuous monitoring for live positions), Decision Integrity (per-action signed pre-trade verdicts across guard families), and Verify (independent, always-free offline re-verification of signed evidence).",
   "docs": "https://www.oracleinsight.xyz/openapi.json",
+  "discovery": {
+    "capabilityCatalog": "https://www.oracleinsight.xyz/.well-known/portfolio-capabilities.json",
+    "agentRegistry": "eip155:8453:0x8004A169FB4a3325136EB29fA0ceB6D2e539a432",
+    "agentId": 1201765,
+    "builderCode": "bc_mukkhhgf",
+    "builderCodeStandard": "ERC-8021"
+  },
   "resources": [
     {
       "url": "https://www.oracleinsight.xyz/api/v1/safety/pre-trade",

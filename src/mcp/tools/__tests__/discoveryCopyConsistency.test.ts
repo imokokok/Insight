@@ -126,6 +126,70 @@ describe('MCP catalog shape', () => {
 });
 
 describe('static discovery surfaces', () => {
+  it('publishes one canonical portfolio capability catalog and points discovery surfaces to it', () => {
+    const catalog = JSON.parse(
+      readPublicFile('public/.well-known/portfolio-capabilities.json')
+    ) as {
+      sourceOfTruth: boolean;
+      products: Array<{ id: string; capabilities?: unknown[] }>;
+    };
+    expect(catalog.sourceOfTruth).toBe(true);
+    expect(catalog.products.map((product) => product.id)).toEqual([
+      'insight',
+      'priorseal',
+      'insight-priorseal-integrated',
+    ]);
+    expect(catalog.products.find((product) => product.id === 'insight')?.capabilities).toHaveLength(
+      5
+    );
+    expect(
+      catalog.products.find((product) => product.id === 'priorseal')?.capabilities
+    ).toHaveLength(3);
+
+    const registration = JSON.parse(readPublicFile('public/.well-known/agent8004.json')) as {
+      capabilityCatalog: string;
+      registrations: Array<{ agentId: number; agentRegistry: string }>;
+      'x-base': { agentId: number; builderCode: string };
+    };
+    expect(registration.capabilityCatalog).toBe(
+      'https://www.oracleinsight.xyz/.well-known/portfolio-capabilities.json'
+    );
+    expect(registration.registrations).toContainEqual({
+      agentRegistry: 'eip155:8453:0x8004A169FB4a3325136EB29fA0ceB6D2e539a432',
+      agentId: 1201765,
+    });
+    expect(registration['x-base']).toMatchObject({ agentId: 1201765, builderCode: 'bc_mukkhhgf' });
+
+    const card = JSON.parse(readPublicFile('public/.well-known/agent-card.json')) as {
+      metadata: {
+        capabilityCatalog: string;
+        erc8004: { agentId: number };
+        base: { builderCode: string };
+      };
+    };
+    expect(card.metadata).toEqual({
+      capabilityCatalog: 'https://www.oracleinsight.xyz/.well-known/portfolio-capabilities.json',
+      erc8004: {
+        agentRegistry: 'eip155:8453:0x8004A169FB4a3325136EB29fA0ceB6D2e539a432',
+        agentId: 1201765,
+      },
+      base: { builderCode: 'bc_mukkhhgf', builderCodeStandard: 'ERC-8021' },
+    });
+
+    const manifest = JSON.parse(
+      readPublicFile('src/lib/api/x402/discoveryManifest.template.json')
+    ) as {
+      discovery: { agentId: number; builderCode: string; capabilityCatalog: string };
+    };
+    expect(manifest.discovery).toEqual({
+      capabilityCatalog: 'https://www.oracleinsight.xyz/.well-known/portfolio-capabilities.json',
+      agentRegistry: 'eip155:8453:0x8004A169FB4a3325136EB29fA0ceB6D2e539a432',
+      agentId: 1201765,
+      builderCode: 'bc_mukkhhgf',
+      builderCodeStandard: 'ERC-8021',
+    });
+  });
+
   it('agent card carries the 20 names, sunset, verdicts and REST-only $0.02 label', () => {
     const raw = readPublicFile('public/.well-known/agent-card.json');
     expect(raw).not.toMatch(/\bWARN\b/);

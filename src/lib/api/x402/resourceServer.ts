@@ -67,7 +67,7 @@ let cachedKey = '';
  */
 export const BAZAAR_SERVICE_METADATA = {
   serviceName: 'Insight Oracle',
-  tags: ['oracle-safety', 'defi', 'pre-trade', 'x402', 'agent'],
+  tags: ['oracle-safety', 'defi', 'pre-trade', 'x402', 'agent', 'base'],
   iconUrl: 'https://www.oracleinsight.xyz/logos/insight-glacier-cut.svg',
 };
 

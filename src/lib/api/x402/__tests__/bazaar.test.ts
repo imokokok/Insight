@@ -79,7 +79,7 @@ describe('bazaar discovery extension', () => {
   it('declares searchable service metadata for every Bazaar-enabled resource', () => {
     expect(BAZAAR_SERVICE_METADATA).toEqual({
       serviceName: 'Insight Oracle',
-      tags: ['oracle-safety', 'defi', 'pre-trade', 'x402', 'agent'],
+      tags: ['oracle-safety', 'defi', 'pre-trade', 'x402', 'agent', 'base'],
       iconUrl: 'https://www.oracleinsight.xyz/logos/insight-glacier-cut.svg',
     });
   });

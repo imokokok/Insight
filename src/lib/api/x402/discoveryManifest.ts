@@ -26,6 +26,13 @@ type TemplateResource = {
 type TemplateManifest = {
   attestation: { type: string };
   description: string;
+  discovery: {
+    agentId: number;
+    agentRegistry: string;
+    builderCode: string;
+    builderCodeStandard: string;
+    capabilityCatalog: string;
+  };
   docs: string;
   kind: string;
   name: string;
