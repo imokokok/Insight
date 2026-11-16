@@ -17,12 +17,20 @@ const packages = [
     archive: 'insight-base-agent-swap-guard-skill-v0.1.0.zip',
   },
   {
+    directory: 'skills/insight-agent-swap-guard',
+    archive: 'insight-agent-swap-guard-skill-v0.1.0.zip',
+  },
+  {
     directory: 'skills/insight-bnb-pancakeswap-guard',
     archive: 'insight-bnb-pancakeswap-guard-skill-v0.1.0.zip',
   },
   {
     directory: 'skills/insight-solana-swap-guard',
     archive: 'insight-solana-swap-guard-skill-v0.1.0.zip',
+  },
+  {
+    directory: 'skills/insight-solana-jupiter-swap-guard',
+    archive: 'insight-solana-jupiter-swap-guard-skill-v0.1.0.zip',
   },
   {
     directory: 'skills/insight-base-perp-guard',
