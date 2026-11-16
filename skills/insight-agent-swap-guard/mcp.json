@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "insight": {
+      "url": "https://www.oracleinsight.xyz/api/mcp"
+    }
+  }
+}

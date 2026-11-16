@@ -5,6 +5,13 @@ submission-ready content, not claims of approval. Keep the funnel deliberately
 narrow: **install → free discovery → one decision call → a bounded action
 handoff → evidence review**.
 
+The current channel-adapter package is documented in
+[`agent-swap-channel-adapters.md`](agent-swap-channel-adapters.md). It covers
+the neutral Agent Swap Guard and Jupiter Skill packages, plus the safe
+integration boundary for Uniswap, 1inch, MetaMask, and CoW. Those channels do
+not receive an unsupported universal aggregator verdict merely because a
+provider returned calldata.
+
 Status verified 2026-11-10 against the public PR pages. A directory listing,
 marketplace acceptance, payment configuration, or a wallet integration is not
 "live" until its own verification and required user or partner approval are
