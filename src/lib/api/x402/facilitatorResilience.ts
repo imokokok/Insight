@@ -13,6 +13,54 @@ type SettleResponse = Awaited<ReturnType<FacilitatorClient['settle']>>;
 type PaymentPayload = Parameters<FacilitatorClient['verify']>[0];
 type PaymentRequirements = Parameters<FacilitatorClient['verify']>[1];
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+/**
+ * Keep malformed headers away from the facilitator. The core HTTP server
+ * already decodes PAYMENT-SIGNATURE, but the facilitator boundary is the
+ * last place where we can guarantee that the decoded object is still the
+ * x402 v2 envelope rather than a v1/re-wrapped payload.
+ *
+ * This is intentionally structural, not a second protocol implementation:
+ * the official core client remains responsible for matching requirements and
+ * the facilitator remains responsible for cryptographic verification.
+ */
+function assertX402V2PaymentPayload(
+  paymentPayload: PaymentPayload,
+  paymentRequirements: PaymentRequirements
+): void {
+  if (!isRecord(paymentPayload) || paymentPayload.x402Version !== 2) {
+    throw new Error('invalid_x402_v2_payment_payload');
+  }
+  if (!isRecord(paymentPayload.accepted) || !isRecord(paymentPayload.payload)) {
+    throw new Error('invalid_x402_v2_payment_payload');
+  }
+
+  // Base and other EVM exact payments use EIP-3009. Require the decoded
+  // authorization object and signature fields that CDP's v2 schema expects.
+  // Other rails remain structural here so this guard does not duplicate their
+  // chain-specific validators.
+  if (paymentRequirements.network.startsWith('eip155:')) {
+    const payload = paymentPayload.payload;
+    const authorization = payload.authorization;
+    if (
+      typeof payload.signature !== 'string' ||
+      !/^0x[0-9a-fA-F]+$/.test(payload.signature) ||
+      !isRecord(authorization) ||
+      typeof authorization.from !== 'string' ||
+      typeof authorization.to !== 'string' ||
+      typeof authorization.value !== 'string' ||
+      typeof authorization.validAfter !== 'string' ||
+      typeof authorization.validBefore !== 'string' ||
+      typeof authorization.nonce !== 'string'
+    ) {
+      throw new Error('invalid_x402_v2_payment_payload');
+    }
+  }
+}
+
 /**
  * Resilient facilitator for the resource-server build path.
  *
@@ -24,8 +72,9 @@ type PaymentRequirements = Parameters<FacilitatorClient['verify']>[1];
  * window (clients sign against `validBefore` and the request outlives it) and
  * the pre-trade route's 30s `maxDuration` (→ 504).
  *
- * This wrapper keeps `verify`/`settle` untouched (bounded per-request timeout)
- * and replaces `getSupported` with:
+ * This wrapper keeps the official `verify`/`settle` request body untouched
+ * after a structural v2 check (bounded per-request timeout) and replaces
+ * `getSupported` with:
  *
  * 1. an in-process cache (10 min fresh window, single-flight refresh),
  * 2. stale-while-error: on upstream failure, serve the last good response for
@@ -176,9 +225,11 @@ export function createResilientFacilitator(
 
   return {
     verify(payload: PaymentPayload, requirements: PaymentRequirements): Promise<VerifyResponse> {
+      assertX402V2PaymentPayload(payload, requirements);
       return inner.verify(payload, requirements);
     },
     settle(payload: PaymentPayload, requirements: PaymentRequirements): Promise<SettleResponse> {
+      assertX402V2PaymentPayload(payload, requirements);
       return inner.settle(payload, requirements);
     },
     async getSupported(): Promise<SupportedResponse> {

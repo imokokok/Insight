@@ -215,7 +215,29 @@ describe('createResilientFacilitator', () => {
     });
 
     const result = await client.verify(
-      { x402Version: 2, scheme: 'exact', network: 'eip155:8453' } as never,
+      {
+        x402Version: 2,
+        accepted: {
+          scheme: 'exact',
+          network: 'eip155:8453',
+          asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+          amount: '20000',
+          payTo: '0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231',
+          maxTimeoutSeconds: 60,
+          extra: { name: 'USD Coin', version: '2' },
+        },
+        payload: {
+          signature: `0x${'a'.repeat(130)}`,
+          authorization: {
+            from: '0x1111111111111111111111111111111111111111',
+            to: '0x2222222222222222222222222222222222222222',
+            value: '20000',
+            validAfter: '0',
+            validBefore: '1760000000',
+            nonce: `0x${'b'.repeat(64)}`,
+          },
+        },
+      } as never,
       {
         scheme: 'exact',
         network: 'eip155:8453',
@@ -228,5 +250,48 @@ describe('createResilientFacilitator', () => {
       'https://f.example/verify',
       expect.objectContaining({ method: 'POST' })
     );
+    const [, init] = (global.fetch as jest.Mock).mock.calls[0] as [string, RequestInit];
+    expect(JSON.parse(String(init.body))).toEqual(
+      expect.objectContaining({
+        x402Version: 2,
+        paymentPayload: expect.objectContaining({
+          accepted: expect.objectContaining({ network: 'eip155:8453' }),
+          payload: expect.objectContaining({
+            signature: `0x${'a'.repeat(130)}`,
+            authorization: expect.objectContaining({ nonce: `0x${'b'.repeat(64)}` }),
+          }),
+        }),
+      })
+    );
+  });
+
+  it('fails closed before CDP when a v2 payload is missing its decoded payment body', async () => {
+    const facilitatorFetch = jest.fn(
+      async () =>
+        ({
+          ok: true,
+          status: 200,
+          json: async () => ({ isValid: true }),
+          text: async () => JSON.stringify({ isValid: true }),
+          headers: { get: () => null },
+        }) as unknown as Response
+    );
+    global.fetch = facilitatorFetch as unknown as typeof fetch;
+    const client = createResilientFacilitator({
+      url: 'https://f.example',
+      timeoutMs: 5_000,
+      cdpAuth: null,
+      fallbackKinds: FALLBACK_KINDS,
+      fetchImpl: mockFetch(() => ({ body: GOOD_SUPPORTED })),
+      now,
+    });
+
+    expect(() =>
+      client.verify(
+        { x402Version: 2, accepted: { scheme: 'exact', network: 'eip155:8453' } } as never,
+        { scheme: 'exact', network: 'eip155:8453' } as never
+      )
+    ).toThrow('invalid_x402_v2_payment_payload');
+    expect(facilitatorFetch).not.toHaveBeenCalled();
   });
 });
