@@ -8,6 +8,8 @@ Insight's own identity is registered on the BNB Chain mainnet (chain 56) Identit
 
 A second registration exists on **Monad mainnet (chain 143)** — same canonical Identity Registry addresses — as **agentId 10414**: tx `0x63c782dc97372e3c2abeed105f8d01566bf677abc7701261eaa1b72f1c80c95b` (2026-10-19), same `tokenURI`. Reputation anchoring routes by settlement network: rows paid on `eip155:143` anchor on the Monad Reputation Registry (chain-local ownership verification), everything else anchors on BNB Chain.
 
+Insight is also registered on **Base mainnet (chain 8453)** as **agentId 1201765**: tx [`0x27af6b012b233e5a03cc025e7257ef795aab4923bc60b4fe9c23f4d5bb2c4c8a`](https://basescan.org/tx/0x27af6b012b233e5a03cc025e7257ef795aab4923bc60b4fe9c23f4d5bb2c4c8a), with the same `tokenURI`. The associated Base Builder Code is `bc_mukkhhgf`; future Insight-originated Base transactions must append it as an ERC-8021 data suffix. Public metadata is kept in [`src/lib/constants/baseAgent.ts`](../src/lib/constants/baseAgent.ts).
+
 ## What Insight signs today
 
 1. **Oracle Safety Attestation v2** — an EIP-712 typed attestation with a stable UID over 26 signed fields: verdict (PASS/WARN/BLOCK), CAIP-19 asset pair binding, request/provider/reason-code commitments, quorum (≥3 independent providers), operator independence (≥2 non-derived groups), and a bounded validity window (600 s). Obtained from `POST /api/v1/safety/pre-trade`; offline-verifiable from the domain and types in the response envelope, or via `POST /api/v1/safety/attestation/verify`.
