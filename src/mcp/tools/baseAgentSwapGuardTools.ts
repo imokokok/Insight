@@ -135,3 +135,33 @@ export const prepareBaseAgentSwapGuardTool: McpToolDefinition<
     });
   },
 };
+
+/**
+ * BNB-specific discovery name for the reviewed PancakeSwap V3 lanes. The
+ * implementation deliberately remains the same guard so the alias cannot
+ * drift in policy, calldata decoding, attestation or settlement behaviour.
+ */
+export const BnbPancakeSwapV3GuardInputSchema = BaseAgentSwapGuardInputSchema.superRefine(
+  (value, context) => {
+    if (!value.profileId.startsWith('bnb-pancakeswap-v3-')) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['profileId'],
+        message:
+          'prepare_bnb_pancakeswap_v3_guard only accepts the reviewed BNB PancakeSwap V3 profiles.',
+      });
+    }
+  }
+);
+
+export type BnbPancakeSwapV3GuardInput = z.infer<typeof BnbPancakeSwapV3GuardInputSchema>;
+
+export const prepareBnbPancakeSwapV3GuardTool: McpToolDefinition<
+  typeof BnbPancakeSwapV3GuardInputSchema
+> = {
+  name: 'prepare_bnb_pancakeswap_v3_guard',
+  description:
+    'BNB-specific entrypoint for the reviewed PancakeSwap V3 safety guard. Use only bnb-pancakeswap-v3-usdt-usdc-100 or bnb-pancakeswap-v3-usdt-wbnb-100. It obtains a fresh pinned quote, checks the reviewed router/factory/quoter/pool identities, validates oracle and slippage policy, and returns exact unsigned approval/swap calldata only for ALLOW. CAUTION and BLOCK return no calls to sign. PriorSeal must bind the identical approval and swap calls as separate exact-call authorizations with adjacent nonces; this tool never signs, broadcasts, routes through an aggregator, or authorizes a transaction.',
+  parameters: BnbPancakeSwapV3GuardInputSchema,
+  handler: async (args, context) => prepareBaseAgentSwapGuardTool.handler(args, context),
+};

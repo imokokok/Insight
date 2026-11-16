@@ -171,7 +171,7 @@ const TOOL_RULES: Array<[RegExp, MeteringClass]> = [
   [/^get_base_dex_venue_integrations$/, 'C1'],
   [/^get_aerodrome_slipstream_market$/, 'C1'],
   [/^prepare_aerodrome_slipstream_swap$/, 'C3'],
-  [/^prepare_base_agent_swap_guard$/, 'C3'],
+  [/^(?:prepare_base_agent_swap_guard|prepare_bnb_pancakeswap_v3_guard)$/, 'C3'],
   [/^solana_swap_guard$/, 'C3'],
   // Post-settlement guard closure — C4 evidence artifacts. The `verify_*`
   // settlement tools are NOT listed: they verify an offline signature, so the

@@ -303,7 +303,10 @@ function baseAgentSwapGuardMcpPaymentScope(
 ): X402PaymentScope | null {
   if (!isRecord(argumentsValue)) return null;
 
-  if (toolName === 'prepare_base_agent_swap_guard') {
+  if (
+    toolName === 'prepare_base_agent_swap_guard' ||
+    toolName === 'prepare_bnb_pancakeswap_v3_guard'
+  ) {
     // profileId is optional and defaults to the reviewed Base lane. Only a
     // recognized BNB/Monad prefix selects that realm; an unrecognized prefix
     // fails closed rather than silently authorizing on Base.
@@ -515,6 +518,7 @@ export function x402PaymentScopeForMcpTool(
 
   if (
     toolName === 'prepare_base_agent_swap_guard' ||
+    toolName === 'prepare_bnb_pancakeswap_v3_guard' ||
     toolName === 'settle_base_agent_swap_guard' ||
     toolName === 'verify_base_agent_swap_guard_settlement'
   ) {
@@ -563,6 +567,7 @@ export function x402PaymentScopeForMcpTool(
 /** MCP tools whose payment scope is derived from their arguments per call. */
 const X402_DYNAMIC_MCP_PAYMENT_SCOPE_TOOLS = new Set([
   'prepare_base_agent_swap_guard',
+  'prepare_bnb_pancakeswap_v3_guard',
   'settle_base_agent_swap_guard',
   'verify_base_agent_swap_guard_settlement',
   'get_pancakeswap_v3_market',
