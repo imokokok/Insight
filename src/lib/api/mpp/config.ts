@@ -42,8 +42,9 @@ export function getMppConfig(
       'MPP_ENABLED requires a recipient for X402_NETWORK via X402_PAY_TO or X402_EVM_PAY_TOS'
     );
   }
-  // MPP's EVM charge method is EIP-3009-based. Chains such as BNB that use
-  // the AEON mandate flow remain x402-only rather than failing on a request.
+  // MPP's EVM charge method is EIP-3009-based. Chains whose settlement is
+  // not EIP-3009 (BNB settles Permit2) remain x402-only rather than failing
+  // on a request.
   eip3009TokenNameForNetwork(x402Config.network);
 
   const secretKey = env.MPP_SECRET_KEY?.trim() ?? '';

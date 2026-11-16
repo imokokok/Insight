@@ -111,8 +111,10 @@ const res = await fetchWithPay('${ENDPOINT}', {
 });
 const check = await res.json();
 console.log(check.verdict, check.recommendedMaxPositionUsd);
-// This covers standard EIP-3009 EVM options. BNB Chain uses the AEON mandate
-// scheme documented below; do not register the stock scheme for eip155:56.`;
+// This covers standard EIP-3009 EVM options. BNB Chain settles Permit2
+// (the advertised assetTransferMethod), which the same stock scheme signs
+// automatically; the payer just needs a one-time USDC allowance for the
+// canonical Permit2 contract.`;
 
 const solanaTsCode = `// npm i @x402/fetch @x402/svm @solana/kit @scure/base
 import { base58 } from '@scure/base';
@@ -492,8 +494,8 @@ export default function X402QuickstartPage() {
               <p className="mt-4 max-w-2xl text-lg leading-relaxed text-slate-600">
                 Wrap <code className="font-mono text-base">fetch</code> with an x402 client and the
                 402 round trip disappears: the wrapper signs on the advertised standard EVM network,
-                retries, and hands your code the verdict JSON. BNB Chain uses a separate AEON
-                mandate scheme; the next sections cover that exception and Solana.
+                retries, and hands your code the verdict JSON. BNB Chain settles Permit2 through the
+                same stock scheme; the next sections cover that exception and Solana.
               </p>
             </div>
           </div>
@@ -525,28 +527,29 @@ export default function X402QuickstartPage() {
             <p className="editorial-index">03 — BNB Chain</p>
             <div>
               <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-                BNB uses a mandate, not stock EIP-3009.
+                BNB settles Permit2, not stock EIP-3009.
               </h2>
               <p className="mt-4 max-w-2xl text-lg leading-relaxed text-slate-600">
-                Binance-Peg USDC has no EIP-3009 authorization entrypoint. A BNB payer must register
-                Insight&apos;s AEON mandate scheme for{' '}
-                <code className="font-mono text-base">eip155:56</code>, which makes a one-time
-                ERC-20 allowance transaction before signing the exact payment. The standard wildcard
-                EVM example above must not be used for BNB.
+                Binance-Peg USDC has no EIP-3009 authorization entrypoint. PayAI settles{' '}
+                <code className="font-mono text-base">eip155:56</code> through Permit2, and the
+                stock EVM scheme above signs it automatically from the advertised{' '}
+                <code className="font-mono text-base">assetTransferMethod</code>. The only extra
+                buyer step is a one-time USDC allowance for the canonical Permit2 contract
+                (0x000000000022D473030F116dDEE9F6B43aC78BA3), paid in BNB gas; settlement gas stays
+                on the facilitator.
               </p>
             </div>
           </div>
           <p className="mt-6 max-w-3xl text-sm leading-relaxed text-slate-500">
-            The maintained adapter is exported by the{' '}
+            Use a dedicated, balance-capped agent key: the Permit2 allowance you grant is usable for
+            any payment signed by that key. The{' '}
             <Link
               href="https://github.com/imokokok/Insight/tree/main/integrations/elizaos-plugin-insight"
               className="text-primary-700 hover:underline"
             >
               Insight ElizaOS integration
             </Link>{' '}
-            as <code className="font-mono">ExactEvmMandateScheme</code> and{' '}
-            <code className="font-mono">createMandateSignerFromKey</code>. Use a dedicated,
-            balance-capped agent key; the facilitator can pull the allowance granted by that key.
+            keeps a balance-capped signing interface for exactly this purpose.
           </p>
         </div>
       </section>

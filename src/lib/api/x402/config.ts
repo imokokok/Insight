@@ -44,7 +44,7 @@ export const X402_EVM_NETWORK_IDS = [
   'eip155:196', // X Layer
   'eip155:143', // Monad
   'eip155:999', // HyperEVM
-  'eip155:56', // BNB Smart Chain (AEON facilitator; bridged USDC, 18 decimals)
+  'eip155:56', // BNB Smart Chain (PayAI Permit2; bridged USDC, 18 decimals)
 ] as const;
 
 export type X402NetworkId = (typeof X402_EVM_NETWORK_IDS)[number];
@@ -57,6 +57,8 @@ const SUPPORTED_NETWORKS: Record<
     tokenName?: string;
     decimals?: number;
     eip3009?: boolean;
+    /** Rails whose facilitator settles exact v2 through Permit2 instead of EIP-3009. */
+    assetTransferMethod?: 'permit2';
     /** Opt-in additional settlement assets sharing the network's decimals and facilitator flow. */
     extraAssets?: readonly { symbol: string; address: string; tokenName?: string }[];
   }
@@ -125,27 +127,31 @@ const SUPPORTED_NETWORKS: Record<
     tokenName: 'USDC',
   },
   'eip155:56': {
-    /** Chain: BNB Smart Chain. Binance-bridged USDC (18 decimals), the token listed by the AEON x402 facilitator (facilitator.aeon.xyz /supported, kind exact v2 on eip155:56, verified 2026-10-17). */
+    /** Chain: BNB Smart Chain. Binance-bridged USDC (18 decimals), the token PayAI settles for x402 v2 exact on eip155:56 (docs.payai.network/x402/supported-networks, verified 2026-11-16). */
     usdc: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
     /**
      * The bridged token itself exposes no EIP-712 domain (no DOMAIN_SEPARATOR
-     * on-chain), but the AEON facilitator's non-EIP-3009 mandate flow signs a
-     * TransferWithAuthorization-shaped message against the domain carried in
-     * the quote `extra` and verifies it facilitator-side (spender
-     * 0x555e3311a9893c9B17444C1Ff0d88192a57Ef13e after a client-side approve).
-     * Name/version below are the AEON stack's canonical values for BSC USDC
-     * (asset registry in @aeon-ai-pay/evm).
+     * on-chain) and supports no EIP-3009, so PayAI settles this rail through
+     * Permit2 (docs.payai.network/x402/supported-networks: "BSC supports v2
+     * exact Permit2 payments in USDC and USDT"). The buyer signs a Permit2
+     * transfer against the canonical Permit2 contract
+     * (0x000000000022D473030F116dDEE9F6B43aC78BA3) after a one-time USDC
+     * allowance paid in BNB gas; settlement gas stays on the facilitator.
+     * Name/version below are the token's canonical ERC-20 metadata
+     * (name() = "USD Coin"), carried in the requirement extra alongside
+     * assetTransferMethod so SDK clients route to Permit2 signing.
      */
     tokenName: 'USD Coin',
     decimals: 18,
-    /** No on-chain EIP-3009; settlement is the AEON facilitator mandate flow. */
+    /** No on-chain EIP-3009; settlement is PayAI's Permit2 flow. */
     eip3009: false,
+    assetTransferMethod: 'permit2',
     /**
-     * USDT (Binance-Peg, 18 decimals) is in the AEON asset registry for chain
-     * 56 (TokenSymbolUtil, @aeon-ai-pay/evm 2.1.4) and settles through the same
-     * mandate flow as USDC. Emitted as a second challenge option only when
+     * USDT (Binance-Peg, 18 decimals) is settled by PayAI on chain 56
+     * ("v2 exact Permit2 payments in USDC and USDT") through the same Permit2
+     * flow as USDC. Emitted as a second challenge option only when
      * X402_BNB_ASSETS lists `usdt`. USD1/United Stables are NOT listed here:
-     * they have on-chain EIP-3009 but are absent from the AEON registry, so a
+     * they have on-chain EIP-3009 but PayAI's BSC registry is USDC/USDT, so a
      * challenge advertising them today could not be verified or settled.
      */
     extraAssets: [
@@ -209,6 +215,8 @@ export interface X402PaymentOption {
   asset: string;
   amountAtomic: string;
   tokenName?: string;
+  /** Set only on rails whose facilitator settles Permit2 rather than EIP-3009 (BNB today). */
+  assetTransferMethod?: 'permit2';
 }
 
 const NetworkSchema = z.enum(X402_EVM_NETWORK_IDS);
@@ -1051,6 +1059,7 @@ export function getX402PaymentOptions(
         asset: usdcForNetwork(network),
         amountAtomic: atomicUnitsForNetwork(network, microAtomic),
         tokenName: tokenNameForNetwork(network),
+        assetTransferMethod: SUPPORTED_NETWORKS[network].assetTransferMethod,
       });
       // Opt-in additional assets (BNB USDT today) share the network's
       // decimals, pay-to and facilitator flow, so only the asset identity
@@ -1065,6 +1074,7 @@ export function getX402PaymentOptions(
           asset: extra.address,
           amountAtomic: atomicUnitsForNetwork(network, microAtomic),
           tokenName: extra.tokenName,
+          assetTransferMethod: SUPPORTED_NETWORKS[network].assetTransferMethod,
         });
       }
     }
