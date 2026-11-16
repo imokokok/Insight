@@ -813,7 +813,7 @@ export const BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME = AGENT_SWAP_GUARD_MCP_TOOL_NAM
 export const BAZAAR_AGENT_SWAP_GUARD_MCP_DISCOVERY_EXTENSION = declareDiscoveryExtension({
   toolName: AGENT_SWAP_GUARD_MCP_TOOL_NAME,
   description:
-    'Pre-signing Agent Swap Guard for an AI agent on Base, BNB Smart Chain, or Monad. Reviews one supported direct Aerodrome Slipstream or PancakeSwap V3 swap; independently validates source and destination decision prices, a pinned venue quote, price impact, TWAP, slippage, route contract identities, and byte-exact unsigned approval/swap calldata. Returns ALLOW, CAUTION, or BLOCK; only ALLOW includes calls for human confirmation. It never signs, routes, relays, or broadcasts a trade.',
+    'Pre-signing Agent Swap Guard for an AI agent on Base mainnet, BNB Smart Chain, or Monad. Reviews one supported direct Aerodrome Slipstream or PancakeSwap V3 swap; independently validates source and destination decision prices, a pinned venue quote, price impact, TWAP, slippage, route contract identities, and byte-exact unsigned approval/swap calldata. Returns ALLOW, CAUTION, or BLOCK; only ALLOW includes calls for human confirmation. It never signs, routes, relays, or broadcasts a trade.',
   transport: 'streamable-http',
   inputSchema: BaseAgentSwapGuardInputSchema.toJSONSchema() as {
     type: 'object';
