@@ -32,6 +32,7 @@ function parseFreeKinds(): string[] {
 /** Legacy tool names, each mapped to the offline kind it verifies. */
 const LEGACY_FREE_VERIFY_TOOL_KINDS: ReadonlyMap<string, string> = new Map([
   ['verify_execution_pair', 'execution_pair'],
+  ['verify_agent_swap_guard_settlement', 'base_agent_swap'],
   ['verify_base_agent_swap_guard_settlement', 'base_agent_swap'],
   ['verify_solana_swap_guard_settlement', 'solana_swap'],
 ]);

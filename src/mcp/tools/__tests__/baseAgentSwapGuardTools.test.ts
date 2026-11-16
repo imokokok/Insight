@@ -7,7 +7,10 @@ import { createBaseAgentSwapGuardDecision } from '@/lib/dex/baseAgentSwapGuardAt
 
 import {
   prepareBnbPancakeSwapV3GuardTool,
+  prepareAgentSwapGuardTool,
   prepareBaseAgentSwapGuardTool,
+  settleAgentSwapGuardTool,
+  verifyAgentSwapGuardSettlementTool,
 } from '../baseAgentSwapGuardTools';
 import { LEGACY_TOOL_BY_NAME } from '../unified/runtime';
 
@@ -165,5 +168,19 @@ describe('prepare_bnb_pancakeswap_v3_guard MCP alias', () => {
       }).success
     ).toBe(false);
     expect(getToolCreditCost('prepare_bnb_pancakeswap_v3_guard')).toBe(20);
+  });
+});
+
+describe('neutral Agent Swap Guard MCP names', () => {
+  it('exposes neutral names while retaining Base-prefixed compatibility aliases', () => {
+    expect(prepareAgentSwapGuardTool.name).toBe('prepare_agent_swap_guard');
+    expect(settleAgentSwapGuardTool.name).toBe('settle_agent_swap_guard');
+    expect(verifyAgentSwapGuardSettlementTool.name).toBe('verify_agent_swap_guard_settlement');
+    expect(LEGACY_TOOL_BY_NAME.has('prepare_agent_swap_guard')).toBe(true);
+    expect(LEGACY_TOOL_BY_NAME.has('settle_agent_swap_guard')).toBe(true);
+    expect(LEGACY_TOOL_BY_NAME.has('verify_agent_swap_guard_settlement')).toBe(true);
+    expect(getToolCreditCost('prepare_agent_swap_guard')).toBe(20);
+    expect(getToolCreditCost('settle_agent_swap_guard')).toBe(40);
+    expect(getToolCreditCost('verify_agent_swap_guard_settlement')).toBe(0);
   });
 });

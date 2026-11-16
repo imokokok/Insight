@@ -292,7 +292,7 @@ function pancakeSwapV3McpPaymentScope(argumentsValue: unknown): X402PaymentScope
 }
 
 /**
- * The three base-agent-swap-guard MCP tools now serve reviewed profiles on
+ * The Agent Swap Guard MCP tools now serve reviewed profiles on
  * more than one chain (Base 8453, BNB 56, Monad 143). Their payment realm is
  * derived from the guarded execution chain carried in the arguments, never a
  * global default: an unparseable request resolves to null and fails closed.
@@ -304,6 +304,7 @@ function baseAgentSwapGuardMcpPaymentScope(
   if (!isRecord(argumentsValue)) return null;
 
   if (
+    toolName === 'prepare_agent_swap_guard' ||
     toolName === 'prepare_base_agent_swap_guard' ||
     toolName === 'prepare_bnb_pancakeswap_v3_guard'
   ) {
@@ -517,9 +518,12 @@ export function x402PaymentScopeForMcpTool(
   }
 
   if (
+    toolName === 'prepare_agent_swap_guard' ||
     toolName === 'prepare_base_agent_swap_guard' ||
     toolName === 'prepare_bnb_pancakeswap_v3_guard' ||
+    toolName === 'settle_agent_swap_guard' ||
     toolName === 'settle_base_agent_swap_guard' ||
+    toolName === 'verify_agent_swap_guard_settlement' ||
     toolName === 'verify_base_agent_swap_guard_settlement'
   ) {
     return baseAgentSwapGuardMcpPaymentScope(toolName, argumentsValue);
@@ -566,9 +570,12 @@ export function x402PaymentScopeForMcpTool(
 
 /** MCP tools whose payment scope is derived from their arguments per call. */
 const X402_DYNAMIC_MCP_PAYMENT_SCOPE_TOOLS = new Set([
+  'prepare_agent_swap_guard',
   'prepare_base_agent_swap_guard',
   'prepare_bnb_pancakeswap_v3_guard',
+  'settle_agent_swap_guard',
   'settle_base_agent_swap_guard',
+  'verify_agent_swap_guard_settlement',
   'verify_base_agent_swap_guard_settlement',
   'get_pancakeswap_v3_market',
   'prepare_pancakeswap_v3_swap',

@@ -384,7 +384,7 @@ describe('x402 SVM resource-server registration', () => {
       }),
     ]);
     expect(quote.resource?.description).toContain(
-      'AI-agent Swap Guard (Base mainnet and BNB Smart Chain)'
+      'AI-agent Swap Guard (Base, BNB Smart Chain, and Monad)'
     );
     expect(quote.extensions?.bazaar?.info?.input).toMatchObject({
       type: 'mcp',
