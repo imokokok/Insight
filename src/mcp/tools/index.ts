@@ -3,6 +3,7 @@ import { isUpstreamTimeoutError, UPSTREAM_TIMEOUT_CODE } from '@/lib/billing/exe
 import { createLogger } from '@/lib/utils/logger';
 
 import {
+  prepareBnbPancakeSwapV3GuardTool,
   prepareBaseAgentSwapGuardTool,
   settleBaseAgentSwapGuardTool,
   verifyBaseAgentSwapGuardSettlementTool,
@@ -329,6 +330,11 @@ const JSON_SCHEMA_MAP: Record<
       required?: string[];
     },
   prepare_base_agent_swap_guard: prepareBaseAgentSwapGuardTool.parameters.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  prepare_bnb_pancakeswap_v3_guard: prepareBnbPancakeSwapV3GuardTool.parameters.toJSONSchema() as {
     type: 'object';
     properties?: Record<string, unknown>;
     required?: string[];

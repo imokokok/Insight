@@ -5,7 +5,10 @@ import {
 } from '@/lib/dex/baseAgentSwapGuard';
 import { createBaseAgentSwapGuardDecision } from '@/lib/dex/baseAgentSwapGuardAttestation';
 
-import { prepareBaseAgentSwapGuardTool } from '../baseAgentSwapGuardTools';
+import {
+  prepareBnbPancakeSwapV3GuardTool,
+  prepareBaseAgentSwapGuardTool,
+} from '../baseAgentSwapGuardTools';
 import { LEGACY_TOOL_BY_NAME } from '../unified/runtime';
 
 jest.mock('@/lib/dex/baseAgentSwapGuard', () => ({
@@ -143,5 +146,24 @@ describe('prepare_base_agent_swap_guard MCP tool', () => {
     const output = JSON.parse(await prepareBaseAgentSwapGuardTool.handler(args));
 
     expect(output.agentInstructions[0]).toContain('Do not request a signature');
+  });
+});
+
+describe('prepare_bnb_pancakeswap_v3_guard MCP alias', () => {
+  it('accepts only the reviewed BNB PancakeSwap V3 profiles and keeps the same price', () => {
+    expect(prepareBnbPancakeSwapV3GuardTool.name).toBe('prepare_bnb_pancakeswap_v3_guard');
+    expect(
+      prepareBnbPancakeSwapV3GuardTool.parameters.safeParse({
+        ...args,
+        profileId: 'bnb-pancakeswap-v3-usdt-usdc-100',
+      }).success
+    ).toBe(true);
+    expect(
+      prepareBnbPancakeSwapV3GuardTool.parameters.safeParse({
+        ...args,
+        profileId: 'base-pancakeswap-v3-usdc-usdt-100',
+      }).success
+    ).toBe(false);
+    expect(getToolCreditCost('prepare_bnb_pancakeswap_v3_guard')).toBe(20);
   });
 });

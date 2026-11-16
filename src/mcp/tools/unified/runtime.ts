@@ -19,6 +19,7 @@ import {
   getMetricsTool,
 } from '../analysisTools';
 import {
+  prepareBnbPancakeSwapV3GuardTool,
   prepareBaseAgentSwapGuardTool,
   settleBaseAgentSwapGuardTool,
   verifyBaseAgentSwapGuardSettlementTool,
@@ -166,6 +167,7 @@ export const LEGACY_MCP_TOOLS: McpToolDefinition[] = [
   getAerodromeSlipstreamMarketTool,
   prepareAerodromeSlipstreamSwapTool,
   prepareBaseAgentSwapGuardTool,
+  prepareBnbPancakeSwapV3GuardTool,
   settleBaseAgentSwapGuardTool,
   verifyBaseAgentSwapGuardSettlementTool,
   getPancakeSwapV3MarketTool,
