@@ -193,8 +193,8 @@ export default function PricingPage() {
                 Trade Guard dispatches across metering classes, so it is priced by operation rather
                 than a single flat rate. The other three products carry one product price. Every
                 price below is also available through the credit wallet and x402. The catalog
-                exposes 4 products + 16 deprecated aliases = 20 discoverable names; aliases are
-                callable at their product price until 2027-01-06.
+                advertises 4 product tools; 16 deprecated alias names stay callable at their product
+                price via canonicalization until 2027-01-06 but are no longer listed.
               </p>
             </div>
           </div>
