@@ -139,6 +139,13 @@ async function main(): Promise<void> {
   // stage 3: paid call — SDK routes to Permit2 signing on the extra field
   const client = x402Client.fromConfig({
     schemes: [{ network: NETWORK, client: new ExactEvmScheme(signer), x402Version: 2 }],
+    // Binance-Peg USDC is not a default asset of the SDK's spend controls;
+    // opt it in with an atomic per-payment cap (0.05 BSC-USDC).
+    spendControls: {
+      allowedAssets: [
+        { network: NETWORK, asset: USDC_BSC, maxAmountPerPayment: '50000000000000000' },
+      ],
+    },
   });
   const { wrapFetchWithPayment } = await import('@x402/fetch');
   const paidFetch = wrapFetchWithPayment(globalThis.fetch, client);
