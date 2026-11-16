@@ -754,7 +754,7 @@ export async function routePrepareSwap(
   switch (args.venue) {
     case 'base_agent_swap':
       return callLegacy(
-        'prepare_base_agent_swap_guard',
+        'prepare_agent_swap_guard',
         {
           ...common,
           profileId: requireValue(args.profile_id, 'profile_id', 'for venue=base_agent_swap'),
@@ -1258,7 +1258,7 @@ export async function routeIssueExecutionReceipt(
   }
   if (args.mode === 'settle_base_agent_swap') {
     return callLegacy(
-      'settle_base_agent_swap_guard',
+      'settle_agent_swap_guard',
       {
         decision: requireValue(args.decision, 'decision', 'for settle modes'),
         swapTxHash: requireValue(args.swap_tx_hash, 'swap_tx_hash', 'for settle modes'),
@@ -1283,7 +1283,7 @@ export async function routeVerifyEvidence(
   switch (args.kind) {
     case 'base_agent_swap':
       return callLegacy(
-        'verify_base_agent_swap_guard_settlement',
+        'verify_agent_swap_guard_settlement',
         { decision: requireValue(args.settlement, 'settlement', 'for kind=base_agent_swap') },
         context
       );

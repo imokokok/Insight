@@ -4,8 +4,11 @@ import { createLogger } from '@/lib/utils/logger';
 
 import {
   prepareBnbPancakeSwapV3GuardTool,
+  prepareAgentSwapGuardTool,
   prepareBaseAgentSwapGuardTool,
+  settleAgentSwapGuardTool,
   settleBaseAgentSwapGuardTool,
+  verifyAgentSwapGuardSettlementTool,
   verifyBaseAgentSwapGuardSettlementTool,
 } from './baseAgentSwapGuardTools';
 import {
@@ -100,7 +103,7 @@ const logger = createLogger(`mcp-tools`);
 /**
  * Default `core` advertises the 4 canonical product tools; the 16 deprecated
  * alias spellings stay resolvable via canonicalization but are not listed.
- * `MCP_TOOL_PROFILE=legacy` re-exposes the 81 legacy tools for rollback only
+ * `MCP_TOOL_PROFILE=legacy` re-exposes the compatibility tools for rollback only
  * until LEGACY_TOOL_REMOVAL_DATE.
  */
 function toolProfile(): 'core' | 'legacy' {
@@ -334,6 +337,11 @@ const JSON_SCHEMA_MAP: Record<
     properties?: Record<string, unknown>;
     required?: string[];
   },
+  prepare_agent_swap_guard: prepareAgentSwapGuardTool.parameters.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
   prepare_bnb_pancakeswap_v3_guard: prepareBnbPancakeSwapV3GuardTool.parameters.toJSONSchema() as {
     type: 'object';
     properties?: Record<string, unknown>;
@@ -344,8 +352,19 @@ const JSON_SCHEMA_MAP: Record<
     properties?: Record<string, unknown>;
     required?: string[];
   },
+  settle_agent_swap_guard: settleAgentSwapGuardTool.parameters.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
   verify_base_agent_swap_guard_settlement:
     verifyBaseAgentSwapGuardSettlementTool.parameters.toJSONSchema() as {
+      type: 'object';
+      properties?: Record<string, unknown>;
+      required?: string[];
+    },
+  verify_agent_swap_guard_settlement:
+    verifyAgentSwapGuardSettlementTool.parameters.toJSONSchema() as {
       type: 'object';
       properties?: Record<string, unknown>;
       required?: string[];

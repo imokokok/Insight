@@ -33,12 +33,12 @@ export type BaseAgentSwapGuardSettlementInput = z.infer<
  * agent executed under with the transaction that actually settled, reconcile the
  * fill against the guarded quote, and return a signed settlement closure.
  */
-export const settleBaseAgentSwapGuardTool: McpToolDefinition<
+export const settleAgentSwapGuardTool: McpToolDefinition<
   typeof BaseAgentSwapGuardSettlementInputSchema
 > = {
-  name: 'settle_base_agent_swap_guard',
+  name: 'settle_agent_swap_guard',
   description:
-    'Close the loop on a settled Base Agent Swap Guard swap. Present the signed guard decision the agent executed under plus the swap transaction hash (and the approval transaction hash when held). Insight verifies the decision, requires the on-chain to/value/calldata to match the guarded approval and swap calls byte-for-byte, reconciles the observed ERC-20 input and output amounts against the guarded quote (amountInRaw, quotedAmountOutRaw, amountOutMinimumRaw, realized output-leg slippage vs the agent policy), and returns a signed BaseAgentSwapGuardSettlement bound to the decisionHash with explicit reason codes (SWAP_TX_REVERTED, SOURCE_AMOUNT_MISMATCH, REALIZED_SLIPPAGE_EXCEEDED, DECISION_EXPIRED_AT_CLOSURE, APPROVAL_TX_NOT_PRESENTED, and others). A decision that does not verify, or a transaction whose bytes differ from the guarded calls, is rejected. This is settlement evidence, not transaction authority, a price-correctness claim, or a guarantee of good timing.',
+    'Close the loop on a settled reviewed Agent Swap Guard action on Base, BNB Smart Chain, or Monad. Present the signed guard decision the agent executed under plus the swap transaction hash (and the approval transaction hash when held). Insight verifies the decision, requires the on-chain to/value/calldata to match the guarded approval and swap calls byte-for-byte, reconciles the observed ERC-20 input and output amounts against the guarded quote (amountInRaw, quotedAmountOutRaw, amountOutMinimumRaw, realized output-leg slippage vs the agent policy), and returns a signed BaseAgentSwapGuardSettlement bound to the decisionHash with explicit reason codes (SWAP_TX_REVERTED, SOURCE_AMOUNT_MISMATCH, REALIZED_SLIPPAGE_EXCEEDED, DECISION_EXPIRED_AT_CLOSURE, APPROVAL_TX_NOT_PRESENTED, and others). A decision that does not verify, or a transaction whose bytes differ from the guarded calls, is rejected. This is settlement evidence, not transaction authority, a price-correctness claim, or a guarantee of good timing.',
   parameters: BaseAgentSwapGuardSettlementInputSchema,
   handler: async (args) => {
     const result = await settleBaseAgentSwapGuard({
@@ -70,13 +70,23 @@ export const settleBaseAgentSwapGuardTool: McpToolDefinition<
   },
 };
 
-/** Public verifier for a previously issued settlement closure. */
-export const verifyBaseAgentSwapGuardSettlementTool: McpToolDefinition<
+/** @deprecated Use settle_agent_swap_guard. Kept for existing MCP clients. */
+export const settleBaseAgentSwapGuardTool: McpToolDefinition<
   typeof BaseAgentSwapGuardSettlementInputSchema
 > = {
-  name: 'verify_base_agent_swap_guard_settlement',
+  ...settleAgentSwapGuardTool,
+  name: 'settle_base_agent_swap_guard',
   description:
-    'Independently verify a signed BaseAgentSwapGuardSettlement: structural shape, the reason-code hash, the EIP-712 uid, the attester signature, and attester trust. Pass the settlement artifact wrapped as { decision: { settlement: <settlement> } }. Returns valid/invalid with a machine-readable reason, plus the signed decisionHash, swapTxHash, and attester so a third party can detect two valid closures binding one decisionHash to different swap transactions — a contradiction no honest settlement produces. This checks the signature only; it does not re-read the chain.',
+    'Compatibility alias for settle_agent_swap_guard. Close a reviewed Agent Swap Guard settlement without changing the verification or billing behavior.',
+};
+
+/** Public verifier for a previously issued settlement closure. */
+export const verifyAgentSwapGuardSettlementTool: McpToolDefinition<
+  typeof BaseAgentSwapGuardSettlementInputSchema
+> = {
+  name: 'verify_agent_swap_guard_settlement',
+  description:
+    'Independently verify a signed Agent Swap Guard settlement: structural shape, the reason-code hash, the EIP-712 uid, the attester signature, and attester trust. Pass the settlement artifact wrapped as { decision: { settlement: <settlement> } }. Returns valid/invalid with a machine-readable reason, plus the signed decisionHash, swapTxHash, and attester so a third party can detect two valid closures binding one decisionHash to different swap transactions — a contradiction no honest settlement produces. This checks the signature only; it does not re-read the chain.',
   parameters: BaseAgentSwapGuardSettlementInputSchema,
   handler: async (args) => {
     // The signed settlement is carried under `settlement` inside the envelope.
@@ -90,18 +100,26 @@ export const verifyBaseAgentSwapGuardSettlementTool: McpToolDefinition<
   },
 };
 
+/** @deprecated Use verify_agent_swap_guard_settlement. */
+export const verifyBaseAgentSwapGuardSettlementTool: McpToolDefinition<
+  typeof BaseAgentSwapGuardSettlementInputSchema
+> = {
+  ...verifyAgentSwapGuardSettlementTool,
+  name: 'verify_base_agent_swap_guard_settlement',
+  description:
+    'Compatibility alias for verify_agent_swap_guard_settlement. Verify the same signed Agent Swap Guard settlement without changing the verification behavior.',
+};
+
 /**
  * One agent-facing boundary for the initial reviewed direct-swap profiles on
  * Base, BNB, and Monad.  The guard deliberately returns no executable calls
  * for CAUTION or BLOCK, so a caller cannot accidentally treat risk evidence
  * as permission to trade.
  */
-export const prepareBaseAgentSwapGuardTool: McpToolDefinition<
-  typeof BaseAgentSwapGuardInputSchema
-> = {
-  name: 'prepare_base_agent_swap_guard',
+export const prepareAgentSwapGuardTool: McpToolDefinition<typeof BaseAgentSwapGuardInputSchema> = {
+  name: 'prepare_agent_swap_guard',
   description:
-    'Prepare and gate one reviewed direct-router swap for an AI agent on Base, BNB Smart Chain, or Monad: Aerodrome Slipstream WETH→USDC CL100 and USDC→USDT CL1 (both directions) on Base, PancakeSwap V3 USDC→USDT 0.01% on Base, PancakeSwap V3 USDT→USDC 0.01% on BNB (both directions), or PancakeSwap V3 WMON→USDC 0.05% on Monad (both directions). It obtains a fresh pinned quote, re-verifies reviewed contract identities, canonical-decodes the exact approval/swap calldata, validates both agent decision prices against independent oracle consensus, and converts the route quote using the independent destination consensus before applying price-impact/TWAP/slippage/freshness policy. ALLOW returns exact unsigned approval and swap calldata plus a decisionHash, and adds a short-lived signed decision when Insight has a published attester; CAUTION or BLOCK returns no calls to sign. After settlement, pair the signed decision with the swap transaction hash via settle_base_agent_swap_guard to obtain a signed settlement closure. It does not route, sign, relay, broadcast, authorize, assess smart-account UserOperations, or accept arbitrary aggregator calldata.',
+    'Prepare and gate one reviewed direct-router swap for an AI agent on Base, BNB Smart Chain, or Monad: Aerodrome Slipstream WETH→USDC CL100 and USDC→USDT CL1 (both directions) on Base, PancakeSwap V3 USDC→USDT 0.01% on Base, PancakeSwap V3 USDT→USDC 0.01% on BNB (both directions), or PancakeSwap V3 WMON→USDC 0.05% on Monad (both directions). It obtains a fresh pinned quote, re-verifies reviewed contract identities, canonical-decodes the exact approval/swap calldata, validates both agent decision prices against independent oracle consensus, and converts the route quote using the independent destination consensus before applying price-impact/TWAP/slippage/freshness policy. ALLOW returns exact unsigned approval and swap calldata plus a decisionHash, and adds a short-lived signed decision when Insight has a published attester; CAUTION or BLOCK returns no calls to sign. After settlement, pair the signed decision with the swap transaction hash via settle_agent_swap_guard to obtain a signed settlement closure. It does not route, sign, relay, broadcast, authorize, assess smart-account UserOperations, or accept arbitrary aggregator calldata.',
   parameters: BaseAgentSwapGuardInputSchema,
   handler: async (args) => {
     const guard = await prepareBaseAgentSwapGuard(args);
@@ -136,6 +154,16 @@ export const prepareBaseAgentSwapGuardTool: McpToolDefinition<
   },
 };
 
+/** @deprecated Use prepare_agent_swap_guard. Kept for existing MCP clients. */
+export const prepareBaseAgentSwapGuardTool: McpToolDefinition<
+  typeof BaseAgentSwapGuardInputSchema
+> = {
+  ...prepareAgentSwapGuardTool,
+  name: 'prepare_base_agent_swap_guard',
+  description:
+    'Compatibility alias for prepare_agent_swap_guard. Prepare the same reviewed multichain Agent Swap Guard decision without changing its policy, calldata binding, attestation, or billing behavior.',
+};
+
 /**
  * BNB-specific discovery name for the reviewed PancakeSwap V3 lanes. The
  * implementation deliberately remains the same guard so the alias cannot
@@ -163,5 +191,5 @@ export const prepareBnbPancakeSwapV3GuardTool: McpToolDefinition<
   description:
     'BNB-specific entrypoint for the reviewed PancakeSwap V3 safety guard. Use only bnb-pancakeswap-v3-usdt-usdc-100 or bnb-pancakeswap-v3-usdt-wbnb-100. It obtains a fresh pinned quote, checks the reviewed router/factory/quoter/pool identities, validates oracle and slippage policy, and returns exact unsigned approval/swap calldata only for ALLOW. CAUTION and BLOCK return no calls to sign. PriorSeal must bind the identical approval and swap calls as separate exact-call authorizations with adjacent nonces; this tool never signs, broadcasts, routes through an aggregator, or authorizes a transaction.',
   parameters: BnbPancakeSwapV3GuardInputSchema,
-  handler: async (args, context) => prepareBaseAgentSwapGuardTool.handler(args, context),
+  handler: async (args, context) => prepareAgentSwapGuardTool.handler(args, context),
 };

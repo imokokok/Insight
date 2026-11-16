@@ -1,10 +1,16 @@
-# Base Agent Swap Guard
+# Agent Swap Guard
 
-`prepare_base_agent_swap_guard` is Insight's narrowly scoped Base pre-signing
-workflow for an agent that has already selected a direct swap path. It answers
+`prepare_agent_swap_guard` is Insight's narrowly scoped multichain pre-signing
+workflow for an agent that has already selected a direct swap path on Base, BNB
+Smart Chain, or Monad. It answers
 whether the exact reviewed proposal is sufficiently complete to be presented
 for **human confirmation**. It is not a DEX router, wallet, relayer, trade
 executor, or a general transaction-security scanner.
+
+`prepare_base_agent_swap_guard` remains available as a compatibility alias for
+existing clients. BNB-specific discovery can use
+`prepare_bnb_pancakeswap_v3_guard`; both aliases execute the same reviewed
+guard logic and payment policy as the neutral entrypoint.
 
 The guard deliberately composes the parts that matter for an autonomous swap:
 
@@ -89,7 +95,7 @@ USD decision prices, and all policy thresholds.
 
 ```json
 {
-  "name": "prepare_base_agent_swap_guard",
+  "name": "prepare_agent_swap_guard",
   "arguments": {
     "profileId": "base-aerodrome-slipstream-weth-usdc-cl100",
     "direction": "token0-to-token1",
@@ -199,7 +205,7 @@ the result becomes `BLOCK` and contains no calls.
 ## Post-settlement closure
 
 The pre-signing workflow above ends at broadcast; until now nothing joined the
-signed decision back to what actually settled. `settle_base_agent_swap_guard`
+signed decision back to what actually settled. `settle_agent_swap_guard`
 closes that loop. After the swap transaction is included, the agent presents the
 signed decision plus the swap transaction hash (and the approval transaction
 hash when it holds one), and Insight returns a signed
@@ -245,7 +251,7 @@ that any violation is detectable offline:
 
 - the EIP-712 struct signs `decisionHash`, `swapTxHash`, and `approvalTxHash`
   together, so the binding is inside the signature and cannot be stripped;
-- both independent verifiers (`verify_base_agent_swap_guard_settlement` and
+- both independent verifiers (`verify_agent_swap_guard_settlement` and
   the REST `verifyOnly` route) return the signed `decisionHash`, `swapTxHash`,
   and `attester` alongside the verdict; and
 - therefore two closures that both verify, share a `decisionHash`, and name
@@ -299,8 +305,12 @@ non-revoked `role: "attester"` key.
 5. Do not label a Base Account UserOperation, an aggregator transaction, or a
    modified multicall as guarded by this v1 endpoint.
 
-The MCP call is an agent-gating operation and is metered at C3 / 5 credits. It
-can use the same API-key or x402 MCP payment path as the rest of Insight.
+The MCP call is an agent-gating operation and is metered at C3 / 5 credits. The
+neutral entrypoint is `prepare_agent_swap_guard`; the old Base-prefixed name
+remains a compatibility alias. Settlement and verification use
+`settle_agent_swap_guard` and `verify_agent_swap_guard_settlement`, with their
+Base-prefixed names retained for existing clients. All can use the same API-key
+or x402 MCP payment path as the rest of Insight.
 
 ## Development and verification
 
@@ -326,6 +336,6 @@ npx jest src/lib/dex/__tests__/baseAgentSwapGuard.test.ts \
   src/mcp/tools/__tests__/baseAgentSwapGuardTools.test.ts --runInBand
 ```
 
-Metering: `prepare_base_agent_swap_guard` is C3 / 5 credits;
-`settle_base_agent_swap_guard` and `verify_base_agent_swap_guard_settlement`
+Metering: `prepare_agent_swap_guard` is C3 / 5 credits;
+`settle_agent_swap_guard` and `verify_agent_swap_guard_settlement`
 are C4 evidence artifacts.

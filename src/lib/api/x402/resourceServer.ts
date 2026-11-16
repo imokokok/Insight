@@ -800,18 +800,20 @@ const MCP_DISCOVERY_FALLBACK_INPUT_SCHEMA: Record<string, unknown> = {
 const bazaarMcpDiscoveryCache = new Map<string, ReturnType<typeof declareDiscoveryExtension>>();
 
 /**
- * The Base Swap Guard is sold as a distinct x402 MCP resource, not merely as
+ * The Agent Swap Guard is sold as a distinct x402 MCP resource, not merely as
  * an opaque member of the wider Insight catalog. Bazaar identifies MCP
  * resources by (resource URL, tool name), so its payment challenge needs the
  * exact tool name, an agent-searchable description, and the same argument
  * schema the MCP server validates at execution time.
  */
-export const BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME = 'prepare_base_agent_swap_guard';
+export const AGENT_SWAP_GUARD_MCP_TOOL_NAME = 'prepare_agent_swap_guard';
+/** @deprecated Use AGENT_SWAP_GUARD_MCP_TOOL_NAME. */
+export const BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME = AGENT_SWAP_GUARD_MCP_TOOL_NAME;
 
-export const BAZAAR_BASE_AGENT_SWAP_GUARD_MCP_DISCOVERY_EXTENSION = declareDiscoveryExtension({
-  toolName: BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME,
+export const BAZAAR_AGENT_SWAP_GUARD_MCP_DISCOVERY_EXTENSION = declareDiscoveryExtension({
+  toolName: AGENT_SWAP_GUARD_MCP_TOOL_NAME,
   description:
-    'Pre-signing Swap Guard for an AI agent on Base mainnet or BNB Smart Chain. Reviews one supported direct Aerodrome Slipstream WETH→USDC CL100 (Base), PancakeSwap V3 USDC→USDT 0.01% (Base), or PancakeSwap V3 USDT→USDC 0.01% (BNB) swap; independently validates source and destination decision prices, a pinned venue quote, price impact, TWAP, slippage, route contract identities, and byte-exact unsigned approval/swap calldata. Returns ALLOW, CAUTION, or BLOCK; only ALLOW includes calls for human confirmation. It never signs, routes, relays, or broadcasts a trade.',
+    'Pre-signing Agent Swap Guard for an AI agent on Base, BNB Smart Chain, or Monad. Reviews one supported direct Aerodrome Slipstream or PancakeSwap V3 swap; independently validates source and destination decision prices, a pinned venue quote, price impact, TWAP, slippage, route contract identities, and byte-exact unsigned approval/swap calldata. Returns ALLOW, CAUTION, or BLOCK; only ALLOW includes calls for human confirmation. It never signs, routes, relays, or broadcasts a trade.',
   transport: 'streamable-http',
   inputSchema: BaseAgentSwapGuardInputSchema.toJSONSchema() as {
     type: 'object';
@@ -844,6 +846,9 @@ export const BAZAAR_BASE_AGENT_SWAP_GUARD_MCP_DISCOVERY_EXTENSION = declareDisco
     },
   },
 });
+/** @deprecated Use BAZAAR_AGENT_SWAP_GUARD_MCP_DISCOVERY_EXTENSION. */
+export const BAZAAR_BASE_AGENT_SWAP_GUARD_MCP_DISCOVERY_EXTENSION =
+  BAZAAR_AGENT_SWAP_GUARD_MCP_DISCOVERY_EXTENSION;
 
 /**
  * Bazaar discovery metadata for one MCP tools/call. Declared as an MCP-shaped
@@ -859,8 +864,8 @@ export const BAZAAR_BASE_AGENT_SWAP_GUARD_MCP_DISCOVERY_EXTENSION = declareDisco
 export function bazaarMcpDiscoveryExtensionFor(
   toolName: string
 ): ReturnType<typeof declareDiscoveryExtension> {
-  if (toolName === BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME) {
-    return BAZAAR_BASE_AGENT_SWAP_GUARD_MCP_DISCOVERY_EXTENSION;
+  if (toolName === AGENT_SWAP_GUARD_MCP_TOOL_NAME) {
+    return BAZAAR_AGENT_SWAP_GUARD_MCP_DISCOVERY_EXTENSION;
   }
   const cached = bazaarMcpDiscoveryCache.get(toolName);
   if (cached) return cached;
@@ -876,10 +881,10 @@ export function bazaarMcpDiscoveryExtensionFor(
 }
 
 function mcpRouteConfigFor(cfg: X402Config, amountAtomic: string, discoveryToolName?: string) {
-  const baseSwapGuard = discoveryToolName === BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME;
+  const agentSwapGuard = discoveryToolName === AGENT_SWAP_GUARD_MCP_TOOL_NAME;
   return {
-    description: baseSwapGuard
-      ? 'AI-agent Swap Guard (Base mainnet and BNB Smart Chain): a paid pre-signing decision for one reviewed Aerodrome Slipstream WETH→USDC CL100 (Base), PancakeSwap V3 USDC→USDT 0.01% (Base), or PancakeSwap V3 USDT→USDC 0.01% (BNB) direct swap. It returns ALLOW, CAUTION, or BLOCK and only returns unsigned calldata on ALLOW; it never signs, routes, relays, or broadcasts a trade.'
+    description: agentSwapGuard
+      ? 'AI-agent Swap Guard (Base, BNB Smart Chain, and Monad): a paid pre-signing decision for one reviewed direct swap. It returns ALLOW, CAUTION, or BLOCK and only returns unsigned calldata on ALLOW; it never signs, routes, relays, or broadcasts a trade.'
       : 'MCP tools/call over JSON-RPC (streamable HTTP): pay-per-call access to the Insight oracle tool catalog for x402 agents without an API key. Price scales with the tool metering class (C1..C4).',
     mimeType: 'application/json',
     accepts: acceptsFor(cfg, amountAtomic),
