@@ -146,7 +146,8 @@ jobs:
             echo "number=$existing" >> "$GITHUB_OUTPUT"
             echo "updated issue #$existing"
           else
-            num="$(gh issue create --repo "$REPO" --title "🚨 $marker (auto-watch)" --body "$body" --json number --jq '.number')"
+            issue_url="$(gh issue create --repo "$REPO" --title "🚨 $marker (auto-watch)" --body "$body")"
+            num="${issue_url##*/}"
             echo "number=$num" >> "$GITHUB_OUTPUT"
             echo "created issue #$num"
           fi
