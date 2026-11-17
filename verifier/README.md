@@ -39,7 +39,7 @@ From the full source repository, `npm run verifier:release:check` packs the actu
 **Offline smoke test.** This command creates a synthetic v1 receipt with a throwaway key and verifies its signature without network access, a wallet, or an API key. It proves the verifier runs; it does not prove that a production Insight key is trusted:
 
 ```bash
-npm install verify-insight-receipt@0.2.1
+npm install verify-insight-receipt
 node node_modules/verify-insight-receipt/examples/quickstart.mjs --offline
 ```
 
@@ -53,7 +53,7 @@ npm run build --prefix verifier
 node verifier/examples/quickstart.mjs --offline
 ```
 
-The `--offline` option is available in the published 0.2.1 example and in this checkout's 0.3.1 source example.
+The `--offline` option is available in the published example (install the latest version from npm) and in this checkout's source example.
 
 **Live demo.** With network access, the default command fetches a signed sample receipt and the registry from Insight, then verifies the bytes locally. The sample key is distinct from the production attester. Fetching both inputs from Insight does not independently authenticate the registry:
 
