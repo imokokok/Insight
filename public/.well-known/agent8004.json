@@ -50,7 +50,12 @@
     "docs": "https://www.oracleinsight.xyz/docs/x402",
     "pricePerRequest": "0.02",
     "acceptedTokens": ["USDC"],
-    "networks": ["eip155:8453", "eip155:999", "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"],
+    "networks": [
+      "eip155:8453",
+      "eip155:143",
+      "eip155:999",
+      "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"
+    ],
     "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231"
   },
   "active": true,
