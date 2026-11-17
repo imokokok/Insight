@@ -315,6 +315,17 @@ describe('x402 SVM resource-server registration', () => {
     // (methods + expected amounts) from silently lagging that list.
     expect(listedPaths).toEqual(new Set<string>(X402_PAID_REST_ROUTE_PATHS));
 
+    // GET-query guards must advertise a Bazaar discovery contract. These five
+    // shipped without one (CDP validate accepted the 402 but would not list
+    // them); the assertion keeps the omission from returning.
+    const bazaarDiscoverable = new Set([
+      X402_HYPERLIQUID_PERP_GUARD_ROUTE,
+      X402_MONAD_PERP_GUARD_ROUTE,
+      X402_SOLANA_PERP_GUARD_ROUTE,
+      X402_BNB_PERP_GUARD_ROUTE,
+      X402_PREDICTION_GUARD_ROUTE,
+    ]);
+
     for (const route of routes) {
       const result = await server.processHTTPRequest({
         adapter: new TestRequestAdapter(),
@@ -325,9 +336,18 @@ describe('x402 SVM resource-server registration', () => {
       if (result.type !== 'payment-error') throw new Error(`expected a quote for ${route.path}`);
       const quote = JSON.parse(
         Buffer.from(result.response.headers['PAYMENT-REQUIRED'] ?? '', 'base64url').toString('utf8')
-      ) as { accepts: Array<Record<string, unknown>> };
+      ) as {
+        accepts: Array<Record<string, unknown>>;
+        extensions?: { bazaar?: { info?: { input?: Record<string, unknown> } } };
+      };
       expect(quote.accepts.length).toBeGreaterThan(0);
       expect(quote.accepts[0]).toMatchObject({ network: 'eip155:8453', amount: route.amount });
+      if (bazaarDiscoverable.has(route.path)) {
+        expect(quote.extensions?.bazaar?.info?.input).toMatchObject({
+          type: 'http',
+          method: 'GET',
+        });
+      }
     }
   });
 

@@ -6,9 +6,14 @@ import {
 import {
   BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME,
   BAZAAR_BASE_AGENT_SWAP_GUARD_MCP_DISCOVERY_EXTENSION,
+  BAZAAR_BNB_PERP_GUARD_DISCOVERY_EXTENSION,
   BAZAAR_DISCOVERY_EXTENSION,
+  BAZAAR_HYPERLIQUID_PERP_GUARD_DISCOVERY_EXTENSION,
+  BAZAAR_MONAD_PERP_GUARD_DISCOVERY_EXTENSION,
+  BAZAAR_PREDICTION_GUARD_DISCOVERY_EXTENSION,
   BAZAAR_PREFLIGHT_DISCOVERY_EXTENSION,
   BAZAAR_SERVICE_METADATA,
+  BAZAAR_SOLANA_PERP_GUARD_DISCOVERY_EXTENSION,
   BAZAAR_SWAP_INTENT_DISCOVERY_EXTENSION,
 } from '../resourceServer';
 
@@ -173,6 +178,28 @@ describe('bazaar discovery extension', () => {
       declaredNotionalUsd: 1000,
     });
     expect(swapIntentDeclared.info.output.example).toHaveProperty('journeyId');
+  });
+
+  it.each([
+    ['Hyperliquid Perp Guard', BAZAAR_HYPERLIQUID_PERP_GUARD_DISCOVERY_EXTENSION],
+    ['Monad Perp Guard', BAZAAR_MONAD_PERP_GUARD_DISCOVERY_EXTENSION],
+    ['Solana Perp Guard', BAZAAR_SOLANA_PERP_GUARD_DISCOVERY_EXTENSION],
+    ['BNB Perp Guard', BAZAAR_BNB_PERP_GUARD_DISCOVERY_EXTENSION],
+    ['Prediction Guard', BAZAAR_PREDICTION_GUARD_DISCOVERY_EXTENSION],
+  ])('declares a valid GET-query discovery contract for %s', (_label, extension) => {
+    expect(
+      validateDiscoveryExtensionSpec(extension.bazaar as unknown as Record<string, unknown>)
+    ).toEqual({ valid: true });
+    const declaredExtension = extension.bazaar as unknown as QueryBazaarExtension;
+    const enriched = {
+      ...declaredExtension,
+      info: {
+        ...declaredExtension.info,
+        input: { ...declaredExtension.info.input, method: 'GET' },
+      },
+    };
+    expect(validateDiscoveryExtension(enriched as never)).toEqual({ valid: true });
+    expect(declaredExtension.info.input.type).toBe('http');
   });
 
   it('declares Base Swap Guard as a distinct, valid MCP discovery resource', () => {

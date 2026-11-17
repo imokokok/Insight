@@ -428,6 +428,258 @@ export const BAZAAR_BASE_PERP_GUARD_DISCOVERY_EXTENSION = declareDiscoveryExtens
   },
 });
 
+/**
+ * The four chain-specific perp guards below are POST-capable (they can bind
+ * one unsigned order in a signed decision attestation) but their GET route is
+ * a complete, read-only decision-input assessment driven by query params.
+ * That GET is the Bazaar-discoverable resource; the POST body stays out of
+ * discovery metadata. Omitting the extension made CDP validate mark these
+ * otherwise accepted 402s as unlistable.
+ */
+
+/** Marketplace contract for the Hyperliquid HyperCore perp decision-input gate. */
+export const BAZAAR_HYPERLIQUID_PERP_GUARD_DISCOVERY_EXTENSION = declareDiscoveryExtension({
+  input: {
+    protocolId: 'hyperliquid-perps-mainnet',
+    action: 'open_long',
+    assetSymbol: 'ETH',
+    marginAssetSymbol: 'USDC',
+    sizeUsd: 25_000,
+    marginValueUsd: 5_000,
+  },
+  inputSchema: {
+    type: 'object',
+    properties: {
+      protocolId: { type: 'string', enum: ['hyperliquid-perps-mainnet'] },
+      action: { type: 'string', enum: ['open_long', 'open_short'] },
+      assetSymbol: {
+        type: 'string',
+        description: 'Reviewed HyperCore perp asset symbol (BTC or ETH)',
+      },
+      marginAssetSymbol: { type: 'string', enum: ['USDC'], description: 'Margin asset symbol' },
+      sizeUsd: {
+        type: 'number',
+        description: 'Caller-declared post-action notional position value in USD',
+      },
+      marginValueUsd: {
+        type: 'number',
+        description: 'Caller-declared post-action margin value in USD',
+      },
+    },
+    required: [
+      'protocolId',
+      'action',
+      'assetSymbol',
+      'marginAssetSymbol',
+      'sizeUsd',
+      'marginValueUsd',
+    ],
+  },
+  output: {
+    example: {
+      schema: 'insight.hyperliquid-perp-guard.v1',
+      verdict: 'ALLOW',
+      projected: {
+        sizeUsd: 25_000,
+        marginValueUsd: 5_000,
+        effectiveLeverage: 5,
+        liquidationBufferPct: 80,
+        conservativeMaxSizeUsd: 112_500,
+      },
+    },
+  },
+});
+
+/** Marketplace contract for the Monad Perpl perp decision-input gate. */
+export const BAZAAR_MONAD_PERP_GUARD_DISCOVERY_EXTENSION = declareDiscoveryExtension({
+  input: {
+    protocolId: 'perpl-perps-monad-mainnet',
+    action: 'open_long',
+    assetSymbol: 'BTC',
+    marginAssetSymbol: 'AUSD',
+    sizeUsd: 25_000,
+    marginValueUsd: 5_000,
+  },
+  inputSchema: {
+    type: 'object',
+    properties: {
+      protocolId: { type: 'string', enum: ['perpl-perps-monad-mainnet'] },
+      action: { type: 'string', enum: ['open_long', 'open_short'] },
+      assetSymbol: {
+        type: 'string',
+        description: 'Reviewed Perpl perp asset symbol (BTC, MON, ETH or SOL)',
+      },
+      marginAssetSymbol: {
+        type: 'string',
+        enum: ['AUSD'],
+        description: 'Perpl margin asset; its peg is disclosed as not independently verified',
+      },
+      sizeUsd: {
+        type: 'number',
+        description: 'Caller-declared post-action notional position value in USD',
+      },
+      marginValueUsd: {
+        type: 'number',
+        description: 'Caller-declared post-action margin value in USD',
+      },
+    },
+    required: [
+      'protocolId',
+      'action',
+      'assetSymbol',
+      'marginAssetSymbol',
+      'sizeUsd',
+      'marginValueUsd',
+    ],
+  },
+  output: {
+    example: {
+      schema: 'insight.monad-perp-guard.v1',
+      verdict: 'ALLOW',
+      projected: {
+        sizeUsd: 25_000,
+        marginValueUsd: 5_000,
+        effectiveLeverage: 5,
+        liquidationBufferPct: 80,
+        conservativeMaxSizeUsd: 112_500,
+      },
+    },
+  },
+});
+
+/** Marketplace contract for the Solana Drift v2 perp decision-input gate. */
+export const BAZAAR_SOLANA_PERP_GUARD_DISCOVERY_EXTENSION = declareDiscoveryExtension({
+  input: {
+    protocolId: 'drift-v2-mainnet',
+    action: 'open_long',
+    assetSymbol: 'SOL',
+    marginAssetSymbol: 'USDC',
+    sizeUsd: 25_000,
+    marginValueUsd: 5_000,
+  },
+  inputSchema: {
+    type: 'object',
+    properties: {
+      protocolId: { type: 'string', enum: ['drift-v2-mainnet'] },
+      action: { type: 'string', enum: ['open_long', 'open_short'] },
+      assetSymbol: {
+        type: 'string',
+        description: 'Reviewed Drift perp asset symbol (SOL, BTC or ETH)',
+      },
+      marginAssetSymbol: { type: 'string', enum: ['USDC'], description: 'Margin asset symbol' },
+      sizeUsd: {
+        type: 'number',
+        description: 'Caller-declared post-action notional position value in USD',
+      },
+      marginValueUsd: {
+        type: 'number',
+        description: 'Caller-declared post-action margin value in USD',
+      },
+    },
+    required: [
+      'protocolId',
+      'action',
+      'assetSymbol',
+      'marginAssetSymbol',
+      'sizeUsd',
+      'marginValueUsd',
+    ],
+  },
+  output: {
+    example: {
+      schema: 'insight.solana-perp-guard.v1',
+      verdict: 'ALLOW',
+      projected: {
+        sizeUsd: 25_000,
+        marginValueUsd: 5_000,
+        effectiveLeverage: 5,
+        liquidationBufferPct: 80,
+        conservativeMaxSizeUsd: 112_500,
+      },
+    },
+  },
+});
+
+/** Marketplace contract for the BNB Aster perp decision-input gate. */
+export const BAZAAR_BNB_PERP_GUARD_DISCOVERY_EXTENSION = declareDiscoveryExtension({
+  input: {
+    protocolId: 'aster-perps-bnb-mainnet',
+    action: 'open_long',
+    assetSymbol: 'BTC',
+    marginAssetSymbol: 'USDT',
+    sizeUsd: 25_000,
+    marginValueUsd: 5_000,
+  },
+  inputSchema: {
+    type: 'object',
+    properties: {
+      protocolId: { type: 'string', enum: ['aster-perps-bnb-mainnet'] },
+      action: { type: 'string', enum: ['open_long', 'open_short'] },
+      assetSymbol: { type: 'string', description: 'Reviewed Aster perp asset symbol (BTC or ETH)' },
+      marginAssetSymbol: { type: 'string', enum: ['USDT'], description: 'Margin asset symbol' },
+      sizeUsd: {
+        type: 'number',
+        description: 'Caller-declared post-action notional position value in USD',
+      },
+      marginValueUsd: {
+        type: 'number',
+        description: 'Caller-declared post-action margin value in USD',
+      },
+    },
+    required: [
+      'protocolId',
+      'action',
+      'assetSymbol',
+      'marginAssetSymbol',
+      'sizeUsd',
+      'marginValueUsd',
+    ],
+  },
+  output: {
+    example: {
+      schema: 'insight.bnb-perp-guard.v1',
+      verdict: 'ALLOW',
+      projected: {
+        sizeUsd: 25_000,
+        marginValueUsd: 5_000,
+        effectiveLeverage: 5,
+        liquidationBufferPct: 80,
+        conservativeMaxSizeUsd: 112_500,
+      },
+    },
+  },
+});
+
+/** Marketplace contract for the chain-neutral Polymarket prediction gate. */
+export const BAZAAR_PREDICTION_GUARD_DISCOVERY_EXTENSION = declareDiscoveryExtension({
+  input: {
+    protocolId: 'polymarket-prediction-mainnet',
+    action: 'buy_up',
+    marketSlug: 'will-eth-reach-5000',
+  },
+  inputSchema: {
+    type: 'object',
+    properties: {
+      protocolId: { type: 'string', enum: ['polymarket-prediction-mainnet'] },
+      action: { type: 'string', enum: ['buy_up', 'buy_down'] },
+      marketSlug: {
+        type: 'string',
+        description: 'Machine-parseable Polymarket Gamma market slug',
+      },
+    },
+    required: ['protocolId', 'action', 'marketSlug'],
+  },
+  output: {
+    example: {
+      schema: 'insight.polymarket-guard.v1',
+      verdict: 'WAIT',
+      protocolId: 'polymarket-prediction-mainnet',
+      action: 'buy_up',
+      reasons: ['OFF_HOURS_TRADE_ONLY'],
+    },
+  },
+});
+
 /** Marketplace contract for the Monad direct-lending decision gate. */
 export const BAZAAR_MONAD_LENDING_GUARD_DISCOVERY_EXTENSION = declareDiscoveryExtension({
   input: {
@@ -1143,9 +1395,10 @@ export async function buildX402HttpServer(
       BAZAAR_BASE_PERP_GUARD_DISCOVERY_EXTENSION,
       'Base Perp Guard: a read-only, pre-trade decision-input integrity gate for opening a Synthetix Perps V3 position on Base (reviewed BTC, ETH, SOL, XRP, DOGE, and PEPE markets, USDC margin). It separately evaluates the underlying and USDC margin oracle integrity and checks caller-declared post-action leverage against reviewed market caps. GET returns a preview; POST accepts one unsigned direct PerpsMarketProxy commitOrder call and may return an Insight EIP-712 decision attestation. It never signs, broadcasts, or authorizes an order.'
     ),
-    [X402_HYPERLIQUID_PERP_GUARD_ROUTE]: routeConfigWithoutDiscovery(
+    [X402_HYPERLIQUID_PERP_GUARD_ROUTE]: routeConfigFor(
       cfg,
-      'Hyperliquid Perp Guard: a read-only, pre-trade decision-input integrity gate for one declared Hyperliquid HyperCore order intent (asset index, size, leverage, price). It evaluates underlying oracle integrity and the declared leverage against Hyperliquid margin requirements, and POST binds the exact unsigned exchange envelope — including intent hash, asset index, size, price, and expiry — into an Insight EIP-712 decision attestation. It never signs, submits, or authorizes an order.'
+      BAZAAR_HYPERLIQUID_PERP_GUARD_DISCOVERY_EXTENSION,
+      'Hyperliquid Perp Guard: a read-only, pre-trade decision-input integrity gate for one declared Hyperliquid HyperCore order intent (asset index, size, leverage, price). GET evaluates underlying oracle integrity and the declared leverage against Hyperliquid margin requirements; POST binds the exact unsigned exchange envelope — including intent hash, asset index, size, price, and expiry — into an Insight EIP-712 decision attestation. It never signs, submits, or authorizes an order.'
     ),
     [X402_MONAD_LENDING_GUARD_ROUTE]: routeConfigFor(
       cfg,
@@ -1166,24 +1419,28 @@ export async function buildX402HttpServer(
       cfg,
       'Solana Lending Guard: a read-only, pre-signing decision for one direct Kamino Lend, Marginfi v2, Jupiter Lend Earn deposit, or Save Lend reserve-liquidity deposit instruction. Save deposits must provide an asset mint that is live-verified against the source SPL token account. POST verifies program-owned accounts and simulates the exact unsigned Solana message before optionally returning an Insight Ed25519 decision attestation. It never authorizes or broadcasts a transaction.'
     ),
-    [X402_SOLANA_PERP_GUARD_ROUTE]: routeConfigWithoutDiscovery(
+    [X402_SOLANA_PERP_GUARD_ROUTE]: routeConfigFor(
       cfg,
-      'Solana Perp Guard: a read-only, pre-trade decision gate for opening a Drift Protocol v2 perpetual position on Solana mainnet (reviewed SOL, BTC, and ETH markets, USDC margin). It evaluates underlying and USDC cross-oracle consensus integrity on canonical mainnet feeds, checks caller-declared post-action leverage against a reviewed static profile capped by the live Drift margin ratio, and attaches disclosed on-chain venue evidence (Drift mark price vs Pyth Lazer oracle deviation, funding rate, open interest, market status). It never signs, submits, or authorizes an order.'
+      BAZAAR_SOLANA_PERP_GUARD_DISCOVERY_EXTENSION,
+      'Solana Perp Guard: a read-only, pre-trade decision gate for opening a Drift Protocol v2 perpetual position on Solana mainnet (reviewed SOL, BTC, and ETH markets, USDC margin). GET evaluates underlying and USDC cross-oracle consensus integrity on canonical mainnet feeds, checks caller-declared post-action leverage against a reviewed static profile capped by the live Drift margin ratio, and attaches disclosed on-chain venue evidence (Drift mark price vs Pyth Lazer oracle deviation, funding rate, open interest, market status). POST binds one exact unsigned Drift order. It never signs, submits, or authorizes an order.'
     ),
     [X402_SOLANA_SWAP_GUARD_ROUTE]: routeConfigWithoutDiscovery(
       cfg,
       'Solana Swap Guard: a read-only, pre-signing gate for one exact unsigned Orca Whirlpool swap message on Solana mainnet (reviewed USDC/USDT and SOL/USDC lanes). It re-derives pool, vault, tick-array, and oracle identities from live mainnet state, prices the pool from its own sqrtPrice, runs both oracle checks, and simulates the exact unsigned message before any ALLOW. It never signs, submits, or authorizes a transaction.'
     ),
-    [X402_MONAD_PERP_GUARD_ROUTE]: routeConfigWithoutDiscovery(
+    [X402_MONAD_PERP_GUARD_ROUTE]: routeConfigFor(
       cfg,
-      'Monad Perp Guard: a read-only, pre-trade decision gate for opening a Perpl AUSD-margined perpetual position on Monad mainnet (reviewed BTC, MON, ETH, and SOL markets). It evaluates the underlying cross-oracle consensus integrity on canonical mainnet feeds, binds the declared leverage to a reviewed static profile capped by the live Perpl initial-margin ratio, and attaches disclosed venue evidence (Perpl mark/oracle divergence, funding rate, open interest, market status, consensus-vs-oracle deviation; the AUSD margin peg is disclosed as not independently verified). It never signs, submits, or authorizes an order.'
+      BAZAAR_MONAD_PERP_GUARD_DISCOVERY_EXTENSION,
+      'Monad Perp Guard: a read-only, pre-trade decision gate for opening a Perpl AUSD-margined perpetual position on Monad mainnet (reviewed BTC, MON, ETH, and SOL markets). GET evaluates the underlying cross-oracle consensus integrity on canonical mainnet feeds, binds the declared leverage to a reviewed static profile capped by the live Perpl initial-margin ratio, and attaches disclosed venue evidence (Perpl mark/oracle divergence, funding rate, open interest, market status, consensus-vs-oracle deviation; the AUSD margin peg is disclosed as not independently verified). POST binds one exact unsigned Perpl order. It never signs, submits, or authorizes an order.'
     ),
-    [X402_BNB_PERP_GUARD_ROUTE]: routeConfigWithoutDiscovery(
+    [X402_BNB_PERP_GUARD_ROUTE]: routeConfigFor(
       cfg,
-      'BNB Perp Guard: a read-only, pre-trade decision gate for opening an Aster Perps USDT-margined perpetual position on BNB Smart Chain (reviewed BTCUSDT and ETHUSDT markets). It separately evaluates the underlying and USDT margin cross-oracle consensus integrity on canonical mainnet feeds, binds the declared leverage to a reviewed static profile capped by the live Aster required-margin ratio, and attaches disclosed venue evidence (Aster mark/index divergence, funding rate, open interest, market status, consensus-vs-index deviation). It never signs, submits, or authorizes an order.'
+      BAZAAR_BNB_PERP_GUARD_DISCOVERY_EXTENSION,
+      'BNB Perp Guard: a read-only, pre-trade decision gate for opening an Aster Perps USDT-margined perpetual position on BNB Smart Chain (reviewed BTC and ETH markets). GET separately evaluates the underlying and USDT margin cross-oracle consensus integrity on canonical mainnet feeds, binds the declared leverage to a reviewed static profile capped by the live Aster required-margin ratio, and attaches disclosed venue evidence (Aster mark/index divergence, funding rate, open interest, market status, consensus-vs-index deviation). POST binds one exact unsigned Aster order. It never signs, submits, or authorizes an order.'
     ),
-    [X402_PREDICTION_GUARD_ROUTE]: routeConfigWithoutDiscovery(
+    [X402_PREDICTION_GUARD_ROUTE]: routeConfigFor(
       cfg,
+      BAZAAR_PREDICTION_GUARD_DISCOVERY_EXTENSION,
       'Prediction Guard: a read-only screening gate for one Polymarket market entry. Cross-oracle consensus is deliberately not applied to event markets; the guard verifies machine-parseable price-contract metadata, lifecycle and resolution timing, quoted-probability integrity, and whether the declared settlement venue can be verified post-hoc by the settlement-evidence pipeline. It never signs, submits, or authorizes an order.'
     ),
     [X402_TOKENIZED_STOCK_GUARD_ROUTE]: routeConfigFor(
