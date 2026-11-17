@@ -650,7 +650,7 @@ export const BAZAAR_BNB_PERP_GUARD_DISCOVERY_EXTENSION = declareDiscoveryExtensi
   },
 });
 
-/** Marketplace contract for the chain-neutral Polymarket prediction gate. */
+/** Marketplace contract for the chain-neutral Polymarket/Kalshi prediction gate. */
 export const BAZAAR_PREDICTION_GUARD_DISCOVERY_EXTENSION = declareDiscoveryExtension({
   input: {
     protocolId: 'polymarket-prediction-mainnet',
@@ -660,22 +660,30 @@ export const BAZAAR_PREDICTION_GUARD_DISCOVERY_EXTENSION = declareDiscoveryExten
   inputSchema: {
     type: 'object',
     properties: {
-      protocolId: { type: 'string', enum: ['polymarket-prediction-mainnet'] },
-      action: { type: 'string', enum: ['buy_up', 'buy_down'] },
+      protocolId: {
+        type: 'string',
+        enum: ['polymarket-prediction-mainnet', 'kalshi-prediction-mainnet'],
+        description: 'Reviewed prediction venue identifier',
+      },
+      action: { type: 'string', enum: ['buy_up', 'buy_down', 'buy_yes', 'buy_no'] },
       marketSlug: {
         type: 'string',
-        description: 'Machine-parseable Polymarket Gamma market slug',
+        description: 'Required for Polymarket; machine-parseable Gamma market slug',
+      },
+      marketTicker: {
+        type: 'string',
+        description: 'Required for Kalshi; official market ticker',
       },
     },
-    required: ['protocolId', 'action', 'marketSlug'],
+    required: ['protocolId', 'action'],
   },
   output: {
     example: {
       schema: 'insight.polymarket-guard.v1',
-      verdict: 'WAIT',
+      verdict: 'CAUTION',
       protocolId: 'polymarket-prediction-mainnet',
       action: 'buy_up',
-      reasons: ['OFF_HOURS_TRADE_ONLY'],
+      reasons: [],
     },
   },
 });
@@ -1441,7 +1449,7 @@ export async function buildX402HttpServer(
     [X402_PREDICTION_GUARD_ROUTE]: routeConfigFor(
       cfg,
       BAZAAR_PREDICTION_GUARD_DISCOVERY_EXTENSION,
-      'Prediction Guard: a read-only screening gate for one Polymarket market entry. Cross-oracle consensus is deliberately not applied to event markets; the guard verifies machine-parseable price-contract metadata, lifecycle and resolution timing, quoted-probability integrity, and whether the declared settlement venue can be verified post-hoc by the settlement-evidence pipeline. It never signs, submits, or authorizes an order.'
+      'Prediction Guard: a read-only screening gate for one reviewed Polymarket or Kalshi market entry. Cross-oracle consensus is deliberately not applied to event markets; the guard verifies venue metadata, lifecycle and timing, quoted-probability integrity, settlement rules and venue-specific evidence limits. Kalshi settlement is official-API-declared and not independently recomputable. It never signs, submits, or authorizes an order.'
     ),
     [X402_TOKENIZED_STOCK_GUARD_ROUTE]: routeConfigFor(
       cfg,

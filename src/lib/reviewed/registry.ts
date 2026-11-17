@@ -923,6 +923,30 @@ const PREDICTION: ReviewedProfileDescriptor[] = [
     activityStatus: 'UNKNOWN',
     notes: '链无关（Gamma API）；metadata 是唯一评估输入，transport/shape 失败即 BLOCK。',
   },
+  {
+    profileId: 'kalshi-prediction-mainnet',
+    family: 'prediction',
+    chainId: 'chain-agnostic',
+    reviewedAt: REVIEW_DATE,
+    evidenceRefs: [
+      ev('src/lib/prediction/kalshi.ts:3', 'official', 'KALSHI_GUARD_PROTOCOL_ID'),
+      ev('https://docs.kalshi.com/welcome', 'official', 'REST/WebSocket prediction APIs'),
+      ev(
+        'https://docs.kalshi.com/getting_started/quick_start_market_data.md',
+        'official',
+        'public market metadata and orderbook access'
+      ),
+    ],
+    chainAnchor: {
+      paramSlot: 'kalshi-prediction-mainnet',
+      activitySignal: { kind: 'venueApi', maxSilenceHours: 24 },
+    },
+    lastHeartbeatAt: null,
+    status: 'ACTIVE',
+    activityStatus: 'UNKNOWN',
+    notes:
+      '链无关（Kalshi official API）；只读 metadata/quote screen。结算是 off-chain official-API-declared，不能独立重算；不处理 API 私钥或订单执行。',
+  },
 ];
 
 // ---------------------------------------------------------------------------

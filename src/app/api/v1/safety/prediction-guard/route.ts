@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server';
 
-import { z } from 'zod';
-
 import {
   ApiResponseBuilder,
   createApiHandler,
@@ -12,26 +10,21 @@ import { CACHE_PRESETS } from '@/lib/api/utils';
 import { X402_PAYMENT_SCOPE } from '@/lib/api/x402/capabilityPayment';
 import { createPaidRouteMethod } from '@/lib/api/x402/paidRoute';
 import {
-  assessPolymarketGuard,
-  PolymarketGuardInputSchema,
-} from '@/lib/prediction/polymarketGuard';
+  assessPredictionGuard,
+  PredictionGuardInputSchema,
+  type PredictionGuardInput,
+} from '@/lib/prediction/predictionGuard';
 
-/** The guard performs one live Gamma metadata read. */
+/** The guard performs one live public venue metadata read. */
 export const maxDuration = 30;
 export const OPTIONS = createOptionsHandler();
 
-const QuerySchema = z
-  .object({
-    protocolId: z.literal('polymarket-prediction-mainnet'),
-    action: z.enum(['buy_up', 'buy_down']),
-    marketSlug: z.string().min(1).max(200),
-  })
-  .transform((input) => PolymarketGuardInputSchema.parse(input));
+const QuerySchema = PredictionGuardInputSchema;
 
-type GuardQuery = z.output<typeof QuerySchema>;
+type GuardQuery = PredictionGuardInput;
 
 async function executeGuard(input: GuardQuery, requestId: string): Promise<NextResponse> {
-  const result = await assessPolymarketGuard(input);
+  const result = await assessPredictionGuard(input);
   return NextResponse.json(
     ApiResponseBuilder.success(result, { requestId, meta: { verdict: result.verdict } }),
     {
@@ -49,8 +42,8 @@ const legacyGet = createApiHandler(
 /**
  * API-key callers retain the standard v1 middleware path. Keyless requests
  * use the registered x402 resource. Prediction-market assessment is
- * chain-neutral (no on-chain execution authority), so it quotes the
- * merchant-configured payment rail rather than a chain-bound realm.
+ * chain-neutral (no execution authority), so it quotes the merchant-configured
+ * payment rail rather than a chain-bound realm.
  */
 export const GET = createPaidRouteMethod({
   scope: X402_PAYMENT_SCOPE.configured,

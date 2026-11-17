@@ -757,9 +757,9 @@ export const X402_SOLANA_PERP_GUARD_ROUTE = '/api/v1/safety/solana-perp-guard';
 export const X402_BNB_PERP_GUARD_ROUTE = '/api/v1/safety/bnb-perp-guard';
 
 /**
- * Polymarket prediction-market screening gate. Chain-neutral: the assessment
- * carries no on-chain execution authority, so x402 quotes bind to the
- * merchant-configured payment rail rather than a specific chain.
+ * Chain-neutral prediction-market screening gate for the reviewed Polymarket
+ * and Kalshi adapters. The assessment carries no execution authority, so x402
+ * quotes bind to the merchant-configured payment rail rather than a chain.
  */
 export const X402_PREDICTION_GUARD_ROUTE = '/api/v1/safety/prediction-guard';
 
