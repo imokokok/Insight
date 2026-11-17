@@ -1,4 +1,4 @@
-/** Portable EIP-712 evidence for one reviewed Polygon, Arbitrum or BNB direct call. */
+/** Portable EIP-712 evidence for one reviewed EVM lending direct call. */
 
 import { hashTypedData, keccak256, verifyTypedData } from 'viem';
 import { z } from 'zod';
@@ -58,12 +58,24 @@ const GuardSchema = z
   .object({
     schema: z.literal('insight.multichain-evm-lending-guard.v1'),
     verdict: z.enum(['ALLOW', 'CAUTION', 'BLOCK']),
-    chainId: z.union([z.literal(137), z.literal(42161), z.literal(56), z.literal(8453)]),
+    chainId: z.union([
+      z.literal(137),
+      z.literal(42161),
+      z.literal(56),
+      z.literal(8453),
+      z.literal(999),
+    ]),
     protocolId: MultichainEvmLendingProtocolIdSchema,
     action: z.enum(['supply', 'borrow']),
     scope: z
       .object({
-        chainId: z.union([z.literal(137), z.literal(42161), z.literal(56), z.literal(8453)]),
+        chainId: z.union([
+          z.literal(137),
+          z.literal(42161),
+          z.literal(56),
+          z.literal(8453),
+          z.literal(999),
+        ]),
       })
       .passthrough(),
     market: z.object({ collateralSymbol: z.string(), loanSymbol: z.string() }).passthrough(),
@@ -92,7 +104,13 @@ const AttestationDataSchema = z
     decisionHash: z.string().regex(HASH),
     calldataHash: z.string().regex(HASH),
     account: z.string().regex(ADDRESS),
-    chainId: z.union([z.literal(137), z.literal(42161), z.literal(56), z.literal(8453)]),
+    chainId: z.union([
+      z.literal(137),
+      z.literal(42161),
+      z.literal(56),
+      z.literal(8453),
+      z.literal(999),
+    ]),
     verdict: z.number().int().min(0).max(2),
     issuedAt: z.number().int().nonnegative().safe(),
     validUntil: z.number().int().nonnegative().safe(),
@@ -129,7 +147,7 @@ export interface MultichainEvmLendingGuardAttestationData {
   decisionHash: `0x${string}`;
   calldataHash: `0x${string}`;
   account: `0x${string}`;
-  chainId: 137 | 42161 | 56 | 8453;
+  chainId: 137 | 42161 | 56 | 8453 | 999;
   verdict: 0 | 1 | 2;
   issuedAt: number;
   validUntil: number;

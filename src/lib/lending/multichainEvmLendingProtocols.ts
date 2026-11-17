@@ -13,18 +13,23 @@ export const POLYGON_CHAIN_ID = CHAIN_ID.POLYGON;
 export const ARBITRUM_CHAIN_ID = CHAIN_ID.ARBITRUM;
 export const BNB_CHAIN_ID = CHAIN_ID.BSC;
 export const BASE_CHAIN_ID = CHAIN_ID.BASE;
+export const HYPEREVM_CHAIN_ID = CHAIN_ID.HYPEREVM;
 
 export type MultichainEvmLendingChainId =
   | typeof POLYGON_CHAIN_ID
   | typeof ARBITRUM_CHAIN_ID
   | typeof BNB_CHAIN_ID
-  | typeof BASE_CHAIN_ID;
+  | typeof BASE_CHAIN_ID
+  | typeof HYPEREVM_CHAIN_ID;
 
 export type AaveV3EvmProtocolId = 'aave-v3-polygon' | 'aave-v3-arbitrum' | 'aave-v3-bnb';
-export type MorphoBlueEvmProtocolId = 'morpho-blue-polygon' | 'morpho-blue-arbitrum';
+export type MorphoBlueEvmProtocolId =
+  | 'morpho-blue-polygon'
+  | 'morpho-blue-arbitrum'
+  | 'morpho-blue-hyperevm';
 export type CompoundV3EvmProtocolId = 'compound-v3-arbitrum';
 export type ListaMoolahProtocolId = 'lista-moolah-bnb';
-export type EulerV2EvmProtocolId = 'euler-v2-base' | 'euler-v2-arbitrum';
+export type EulerV2EvmProtocolId = 'euler-v2-base' | 'euler-v2-arbitrum' | 'euler-v2-hyperevm';
 export type DolomiteProtocolId = 'dolomite-arbitrum';
 /** Fluid's simple (T1) collateral/debt vaults only; LP-vault variants are not interchangeable. */
 export type FluidVaultT1ProtocolId = 'fluid-vault-t1-base' | 'fluid-vault-t1-arbitrum';
@@ -72,9 +77,10 @@ export const VENUS_CORE_POOL_MARKETS = {
 } as const;
 
 /**
- * Morpho Blue uses the same audited core address on these deployments.  The
- * market identifier still commits to five immutable parameters, so the shared
- * address never expands a decision to an arbitrary market.
+ * Morpho Blue's canonical singleton is deployment-specific on HyperEVM while
+ * the Polygon/Arbitrum deployments share the audited core address. The market
+ * identifier still commits to five immutable parameters, so a singleton never
+ * expands a decision to an arbitrary market.
  */
 export const MORPHO_BLUE_EVM_MARKETS = {
   'morpho-blue-polygon': {
@@ -84,6 +90,10 @@ export const MORPHO_BLUE_EVM_MARKETS = {
   'morpho-blue-arbitrum': {
     chainId: ARBITRUM_CHAIN_ID,
     morpho: '0xbbbbbbbbbb9cc5e90e3b3af64bdaf62c37eeffcb',
+  },
+  'morpho-blue-hyperevm': {
+    chainId: HYPEREVM_CHAIN_ID,
+    morpho: '0x68e37de8d93d3496ae143f2e900490f6280c57cd',
   },
 } as const;
 
@@ -110,8 +120,9 @@ export const LISTA_MOOLAH_BNB = '0x8f73b65b4caaf64fba2af91cc5d4a2a1318e5d8c' as 
 
 /**
  * Euler publishes this core registry together with bytecode provenance for
- * every production deployment.  Individual EVaults remain permissionless, so
+ * every production deployment. Individual EVaults remain permissionless, so
  * the guard also verifies factory `isProxy(vault)` and the expected EVC live.
+ * The HyperEVM addresses are the chain-999 CoreAddresses deployment.
  */
 export const EULER_V2_EVM_MARKETS = {
   'euler-v2-base': {
@@ -123,6 +134,11 @@ export const EULER_V2_EVM_MARKETS = {
     chainId: ARBITRUM_CHAIN_ID,
     eVaultFactory: '0x78df1cf5bf06a7f27f2acc580b934238c1b80d50',
     evc: '0x6302ef0f34100cddfb5489fbcb6ee1aa95cd1066',
+  },
+  'euler-v2-hyperevm': {
+    chainId: HYPEREVM_CHAIN_ID,
+    eVaultFactory: '0xcf5552580fd364cdbbfcb5ae345f75674c59273a',
+    evc: '0xceaa7cdcd7dbbee8601127a9abb17a974d613db4',
   },
 } as const;
 
