@@ -150,6 +150,7 @@ describe('static discovery surfaces', () => {
       capabilityCatalog: string;
       registrations: Array<{ agentId: number; agentRegistry: string }>;
       'x-base': { agentId: number; builderCode: string };
+      x402: { networks: string[] };
     };
     expect(registration.capabilityCatalog).toBe(
       'https://www.oracleinsight.xyz/.well-known/portfolio-capabilities.json'
@@ -159,6 +160,7 @@ describe('static discovery surfaces', () => {
       agentId: 1201765,
     });
     expect(registration['x-base']).toMatchObject({ agentId: 1201765, builderCode: 'bc_mukkhhgf' });
+    expect(registration.x402.networks).toContain('eip155:143');
 
     const card = JSON.parse(readPublicFile('public/.well-known/agent-card.json')) as {
       metadata: {
