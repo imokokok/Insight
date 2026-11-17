@@ -1,4 +1,4 @@
-/** Strict, direct-call decoder for reviewed Polygon, Arbitrum and BNB lenders. */
+/** Strict, direct-call decoder for reviewed EVM lending deployments. */
 
 import { decodeFunctionData, encodeAbiParameters, encodeFunctionData, keccak256 } from 'viem';
 import { z } from 'zod';
@@ -7,6 +7,7 @@ import {
   ARBITRUM_CHAIN_ID,
   BASE_CHAIN_ID,
   BNB_CHAIN_ID,
+  HYPEREVM_CHAIN_ID,
   POLYGON_CHAIN_ID,
   aaveV3EvmMarket,
   aaveV3EvmUnderlyingForSymbol,
@@ -43,6 +44,7 @@ export const MultichainEvmLendingChainIdSchema = z.union([
   z.literal(ARBITRUM_CHAIN_ID),
   z.literal(BNB_CHAIN_ID),
   z.literal(BASE_CHAIN_ID),
+  z.literal(HYPEREVM_CHAIN_ID),
 ]);
 export const MultichainEvmLendingProtocolIdSchema = z.enum([
   'aave-v3-polygon',
@@ -58,6 +60,8 @@ export const MultichainEvmLendingProtocolIdSchema = z.enum([
   'dolomite-arbitrum',
   'fluid-vault-t1-base',
   'fluid-vault-t1-arbitrum',
+  'morpho-blue-hyperevm',
+  'euler-v2-hyperevm',
 ]);
 export const MultichainEvmLendingActionSchema = z.enum(['supply', 'borrow']);
 export type MultichainEvmLendingProtocolId = z.infer<typeof MultichainEvmLendingProtocolIdSchema>;
@@ -500,8 +504,9 @@ function decodeMorphoStyleCall(
   }
   const expectedTarget = lista
     ? LISTA_MOOLAH_BNB
-    : morphoBlueEvmMarket(expected.protocolId as 'morpho-blue-polygon' | 'morpho-blue-arbitrum')
-        .morpho;
+    : morphoBlueEvmMarket(
+        expected.protocolId as Extract<MultichainEvmLendingProtocolId, `morpho-blue-${string}`>
+      ).morpho;
   if (
     transaction.chainId !== lendingProtocolChainId(expected.protocolId) ||
     target !== expectedTarget ||

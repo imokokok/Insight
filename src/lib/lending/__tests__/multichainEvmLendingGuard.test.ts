@@ -12,6 +12,80 @@ const oracle = {
 } as never;
 
 describe('Multichain EVM Lending Guard', () => {
+  it('accepts HyperEVM Morpho Blue with the isolated market scope', async () => {
+    const result = await assessMultichainEvmLendingGuard(
+      {
+        chainId: 999,
+        protocolId: 'morpho-blue-hyperevm',
+        action: 'borrow',
+        collateralSymbol: 'WETH',
+        loanSymbol: 'USDC',
+        collateralValueUsd: 1_000,
+        debtValueUsd: 500,
+        marketId: `0x${'11'.repeat(32)}`,
+      },
+      {
+        checkOracle: jest.fn().mockResolvedValue(oracle),
+        resolveIsolatedMarketRisk: jest.fn().mockResolvedValue({
+          maxLtv: 0.86,
+          liquidationLtv: 0.86,
+          source: 'morpho-market',
+          oracleAddress: vault,
+          marketId: `0x${'11'.repeat(32)}`,
+          marketAddress: null,
+          collateralVaultAddress: null,
+          collateralMarketId: null,
+          loanMarketId: null,
+          accountNumber: null,
+        }),
+      }
+    );
+
+    expect(result).toMatchObject({
+      verdict: 'ALLOW',
+      chainId: 999,
+      protocolId: 'morpho-blue-hyperevm',
+      market: { parameterSource: 'morpho-market', marketId: `0x${'11'.repeat(32)}` },
+    });
+  });
+
+  it('accepts HyperEVM Euler v2 with a live-authenticated EVault scope', async () => {
+    const result = await assessMultichainEvmLendingGuard(
+      {
+        chainId: 999,
+        protocolId: 'euler-v2-hyperevm',
+        action: 'supply',
+        collateralSymbol: 'USDC',
+        loanSymbol: 'USDC',
+        collateralValueUsd: 100,
+        debtValueUsd: 0,
+        marketAddress: vault,
+      },
+      {
+        checkOracle: jest.fn().mockResolvedValue(oracle),
+        resolveEulerV2Risk: jest.fn().mockResolvedValue({
+          maxLtv: 1,
+          liquidationLtv: 1,
+          source: 'euler-evault',
+          oracleAddress: null,
+          marketId: null,
+          marketAddress: vault,
+          collateralVaultAddress: null,
+          collateralMarketId: null,
+          loanMarketId: null,
+          accountNumber: null,
+        }),
+      }
+    );
+
+    expect(result).toMatchObject({
+      verdict: 'ALLOW',
+      chainId: 999,
+      protocolId: 'euler-v2-hyperevm',
+      market: { parameterSource: 'euler-evault', marketAddress: vault },
+    });
+  });
+
   it('requires an explicit EVault address for Euler v2', () => {
     expect(
       MultichainEvmLendingGuardInputSchema.safeParse({

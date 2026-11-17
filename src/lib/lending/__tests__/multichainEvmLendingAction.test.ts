@@ -344,6 +344,36 @@ describe('decodeMultichainEvmLendingExactCall', () => {
     ).toMatchObject({ marketId, account: sender, receiver: sender });
   });
 
+  it('binds a HyperEVM Morpho Blue borrow to the canonical singleton and market tuple', () => {
+    const transaction = {
+      chainId: 999 as const,
+      from: sender,
+      to: MORPHO_BLUE_EVM_MARKETS['morpho-blue-hyperevm'].morpho,
+      nonce: '111',
+      value: '0',
+      data: encodeFunctionData({
+        abi: MORPHO_STYLE_ABI,
+        functionName: 'borrow',
+        args: [market, 1n, 0n, sender, sender],
+      }),
+    };
+    expect(
+      decodeMultichainEvmLendingExactCall(transaction, {
+        protocolId: 'morpho-blue-hyperevm',
+        action: 'borrow',
+        collateralSymbol: 'WETH',
+        loanSymbol: 'USDC',
+        marketId,
+      })
+    ).toMatchObject({
+      protocolId: 'morpho-blue-hyperevm',
+      target: MORPHO_BLUE_EVM_MARKETS['morpho-blue-hyperevm'].morpho,
+      marketId,
+      account: sender,
+      receiver: sender,
+    });
+  });
+
   it('binds Lista Moolah supply to callback-free collateral supplied by the sender', () => {
     const transaction = {
       chainId: 56 as const,
@@ -400,6 +430,115 @@ describe('decodeMultichainEvmLendingExactCall', () => {
         marketAddress: '0x7777777777777777777777777777777777777777',
       })
     ).toThrow(/EVault address/);
+  });
+
+  it('binds a HyperEVM Euler v2 direct deposit to the reviewed EVault and chain', () => {
+    const vault = '0x6666666666666666666666666666666666666666' as const;
+    const transaction = {
+      chainId: 999 as const,
+      from: sender,
+      to: vault,
+      nonce: '113',
+      value: '0',
+      data: encodeFunctionData({
+        abi: EULER_EVAULT_ABI,
+        functionName: 'deposit',
+        args: [1_000_000n, sender],
+      }),
+    };
+    expect(
+      decodeMultichainEvmLendingExactCall(transaction, {
+        protocolId: 'euler-v2-hyperevm',
+        action: 'supply',
+        collateralSymbol: 'USDC',
+        loanSymbol: 'USDC',
+        marketAddress: vault,
+      })
+    ).toMatchObject({
+      protocolId: 'euler-v2-hyperevm',
+      target: vault,
+      account: sender,
+      receiver: sender,
+      amount: '1000000',
+    });
+  });
+
+  it('binds a HyperEVM Euler v2 EVC borrow batch to the canonical EVC', () => {
+    const collateralVault = '0x6666666666666666666666666666666666666666' as const;
+    const borrowVault = '0x7777777777777777777777777777777777777777' as const;
+    const evc = EULER_V2_EVM_MARKETS['euler-v2-hyperevm'].evc;
+    const zero = '0x0000000000000000000000000000000000000000' as const;
+    const transaction = {
+      chainId: 999 as const,
+      from: sender,
+      to: evc,
+      nonce: '114',
+      value: '0',
+      data: encodeFunctionData({
+        abi: EULER_EVC_ABI,
+        functionName: 'batch',
+        args: [
+          [
+            {
+              targetContract: evc,
+              onBehalfOfAccount: zero,
+              value: 0n,
+              data: encodeFunctionData({
+                abi: EULER_EVC_ABI,
+                functionName: 'enableCollateral',
+                args: [sender, collateralVault],
+              }),
+            },
+            {
+              targetContract: collateralVault,
+              onBehalfOfAccount: sender,
+              value: 0n,
+              data: encodeFunctionData({
+                abi: EULER_EVAULT_ABI,
+                functionName: 'deposit',
+                args: [2_000_000n, sender],
+              }),
+            },
+            {
+              targetContract: evc,
+              onBehalfOfAccount: zero,
+              value: 0n,
+              data: encodeFunctionData({
+                abi: EULER_EVC_ABI,
+                functionName: 'enableController',
+                args: [sender, borrowVault],
+              }),
+            },
+            {
+              targetContract: borrowVault,
+              onBehalfOfAccount: sender,
+              value: 0n,
+              data: encodeFunctionData({
+                abi: EULER_EVAULT_ABI,
+                functionName: 'borrow',
+                args: [1_000_000n, sender],
+              }),
+            },
+          ],
+        ],
+      }),
+    };
+    expect(
+      decodeMultichainEvmLendingExactCall(transaction, {
+        protocolId: 'euler-v2-hyperevm',
+        action: 'borrow',
+        collateralSymbol: 'WETH',
+        loanSymbol: 'USDC',
+        marketAddress: borrowVault,
+        collateralVaultAddress: collateralVault,
+      })
+    ).toMatchObject({
+      protocolId: 'euler-v2-hyperevm',
+      target: evc,
+      account: sender,
+      receiver: sender,
+      amount: '1000000',
+    });
   });
 
   it('binds an Euler v2 EVC collateral-deposit-and-borrow batch in exact order', () => {
