@@ -195,7 +195,7 @@
     {
       "url": "https://www.oracleinsight.xyz/api/v1/safety/prediction-guard",
       "method": "GET",
-      "description": "Decision Integrity — Prediction Guard: a read-only screening gate for one Polymarket market entry. Cross-oracle consensus is deliberately not applied to event markets; the guard verifies machine-parseable price-contract metadata, lifecycle and resolution timing, quoted-probability integrity, and whether the declared settlement venue can be verified post-hoc by the settlement-evidence pipeline. It never signs, submits, or authorizes an order.",
+      "description": "Decision Integrity — Prediction Guard: a read-only screening gate for one reviewed Polymarket or Kalshi market entry. Cross-oracle consensus is deliberately not applied to event markets; the guard verifies venue metadata, lifecycle and timing, quoted-probability integrity, settlement rules and venue-specific evidence limits. Kalshi settlement is official-API-declared and not independently recomputable. It never signs, submits, or authorizes an order.",
       "accepts": []
     },
     {
