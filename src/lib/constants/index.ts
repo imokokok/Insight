@@ -4,6 +4,8 @@ import {
 } from '@/lib/config/colors';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
+export { BASE_AGENT } from './baseAgent';
+
 export const providerNames: Record<OracleProvider, string> = {
   [OracleProvider.CHAINLINK]: 'Chainlink',
   [OracleProvider.PYTH]: 'Pyth',
