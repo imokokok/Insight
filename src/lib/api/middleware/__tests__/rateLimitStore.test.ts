@@ -16,7 +16,7 @@ jest.mock('@/lib/utils/logger', () => ({
   })),
 }));
 
-describe('Supabase rate-limit outage fallback', () => {
+describe('Supabase rate-limit outage handling', () => {
   const originalNodeEnv = process.env.NODE_ENV;
   const originalServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const originalStore = process.env.RATE_LIMIT_STORE;
@@ -38,20 +38,28 @@ describe('Supabase rate-limit outage fallback', () => {
     else process.env.RATE_LIMIT_STORE = originalStore;
   });
 
-  it('opens a five-minute local circuit after a failed, time-bounded RPC', async () => {
+  it('fails closed and retries the shared store on the next request', async () => {
     mockAbortSignal.mockResolvedValue({ error: new Error('PostgREST unavailable') });
     mockRpc.mockReturnValue({ abortSignal: mockAbortSignal });
 
     const { rateLimitStore } = await import('../rateLimitStore');
 
-    await expect(rateLimitStore.increment('ip:192.0.2.1', 60_000)).resolves.toMatchObject({
-      count: 1,
+    await expect(rateLimitStore.increment('ip:192.0.2.1', 60_000)).rejects.toMatchObject({
+      code: 'RATE_LIMIT_STORE_UNAVAILABLE',
     });
-    await expect(rateLimitStore.increment('ip:192.0.2.1', 60_000)).resolves.toMatchObject({
-      count: 2,
+    await expect(rateLimitStore.increment('ip:192.0.2.1', 60_000)).rejects.toMatchObject({
+      code: 'RATE_LIMIT_STORE_UNAVAILABLE',
     });
 
-    expect(mockRpc).toHaveBeenCalledTimes(1);
-    expect(mockAbortSignal).toHaveBeenCalledTimes(1);
+    expect(mockRpc).toHaveBeenCalledTimes(2);
+    expect(mockAbortSignal).toHaveBeenCalledTimes(2);
+  });
+
+  it('rejects the process-local memory store in production', async () => {
+    process.env.RATE_LIMIT_STORE = 'memory';
+
+    await expect(import('../rateLimitStore')).rejects.toThrow(
+      'RATE_LIMIT_STORE=memory is not supported in production'
+    );
   });
 });

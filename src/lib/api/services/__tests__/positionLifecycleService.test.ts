@@ -84,9 +84,21 @@ function builder(config: {
 }
 
 /** Queue of `client.from(table)` results, consumed left to right. */
-function queueFrom(handlers: Array<Record<string, unknown>>): jest.Mock {
+let lastRpc: jest.Mock;
+
+function queueFrom(
+  handlers: Array<Record<string, unknown>>,
+  rpcResponses: Array<{ data: unknown; error: { message: string } | null }> = []
+): jest.Mock {
   const from = jest.fn(() => handlers.shift());
-  mockCreateClient.mockReturnValue({ from } as unknown as ReturnType<
+  const rpc = jest.fn(async (name: string) => {
+    if (rpcResponses.length) return rpcResponses.shift();
+    return name === 'reserve_position_lifecycle_guard_slot'
+      ? { data: [{ outcome: 'RESERVED', guard_used: 1 }], error: null }
+      : { data: true, error: null };
+  });
+  lastRpc = rpc;
+  mockCreateClient.mockReturnValue({ from, rpc } as unknown as ReturnType<
     typeof createServiceRoleClient
   >);
   return from;
@@ -226,10 +238,10 @@ describe('beginPositionLifecycle', () => {
 describe('runBundledGuard', () => {
   it('consumes one budget slot atomically and dispatches through the family registry', async () => {
     const seen: Array<{ family: string; params: unknown }> = [];
-    queueFrom([
-      builder({ value: ROW }),
-      builder({ value: { guard_used: 1, expires_at: ROW.expires_at } }),
-    ]);
+    queueFrom(
+      [builder({ value: ROW })],
+      [{ data: [{ outcome: 'RESERVED', guard_used: 1 }], error: null }]
+    );
 
     const result = await runBundledGuard(
       LIFECYCLE_ID,
@@ -252,10 +264,16 @@ describe('runBundledGuard', () => {
     ]);
     expect(result.guard).toEqual({ used: 1, budget: 4 });
     expect(result.result).toEqual({ verdict: 'ALLOW' });
+    expect(lastRpc).toHaveBeenCalledWith('reserve_position_lifecycle_guard_slot', {
+      p_lifecycle_id: LIFECYCLE_ID,
+    });
   });
 
   it('fails closed when the guard budget is already exhausted', async () => {
-    queueFrom([builder({ value: { ...ROW, guard_used: 4 } }), builder({ value: null })]);
+    queueFrom(
+      [builder({ value: { ...ROW, guard_used: 4 } })],
+      [{ data: [{ outcome: 'GUARD_BUDGET_REACHED', guard_used: null }], error: null }]
+    );
 
     await expect(
       runBundledGuard(LIFECYCLE_ID, tokenOf(RAW_TOKEN), 'base_perp', {}, undefined, {
@@ -265,22 +283,13 @@ describe('runBundledGuard', () => {
   });
 
   it('releases the budget slot when the assessor throws on technical grounds', async () => {
-    const updates: Array<Record<string, unknown>> = [];
-    queueFrom([
-      builder({ value: { ...ROW, guard_used: 2 } }),
-      builder({
-        value: { guard_used: 3, expires_at: ROW.expires_at },
-        onMethod: (method, args) => {
-          if (method === 'update') updates.push(args[0] as Record<string, unknown>);
-        },
-      }),
-      builder({
-        value: null,
-        onMethod: (method, args) => {
-          if (method === 'update') updates.push(args[0] as Record<string, unknown>);
-        },
-      }),
-    ]);
+    queueFrom(
+      [builder({ value: { ...ROW, guard_used: 2 } })],
+      [
+        { data: [{ outcome: 'RESERVED', guard_used: 3 }], error: null },
+        { data: true, error: null },
+      ]
+    );
 
     await expect(
       runBundledGuard(LIFECYCLE_ID, tokenOf(RAW_TOKEN), 'base_lending', {}, undefined, {
@@ -290,8 +299,9 @@ describe('runBundledGuard', () => {
       })
     ).rejects.toThrow('rpc unavailable');
 
-    // guard_used was rolled back to the pre-call value.
-    expect(updates.some((u) => u.guard_used === 2)).toBe(true);
+    expect(lastRpc).toHaveBeenNthCalledWith(2, 'release_position_lifecycle_guard_slot', {
+      p_lifecycle_id: LIFECYCLE_ID,
+    });
   });
 
   it('answers a wrong token identically to an unknown id', async () => {

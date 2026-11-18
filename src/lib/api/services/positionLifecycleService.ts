@@ -404,11 +404,10 @@ function assertOpen(row: LifecycleRow): void {
 }
 
 /**
- * Run one bundled guard assessment. The budget slot is consumed with a
- * conditional update (`guard_used < guard_budget`) so concurrent calls cannot
- * exceed the cap; the slot is released if the assessor itself throws, so a
- * technical failure never burns bundled coverage. A BLOCK verdict is a
- * complete assessment and DOES consume the slot.
+ * Run one bundled guard assessment. The database RPC atomically reserves one
+ * slot within the current budget; a technical assessor failure releases one
+ * reserved slot without overwriting concurrent callers' counts. A BLOCK
+ * verdict is a complete assessment and DOES consume the slot.
  */
 export async function runBundledGuard(
   lifecycleId: string,
@@ -422,24 +421,36 @@ export async function runBundledGuard(
   const row = await loadLifecycle(client, lifecycleId, presentedToken);
   assertOpen(row);
 
-  const { data: updated, error: updateError } = await client
-    .from('position_lifecycles')
-    .update({ guard_used: row.guard_used + 1 })
-    .eq('id', row.id)
-    .lt('guard_used', row.guard_budget)
-    .select('guard_used, expires_at')
-    .maybeSingle();
-
-  if (updateError) {
-    logger.warn('Bundled guard accounting failed', { lifecycleId, error: updateError.message });
-    throw new Error('Bundled guard accounting failed', { cause: updateError });
+  const { data, error } = await client.rpc('reserve_position_lifecycle_guard_slot', {
+    p_lifecycle_id: row.id,
+  });
+  if (error) {
+    logger.warn('Bundled guard accounting failed', { lifecycleId, error: error.message });
+    throw new Error('Bundled guard accounting failed', { cause: error });
   }
-  if (!updated) {
-    // A concurrent call consumed the last budget slot between our read and
-    // write. Fail closed rather than run an unpaid assessment.
-    throw new PositionLifecycleError('GUARD_BUDGET_REACHED');
+  const result = Array.isArray(data) ? data[0] : null;
+  if (!result || typeof result !== 'object' || Array.isArray(result)) {
+    throw new Error('Bundled guard reservation returned an invalid result');
   }
-  const guardUsed = Number((updated as { guard_used: number }).guard_used);
+  const reservation = result as Record<string, unknown>;
+  if (reservation.outcome !== 'RESERVED') {
+    if (reservation.outcome === 'NOT_FOUND') throw new PositionLifecycleError('NOT_FOUND');
+    if (reservation.outcome === 'LIFECYCLE_CLOSED')
+      throw new PositionLifecycleError('LIFECYCLE_CLOSED');
+    if (reservation.outcome === 'LIFECYCLE_EXPIRED')
+      throw new PositionLifecycleError('LIFECYCLE_EXPIRED');
+    if (reservation.outcome === 'GUARD_BUDGET_REACHED')
+      throw new PositionLifecycleError('GUARD_BUDGET_REACHED');
+    throw new Error('Bundled guard reservation returned an unknown outcome');
+  }
+  if (
+    typeof reservation.guard_used !== 'number' ||
+    !Number.isSafeInteger(reservation.guard_used) ||
+    reservation.guard_used < 1
+  ) {
+    throw new Error('Bundled guard reservation returned an invalid count');
+  }
+  const guardUsed = reservation.guard_used;
 
   try {
     const entry = POSITION_LIFECYCLE_GUARD_REGISTRY[family];
@@ -459,11 +470,17 @@ export async function runBundledGuard(
       expiresAt: row.expires_at,
     };
   } catch (error) {
-    await client
-      .from('position_lifecycles')
-      .update({ guard_used: row.guard_used })
-      .eq('id', row.id)
-      .eq('guard_used', guardUsed);
+    const { data: released, error: releaseError } = await client.rpc(
+      'release_position_lifecycle_guard_slot',
+      { p_lifecycle_id: row.id }
+    );
+    if (releaseError || released !== true) {
+      logger.error(
+        'Bundled guard reservation release failed',
+        new Error(releaseError?.message ?? 'reservation was not released'),
+        { lifecycleId }
+      );
+    }
     throw error;
   }
 }

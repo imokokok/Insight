@@ -41,7 +41,7 @@ const createMockRequest = (url: string, options: MockRequestOptions = {}): NextR
   return {
     nextUrl: new URL(url),
     url,
-    headers: new Headers({ 'x-forwarded-for': ip }),
+    headers: new Headers({ 'x-vercel-forwarded-for': ip }),
     cookies: {
       get: (name: string) => {
         const value = cookieStore.get(name);
@@ -65,6 +65,7 @@ describe('/api/auth/callback', () => {
       NEXT_PUBLIC_SUPABASE_URL: 'https://test.supabase.co',
       NEXT_PUBLIC_SUPABASE_ANON_KEY: 'test-anon-key',
       NODE_ENV: 'test',
+      VERCEL: '1',
     };
 
     mockCreateServerClient.mockReturnValue({

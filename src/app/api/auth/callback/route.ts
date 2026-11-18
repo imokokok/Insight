@@ -3,6 +3,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 
 import { isValidRedirectPath } from '@/app/auth/shared/isValidRedirectPath';
+import { extractTrustedClientIp } from '@/lib/api/trustedClientIp';
 import { sanitizeString } from '@/lib/security/inputSanitizer';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -44,10 +45,7 @@ function checkCallbackRateLimit(ip: string): boolean {
 }
 
 async function handleCallback(request: NextRequest) {
-  const clientIp =
-    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-    request.headers.get('x-real-ip') ||
-    'unknown';
+  const clientIp = extractTrustedClientIp(request);
 
   if (!checkCallbackRateLimit(clientIp)) {
     logger.warn('Auth callback rate limit exceeded', { ip: clientIp });
