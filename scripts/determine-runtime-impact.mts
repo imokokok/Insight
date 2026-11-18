@@ -9,11 +9,18 @@ const NON_RUNTIME_PATHS = new Set([
   'README.md',
   '.editorconfig',
   '.gitignore',
+  'scripts/determine-runtime-impact.mts',
 ]);
 const SHA = /^[0-9a-f]{40}$/;
 
 function isNonRuntimePath(path: string) {
-  return path.startsWith('.github/') || path.startsWith('docs/') || NON_RUNTIME_PATHS.has(path);
+  return (
+    path.startsWith('.github/') ||
+    path.startsWith('docs/') ||
+    path.startsWith('scripts/tests/') ||
+    path.startsWith('supabase/migrations/') ||
+    NON_RUNTIME_PATHS.has(path)
+  );
 }
 
 export function requiresRuntimeBuild(changedPaths: readonly string[]) {
