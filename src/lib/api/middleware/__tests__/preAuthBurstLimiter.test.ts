@@ -32,8 +32,27 @@ describe('pre-auth burst limiter', () => {
     expect((await response?.json()).error.details.phase).toBe('pre-auth');
   });
 
-  it('keeps different client IPs isolated', () => {
-    checkPreAuthBurstLimit(request('203.0.113.10'), 1);
-    expect(checkPreAuthBurstLimit(request('203.0.113.11'), 1)).toBeNull();
+  it('keeps trusted Vercel client IPs isolated', () => {
+    const previousVercel = process.env.VERCEL;
+    process.env.VERCEL = '1';
+    try {
+      checkPreAuthBurstLimit(request('203.0.113.10'), 1);
+      expect(checkPreAuthBurstLimit(request('203.0.113.11'), 1)).toBeNull();
+    } finally {
+      if (previousVercel === undefined) delete process.env.VERCEL;
+      else process.env.VERCEL = previousVercel;
+    }
+  });
+
+  it('does not trust caller supplied IP headers outside Vercel', () => {
+    const previousVercel = process.env.VERCEL;
+    process.env.VERCEL = '0';
+    try {
+      expect(checkPreAuthBurstLimit(request('203.0.113.10'), 1)).toBeNull();
+      expect(checkPreAuthBurstLimit(request('203.0.113.11'), 1)?.status).toBe(429);
+    } finally {
+      if (previousVercel === undefined) delete process.env.VERCEL;
+      else process.env.VERCEL = previousVercel;
+    }
   });
 });
