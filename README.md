@@ -10,66 +10,6 @@ Oracle observations → Cross-source comparison → Risk assessment → Decision
 
 **Pre-Trade Safety Check** assesses a proposed action. **Oracle Watch** monitors changing conditions between actions. The REST API, MCP server, [Guard SDK](sdk/README.md), and [independent verifier](verifier/README.md) make these capabilities available to applications and agents. Insight also works independently of [PriorSeal](https://github.com/imokokok/PriorSeal); see the [product positioning guide](docs/product-positioning.md) for the combined assessment, authorization, execution, and review workflow.
 
-**Lending Guard** covers reviewed direct-call profiles across five surfaces: Base (Aave V3, Morpho Blue, Compound V3 USDC Comet, reviewed Moonwell markets), BNB + multichain EVM (Base, Polygon, Arbitrum and BNB Chain — Aave V3, Venus, Compound V3, Morpho Blue, Lista, Euler V2, Dolomite and Fluid vault T1), Solana (Kamino, Marginfi v2, Jupiter Lend Earn, Save and Loopscale), Monad (Aave V3, Morpho Blue, Euler V2), and HyperEVM (HyperLend Core, Morpho Blue, and Euler V2; HyperLend retains its reviewed WHYPE/WSTHYPE/UBTC/UETH/USDe/sUSDe/USDT0/KHYPE/USDC market allowlist). Each guard checks collateral/loan oracle integrity plus caller-declared post-action LTV; all are read-only, x402-metered, and never sign or broadcast a transaction. Base additionally wires a generic ERC-4626 vault-call reduction path (standard `deposit`/`mint`/`redeem`/`withdraw`) into the guard: every observed market id must sit in the reviewed Morpho Blue market registry (first-party-verified 2026-11-06 via `scripts/verify-morpho-base-reviewed-market.mjs`), so unreviewed vaults are still refused — this is **not** curator-vault support. Monad Euler V2's deployment descriptor is VERIFIED (official `euler-interfaces` chain-143 address book + on-chain `isProxy`/EVC verification via `scripts/verify-euler-monad-vaults.mjs`); only the four reviewed stablecoin EVaults are admitted, and every decision still runs a live resolver that re-proves factory/EVC wiring and reads LTV controls on chain. See [Base Lending Guard](docs/base-lending-guard.md), [Monad Lending Guard](docs/monad-lending-guard.md), and [HyperEVM Lending Guard](docs/hyperevm-lending-guard.md).
-
-**Agent Swap Guard** gates six reviewed exact single-hop EVM profiles — three Base (Aerodrome Slipstream WETH↔USDC, Aerodrome Slipstream USDC↔USDT, PancakeSwap V3 USDC↔USDT), two BNB (PancakeSwap V3 USDT↔USDC and USDT↔WBNB), one Monad (PancakeSwap V3 WMON↔USDC) — plus two Solana Orca Whirlpool profiles (USDC/USDT and SOL/USDC, each reviewed direction). Settlement closure is pinned to `SETTLEMENT_CHAIN_IDS = {8453, 56, 143}`. Every guarded swap has exact quote/code identity, canonical calldata decoding, explicit execution thresholds, and independently checked source/destination price inputs; it returns no calls on CAUTION or BLOCK and never routes, signs, or broadcasts. Solana Orca admits only the legacy `swap` discriminator and refuses `swapV2` / two-hop variants. See [Base Agent Swap Guard](docs/base-agent-swap-guard.md).
-
-**Perp Guard** covers five venues: Base Synthetix Perps V3, Solana Drift v2, BNB Aster, Monad Perpl, and Hyperliquid. It evaluates underlying and margin-oracle integrity plus caller-declared post-action leverage against reviewed caps; it does not evaluate the venue's mark-price or liquidation engine and never signs or broadcasts an order. Base binds one unsigned direct `commitOrder` call into a portable EIP-712 decision attestation. **Solana Drift is frozen and not an active venue**: P0-1 first-hand verification (2026-11-05) confirmed the on-chain AMM has been frozen since 2026-04-01 (~218 days), the official repository was archived and migrated to Velocity, and all instructions were commented out. Its program ID, market IDs and margin parameters still match on-chain exactly, so the constants stay unchanged, but the reviewed profile is marked `STALE` and must not be presented as a live venue. Its reviewed-profile enforcement now hard-BLOCKs the guard verdict and refuses to sign a decision attestation by default (evidence-graded; a `strict` switch that BLOCKs all non-ACTIVE profiles stays off until heartbeat infrastructure is ready). Monad adds exact-order binding plus an EIP-712 attestation that binds the **canonical-serialization `payloadHash` of a centralized Perpl order payload, not chain calldata** — it therefore cannot prove on-chain execution; the module currently lives at the lib layer with no HTTP verify route. BNB (Aster) deliberately stays a half tier with no attestation / exact-order layer: BNB perps 24h volume is about 1/50 of its DEX volume (~$15.45M in the 2026-11-05 ecosystem snapshot), so a deeper tier is not justified by volume. See [Base Perp Guard](docs/base-perp-guard.md).
-
-**Prediction Guard** (`src/lib/prediction/predictionGuard.ts`) is a **chain-agnostic event-metadata screen**, not four per-chain prediction-market guards and not execution risk control. The reviewed adapters cover Polymarket/Gamma crypto price contracts and Kalshi public market metadata, best quotes, orderbook depth, series fee schedule and settlement sources. They check lifecycle, resolution timing, quoted-probability integrity, settlement rules and the venue's evidence limits. Polymarket may have post-hoc Polygon settlement evidence; Kalshi settlement is off-chain and official-API-declared, not independently recomputable. It deliberately applies no cross-oracle consensus and does not judge the truth of event-outcome probabilities.
-
-### Reviewed coverage at a glance
-
-| Guard family | Base                | BNB + multichain EVM                                   | Solana                                         | Monad                                                                | Elsewhere / notes                                                                                                                      |
-| ------------ | ------------------- | ------------------------------------------------------ | ---------------------------------------------- | -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| Lending      | 4 reviewed profiles | 13 multichain EVM profiles (Base/Polygon/Arbitrum/BNB) | 5                                              | 2 + Euler V2 (reviewed)                                              | ERC-4626 vault reduction (Base, 2 reviewed Morpho Blue markets registered); Monad Euler V2 VERIFIED with 4 reviewed stablecoin EVaults |
-| Swap         | 3 EVM profiles      | 2 BNB EVM profiles                                     | 2 Orca Whirlpool profiles (legacy `swap` only) | 1 EVM profile                                                        | `SETTLEMENT_CHAIN_IDS = {8453, 56, 143}`                                                                                               |
-| Perp         | Synthetix Perps V3  | Aster — half tier, no attestation / exact layer        | Drift v2 — **frozen / `STALE`**                | Perpl + exact-order binding / EIP-712 over centralized order payload | Hyperliquid                                                                                                                            |
-| Prediction   | —                   | —                                                      | —                                              | —                                                                    | One chain-neutral metadata screen + entry-chain × settlement-chain map; no per-chain guard                                             |
-
-> Insight is **not a real-time oracle tracker**. Price snapshots and feed health are collected every 15 minutes, reputation scores are recalculated hourly, and data is aggregated into daily reports. Check each assessment's freshness and validity window before using it.
-
-## Scope & non-goals
-
-Insight sells **independently recomputable, tamper-evident decision inputs** — not conclusions, not execution guarantees, not custody, and not order routing. These limits are explicit, not hidden:
-
-- Every guarded swap evaluates an **exact call only**. It does **not** cover aggregator routes (Jupiter / 1inch / 0x), arbitrary multicalls, smart-account UserOperations, permit / EIP-2612 flows, native-value swaps, or alternate routes (`src/lib/dex/baseAgentSwapGuard.ts:483`). Solana Orca admits only the legacy `swap` discriminator and rejects `swapV2` / two-hop variants (`src/lib/dex/solanaOrcaWhirlpool.ts:14-17`).
-- The reviewed Uniswap V3 lane and the aggregator route quote are **read-only quotes**, not transaction simulations and not fill / landing guarantees (`public/openapi.yaml:1564-1569`).
-- Prediction Guard applies no oracle consensus and does not assess the truth of event-outcome probabilities. Kalshi support is read-only: it never handles Kalshi API keys, signs orders, submits orders or observes fills.
-- `manipulationCost`, token-security, decision-input and GoPlus evidence are **advisory-only**: never a verdict input and never part of a signed attestation (`src/lib/manipCost/baseline.ts:284`, `src/lib/api/services/preTradeSafetyService.ts:194,344,1752`). `manipulationCost` is additionally hard-limited to `chainId === 1` (`preTradeSafetyService.ts:1764`), so it is unavailable on Base, BNB, Solana and Monad and is **not part of the public capability list**; the code keeps it as advisory while the narrative no longer claims it.
-
-## Technology Stack
-
-- **Blockchain:** BNB Smart Chain (BSC) — the primary deployment chain — + EVM-compatible chains (oracle data covers 40+ networks)
-- **Smart Contracts:** none deployed by Insight — it integrates the official ERC-8004 Identity & Reputation Registries and x402 (AEON facilitator) settlement
-- **Frontend:** Next.js (React) + viem
-- **Development:** TypeScript, Node.js 22, Jest, Supabase
-- **BNB Chain deployment configuration:** [`bnbconfig.json`](./bnbconfig.json) — chain, contracts, agent registration, and x402 settlement details
-
-## Supported Networks
-
-- **x402 pay-per-call settlement:** The public [x402 manifest](https://www.oracleinsight.xyz/.well-known/x402) and each endpoint's unsigned `PAYMENT-REQUIRED` response are the source of truth for rails currently advertised in production. A caller must select a live `accepts[]` option; do not infer availability from the action chain.
-- **x402 settlement rails:** the live 402 `accepts[]` is authoritative and differs by route and request. In production, generic MCP calls quote HyperEVM (Chain ID: 999), Base (8453) and Solana mainnet in USDC; chain-bound guard routes quote their own chain; HyperEVM settles through the UVD facilitator using the standard EIP-3009 x402 exact flow; HyperCore quotes are issued per request.
-- **Product coverage is separate from payment availability:** Base, BNB Chain, Monad, and additional EVM networks can be assessed by the API, but that does not make their native tokens payment rails. Treat the live quote as authoritative.
-- Additional EVM networks are covered read-only for oracle data (40+ chains)
-
-## Contract Addresses
-
-Insight is an API/agent service and issues no token. Its on-chain footprint is its ERC-8004 agent registration on BNB Mainnet and Monad Mainnet:
-
-| Network       | Core Contract                                                                                                                                                               | Token Contract  |
-| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- |
-| BNB Mainnet   | ERC-8004 Identity Registry `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432` (Insight agent #375779) · ERC-8004 Reputation Registry `0x8004BAa17C55a88189AE136b182e5fdA19dE9b63` | None — no token |
-| Monad Mainnet | ERC-8004 Identity Registry `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432` (Insight agent #10414) · ERC-8004 Reputation Registry `0x8004BAa17C55a88189AE136b182e5fdA19dE9b63`  | None — no token |
-| BNB Testnet   | None                                                                                                                                                                        | None            |
-
-## Features
-
-- **Pre-Trade Safety Check** — cross-oracle pre-trade verdict (PASS / CAUTION / DANGER / BLOCK) with signed EIP-712 attestation and a recommended maximum position size
-- **Oracle Watch** — between-action monitoring in 24h windows of up to 48 polls (one full reassessment every 30 minutes, escalating to a full scan when the signal jumps), with `proceed` / `proceed_with_caution` / `halt` recommendations
-- **Agent-native payments** — x402 pay-per-call in USDC on BNB Chain (AEON mandate flow) and a hosted MCP server at `/api/mcp`; registered ERC-8004 agent #375779
-- **Verifiable evidence** — independently verifiable signed receipts, plus opt-in ERC-8004 reputation anchoring of completed checks
-
 ## Start here
 
 | Goal                                                                     | Where to go                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
@@ -81,6 +21,57 @@ Insight is an API/agent service and issues no token. Its on-chain footprint is i
 | Install a focused Agent Skill                                            | [Pre-Trade Safety](skills/insight-pre-trade-safety/README.md) · [Base Aave V3 Lending Guard](skills/insight-lending-guard/README.md) · [Base Agent Swap Guard](skills/insight-base-agent-swap-guard/README.md) · [Solana Swap Guard](skills/insight-solana-swap-guard/README.md) · [Base Perp Guard](skills/insight-base-perp-guard/README.md) · [Hyperliquid Perp Guard](skills/insight-hyperliquid-perp-guard/README.md) · [Solana Perp Guard](skills/insight-solana-perp-guard/README.md) |
 | Verify a signed receipt with your own trusted keys                       | [Independent verifier](verifier/README.md) or [browser demo](https://www.oracleinsight.xyz/verify)                                                                                                                                                                                                                                                                                                                                                                                           |
 | Run the website and API locally                                          | [Local development](#local-development)                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+
+### Reviewed coverage at a glance
+
+| Guard family | Base                | BNB + multichain EVM                                   | Solana                                         | Monad                                                                | Elsewhere / notes                                                                                                                      |
+| ------------ | ------------------- | ------------------------------------------------------ | ---------------------------------------------- | -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Lending      | 4 reviewed profiles | 13 multichain EVM profiles (Base/Polygon/Arbitrum/BNB) | 5                                              | 2 + Euler V2 (reviewed)                                              | ERC-4626 vault reduction (Base, 2 reviewed Morpho Blue markets registered); Monad Euler V2 VERIFIED with 4 reviewed stablecoin EVaults |
+| Swap         | 3 EVM profiles      | 2 BNB EVM profiles                                     | 2 Orca Whirlpool profiles (legacy `swap` only) | 1 EVM profile                                                        | `SETTLEMENT_CHAIN_IDS = {8453, 56, 143}`                                                                                               |
+| Perp         | Synthetix Perps V3  | Aster — half tier, no attestation / exact layer        | Drift v2 — **frozen / `STALE`**                | Perpl + exact-order binding / EIP-712 over centralized order payload | Hyperliquid                                                                                                                            |
+| Prediction   | —                   | —                                                      | —                                              | —                                                                    | One chain-neutral metadata screen + entry-chain × settlement-chain map; no per-chain guard                                             |
+
+**Lending Guard** covers reviewed direct-call profiles on Base (Aave V3, Morpho Blue, Compound V3, Moonwell), BNB and multichain EVM (Aave V3, Venus, Compound V3, Morpho Blue, Lista, Euler V2, Dolomite, Fluid), Solana (Kamino, Marginfi, Jupiter Lend Earn, Save, Loopscale), Monad (Aave V3, Morpho Blue, Euler V2), and HyperEVM (HyperLend, Morpho Blue, Euler V2). HyperLend is limited to reviewed markets. Each profile checks collateral and loan oracle integrity plus caller-declared post-action LTV; the guard is read-only. See the [Base](docs/base-lending-guard.md), [Monad](docs/monad-lending-guard.md), and [HyperEVM](docs/hyperevm-lending-guard.md) guides.
+
+**Agent Swap Guard** evaluates reviewed exact-call swap profiles across Base, BNB, Monad, and Solana. It checks quote and call identity, execution thresholds, and price inputs; CAUTION or BLOCK returns no calls, and the guard never routes, signs, or broadcasts. Solana Orca supports the legacy `swap` instruction only. See the [Agent Swap Guard guide](docs/base-agent-swap-guard.md).
+
+**Perp Guard** covers reviewed profiles on Base, BNB, Monad, Solana, and Hyperliquid. It checks underlying and margin-oracle integrity plus caller-declared leverage, but not a venue’s mark-price or liquidation engine; it never signs or broadcasts orders. Solana Drift has been frozen since 2026-04-01 and is marked `STALE`, so the guard blocks it by default. Monad’s Perpl attestation binds a centralized order-payload hash, not chain calldata; BNB Aster has no exact-order attestation. See the [Base Perp Guard guide](docs/base-perp-guard.md).
+
+**Prediction Guard** covers Polymarket/Gamma and Kalshi market metadata. It checks market lifecycle, resolution timing, quotes, settlement rules, and evidence limits; it is chain-agnostic, applies no cross-oracle consensus, and does not assess event outcomes or control execution. Kalshi evidence is off-chain and official-API-declared; the guard is read-only and never handles API keys, submits orders, or observes fills.
+
+> Insight is **not a real-time oracle tracker**. Price snapshots and feed health are collected every 15 minutes, reputation scores are recalculated hourly, and data is aggregated into daily reports. Check each assessment's freshness and validity window before using it.
+
+## Scope & non-goals
+
+Insight sells **independently recomputable, tamper-evident decision inputs** — not conclusions, not execution guarantees, not custody, and not order routing. These limits are explicit, not hidden:
+
+- Every guarded swap evaluates an **exact call only**. It does **not** cover aggregator routes (Jupiter / 1inch / 0x), arbitrary multicalls, smart-account UserOperations, permit / EIP-2612 flows, native-value swaps, or alternate routes. Solana Orca admits only the legacy `swap` discriminator and rejects `swapV2` / two-hop variants.
+- The reviewed Uniswap V3 lane and the aggregator route quote are **read-only quotes**, not transaction simulations and not fill / landing guarantees.
+- Prediction Guard applies no oracle consensus and does not assess the truth of event-outcome probabilities. Kalshi support is read-only: it never handles Kalshi API keys, signs orders, submits orders or observes fills.
+- `manipulationCost`, token-security, decision-input and GoPlus evidence are **advisory-only**: never a verdict input and never part of a signed attestation. `manipulationCost` is additionally limited to Ethereum mainnet (`chainId === 1`), so it is unavailable on Base, BNB, Solana, and Monad and is not part of the public capability list.
+
+## Technology Stack
+
+- **Blockchain:** BNB Smart Chain (BSC) — the primary deployment chain — + EVM-compatible chains (oracle data covers 40+ networks)
+- **Smart Contracts:** none deployed by Insight — it integrates the official ERC-8004 Identity & Reputation Registries and x402 (AEON facilitator) settlement
+- **Frontend:** Next.js (React) + viem
+- **Development:** TypeScript, Node.js 22.x, Jest, Supabase
+- **BNB Chain deployment configuration:** [`bnbconfig.json`](./bnbconfig.json) — chain, contracts, agent registration, and x402 settlement details
+
+## Supported Networks
+
+- Oracle data covers 40+ networks; guard and protocol support varies by asset and chain. See the reviewed coverage above and the linked guides.
+- Payment availability is route-specific and dynamic. The public [x402 manifest](https://www.oracleinsight.xyz/.well-known/x402) and each endpoint’s unsigned `PAYMENT-REQUIRED` response are authoritative; do not infer settlement availability from assessment coverage.
+
+## Contract Addresses
+
+Insight is an API/agent service and issues no token. Its on-chain footprint is its ERC-8004 agent registration on BNB Mainnet and Monad Mainnet:
+
+| Network       | Core Contract                                                                                                                                                               | Token Contract  |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- |
+| BNB Mainnet   | ERC-8004 Identity Registry `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432` (Insight agent #375779) · ERC-8004 Reputation Registry `0x8004BAa17C55a88189AE136b182e5fdA19dE9b63` | None — no token |
+| Monad Mainnet | ERC-8004 Identity Registry `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432` (Insight agent #10414) · ERC-8004 Reputation Registry `0x8004BAa17C55a88189AE136b182e5fdA19dE9b63`  | None — no token |
+| BNB Testnet   | None                                                                                                                                                                        | None            |
 
 ## What Insight provides
 
@@ -115,11 +106,7 @@ Integrated providers include Chainlink, Pyth Core, Stork, Chronicle, API3, RedSt
 - **MCP server** — exposes the same services to compatible agents through stdio, HTTP, or the app's `/api/mcp` endpoint. See the [AI/MCP hub](https://www.oracleinsight.xyz/ai) for client configuration and tools.
 - **[Independent verifier](verifier/README.md)** — verifies receipt signatures and signed fields locally without depending on the Insight API. Consumers must independently establish trust in the attester key or key registry; successful signature verification is not an endorsement of a trade or verdict.
 
-REST, MCP, and SDK calls draw from the same API-key credit wallet. Plans add credit capacity rather than separate feature tiers. See [current pricing](https://www.oracleinsight.xyz/pricing) for plans and per-call costs.
-
-Product prices: **Trade Guard** is op-priced at **$0.002–$0.040** per call — $0.040 is both the per-call price and the product ceiling for each trade-safety op (`check_safety`, `prepare_swap`, `prepare_perp_order`); **Trade Proof** is **40 credits / $0.040** for `begin_evidence` and `issue_receipt` (`verify_evidence` is free for the three offline kinds — `execution_pair`, `base_agent_swap`, `solana_swap` — and 40 credits / $0.040 only when it reads a live upstream); **Oracle Watch** is **500 credits / $0.500 per 24h window**; **Position Lifecycle** is **550 credits / $0.550 per position**. The 16 deprecated tool names are callable at the same price as their canonical product op until 2027-01-06. New accounts receive a one-time **400-credit** trial grant (1 credit = $0.001).
-
-Billing outcomes on the MCP surface: a `rejected` verdict that carries all five evidence items is charged normally; a `rejected` verdict missing any evidence item is downgraded to `unavailable` and is never charged. REST endpoints do not emit these outcomes; they are charged when data is delivered.
+REST, MCP, and SDK calls draw from the same API-key credit wallet. Plans add credit capacity rather than separate feature tiers. See [current pricing](https://www.oracleinsight.xyz/pricing) for rates and trial terms; route-specific x402 quotes and billing outcomes are covered in the [x402 quickstart](#x402-quickstart-pay-per-call).
 
 ### MCP endpoint (production)
 
@@ -138,7 +125,7 @@ The REST pre-trade safety check accepts x402 and, when `MPP_ENABLED=true`, MPP a
 
 ## Local development
 
-Requires Node.js 22 or later. From the repository root:
+Requires Node.js 22.x (the repository pins 22.23.2). From the repository root:
 
 ```bash
 npm install
