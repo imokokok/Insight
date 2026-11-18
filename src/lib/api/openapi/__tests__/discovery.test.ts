@@ -10,6 +10,24 @@ const BASE_CONFIG = {
 };
 
 describe('OpenAPI payment discovery', () => {
+  it('documents the Tokenized Stock Guard and its actual market-session source', () => {
+    const document = buildOpenApiDiscovery(BASE_CONFIG);
+    const operation = document.paths['/api/v1/safety/tokenized-stock-guard']?.get;
+
+    expect(operation).toBeDefined();
+    expect(operation?.description).toContain(
+      'does not consume a signed Headless Oracle /v5/status?mic=XNYS receipt'
+    );
+    expect(operation?.description).toContain('hard-coded 2026 NYSE holidays');
+    expect(operation?.parameters).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: 'asset', required: true }),
+        expect.objectContaining({ name: 'action', required: true }),
+        expect.objectContaining({ name: 'tradeAmountUsd', required: true }),
+      ])
+    );
+  });
+
   it('uses canonical MPP offers with configured USDC contract and atomic amount', () => {
     const document = buildOpenApiDiscovery(BASE_CONFIG);
     const rest = document.paths['/api/v1/safety/pre-trade'].get['x-payment-info'] as {
