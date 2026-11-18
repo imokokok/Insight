@@ -61,9 +61,20 @@ function createMockRequest(
 }
 
 describe('API Rate Limit Tests', () => {
+  const originalVercel = process.env.VERCEL;
+
+  beforeAll(() => {
+    process.env.VERCEL = '1';
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
     rateLimitStore.clear();
+  });
+
+  afterAll(() => {
+    if (originalVercel === undefined) delete process.env.VERCEL;
+    else process.env.VERCEL = originalVercel;
   });
 
   describe('Normal Request Handling', () => {
@@ -105,10 +116,10 @@ describe('API Rate Limit Tests', () => {
     it('should handle multiple independent keys', async () => {
       const middleware = createRateLimitMiddleware({ maxRequests: 1 });
       const request1 = createMockRequest({
-        headers: { 'x-forwarded-for': '192.168.1.1' },
+        headers: { 'x-vercel-forwarded-for': '192.168.1.1' },
       });
       const request2 = createMockRequest({
-        headers: { 'x-forwarded-for': '192.168.1.2' },
+        headers: { 'x-vercel-forwarded-for': '192.168.1.2' },
       });
 
       const result1 = await middleware(request1);
@@ -300,10 +311,10 @@ describe('API Rate Limit Tests', () => {
   });
 
   describe('IP Address Handling', () => {
-    it('should use IP from x-forwarded-for header', async () => {
+    it('should use IP from Vercel forwarded-for header', async () => {
       const middleware = createRateLimitMiddleware();
       const request = createMockRequest({
-        headers: { 'x-forwarded-for': '192.168.1.1, 10.0.0.1' },
+        headers: { 'x-vercel-forwarded-for': '192.168.1.1, 10.0.0.1' },
       });
 
       const result = await middleware(request);
@@ -323,10 +334,10 @@ describe('API Rate Limit Tests', () => {
     it('should handle different IPs independently', async () => {
       const middleware = createRateLimitMiddleware({ maxRequests: 1 });
       const request1 = createMockRequest({
-        headers: { 'x-forwarded-for': '192.168.1.1' },
+        headers: { 'x-vercel-forwarded-for': '192.168.1.1' },
       });
       const request2 = createMockRequest({
-        headers: { 'x-forwarded-for': '192.168.1.2' },
+        headers: { 'x-vercel-forwarded-for': '192.168.1.2' },
       });
 
       await middleware(request1);

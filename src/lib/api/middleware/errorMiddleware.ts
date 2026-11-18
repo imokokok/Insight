@@ -62,6 +62,20 @@ export function createErrorMiddleware(options: ErrorMiddlewareOptions = {}) {
       return response;
     }
 
+    if (
+      error instanceof Error &&
+      (error as Error & { code?: unknown }).code === 'RATE_LIMIT_STORE_UNAVAILABLE'
+    ) {
+      return NextResponse.json(
+        ApiResponseBuilder.error(
+          'RATE_LIMIT_STORE_UNAVAILABLE',
+          'Rate limiting is temporarily unavailable',
+          { retryable: true, requestId }
+        ),
+        { status: 503 }
+      );
+    }
+
     if (error instanceof SyntaxError && error.message.includes('JSON')) {
       return NextResponse.json(
         ApiResponseBuilder.error('BAD_REQUEST', 'Invalid JSON in request body', { requestId }),

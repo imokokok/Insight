@@ -91,33 +91,13 @@ class MemoryRateLimitStore implements RateLimitStore {
 }
 
 class SupabaseRateLimitStore implements RateLimitStore {
-  private memoryFallback = new MemoryRateLimitStore();
-  private useMemoryFallback = false;
-  private memoryFallbackSince = 0;
-  // A rate-limit write must never hold a customer request open for the full
-  // PostgREST timeout. During a database incident the local fallback preserves
-  // a limit, and this short deadline prevents each warm function from adding
-  // another long-lived request to the already-degraded database.
+  // Keep the upstream call bounded. A local fallback would enforce separate
+  // limits on each serverless instance and let callers multiply the allowance.
   private readonly SUPABASE_RPC_TIMEOUT_MS = 2_000;
 
-  // Keep the process-local circuit open long enough for a saturated Nano
-  // database to recover. This is deliberately longer than the former one
-  // minute retry window: retrying every warm function every minute amplified
-  // Disk I/O incidents without improving enforcement.
-  private readonly MEMORY_FALLBACK_TTL_MS = 5 * 60_000;
-
   async increment(key: string, windowMs: number): Promise<RateLimitResult> {
-    // If we recently fell back to memory, use it until the TTL expires
-    if (
-      this.useMemoryFallback &&
-      Date.now() - this.memoryFallbackSince < this.MEMORY_FALLBACK_TTL_MS
-    ) {
-      return this.memoryFallback.increment(key, windowMs);
-    }
-
-    const client = createServiceRoleClient();
-
     try {
+      const client = createServiceRoleClient();
       const { data, error } = await client
         .rpc('increment_rate_limit', {
           p_key: key,
@@ -134,26 +114,15 @@ class SupabaseRateLimitStore implements RateLimitStore {
         throw new Error('No data returned from increment_rate_limit');
       }
 
-      // Recovered from fallback — reset flag
-      this.useMemoryFallback = false;
-
       return {
         count: rows[0].count,
         resetTime: rows[0].reset_time,
       };
     } catch (error) {
-      // Fall back to in-memory rate limiting instead of failing open entirely.
-      // This ensures public routes still have some rate limiting during DB
-      // outages, rather than allowing unlimited traffic.
-      if (!this.useMemoryFallback) {
-        this.useMemoryFallback = true;
-        this.memoryFallbackSince = Date.now();
-        logger.warn(
-          'Supabase rate limit unavailable, degrading to in-memory rate limiting',
-          normalizeError(error)
-        );
-      }
-      return this.memoryFallback.increment(key, windowMs);
+      logger.error('Supabase rate limit unavailable; rejecting request', normalizeError(error));
+      const unavailable = new Error('RATE_LIMIT_STORE_UNAVAILABLE', { cause: error });
+      (unavailable as Error & { code?: string }).code = 'RATE_LIMIT_STORE_UNAVAILABLE';
+      throw unavailable;
     }
   }
 
@@ -163,14 +132,13 @@ class SupabaseRateLimitStore implements RateLimitStore {
 }
 
 function shouldUseSupabaseRateLimitStore(): boolean {
+  if (process.env.NODE_ENV === 'production' && process.env.RATE_LIMIT_STORE === 'memory') {
+    throw new Error('RATE_LIMIT_STORE=memory is not supported in production');
+  }
   if (process.env.RATE_LIMIT_STORE === 'supabase') {
     return true;
   }
-  if (
-    process.env.NODE_ENV === 'production' &&
-    process.env.RATE_LIMIT_STORE !== 'memory' &&
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-  ) {
+  if (process.env.NODE_ENV === 'production') {
     return true;
   }
   return false;

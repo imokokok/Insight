@@ -120,9 +120,19 @@ function builder(config: {
 }
 
 /** Queue of `client.from(table)` results, consumed left to right. */
-function queueFrom(handlers: Array<Record<string, unknown>>): jest.Mock {
+let lastRpc: jest.Mock;
+
+function queueFrom(
+  handlers: Array<Record<string, unknown>>,
+  rpcResponses: Array<{ data: unknown; error: { message: string } | null }> = []
+): jest.Mock {
   const from = jest.fn(() => handlers.shift());
-  mockCreateClient.mockReturnValue({ from } as unknown as ReturnType<
+  const rpc = jest.fn(
+    async () =>
+      rpcResponses.shift() ?? { data: [{ outcome: 'RESERVED', poll_count: 1 }], error: null }
+  );
+  lastRpc = rpc;
+  mockCreateClient.mockReturnValue({ from, rpc } as unknown as ReturnType<
     typeof createServiceRoleClient
   >);
   return from;
@@ -240,14 +250,10 @@ describe('beginOracleWatchWindow', () => {
 
 describe('pollOracleWatchWindow', () => {
   it('issues the signal, records the audit row under the window, and reports usage', async () => {
-    const updateCalls: Array<[string, unknown[]]> = [];
-    queueFrom([
-      builder({ value: ROW }), // load
-      builder({
-        value: { poll_count: 1 },
-        onMethod: (method, args) => updateCalls.push([method, args]),
-      }), // accounting
-    ]);
+    queueFrom(
+      [builder({ value: ROW })],
+      [{ data: [{ outcome: 'RESERVED', poll_count: 1 }], error: null }]
+    );
 
     const result = await pollOracleWatchWindow(ROW.id, `oww_${RAW_TOKEN}`);
 
@@ -260,50 +266,49 @@ describe('pollOracleWatchWindow', () => {
       source: 'rest',
       windowId: ROW.id,
     });
-    // The budget bump is conditional on poll_count < cap.
-    const lt = updateCalls.find(([method]) => method === 'lt');
-    expect(lt?.[1]).toEqual(['poll_count', 300]);
+    expect(lastRpc).toHaveBeenCalledWith('reserve_oracle_watch_window_poll', {
+      p_window_id: ROW.id,
+    });
   });
 
   it('keeps legacy windows on their 300-poll / 30-second terms', async () => {
-    const updateCalls: Array<[string, unknown[]]> = [];
-    queueFrom([
-      builder({
-        value: { ...ROW, poll_count: 5, last_poll_at: '2026-11-03T05:59:20.000Z' },
-      }),
-      builder({ value: { ...ROW, poll_count: 6 }, onMethod: (m, a) => updateCalls.push([m, a]) }),
-    ]);
+    queueFrom(
+      [builder({ value: { ...ROW, poll_count: 5, last_poll_at: '2026-11-03T05:59:20.000Z' } })],
+      [{ data: [{ outcome: 'RESERVED', poll_count: 6 }], error: null }]
+    );
 
     const result = await pollOracleWatchWindow(ROW.id, `oww_${RAW_TOKEN}`);
 
     expect(result.window.pollCap).toBe(300);
-    const lt = updateCalls.find(([method]) => method === 'lt');
-    expect(lt?.[1]).toEqual(['poll_count', 300]);
+    expect(result.window.pollCount).toBe(6);
+    expect(lastRpc).toHaveBeenCalledWith('reserve_oracle_watch_window_poll', {
+      p_window_id: ROW.id,
+    });
   });
 
   it('applies 48 polls / 30-minute interval to newly purchased windows', async () => {
-    const updateCalls: Array<[string, unknown[]]> = [];
-    queueFrom([
-      builder({
-        value: {
-          ...ROW,
-          poll_count: 1,
-          last_poll_at: '2026-11-03T05:30:00.000Z',
-          poll_cap: 48,
-          min_poll_interval_seconds: 1800,
-        },
-      }),
-      builder({
-        value: { ...ROW, poll_count: 2, poll_cap: 48 },
-        onMethod: (m, a) => updateCalls.push([m, a]),
-      }),
-    ]);
+    queueFrom(
+      [
+        builder({
+          value: {
+            ...ROW,
+            poll_count: 1,
+            last_poll_at: '2026-11-03T05:30:00.000Z',
+            poll_cap: 48,
+            min_poll_interval_seconds: 1800,
+          },
+        }),
+      ],
+      [{ data: [{ outcome: 'RESERVED', poll_count: 2 }], error: null }]
+    );
 
     const result = await pollOracleWatchWindow(ROW.id, `oww_${RAW_TOKEN}`);
 
     expect(result.window.pollCap).toBe(48);
-    const lt = updateCalls.find(([method]) => method === 'lt');
-    expect(lt?.[1]).toEqual(['poll_count', 48]);
+    expect(result.window.pollCount).toBe(2);
+    expect(lastRpc).toHaveBeenCalledWith('reserve_oracle_watch_window_poll', {
+      p_window_id: ROW.id,
+    });
   });
 
   it('enforces the 30-minute interval on new windows', async () => {
@@ -387,10 +392,10 @@ describe('pollOracleWatchWindow', () => {
   });
 
   it('fails closed when a concurrent poll consumes the last budget slot', async () => {
-    queueFrom([
-      builder({ value: { ...ROW, poll_count: 299 } }), // load: one slot left
-      builder({ value: null }), // conditional update matched nothing
-    ]);
+    queueFrom(
+      [builder({ value: { ...ROW, poll_count: 299 } })],
+      [{ data: [{ outcome: 'POLL_CAP_REACHED', poll_count: null }], error: null }]
+    );
     await expect(pollOracleWatchWindow(ROW.id, `oww_${RAW_TOKEN}`)).rejects.toMatchObject({
       code: 'POLL_CAP_REACHED',
     });

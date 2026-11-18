@@ -76,15 +76,21 @@ const apiKeyCache = new Map<string, { result: ApiKeyValidationResult | null; exp
 function getCachedApiKey(keyHash: string): ApiKeyValidationResult | null | undefined {
   const entry = apiKeyCache.get(keyHash);
   if (!entry) return undefined; // cache miss
-  if (Date.now() > entry.expiresAt) {
+  if (Date.now() >= entry.expiresAt) {
     apiKeyCache.delete(keyHash);
     return undefined; // expired
   }
   return entry.result;
 }
 
-function setCachedApiKey(keyHash: string, result: ApiKeyValidationResult | null): void {
-  apiKeyCache.set(keyHash, { result, expiresAt: Date.now() + API_KEY_CACHE_TTL_MS });
+function setCachedApiKey(
+  keyHash: string,
+  result: ApiKeyValidationResult | null,
+  validUntil?: number
+): void {
+  const cacheExpiry = Date.now() + API_KEY_CACHE_TTL_MS;
+  const expiresAt = validUntil === undefined ? cacheExpiry : Math.min(cacheExpiry, validUntil);
+  apiKeyCache.set(keyHash, { result, expiresAt });
   // Lazy eviction: if the cache grows large, prune expired entries to bound
   // memory. This only runs on insert, not on the hot read path.
   if (apiKeyCache.size > 1000) {
@@ -147,8 +153,9 @@ export async function validateApiKey(plainKey: string): Promise<ApiKeyValidation
       return null;
     }
 
-    if (data.expires_at && new Date(data.expires_at) < new Date()) {
-      logger.debug('API key expired', { keyId: data.id });
+    const validUntil = data.expires_at ? Date.parse(data.expires_at) : undefined;
+    if (validUntil !== undefined && (!Number.isFinite(validUntil) || validUntil <= Date.now())) {
+      logger.debug('API key expired or has an invalid expiry', { keyId: data.id });
       setCachedApiKey(keyHash, null);
       return null;
     }
@@ -160,7 +167,7 @@ export async function validateApiKey(plainKey: string): Promise<ApiKeyValidation
       rateLimit: data.rate_limit,
     };
 
-    setCachedApiKey(keyHash, result);
+    setCachedApiKey(keyHash, result, validUntil);
 
     // Update last_used_at asynchronously; do not block the request on this.
     // Throttled by the cache: only fires once per CACHE_TTL_MS per key.

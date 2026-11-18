@@ -281,10 +281,8 @@ function assertOpen(row: WindowRow): void {
 }
 
 /**
- * Issue one signal inside an open window. Counts against the poll budget via a
- * conditional update (`poll_count < cap`), so concurrent polls cannot exceed
- * the cap; the minimum poll interval is an advisory guard checked before the
- * (much more expensive) oracle assessment runs.
+ * Issue one signal inside an open window. The database RPC atomically checks
+ * the current poll cap and minimum interval while reserving one poll slot.
  */
 export async function pollOracleWatchWindow(
   windowId: string,
@@ -309,31 +307,46 @@ export async function pollOracleWatchWindow(
     }
   }
 
-  // Per-key poll rate, checked after the token/interval guards so a rejected
-  // poll does not consume budget. Keyless windows are bounded by their token.
+  // Per-key poll rate, checked after the read-only token/interval guards.
+  // The database reservation below repeats the interval check atomically.
   await consumePollRate(row.api_key_id ? `key:${row.api_key_id}` : `window:${row.id}`);
 
-  const { data: updated, error: updateError } = await client
-    .from('oracle_watch_windows')
-    .update({ poll_count: row.poll_count + 1, last_poll_at: new Date(now).toISOString() })
-    .eq('id', row.id)
-    .lt('poll_count', row.poll_cap)
-    .select('poll_count')
-    .maybeSingle();
-
-  if (updateError) {
-    logger.warn('Monitored window poll accounting failed', {
-      windowId,
-      error: updateError.message,
-    });
-    throw new Error('Monitored window poll accounting failed', { cause: updateError });
+  const { data, error } = await client.rpc('reserve_oracle_watch_window_poll', {
+    p_window_id: row.id,
+  });
+  if (error) {
+    logger.warn('Monitored window poll accounting failed', { windowId, error: error.message });
+    throw new Error('Monitored window poll accounting failed', { cause: error });
   }
-  if (!updated) {
-    // A concurrent poll consumed the last budget slot between our read and
-    // write. Fail closed rather than issue an unpaid signal.
-    throw new OracleWatchWindowError('POLL_CAP_REACHED');
+  const result = Array.isArray(data) ? data[0] : null;
+  if (!result || typeof result !== 'object' || Array.isArray(result)) {
+    throw new Error('Monitored window poll reservation returned an invalid result');
   }
-  const pollCount = Number((updated as { poll_count: number }).poll_count);
+  const reservation = result as Record<string, unknown>;
+  if (reservation.outcome !== 'RESERVED') {
+    if (reservation.outcome === 'NOT_FOUND') throw new OracleWatchWindowError('NOT_FOUND');
+    if (reservation.outcome === 'WINDOW_CLOSED') throw new OracleWatchWindowError('WINDOW_CLOSED');
+    if (reservation.outcome === 'WINDOW_EXPIRED')
+      throw new OracleWatchWindowError('WINDOW_EXPIRED');
+    if (reservation.outcome === 'POLL_CAP_REACHED')
+      throw new OracleWatchWindowError('POLL_CAP_REACHED');
+    if (reservation.outcome === 'POLL_TOO_SOON') {
+      const retry = reservation.retry_after_seconds;
+      throw new OracleWatchWindowError(
+        'POLL_TOO_SOON',
+        typeof retry === 'number' && Number.isSafeInteger(retry) ? Math.max(1, retry) : 1
+      );
+    }
+    throw new Error('Monitored window poll reservation returned an unknown outcome');
+  }
+  if (
+    typeof reservation.poll_count !== 'number' ||
+    !Number.isSafeInteger(reservation.poll_count) ||
+    reservation.poll_count < 1
+  ) {
+    throw new Error('Monitored window poll reservation returned an invalid count');
+  }
+  const pollCount = reservation.poll_count;
 
   const signal = await getOracleWatchSignal(row.symbol, row.chain ?? undefined);
   const subjectChainId = row.chain ? (BLOCKCHAIN_TO_CHAIN_ID[row.chain as Blockchain] ?? 0) : 0;

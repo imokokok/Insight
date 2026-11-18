@@ -4,6 +4,7 @@ import { createLogger } from '@/lib/utils/logger';
 import { nowInSeconds } from '@/lib/utils/time';
 
 import { ApiResponseBuilder } from '../response';
+import { extractTrustedClientIp } from '../trustedClientIp';
 
 import { rateLimitStore } from './rateLimitStore';
 
@@ -68,24 +69,7 @@ export function createRateLimitMiddleware(
 }
 
 export function extractClientIp(request: NextRequest): string {
-  const vercelIp = request.headers.get('x-vercel-forwarded-for');
-  const realIp = request.headers.get('x-real-ip');
-  const forwarded = request.headers.get('x-forwarded-for');
-
-  if (vercelIp) {
-    // Take the first (leftmost) entry: that is the original client IP. Using
-    // the last entry would rate-limit by the last proxy hop, which is
-    // spoofable and shared across many clients.
-    return vercelIp.split(',')[0]?.trim() || 'unknown';
-  }
-  if (realIp) {
-    return realIp.trim();
-  }
-  if (forwarded) {
-    // Take the first (leftmost) entry: that is the original client IP.
-    return forwarded.split(',')[0]?.trim() || 'unknown';
-  }
-  return 'unknown';
+  return extractTrustedClientIp(request);
 }
 
 function defaultKeyGenerator(request: NextRequest, _context?: RateLimitContext): string {
