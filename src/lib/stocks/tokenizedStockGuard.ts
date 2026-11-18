@@ -335,7 +335,7 @@ export function evaluateTokenizedStockRequest(input: EvaluationInput): Evaluatio
 function limitations(): string[] {
   return [
     'single-source: the verdict derives from one official issuer reference (Coinbase tokenized-stocks NAV); an independent-provider quorum is required before treating ALLOW as settlement-grade',
-    'market calendar is an approximation (UTC session windows plus the 2026 NYSE holiday set); exchange holidays outside 2026 may be misclassified, and off-by-minutes errors are possible around session boundaries',
+    'market session is inferred from Insight local UTC session windows plus a hard-coded 2026 NYSE holiday set; this guard does not consume a signed Headless Oracle /v5/status?mic=XNYS receipt, and holidays, unscheduled halts, or session boundaries may be misclassified',
     'nav_price is an issuer NAV reference, not a live bid/ask or execution price',
     'this guard never signs, submits, or authorizes a transaction',
   ];
