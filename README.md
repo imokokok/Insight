@@ -61,7 +61,7 @@ Insight sells **independently recomputable, tamper-evident decision inputs** —
 ## Supported Networks
 
 - Oracle data covers 40+ networks; guard and protocol support varies by asset and chain. See the reviewed coverage above and the linked guides.
-- Payment availability is route-specific and dynamic. The public [x402 manifest](https://www.oracleinsight.xyz/.well-known/x402) and each endpoint’s unsigned `PAYMENT-REQUIRED` response are authoritative; do not infer settlement availability from assessment coverage.
+- Payment availability is route-specific and dynamic; the live 402 `accepts[]` is authoritative. Callers must choose a currently advertised option. The public [x402 manifest](https://www.oracleinsight.xyz/.well-known/x402) and each endpoint’s unsigned `PAYMENT-REQUIRED` response show those options; do not infer settlement availability from assessment coverage.
 
 ## Contract Addresses
 
