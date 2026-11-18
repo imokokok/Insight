@@ -13,6 +13,24 @@ The committed instrument and execution registries currently contain only Robinho
 `SHADOW`; another issuer cannot use the production-admission path until its identity, source rights
 and exact execution deployment have been separately reviewed and admitted.
 
+## Coinbase Tokenized Stock Guard HTTP endpoint
+
+The separate `GET /api/v1/safety/tokenized-stock-guard` endpoint evaluates Coinbase tokenized-stock
+NAV data. Its current off-hours decision uses a local approximation: UTC session windows and a
+hard-coded 2026 NYSE holiday list. It does **not** consume the signed Headless Oracle
+`/v5/status?mic=XNYS` receipt. The HTTP response discloses this in `limitations`; the local calendar
+can misclassify holidays, unscheduled halts, and session boundaries, so its session result is not
+an exchange-authoritative observation.
+
+If this endpoint is later wired to the Headless receipt, it should verify the receipt locally against
+the published active Ed25519 key, bind `mic` to `XNYS`, require `receipt_mode=live`, and enforce the
+signed `issued_at`/`expires_at` validity window before using the signed `status`. The current signed
+receipt fields provide those identity, freshness, and signature checks. To distinguish a scheduled
+off-hours NAV freeze from an unscheduled halt, a future receipt contract should also include a
+signed, machine-readable `session_phase` and `closure_reason`; `status=CLOSED` alone does not make
+that distinction. Until that contract and integration are agreed and implemented, the guard must
+continue to report its local-calendar limitation rather than imply receipt-backed status.
+
 `createRobinhoodRwaMarketProvider` connects the existing first-party issuer context to this flow.
 It checks the reported issuer, ticker, chain and token address, and only contributes market state;
 Robinhood quote data does not enter the independent price quorum. By default, session remains

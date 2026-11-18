@@ -768,8 +768,9 @@ export const X402_PREDICTION_GUARD_ROUTE = '/api/v1/safety/prediction-guard';
  * pre-trade request against the issuer's official NAV reference for these
  * Base-native assets (24h heartbeat, off-hours freeze, paused features,
  * total-return multiplier, caller-price deviation) and may return an Insight
- * EIP-712 decision attestation. It never signs, submits, or authorizes an
- * order.
+ * EIP-712 decision attestation. Market session currently comes from a local
+ * UTC-window/2026-holiday approximation, not a signed Headless XNYS receipt.
+ * It never signs, submits, or authorizes an order.
  */
 export const X402_TOKENIZED_STOCK_GUARD_ROUTE = '/api/v1/safety/tokenized-stock-guard';
 

@@ -5128,8 +5128,12 @@ paths:
         reference. Applies a dedicated staleness lane for equity references —
         24h heartbeat, off-hours freeze (a documented design, not a fault),
         paused features, total-return multiplier, and caller-price deviation —
-        and may return an Insight EIP-712 decision attestation. It never
-        signs, submits, or authorizes an order. API-key access or x402
+        and may return an Insight EIP-712 decision attestation. Market session
+        is currently inferred from Insight's local UTC session windows and
+        hard-coded 2026 NYSE holidays; this endpoint does not consume a signed
+        Headless Oracle /v5/status?mic=XNYS receipt. The local calendar may
+        misclassify holidays, unscheduled halts, and session boundaries. It
+        never signs, submits, or authorizes an order. API-key access or x402
         payment is accepted.
       security:
         - apiKey: []

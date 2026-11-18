@@ -201,7 +201,7 @@
     {
       "url": "https://www.oracleinsight.xyz/api/v1/safety/tokenized-stock-guard",
       "method": "GET",
-      "description": "Decision Integrity — Tokenized Stock Guard: a read-only, pre-signing decision-input check for one Coinbase-tokenized stock (B20) on Base. GET applies the issuer NAV policy — 24h heartbeat, off-hours freeze, paused features, total-return multiplier, and caller-price deviation — and may return an Insight EIP-712 decision attestation. It never authorizes or broadcasts a transaction.",
+      "description": "Decision Integrity — Tokenized Stock Guard: a read-only, pre-signing decision-input check for one Coinbase-tokenized stock (B20) on Base. GET applies the issuer NAV policy — 24h heartbeat, off-hours freeze, paused features, total-return multiplier, and caller-price deviation — and may return an Insight EIP-712 decision attestation. Market session currently comes from Insight's local UTC session windows and hard-coded 2026 NYSE holidays; this guard does not consume a signed Headless Oracle /v5/status?mic=XNYS receipt, and its calendar may misclassify holidays, unscheduled halts, or session boundaries. It never authorizes or broadcasts a transaction.",
       "accepts": [
         {
           "scheme": "exact",
