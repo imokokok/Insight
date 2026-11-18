@@ -235,7 +235,7 @@ jobs:
       image: mcr.microsoft.com/playwright:v1.64.1-noble@sha256:2f05f8a734509a7b3f26a912639488ee08f58a7b292d14d62271bcff9038768f
     timeout-minutes: 20
     env:
-      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-anon-key
       SUPABASE_SERVICE_ROLE_KEY: ci-service-role-key
       INTERNAL_API_SECRET: ci-internal-secret-that-is-not-used-in-production
@@ -302,6 +302,16 @@ jobs:
           # back to the previous cache only costs the modules that changed.
           restore-keys: |
             nextjs-${{ runner.os }}-
+      - name: Start the local Supabase rate-limit RPC
+        if: needs.runtime-impact.outputs.runtime == 'true'
+        run: |
+          node --experimental-strip-types scripts/test-support/supabase-rest-mock.mts > /tmp/supabase-rest-mock.log 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:54321/health >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/supabase-rest-mock.log
+          exit 1
       - if: needs.runtime-impact.outputs.runtime == 'true'
         run: npm run build
       - name: Cache Next.js build state
