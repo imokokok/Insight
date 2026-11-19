@@ -53,11 +53,12 @@ function deps(
   } as never;
 }
 
-describe('VENUE_CHAIN_DESCRIPTORS - four registered venue classes', () => {
-  it('registers the four venue classes plus an unknown fail-closed bucket', () => {
+describe('VENUE_CHAIN_DESCRIPTORS - registered venue classes', () => {
+  it('registers each venue class plus an unknown fail-closed bucket', () => {
     expect(VENUE_CHAIN_CLASSES).toEqual([
       'polymarket-direct',
       'jupiter-polymarket-embedded',
+      'jupiter-forecast-native',
       'solana-native',
       'offchain-regulated',
       'unknown',
@@ -92,11 +93,17 @@ describe('VENUE_CHAIN_DESCRIPTORS - four registered venue classes', () => {
     expect(VENUE_CHAIN_DESCRIPTORS['polymarket-direct'].evidenceStrength).toBe('strong');
     expect(VENUE_CHAIN_DESCRIPTORS['polymarket-direct'].independentlyVerifiable).toBe(true);
     expect(VENUE_CHAIN_DESCRIPTORS['jupiter-polymarket-embedded'].evidenceStrength).toBe('strong');
+    expect(VENUE_CHAIN_DESCRIPTORS['jupiter-forecast-native'].evidenceStrength).toBe('unverified');
     expect(VENUE_CHAIN_DESCRIPTORS['solana-native'].evidenceStrength).toBe('unverified');
     expect(VENUE_CHAIN_DESCRIPTORS['offchain-regulated'].evidenceStrength).toBe('weak');
     expect(VENUE_CHAIN_DESCRIPTORS.unknown.evidenceStrength).toBe('none');
 
-    for (const venueClass of ['solana-native', 'offchain-regulated', 'unknown'] as const) {
+    for (const venueClass of [
+      'jupiter-forecast-native',
+      'solana-native',
+      'offchain-regulated',
+      'unknown',
+    ] as const) {
       expect(VENUE_CHAIN_DESCRIPTORS[venueClass].independentlyVerifiable).toBe(false);
       expect(VENUE_CHAIN_DESCRIPTORS[venueClass].independentlyRecomputable).toBe(false);
     }
@@ -114,9 +121,18 @@ describe('VENUE_CHAIN_DESCRIPTORS - four registered venue classes', () => {
     expect(JSON.stringify(d)).not.toMatch(/[1-9A-HJ-NP-Za-km-z]{32,44}/);
     expect(d.observableEvidence.join(' ')).toContain('UNVERIFIED');
   });
+
+  it('records Jupiter Forecast as a documented venue without inventing settlement verification', () => {
+    const descriptor = VENUE_CHAIN_DESCRIPTORS['jupiter-forecast-native'];
+    expect(descriptor.verificationStatus).toBe('UNVERIFIED');
+    expect(descriptor.settlementMechanism).toMatch(/Chainlink BTC\/USD stream/);
+    expect(descriptor.notes).toContain('provider=bisonfi');
+    expect(descriptor.independentlyVerifiable).toBe(false);
+    expect(descriptor.observableEvidence.join(' ')).toContain('marketResultPubkey');
+  });
 });
 
-describe('classifyVenueChain - four-way classification', () => {
+describe('classifyVenueChain - venue classification', () => {
   it('classifies Polymarket direct (Polygon / UMA / CLOB)', () => {
     const result = classifyVenueChain({
       description: 'Polymarket binary market resolved by UMA on Polygon through the CLOB',
@@ -131,6 +147,21 @@ describe('classifyVenueChain - four-way classification', () => {
     });
     expect(result.venueClass).toBe('jupiter-polymarket-embedded');
     expect(result.reasonCode).toBe('ENTRY_SOLANA_SETTLEMENT_POLYGON');
+  });
+
+  it('classifies Jupiter Forecast by its first-party provider identity', () => {
+    const result = classifyVenueChain({
+      description: 'Jupiter Forecast 15-minute BTC up/down market',
+      resolutionSource: 'provider=bisonfi; Chainlink BTC/USD stream',
+    });
+    expect(result.venueClass).toBe('jupiter-forecast-native');
+    expect(result.reasonCode).toBe('JUPITER_FORECAST_SETTLEMENT_UNVERIFIED');
+  });
+
+  it('does not infer embedded Polymarket from a generic Jupiter mention', () => {
+    expect(
+      classifyVenueChain({ description: 'Jupiter Prediction market on Solana' }).venueClass
+    ).toBe('unknown');
   });
 
   it('classifies Solana-native venues from the Feb 2026 report names', () => {
@@ -197,6 +228,22 @@ describe('assessVenueChainEvidence - entry chain is NOT settlement chain', () =>
     expect(
       VENUE_CHAIN_DESCRIPTORS['jupiter-polymarket-embedded'].entryIsNotSettlementNote
     ).toContain('ENTRY != SETTLEMENT');
+  });
+
+  it('identifies Jupiter Forecast as native Solana while keeping settlement fail-closed', () => {
+    const assessment = assessVenueChainEvidence({
+      description: 'Jupiter Forecast 15-minute BTC up/down',
+      resolutionSource: 'provider=bisonfi; Chainlink BTC/USD stream',
+    });
+    expect(assessment.venueClass).toBe('jupiter-forecast-native');
+    expect(assessment.entryChain).toBe('solana');
+    expect(assessment.settlementChain).toBe('solana');
+    expect(assessment.evidenceKind).toBe('official_api');
+    expect(assessment.independentlyVerifiable).toBe(false);
+    expect(assessment.verdict).toBe('CAUTION');
+    expect(assessment.failClosed).toBe(true);
+    expect(assessment.reasonCode).toBe('JUPITER_FORECAST_SETTLEMENT_UNVERIFIED');
+    expect(assessment.conclusion).toContain('cannot yet be independently replayed');
   });
 
   it('never collapses a Solana entry + Polygon settlement into solana-native', () => {
