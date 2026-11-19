@@ -17,9 +17,11 @@
  * settlement evidence that does not exist.
  *
  * Registered venue classes (no program ids / settlement addresses are
- * invented; Solana-native projects are UNVERIFIED name-only placeholders):
+ * invented; Jupiter Forecast is identified by first-party docs but its
+ * settlement account is not independently decoded here):
  *   - polymarket-direct            Polygon settlement (UMA / CLOB)
  *   - jupiter-polymarket-embedded  entry Solana, settlement Polygon
+ *   - jupiter-forecast-native       Solana entry + settlement, evidence UNVERIFIED
  *   - solana-native                entry + settlement Solana (UNVERIFIED)
  *   - offchain-regulated           Kalshi / Coinbase distribution (no chain)
  *   - unknown                      cannot be classified -> fail closed
@@ -33,6 +35,7 @@ export const VENUE_CHAIN_SCHEMA_VERSION = 'insight.venue-chain-mapping.v1';
 export const VENUE_CHAIN_CLASSES = [
   'polymarket-direct',
   'jupiter-polymarket-embedded',
+  'jupiter-forecast-native',
   'solana-native',
   'offchain-regulated',
   'unknown',
@@ -60,6 +63,7 @@ export type EvidenceStrength = 'strong' | 'partial' | 'weak' | 'none' | 'unverif
 export type VenueChainReasonCode =
   | 'POLYGON_ONCHAIN_RESOLUTION_AVAILABLE'
   | 'ENTRY_SOLANA_SETTLEMENT_POLYGON'
+  | 'JUPITER_FORECAST_SETTLEMENT_UNVERIFIED'
   | 'SOLANA_NATIVE_VENUE_UNVERIFIED'
   | 'OFFCHAIN_SETTLEMENT_NOT_INDEPENDENTLY_VERIFIABLE'
   | 'VENUE_CHAIN_UNCLASSIFIED'
@@ -170,6 +174,35 @@ export const VENUE_CHAIN_DESCRIPTORS: Record<VenueClass, VenueChainDescriptor> =
       'Polymarket entered Solana in Feb 2026 via an embedded Jupiter Prediction tab. This is NOT a migration to Solana and NOT Solana settlement.',
   },
 
+  'jupiter-forecast-native': {
+    venueClass: 'jupiter-forecast-native',
+    label: 'Jupiter Forecast (native Solana; settlement UNVERIFIED)',
+    entryChain: 'solana',
+    settlementChain: 'solana',
+    entryIsSettlement: true,
+    entryIsNotSettlementNote: null,
+    settlementMechanism:
+      'First-party Jupiter docs describe 15-minute BTC up/down rounds settled from the Chainlink BTC/USD stream; the Jupiter Prediction API exposes marketResultPubkey.',
+    evidenceKind: 'official_api',
+    observableEvidence: [
+      'Jupiter Prediction API market result and marketResultPubkey fields',
+      'Documented Chainlink BTC/USD stream as the Forecast resolution source',
+      'No verified on-chain account decoder or independent replay adapter is registered here',
+    ],
+    independentlyRecomputable: false,
+    independentlyVerifiable: false,
+    evidenceStrength: 'unverified',
+    verificationStatus: 'UNVERIFIED',
+    failClosedPolicy: {
+      verdict: 'CAUTION',
+      reasonCode: 'JUPITER_FORECAST_SETTLEMENT_UNVERIFIED',
+      conclusion:
+        'Jupiter Forecast is identified, but its market-result account and Chainlink settlement cannot yet be independently replayed by Insight; keep settlement evidence fail-closed.',
+    },
+    notes:
+      'Classification is based on Jupiter first-party Prediction API/Forecast documentation (provider=bisonfi). This does not assert a program id, account layout, or independently verified settlement.',
+  },
+
   'solana-native': {
     venueClass: 'solana-native',
     label: 'Solana-native prediction market (UNVERIFIED)',
@@ -257,6 +290,7 @@ export const VENUE_CHAIN_DESCRIPTORS: Record<VenueClass, VenueChainDescriptor> =
 const CLASSIFICATION_REASON_CODES: Record<VenueClass, VenueChainReasonCode> = {
   'polymarket-direct': 'POLYGON_ONCHAIN_RESOLUTION_AVAILABLE',
   'jupiter-polymarket-embedded': 'ENTRY_SOLANA_SETTLEMENT_POLYGON',
+  'jupiter-forecast-native': 'JUPITER_FORECAST_SETTLEMENT_UNVERIFIED',
   'solana-native': 'SOLANA_NATIVE_VENUE_UNVERIFIED',
   'offchain-regulated': 'OFFCHAIN_SETTLEMENT_NOT_INDEPENDENTLY_VERIFIABLE',
   unknown: 'VENUE_CHAIN_UNCLASSIFIED',
@@ -315,10 +349,15 @@ export function classifyVenueChain(input: VenueChainInput): VenueChainClassifica
 
   if (isVenueClass(hint)) return classification(hint, 'explicit venueHint');
 
-  // Jupiter's embedded tab is a Solana ENTRY, not Solana settlement. This
-  // check MUST precede any Solana keyword so the entry is never mistaken for
-  // the settlement chain.
-  if (/\bjupiter\b/.test(text)) {
+  // Jupiter Forecast is a distinct native Solana market. Identify it before
+  // the embedded Polymarket pattern so it cannot inherit Polygon evidence.
+  if (/\bjupiter\s+forecast\b|\bbisonfi\b/.test(text)) {
+    return classification('jupiter-forecast-native', 'jupiter forecast / bisonfi source');
+  }
+  // Jupiter's embedded Polymarket tab is a Solana ENTRY, not Solana
+  // settlement. Require explicit Polymarket identity; a generic Jupiter
+  // mention is ambiguous and must not be promoted to this class.
+  if (/\bjupiter\b/.test(text) && /polymarket|gamma-api\.polymarket/.test(text)) {
     return classification('jupiter-polymarket-embedded', 'jupiter entry keyword');
   }
   if (/\bkalshi\b|\bcoinbase\b/.test(text)) {
@@ -375,7 +414,7 @@ export function assessVenueChainEvidence(input: VenueChainInput): SettlementChai
     resolutionMissing && hasOnchainSettlement ? 'POLYMARKET_RESOLUTION_NOT_OBSERVABLE' : reasonCode;
 
   let conclusion: string;
-  if (resolutionMissing) {
+  if (resolutionMissing && hasOnchainSettlement) {
     conclusion =
       'Declared resolution was not observed on the settlement chain; fail closed - do not treat as verifiable.';
   } else if (failClosed) {
