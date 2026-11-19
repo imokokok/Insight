@@ -75,7 +75,7 @@ const independentSource: AusdOracleSource = {
 describe('ausdCoverage (P1-1 independent oracle coverage)', () => {
   it('default evaluation is UNVERIFIED and fails closed, with no feed address', () => {
     expect(AUSD_UNVERIFIED_DESCRIPTOR.sources).toHaveLength(0);
-    expect(AUSD_UNVERIFIED_DESCRIPTOR.note).toMatch(/未找到，需人工 review 后登记/);
+    expect(AUSD_UNVERIFIED_DESCRIPTOR.note).toMatch(/fresh, in-quorum/);
     const result = evaluateAusdCoverage(undefined, () => NOW);
     expect(result.covered).toBe(false);
     expect(result.independence).toBe('unverified');
@@ -163,7 +163,7 @@ describe('assessMonadPerpGuard AUSD strict mode (P1-1)', () => {
     expect(result.verdict).toBe('BLOCK');
     expect(result.ausdCoverage?.covered).toBe(false);
     expect(result.reasons.join(' ')).toMatch(/Strict AUSD coverage mode/);
-    expect(result.reasons.join(' ')).toMatch(/未找到，需人工 review 后登记/);
+    expect(result.reasons.join(' ')).toMatch(/fresh, in-quorum Pyth Core observation/);
   });
 
   it('strict mode with injected independent coverage does NOT block', async () => {
@@ -178,6 +178,90 @@ describe('assessMonadPerpGuard AUSD strict mode (P1-1)', () => {
     expect(result.verdict).toBe('ALLOW');
     expect(result.ausdCoverage?.covered).toBe(true);
     expect(result.ausdCoverage?.reasonCode).toBe('AUSD_COVERAGE_VERIFIED');
+  });
+
+  it('reuses a fresh, quorum-eligible Monad Pyth AUSD read without another source call', async () => {
+    const checkOracle = jest.fn(async (input: { asset: string }) => ({
+      verdict: 'PASS' as const,
+      consensusPrice: input.asset.trim().toUpperCase() === 'AUSD' ? 1 : 78_139,
+      maxDeviationPct: 0.1,
+      staleDataRisk: false,
+      participantCount: 3,
+      providerPrices:
+        input.asset.trim().toUpperCase() === 'AUSD'
+          ? {
+              pyth: {
+                price: 1,
+                deviationPct: 0.02,
+                isOutlier: false,
+                dataAgeSeconds: 12,
+                isStale: false,
+                confidence: 0.9,
+                reputationScore: 95,
+                status: 'success' as const,
+                countsTowardOracleQuorum: true,
+                timestamp: Math.floor(NOW.getTime() / 1000) - 12,
+                retrievedAt: NOW.getTime(),
+                timestampProvenance: 'provider_timestamp' as const,
+                source: 'Pyth Core Monad:AUSD/USD',
+                freshnessKnown: true,
+                timestampAnomaly: false,
+              },
+            }
+          : {},
+      attestation: { uid: 'uid-1', attester: '0xattester' },
+    })) as never;
+    const result = await assessMonadPerpGuard(
+      { ...BASE_INPUT, requireIndependentAusdCoverage: true },
+      guardDeps({ checkOracle })
+    );
+    expect(checkOracle).toHaveBeenCalledTimes(2);
+    expect(checkOracle.mock.calls[1][0]).toMatchObject({ asset: 'AUSD', chainId: 143 });
+    expect(result.verdict).toBe('ALLOW');
+    expect(result.ausdCoverage.covered).toBe(true);
+    expect(result.ausdCoverage.sources[0]).toMatchObject({
+      provider: 'Pyth',
+      pair: 'AUSD/USD',
+      chainId: 143,
+      feedAddress: '0x2880aB155794e7179c9eE2e38200202908C17B43',
+      verification: 'VERIFIED',
+    });
+  });
+
+  it('strict mode still blocks when a fresh Pyth source does not have the v2 quorum', async () => {
+    const checkOracle = jest.fn(async (input: { asset: string }) => ({
+      verdict: input.asset.toUpperCase() === 'AUSD' ? ('BLOCK' as const) : ('PASS' as const),
+      consensusPrice: 1,
+      maxDeviationPct: 0.1,
+      staleDataRisk: false,
+      participantCount: input.asset.toUpperCase() === 'AUSD' ? 2 : 3,
+      providerPrices: {
+        pyth: {
+          price: 1,
+          deviationPct: 0.02,
+          isOutlier: false,
+          dataAgeSeconds: 12,
+          isStale: false,
+          confidence: 0.9,
+          reputationScore: 95,
+          status: 'success' as const,
+          countsTowardOracleQuorum: true,
+          retrievedAt: NOW.getTime(),
+          timestampProvenance: 'provider_age' as const,
+          source: 'Pyth Core Monad:AUSD/USD',
+          freshnessKnown: true,
+          timestampAnomaly: false,
+        },
+      },
+      attestation: { uid: 'uid-1', attester: '0xattester' },
+    })) as never;
+    const result = await assessMonadPerpGuard(
+      { ...BASE_INPUT, requireIndependentAusdCoverage: true },
+      guardDeps({ checkOracle })
+    );
+    expect(result.ausdCoverage.covered).toBe(true);
+    expect(result.oracleChecks.marginConsensusStatus).toBe('insufficient_coverage');
+    expect(result.verdict).toBe('BLOCK');
   });
 
   it('default mode ignores injected coverage for the verdict', async () => {

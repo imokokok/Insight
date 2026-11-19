@@ -34,10 +34,12 @@
 import { z } from 'zod';
 
 import {
+  AUSD_PYTH_MONAD_SOURCE,
   AUSD_UNVERIFIED_DESCRIPTOR,
   evaluateAusdCoverage,
   type AusdCoverageDescriptor,
   type AusdCoverageResult,
+  type AusdOracleSource,
 } from '@/lib/oracles/ausdCoverage';
 import {
   bps,
@@ -60,6 +62,7 @@ import {
   type PerplPerpMarketState,
 } from '@/lib/perps/perplPerpMarket';
 import { preTradeSafetyCheck } from '@/lib/safety/preTrade';
+import type { ProviderPriceDetail } from '@/lib/safety/preTrade';
 
 export const MONAD_PERP_GUARD_PERPL_PROTOCOL_ID = 'perpl-perps-monad-mainnet';
 export const MONAD_PERP_GUARD_SCHEMA_VERSION = 'insight.monad-perp-guard.v1';
@@ -238,11 +241,8 @@ export async function assessMonadPerpGuard(
     throw new Error('Declared market is not in the reviewed Monad perp guard market set');
   }
 
-  // AUSD (Agora Dollar) has no independent cross-oracle coverage today.
-  // The check is attempted so future coverage participates automatically;
-  // a BLOCK driven purely by insufficient independent providers (<3) is
-  // disclosed rather than escalated because Perpl margin accounting is
-  // venue-internal and the leverage band still binds.
+  // Reuse the existing cross-oracle read to collect Monad-native AUSD feeds.
+  // Do not add a second Pyth/RPC request just for the coverage disclosure.
   const [underlyingResult, marginOutcome, venueOutcome] = await Promise.all([
     checkOracle({
       asset: input.assetSymbol,
@@ -252,7 +252,7 @@ export async function assessMonadPerpGuard(
     }),
     checkOracle({
       asset: input.marginAssetSymbol,
-      chainId: 1,
+      chainId: AUSD_PYTH_MONAD_SOURCE.chainId,
       action: 'swap',
       tradeAmountUsd: input.marginValueUsd,
     }).then(
@@ -297,13 +297,26 @@ export async function assessMonadPerpGuard(
   // strict mode. An injected pre-computed result is used as-is; an injected
   // descriptor is re-evaluated here. Nothing fabricates feed addresses.
   const injectedAusdCoverage = dependencies.resolveAusdCoverage?.();
+  const observedAusdSource =
+    marginOutcome.kind === 'result'
+      ? pythAusdSourceFromExistingRead(marginOutcome.result.providerPrices, now)
+      : null;
+  const dynamicAusdDescriptor: AusdCoverageDescriptor = observedAusdSource
+    ? {
+        sources: [observedAusdSource],
+        note: 'Derived from the fresh Monad Pyth Core AUSD/USD observation already collected by this guard.',
+      }
+    : AUSD_UNVERIFIED_DESCRIPTOR;
   const ausdCoverage: AusdCoverageResult =
     injectedAusdCoverage &&
     typeof injectedAusdCoverage === 'object' &&
     'covered' in injectedAusdCoverage &&
     'reasonCode' in injectedAusdCoverage
       ? (injectedAusdCoverage as AusdCoverageResult)
-      : evaluateAusdCoverage(injectedAusdCoverage as AusdCoverageDescriptor | undefined, () => now);
+      : evaluateAusdCoverage(
+          (injectedAusdCoverage as AusdCoverageDescriptor | undefined) ?? dynamicAusdDescriptor,
+          () => now
+        );
 
   // Cross-venue deviation between the Insight consensus price and Perpl's
   // on-exchange oracle price. Computed only when both sides are observed;
@@ -346,7 +359,10 @@ export async function assessMonadPerpGuard(
 
   // Opt-in strict mode (P1-1): insufficient independent AUSD coverage blocks.
   // Default mode keeps the disclosed-advisory behavior (zero regression).
-  if (input.requireIndependentAusdCoverage === true && !ausdCoverage.covered) {
+  if (
+    input.requireIndependentAusdCoverage === true &&
+    (!ausdCoverage.covered || marginConsensusStatus !== 'verified')
+  ) {
     verdict = 'BLOCK';
     const injectedDescriptor =
       injectedAusdCoverage &&
@@ -355,7 +371,7 @@ export async function assessMonadPerpGuard(
         ? (injectedAusdCoverage as AusdCoverageDescriptor)
         : AUSD_UNVERIFIED_DESCRIPTOR;
     reasons.push(
-      `Strict AUSD coverage mode is enabled and AUSD has no verified independent oracle coverage (${ausdCoverage.reasonCode}); ${injectedDescriptor.note}`
+      `Strict AUSD coverage mode is enabled and AUSD evidence is insufficient (source=${ausdCoverage.reasonCode}, consensus=${marginConsensusStatus}); ${injectedDescriptor.note}`
     );
   }
 
@@ -445,6 +461,51 @@ export async function assessMonadPerpGuard(
       priorSeal:
         'Bind this decision to one exact, user-authorized Perpl order before execution; the binding surface is not part of this assessment.',
     },
+  };
+}
+
+function pythAusdSourceFromExistingRead(
+  providerPrices: Record<string, ProviderPriceDetail> | undefined,
+  now: Date
+): AusdOracleSource | null {
+  const pyth = providerPrices?.pyth;
+  if (
+    !pyth ||
+    pyth.status !== 'success' ||
+    !pyth.countsTowardOracleQuorum ||
+    pyth.isOutlier ||
+    pyth.isStale ||
+    !pyth.freshnessKnown ||
+    pyth.timestampAnomaly ||
+    pyth.source !== 'Pyth Core Monad:AUSD/USD' ||
+    !Number.isFinite(pyth.dataAgeSeconds) ||
+    pyth.dataAgeSeconds === null ||
+    pyth.dataAgeSeconds < 0 ||
+    pyth.dataAgeSeconds > AUSD_PYTH_MONAD_SOURCE.heartbeatSeconds ||
+    !Number.isFinite(pyth.retrievedAt)
+  ) {
+    return null;
+  }
+  const retrievedAt = pyth.retrievedAt as number;
+  const observedAtMs = retrievedAt - pyth.dataAgeSeconds * 1_000;
+  if (
+    observedAtMs > now.getTime() ||
+    now.getTime() - observedAtMs > AUSD_PYTH_MONAD_SOURCE.heartbeatSeconds * 1_000
+  ) {
+    return null;
+  }
+  return {
+    provider: AUSD_PYTH_MONAD_SOURCE.provider,
+    pair: AUSD_PYTH_MONAD_SOURCE.pair,
+    feedAddress: AUSD_PYTH_MONAD_SOURCE.feedAddress,
+    chainId: AUSD_PYTH_MONAD_SOURCE.chainId,
+    observedAt: new Date(observedAtMs).toISOString(),
+    heartbeatSeconds: AUSD_PYTH_MONAD_SOURCE.heartbeatSeconds,
+    deviationThresholdBps: AUSD_PYTH_MONAD_SOURCE.deviationThresholdBps,
+    independence: AUSD_PYTH_MONAD_SOURCE.independence,
+    independenceSource: AUSD_PYTH_MONAD_SOURCE.independenceSource,
+    sourceRef: `${AUSD_PYTH_MONAD_SOURCE.sourceRef} (feed ${AUSD_PYTH_MONAD_SOURCE.feedId})`,
+    verification: 'VERIFIED' as const,
   };
 }
 

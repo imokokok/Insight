@@ -17,19 +17,13 @@
  *   - an explicit independence provenance note.
  * A source missing ANY of these is not covered — fail closed.
  *
- * Re-check result (2026-11-06), stated plainly:
- *   - Pyth hermes carries an independent Crypto.AUSD/USD feed
- *     (id d9912df360b5b7f21a122f15bdd5e27f62ce5e72bd316c291f7c86620e07fb2a,
- *     min_channel fixed_rate@200ms), independent of any venue's own quote.
- *   - However, the Monad-side on-chain feed contract address, heartbeat and
- *     deviation threshold are still unverified, so no fully-specified source
- *     can be registered yet. A hermes feed id alone is not an RPC-readable
- *     on-chain oracle contract, and a token CONTRACT address is not a price
- *     feed — neither is registered.
- *
- * => Monad 链上 AUSD feed 合约仍未找到，需人工 review 后登记. The default
- * descriptor stays empty/UNVERIFIED and the evaluator fails closed; nothing
- * here fabricates a feed address.
+ * Current reviewed source: Pyth Core on Monad, using the directly-readable
+ * AUSD/USD feed and the request's live provider observation. The feed ID,
+ * Pyth Core address, one-hour heartbeat, and 0.2% sponsored deviation
+ * threshold come from Pyth's published Monad catalog. Coverage is still
+ * fail-closed for each request: a catalog entry alone is insufficient unless
+ * the existing AUSD consensus read returned a fresh, in-quorum Pyth Core
+ * observation.
  */
 
 import { z } from 'zod';
@@ -127,8 +121,22 @@ export interface AusdCoverageDescriptor {
 
 export const AUSD_UNVERIFIED_DESCRIPTOR: AusdCoverageDescriptor = {
   sources: [],
-  note: '2026-11-06 复核：Pyth hermes 有独立 Crypto.AUSD/USD feed（id d9912df360b5b7f21a122f15bdd5e27f62ce5e72bd316c291f7c86620e07fb2a，独立 provider），但 Monad 链上 feed 合约地址、heartbeat、deviation threshold 未核实，按 fail-closed 维持 UNVERIFIED；链上 feed 合约未找到，需人工 review 后登记，不编造 feed 地址。',
+  note: 'Pyth Core Monad AUSD/USD is registered as a candidate source, but current-request coverage is unverified until the existing AUSD consensus read contains a fresh, in-quorum Pyth Core observation.',
 };
+
+export const AUSD_PYTH_MONAD_SOURCE = Object.freeze({
+  provider: 'Pyth' as const,
+  pair: 'AUSD/USD',
+  feedAddress: '0x2880aB155794e7179c9eE2e38200202908C17B43',
+  feedId: 'd9912df360b5b7f21a122f15bdd5e27f62ce5e72bd316c291f7c86620e07fb2a',
+  chainId: AUSD_COVERAGE_CHAIN_ID,
+  heartbeatSeconds: 3_600,
+  deviationThresholdBps: 20,
+  independence: 'independent-aggregator' as const,
+  independenceSource:
+    'Pyth Core publishes a third-party aggregated price independently of Perpl’s venue quote.',
+  sourceRef: 'https://docs.pyth.network/pro/sponsored-feeds#monad-mainnet',
+});
 
 /** A source is covered only when every required observable field is present. */
 function isIndependentlyCovered(source: AusdOracleSource): boolean {
