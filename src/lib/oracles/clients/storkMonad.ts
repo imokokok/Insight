@@ -3,6 +3,7 @@ import {
   STORK_MONAD_CHAIN_ID,
   STORK_MONAD_CONTRACT_ADDRESS,
   STORK_MONAD_PUSHED_FEEDS,
+  STRICT_QUORUM_APPROVED_STORK_FEEDS,
   resolveStorkMonadFeed,
 } from '@/lib/oracles/constants/storkMonad';
 import { storkMonadOnChainService } from '@/lib/oracles/services/storkMonadOnChainService';
@@ -18,8 +19,9 @@ import { FailureMode, buildSignalVector } from '@/types/oracle/signals';
 const STORK_MONAD_RELIABILITY = 0.9;
 
 /**
- * Monad pushed-feed integration. It is deliberately observation-only until a
- * sustained live comparison and source-overlap review approve it for quorum.
+ * Monad pushed-feed integration. Feeds are observation-only until a sustained
+ * live comparison and source-overlap review approve them for quorum; the
+ * approved set lives in `STRICT_QUORUM_APPROVED_STORK_FEEDS`.
  */
 export class StorkMonadClient extends BaseOracleClient {
   name = OracleProvider.STORK;
@@ -66,10 +68,10 @@ export class StorkMonadClient extends BaseOracleClient {
         dataSource: 'real',
         ingestionTimestamp: Date.now(),
         failureMode: FailureMode.NONE,
-        // This remains visible and monitored, but it must not manufacture a
-        // third strict-quorum participant before its source-overlap review and
-        // shadow period are explicitly approved.
-        countsTowardOracleQuorum: false,
+        // Only source-overlap-reviewed feeds enter strict quorum. MON/USD was
+        // cleared on 2026-11-20; every other Stork Monad feed remains visible
+        // but shadow-only, so no unreviewed feed can manufacture a vote.
+        countsTowardOracleQuorum: STRICT_QUORUM_APPROVED_STORK_FEEDS.has(feed.alias),
         signalVector: buildSignalVector({
           dataAgeSeconds: dataAge,
           isOnChain: true,
