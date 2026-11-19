@@ -41,7 +41,7 @@ import {
   STORK_MONAD_CHAIN_ID,
   STORK_MONAD_CONTRACT_ADDRESS,
   STORK_MONAD_PUSHED_FEEDS,
-  STRICT_QUORUM_APPROVED_STORK_FEEDS,
+  STRICT_QUORUM_PROMOTION_CANDIDATES,
 } from '../constants/storkMonad';
 import { getAssetClass, redstoneSymbols } from '../constants/supportedSymbols';
 import { SUPRA_PAIR_INDEX_MAP } from '../constants/supraConstants';
@@ -673,8 +673,8 @@ class FeedSyncService {
         priceDeviationPercent: feed.priceDeviationPercent,
         quoteType: feed.alias.endsWith('.RR') ? 'reference-rate' : 'price',
         freshnessPolicy: 'getTemporalNumericValueV1 safe read and timestamp <= maxStalenessSeconds',
-        quorumStatus: STRICT_QUORUM_APPROVED_STORK_FEEDS.has(feed.alias)
-          ? 'strict-quorum-approved-source-overlap-reviewed'
+        quorumStatus: STRICT_QUORUM_PROMOTION_CANDIDATES.has(feed.alias)
+          ? 'promotion-candidate-pending-source-overlap-signoff'
           : 'shadow-only-pending-source-overlap-review',
       },
     }));
