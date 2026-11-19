@@ -8,7 +8,7 @@
       "email": "imokokok123@gmail.com"
     },
     "description": "Decision-input trust for AI agents trading onchain, offered as four product functions: Oracle Evidence, Risk Intelligence, Decision Integrity, and Verify (always free, off-catalog). Pre-trade verdicts carry verifiable EIP-712 attestations. The REST pre-trade endpoint supports x402 and optional MPP; the MPP MCP pilot exposes pre_trade_safety_check on a dedicated endpoint. The full MCP tool catalog remains on /api/mcp.",
-    "x-guidance": "REST: GET /api/v1/safety/pre-trade with asset, chainId, action, and tradeAmountUsd; GET /api/v1/safety/tokenized-stock-guard for Coinbase-tokenized-stock NAV checks. The Tokenized Stock Guard currently uses a local UTC session-window and 2026 NYSE-holiday approximation; it does not consume a signed Headless Oracle /v5/status?mic=XNYS receipt. The full MCP catalog uses POST /api/mcp (x402 or API key). The MPP MCP pilot uses POST /api/mcp/mpp and only accepts pre_trade_safety_check. MPP is shown only when enabled; its challenge is authoritative. Every paid result is settled only after the tool succeeds."
+    "x-guidance": "REST: GET /api/v1/safety/pre-trade with asset, chainId, action, and tradeAmountUsd; GET /api/v1/safety/tokenized-stock-guard for Coinbase-tokenized-stock NAV checks. The Tokenized Stock Guard uses local UTC session windows and the published 2026-2027 NYSE holiday and early-close calendar; it does not consume a signed Headless Oracle /v5/status?mic=XNYS receipt. The full MCP catalog uses POST /api/mcp (x402 or API key). The MPP MCP pilot uses POST /api/mcp/mpp and only accepts pre_trade_safety_check. MPP is shown only when enabled; its challenge is authoritative. Every paid result is settled only after the tool succeeds."
   },
   "servers": [
     {
@@ -556,7 +556,7 @@
         "operationId": "assessTokenizedStockGuard",
         "summary": "Tokenized Stock Guard — Coinbase tokenized-stock NAV decision-input check",
         "tags": ["Safety"],
-        "description": "Read-only, pre-signing check for one Coinbase-tokenized stock (B20) on Base using the issuer's official NAV reference. The guard applies a separate 24-hour NAV heartbeat, off-hours freeze, paused-feature, total-return-multiplier, and caller-price-deviation policy, and may return an Insight EIP-712 decision attestation. Market session currently comes from Insight's local UTC session windows and hard-coded 2026 NYSE holidays; this endpoint does not consume a signed Headless Oracle /v5/status?mic=XNYS receipt. The local calendar may misclassify holidays, unscheduled halts, and session boundaries. It never signs, submits, or authorizes an order.",
+        "description": "Read-only, pre-signing check for one Coinbase-tokenized stock (B20) on Base using the issuer's official NAV reference. The guard applies a separate 24-hour NAV heartbeat, off-hours freeze, paused-feature, total-return-multiplier, and caller-price-deviation policy, and may return an Insight EIP-712 decision attestation. Market session comes from Insight's local UTC session windows and the published 2026-2027 NYSE holiday and early-close calendar; this endpoint does not consume a signed Headless Oracle /v5/status?mic=XNYS receipt. The local calendar may misclassify future calendar changes, unscheduled halts, and session boundaries. It never signs, submits, or authorizes an order.",
         "parameters": [
           {
             "name": "asset",

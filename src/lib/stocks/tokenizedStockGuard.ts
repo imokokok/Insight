@@ -71,9 +71,9 @@ export type TokenizedStockGuardInput = z.infer<typeof TokenizedStockGuardInputSc
 // Session times in UTC: EST 14:30-21:00, EDT 13:30-20:00.
 // ---------------------------------------------------------------------------
 
-// Standard NYSE holiday rules for 2026. MUST be re-checked against the
-// official exchange calendar for any year outside 2026 (see limitations).
-const HOLIDAYS_2026 = new Set([
+// NYSE full-closure dates through 2027, from the official calendar published
+// 2025-12-23: https://www.nyse.com/trade/hours-calendars
+const NYSE_HOLIDAYS = new Set([
   '2026-01-01', // New Year's Day
   '2026-01-19', // Martin Luther King Jr. Day
   '2026-02-16', // Washington's Birthday
@@ -84,6 +84,24 @@ const HOLIDAYS_2026 = new Set([
   '2026-09-07', // Labor Day
   '2026-11-26', // Thanksgiving Day
   '2026-12-25', // Christmas Day
+  '2027-01-01', // New Year's Day
+  '2027-01-18', // Martin Luther King Jr. Day
+  '2027-02-15', // Washington's Birthday
+  '2027-03-26', // Good Friday
+  '2027-05-31', // Memorial Day
+  '2027-06-18', // Juneteenth observed
+  '2027-07-05', // Independence Day observed
+  '2027-09-06', // Labor Day
+  '2027-11-25', // Thanksgiving Day
+  '2027-12-24', // Christmas Day observed
+]);
+
+// NYSE core-session early closes. The official 2026-2028 calendar lists these
+// dates at 1:00 p.m. Eastern; represent each as UTC for its applicable DST.
+const NYSE_EARLY_CLOSES_UTC = new Map<string, number>([
+  ['2026-11-27', 18], // 1:00 p.m. EST, day after Thanksgiving
+  ['2026-12-24', 18], // 1:00 p.m. EST, Christmas Eve
+  ['2027-11-26', 18], // 1:00 p.m. EST, day after Thanksgiving
 ]);
 
 const MS_DAY = 24 * 60 * 60 * 1000;
@@ -118,13 +136,14 @@ export interface MarketStatus {
 export function marketStatus(now: Date): MarketStatus {
   const ymd = now.toISOString().slice(0, 10);
   const dow = now.getUTCDay();
-  const { openH, closeH } = sessionWindowUtc(now);
+  const { openH, closeH: regularCloseH } = sessionWindowUtc(now);
+  const closeH = NYSE_EARLY_CLOSES_UTC.get(ymd) ?? regularCloseH;
   const openMs =
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()) + openH * 3600 * 1000;
   const closeMs =
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()) + closeH * 3600 * 1000;
   if (dow === 0 || dow === 6) return { open: false, because: 'weekend' };
-  if (HOLIDAYS_2026.has(ymd)) return { open: false, because: 'holiday' };
+  if (NYSE_HOLIDAYS.has(ymd)) return { open: false, because: 'holiday' };
   if (now.getTime() < openMs) return { open: false, because: 'pre_market' };
   if (now.getTime() >= closeMs) return { open: false, because: 'after_hours' };
   return { open: true, because: null };
@@ -136,8 +155,9 @@ export function lastMarketClose(now: Date): number | null {
   for (let i = 0; i < 10; i += 1) {
     const dow = d.getUTCDay();
     const ymd = d.toISOString().slice(0, 10);
-    if (dow >= 1 && dow <= 5 && !HOLIDAYS_2026.has(ymd)) {
-      const { closeH } = sessionWindowUtc(d);
+    if (dow >= 1 && dow <= 5 && !NYSE_HOLIDAYS.has(ymd)) {
+      const { closeH: regularCloseH } = sessionWindowUtc(d);
+      const closeH = NYSE_EARLY_CLOSES_UTC.get(ymd) ?? regularCloseH;
       const closeMs =
         Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) + closeH * 3600 * 1000;
       if (closeMs <= now.getTime()) return closeMs;
@@ -335,7 +355,7 @@ export function evaluateTokenizedStockRequest(input: EvaluationInput): Evaluatio
 function limitations(): string[] {
   return [
     'single-source: the verdict derives from one official issuer reference (Coinbase tokenized-stocks NAV); an independent-provider quorum is required before treating ALLOW as settlement-grade',
-    'market session is inferred from Insight local UTC session windows plus a hard-coded 2026 NYSE holiday set; this guard does not consume a signed Headless Oracle /v5/status?mic=XNYS receipt, and holidays, unscheduled halts, or session boundaries may be misclassified',
+    'market session is inferred from Insight local UTC session windows and the published 2026-2027 NYSE holiday/early-close calendar; this guard does not consume a signed Headless Oracle /v5/status?mic=XNYS receipt, and future calendar changes, unscheduled halts, or session boundaries may be misclassified',
     'nav_price is an issuer NAV reference, not a live bid/ask or execution price',
     'this guard never signs, submits, or authorizes a transaction',
   ];

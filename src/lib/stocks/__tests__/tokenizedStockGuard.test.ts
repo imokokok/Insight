@@ -9,6 +9,8 @@ import { privateKeyToAccount } from 'viem/accounts';
 import {
   assessTokenizedStockGuard,
   evaluateTokenizedStockRequest,
+  lastMarketClose,
+  marketStatus,
   TokenizedStockGuardInputSchema,
 } from '../tokenizedStockGuard';
 import {
@@ -22,6 +24,40 @@ import type { TokenizedStockQuote } from '../tokenizedStocksClient';
 
 const SUNDAY_NOON = new Date('2026-11-15T16:10:00Z'); // US market closed (weekend)
 const WEDNESDAY_SESSION = new Date('2026-11-18T15:00:00Z'); // US market open (EDT)
+
+describe('NYSE calendar', () => {
+  it('recognizes the official 2027 full closures', () => {
+    for (const day of [
+      '2027-01-01',
+      '2027-01-18',
+      '2027-02-15',
+      '2027-03-26',
+      '2027-05-31',
+      '2027-06-18',
+      '2027-07-05',
+      '2027-09-06',
+      '2027-11-25',
+      '2027-12-24',
+    ]) {
+      expect(marketStatus(new Date(`${day}T15:00:00.000Z`))).toEqual({
+        open: false,
+        because: 'holiday',
+      });
+    }
+    expect(marketStatus(new Date('2027-01-04T15:00:00.000Z')).open).toBe(true);
+  });
+
+  it('uses the published 2027 Thanksgiving early close for status and last close', () => {
+    expect(marketStatus(new Date('2027-11-26T17:59:00.000Z')).open).toBe(true);
+    expect(marketStatus(new Date('2027-11-26T18:00:00.000Z'))).toEqual({
+      open: false,
+      because: 'after_hours',
+    });
+    expect(lastMarketClose(new Date('2027-11-27T12:00:00.000Z'))).toBe(
+      Date.parse('2027-11-26T18:00:00.000Z')
+    );
+  });
+});
 
 function quote(overrides: Partial<TokenizedStockQuote> = {}): TokenizedStockQuote {
   return {
