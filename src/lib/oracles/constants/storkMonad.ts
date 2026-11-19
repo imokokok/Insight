@@ -193,6 +193,18 @@ export const STORK_MONAD_PUSHED_FEEDS: readonly StorkMonadFeed[] =
       pushedFeed(alias, assetId, encodedAssetId, priceDeviationPercent)
   );
 
+/**
+ * Feeds cleared by source-overlap review for strict quorum participation.
+ *
+ * MON/USD is the only promoted feed. Evidence (2026-11-20): 18 days of shadow
+ * observation with zero consecutive failures; at the 2026-11-18T15:21:45Z
+ * paid request the feed returned a 3s-old value 0.0216% from strict consensus,
+ * inside the 1% outlier floor; operator is a distinct non-derived source group
+ * in the Raul-signed mapping (`src/lib/attestations/sourceGroups.ts`).
+ * Every other Stork Monad feed stays shadow-only until reviewed individually.
+ */
+export const STRICT_QUORUM_APPROVED_STORK_FEEDS: ReadonlySet<string> = new Set<string>(['MON/USD']);
+
 const feedsByAlias = new Map(STORK_MONAD_PUSHED_FEEDS.map((feed) => [feed.alias, feed]));
 
 export function resolveStorkMonadFeed(symbol: string): StorkMonadFeed | null {
