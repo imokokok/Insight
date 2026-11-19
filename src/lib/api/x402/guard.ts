@@ -345,6 +345,31 @@ async function countSettledCallsForPayer(payer: string): Promise<number | null> 
   }
 }
 
+/**
+ * Canonical verdict values accepted in the settlement audit ledger.
+ *
+ * REST guards emit uppercase verdicts (PASS/CAUTION/BLOCK) while the
+ * execution-preflight surface uses lowercase (allow/caution/block). Both are
+ * valid product verdicts, so normalize on write instead of letting the audit
+ * table fragment into case variants that break downstream aggregation.
+ * Unknown values are dropped rather than guessed: `resource` already records
+ * which paid surface produced the row.
+ */
+type AuditVerdict = 'PASS' | 'CAUTION' | 'BLOCK' | 'ALLOW' | 'DANGER';
+const AUDIT_VERDICT_VALUES: ReadonlySet<string> = new Set<AuditVerdict>([
+  'PASS',
+  'CAUTION',
+  'BLOCK',
+  'ALLOW',
+  'DANGER',
+]);
+
+export function normalizeAuditVerdict(value: string | undefined): string | undefined {
+  if (value === undefined) return undefined;
+  const upper = value.trim().toUpperCase();
+  return AUDIT_VERDICT_VALUES.has(upper) ? upper : undefined;
+}
+
 export interface X402SettlementAudit {
   requestId: string;
   protocol?: 'x402' | 'mpp';
@@ -557,7 +582,7 @@ export function recordX402Settlement(audit: X402SettlementAudit): void {
           surface: validAudit.surface ?? 'legacy',
           resource: validAudit.resource ?? null,
           response_time_ms: validAudit.responseTimeMs ?? null,
-          verdict: validAudit.verdict ?? null,
+          verdict: normalizeAuditVerdict(validAudit.verdict) ?? null,
           error_reason: validAudit.errorReason ?? null,
           acquisition_source: validAudit.acquisitionSource ?? 'unknown',
         })
