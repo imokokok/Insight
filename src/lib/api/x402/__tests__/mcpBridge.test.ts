@@ -134,7 +134,7 @@ describe('handleMcpPaidToolCall settlement gating', () => {
     expect(mockedRecord).toHaveBeenCalledWith(
       expect.objectContaining({
         status: 'settled',
-        verdict: 'mcp:get_symbols',
+        resource: 'mcp:get_symbols',
         acquisitionSource: 'mcp',
       })
     );

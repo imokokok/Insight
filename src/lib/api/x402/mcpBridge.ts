@@ -812,7 +812,8 @@ async function handleHypercoreMcpCall(input: {
       surface: 'mcp',
       resource: `mcp:${toolName}`,
       responseTimeMs: Date.now() - businessStartedAt,
-      verdict: `mcp:${toolName}`,
+      // Tool identity lives in `resource`; verdict is reserved for the
+      // product verdict and must not be overloaded with an MCP tool name.
       acquisitionSource: input.acquisitionSource,
     });
     attachX402BillingReceipt(businessResponse, {
@@ -1144,8 +1145,7 @@ export async function handleMcpPaidToolCall({
       surface: 'mcp',
       resource: `mcp:${toolName}`,
       responseTimeMs: Date.now() - settlementStartedAt,
-      // Reuse the verdict column to record which MCP tool was paid for.
-      verdict: `mcp:${toolName}`,
+      // Tool identity lives in `resource`; do not overload the verdict column.
       acquisitionSource,
     });
 

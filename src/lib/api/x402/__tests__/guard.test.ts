@@ -11,6 +11,7 @@ import {
   handlePaidPreTradeRequest,
   hasAuthCredentials,
   isPaidRequest,
+  normalizeAuditVerdict,
   paymentAuditFields,
   toNextResponse,
   X402_ACQUISITION_SOURCES,
@@ -163,6 +164,21 @@ describe('x402 guard', () => {
       });
       expect(atomicUnitsToUsdc('20000000000000000', 18)).toBe('0.02');
       expect(atomicUnitsToUsdc('20000')).toBe('0.02');
+    });
+  });
+
+  describe('settlement audit verdict normalization', () => {
+    it('uppercases both REST and preflight verdict variants', () => {
+      expect(normalizeAuditVerdict('CAUTION')).toBe('CAUTION');
+      expect(normalizeAuditVerdict('block')).toBe('BLOCK');
+      expect(normalizeAuditVerdict(' allow ')).toBe('ALLOW');
+      expect(normalizeAuditVerdict('danger')).toBe('DANGER');
+    });
+
+    it('drops non-verdict values so tool names cannot pollute the verdict column', () => {
+      expect(normalizeAuditVerdict('mcp:get_symbols')).toBeUndefined();
+      expect(normalizeAuditVerdict('unknown')).toBeUndefined();
+      expect(normalizeAuditVerdict(undefined)).toBeUndefined();
     });
   });
 

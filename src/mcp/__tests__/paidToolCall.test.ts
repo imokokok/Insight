@@ -291,7 +291,7 @@ describe('x402 paid MCP tools/call', () => {
         tx_hash: `0x${'a'.repeat(64)}`,
         payer: `0x${'b'.repeat(40)}`,
         amount_usdc: '0.002',
-        verdict: 'mcp:get_symbols',
+        resource: 'mcp:get_symbols',
       })
     );
   });
@@ -344,7 +344,6 @@ describe('x402 paid MCP tools/call', () => {
         payer: `0x${'d'.repeat(40)}`,
         amount_usdc: '0.02',
         resource: 'mcp:prepare_base_agent_swap_guard',
-        verdict: 'mcp:prepare_base_agent_swap_guard',
       })
     );
   });
