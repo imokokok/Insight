@@ -194,16 +194,20 @@ export const STORK_MONAD_PUSHED_FEEDS: readonly StorkMonadFeed[] =
   );
 
 /**
- * Feeds cleared by source-overlap review for strict quorum participation.
+ * Promotion candidates staged for strict quorum, NOT an approval record.
  *
- * MON/USD is the only promoted feed. Evidence (2026-11-20): 18 days of shadow
- * observation with zero consecutive failures; at the 2026-11-18T15:21:45Z
+ * MON/USD is the only candidate. Evidence gathered 2026-11-20: 18 days of
+ * shadow observation with zero consecutive failures; at the 2026-11-18T15:21:45Z
  * paid request the feed returned a 3s-old value 0.0216% from strict consensus,
  * inside the 1% outlier floor; operator is a distinct non-derived source group
  * in the Raul-signed mapping (`src/lib/attestations/sourceGroups.ts`).
- * Every other Stork Monad feed stays shadow-only until reviewed individually.
+ *
+ * NO source-overlap sign-off has been recorded as of 2026-11-20. This PR is a
+ * draft: a maintainer must review venue overlap with Pyth/Chainlink and sign
+ * off before this allowlist may be merged or deployed. Every other Stork Monad
+ * feed stays shadow-only until reviewed individually.
  */
-export const STRICT_QUORUM_APPROVED_STORK_FEEDS: ReadonlySet<string> = new Set<string>(['MON/USD']);
+export const STRICT_QUORUM_PROMOTION_CANDIDATES: ReadonlySet<string> = new Set<string>(['MON/USD']);
 
 const feedsByAlias = new Map(STORK_MONAD_PUSHED_FEEDS.map((feed) => [feed.alias, feed]));
 

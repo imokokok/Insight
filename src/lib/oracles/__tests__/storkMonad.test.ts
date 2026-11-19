@@ -201,7 +201,7 @@ describe('StorkMonadClient', () => {
     expect(result.confidence).toBeUndefined();
   });
 
-  it('counts MON/USD toward strict quorum after source-overlap approval', async () => {
+  it('counts MON/USD toward strict quorum when it is on the promotion allowlist', async () => {
     const publishedAtMs = Date.now() - 10_000;
     jest.spyOn(storkMonadOnChainService, 'getPrice').mockResolvedValue({
       symbol: 'MON/USD',
