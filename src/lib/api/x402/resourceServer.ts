@@ -1454,7 +1454,7 @@ export async function buildX402HttpServer(
     [X402_TOKENIZED_STOCK_GUARD_ROUTE]: routeConfigFor(
       cfg,
       BAZAAR_TOKENIZED_STOCK_GUARD_DISCOVERY_EXTENSION,
-      'Tokenized Stock Guard: a read-only, pre-signing decision-input check for one Coinbase-tokenized stock (B20) on Base. GET applies the issuer NAV policy — 24h heartbeat, off-hours freeze, paused features, total-return multiplier, and caller-price deviation — and may return an Insight EIP-712 decision attestation. Market session currently comes from Insight local UTC session windows and hard-coded 2026 NYSE holidays; this guard does not consume a signed Headless Oracle /v5/status?mic=XNYS receipt, and its calendar may misclassify holidays, unscheduled halts, or session boundaries. It never signs, submits, or authorizes an order.'
+      'Tokenized Stock Guard: a read-only, pre-signing decision-input check for one Coinbase-tokenized stock (B20) on Base. GET applies the issuer NAV policy — 24h heartbeat, off-hours freeze, paused features, total-return multiplier, and caller-price deviation — and may return an Insight EIP-712 decision attestation. Market session comes from Insight local UTC session windows and the published 2026-2027 NYSE holiday and early-close calendar; this guard does not consume a signed Headless Oracle /v5/status?mic=XNYS receipt, and its calendar may misclassify future calendar changes, unscheduled halts, or session boundaries. It never signs, submits, or authorizes an order.'
     ),
     [X402_LOOPSCALE_VAULT_DEPOSIT_ROUTE]: routeConfigWithoutDiscovery(
       cfg,

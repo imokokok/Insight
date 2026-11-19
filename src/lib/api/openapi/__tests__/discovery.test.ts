@@ -18,7 +18,9 @@ describe('OpenAPI payment discovery', () => {
     expect(operation?.description).toContain(
       'does not consume a signed Headless Oracle /v5/status?mic=XNYS receipt'
     );
-    expect(operation?.description).toContain('hard-coded 2026 NYSE holidays');
+    expect(operation?.description).toContain(
+      'published 2026-2027 NYSE holiday and early-close calendar'
+    );
     expect(operation?.parameters).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ name: 'asset', required: true }),
