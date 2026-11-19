@@ -52,12 +52,12 @@ Stork 官方文档（docs.stork.network，2026-11-20 查阅）说明其架构为
 ## 代码改动
 
 1. `src/lib/oracles/constants/storkMonad.ts`
-   新增 `STRICT_QUORUM_APPROVED_STORK_FEEDS = new Set(['MON/USD'])`，附证据注释。
+   新增 `STRICT_QUORUM_PROMOTION_CANDIDATES = new Set(['MON/USD'])`，附证据注释。
 2. `src/lib/oracles/clients/storkMonad.ts`
    `countsTowardOracleQuorum` 由硬编码 false 改为按 feed alias 查白名单。
    批量取价路径复用 `getPrice`，自动继承同一策略。
 3. `src/lib/oracles/services/feedSyncService.ts`
-   注册表 metadata 的 `quorumStatus` 按白名单区分 approved / shadow。
+   注册表 metadata 的 `quorumStatus` 按白名单区分 `promotion-candidate-pending-source-overlap-signoff` / `shadow-only-pending-source-overlap-review`；不使用 "approved" 字样，因为签字尚未发生。
 4. `src/lib/oracles/__tests__/storkMonad.test.ts`
    保留 BTC 仍为 shadow 的断言，新增 MON/USD 计入 strict quorum 的断言。
 
