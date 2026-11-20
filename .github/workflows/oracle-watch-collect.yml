@@ -13,7 +13,7 @@ name: Oracle Watch Collect
 on:
   schedule:
     # Hourly native fallback at :10, offset from the primary Supabase dispatch
-    # slot (job 47, hourly at :08) the same way as the previous 30-minute pair.
+    # slot (hourly at :08) the same way as the previous 30-minute pair.
     # The stale-ledger guard skips healthy slots.
     # :10 (was :00) keeps this away from the Supabase-dispatched Snapshot Collect
     # slot at :00/:15/:30/:45 — three writers stacking at :00 on the free-tier

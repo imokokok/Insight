@@ -7,8 +7,9 @@ name: Reputation Calculation
 on:
   schedule:
     # Native fallback every 2 hours at :07, offset from the primary Supabase
-    # dispatch slot (job 48, every 2 hours at :12) and reduced from hourly to
-    # halve write load on the Supabase nano instance. Remains a guarded fallback.
+    # dispatch slot (github-dispatch-reputation, every 2 hours at :13 per migration 0143)
+    # and reduced from hourly to halve write load on the Supabase nano instance.
+    # Remains a guarded fallback.
     - cron: '7 */2 * * *'
   workflow_dispatch:
     inputs:
