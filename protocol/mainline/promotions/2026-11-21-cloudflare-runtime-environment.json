@@ -1,0 +1,60 @@
+{
+  "kind": "MainlineProtocolPromotion",
+  "promotionVersion": 38,
+  "effectiveFrom": "2026-11-21",
+  "classification": "Platform-neutral production environment detection for Cloudflare Workers; partner policies and receipt layouts remain unchanged",
+  "registryReleaseId": "0xc90709876d4210c521d36a27171d4f45bca4a7b48e67658fac9c76c04ef50831",
+  "predecessorReleaseId": "0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b",
+  "predecessorPromotionId": "0xb871ed000814977e9ea860805f6536520ee1673c158c937d858459cda60a5872",
+  "activationSetId": "0x32335b66b91bd4ab1742b86ffcaefa94bbfc063de5f9a1d51e0080df67896157",
+  "receiptImpact": "No receipt fields, signing keys, partner policies, activation set or verification rules change. Production ExecutionReceipt environment classification continues to resolve to production for the configured production origin; the runtime fallback now uses NODE_ENV=production instead of a Vercel-only variable.",
+  "activationRule": "This promotion records the hosting-runtime signal used for ExecutionReceipt environment classification. Cloudflare production remains identified by the configured production origin and production runtime mode; it does not change partner activation, execution authority or receipt admission.",
+  "compatibilityMatrix": [
+    {
+      "partnerId": "agent-passport",
+      "outcome": "unchanged",
+      "evidence": "No partner policy, activation, key, trust pin, receipt layout or verification rule changes. The production origin continues to classify signed receipts as production on the Cloudflare runtime."
+    },
+    {
+      "partnerId": "andydgrea",
+      "outcome": "unchanged",
+      "evidence": "No partner policy, activation, key, trust pin, receipt layout or verification rule changes. The production origin continues to classify signed receipts as production on the Cloudflare runtime."
+    },
+    {
+      "partnerId": "emilia",
+      "outcome": "unchanged",
+      "evidence": "No partner policy, activation, key, trust pin, receipt layout or verification rule changes. The production origin continues to classify signed receipts as production on the Cloudflare runtime."
+    },
+    {
+      "partnerId": "frontier-compute",
+      "outcome": "unchanged",
+      "evidence": "No partner policy, activation, key, trust pin, receipt layout or verification rule changes. The production origin continues to classify signed receipts as production on the Cloudflare runtime."
+    },
+    {
+      "partnerId": "headless",
+      "outcome": "unchanged",
+      "evidence": "No partner policy, activation, key, trust pin, receipt layout or verification rule changes. The production origin continues to classify signed receipts as production on the Cloudflare runtime."
+    },
+    {
+      "partnerId": "interai",
+      "outcome": "unchanged",
+      "evidence": "No partner policy, activation, key, trust pin, receipt layout or verification rule changes. The production origin continues to classify signed receipts as production on the Cloudflare runtime."
+    },
+    {
+      "partnerId": "raul",
+      "outcome": "unchanged",
+      "evidence": "No partner policy, activation, key, trust pin, receipt layout or verification rule changes. The production origin continues to classify signed receipts as production on the Cloudflare runtime."
+    },
+    {
+      "partnerId": "vaara",
+      "outcome": "unchanged",
+      "evidence": "No partner policy, activation, key, trust pin, receipt layout or verification rule changes. The production origin continues to classify signed receipts as production on the Cloudflare runtime."
+    },
+    {
+      "partnerId": "veritas",
+      "outcome": "unchanged",
+      "evidence": "No partner policy, activation, key, trust pin, receipt layout or verification rule changes. The production origin continues to classify signed receipts as production on the Cloudflare runtime."
+    }
+  ],
+  "promotionId": "0xcbf3584af8bbe04728fd73b8708bfc0aab70bf084a6f7ac2b7d0df2dd9516df0"
+}
