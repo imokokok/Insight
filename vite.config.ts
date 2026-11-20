@@ -5,6 +5,10 @@ import { cloudflare } from '@cloudflare/vite-plugin';
 import { workersCacheCdnAdapter } from '@vinext/cloudflare/cache/workers-cache-cdn-adapter';
 
 export default defineConfig({
+  environments: {
+    rsc: { build: { sourcemap: false } },
+    ssr: { build: { sourcemap: false } },
+  },
   plugins: [
     tailwindcss(),
     vinext({
