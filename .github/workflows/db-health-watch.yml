@@ -11,9 +11,10 @@ name: DB Health Watch
 # Schedule is deliberately offset from every other writer:
 #   :00/:15/:30/:45  Snapshot Collect (Supabase-dispatched)
 #   :07/:17/:27/…    Monad DEX collector
-#   :10              Oracle Watch Collect
-#   :12/:27/:42/:57  Coverage SLO / Turso alert
-#   → :08/:23/:38/:53 is free.
+#   :08              Oracle Watch Collect
+#   :09/:24/:39/:54  Coverage SLO (migration 0143)
+#   :10              Turso control-plane alert (hourly, migration 0143)
+#   → :13/:28/:43/:58 is free.
 #
 # Detection: an authenticated REST round-trip against the production schema
 # with a 20s per-try timeout (the incident showed unauthenticated 401s stayed
