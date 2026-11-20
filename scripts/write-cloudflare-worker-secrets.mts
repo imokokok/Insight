@@ -91,7 +91,7 @@ function readSecretMap(): Record<string, string> {
       'X402_FACILITATOR_URLS',
       'X402_NETWORK',
       'X402_PAY_TO',
-      'X402_PRICE_USD',
+      'X402_PRICE_USD'
     );
     if (result.X402_ENABLED !== 'true') {
       throw new Error('X402_ENABLED must be true when production MPP is enabled.');
