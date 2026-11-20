@@ -1,12 +1,9 @@
 name: RWA Reference Shadow Check
 
 on:
-  schedule:
-    # GitHub cron is UTC. These are 10:00 Asia/Shanghai on the MIC effective
-    # date, the one-week midpoint and the two-week close. The date guard below
-    # prevents these annual cron expressions from running after the 2026 pilot.
-    - cron: '0 2 28 9 *'
-    - cron: '0 2 5,12 10 *'
+  # The 2026 MIC pilot schedule (2026-09-28 / 10-05 / 10-12) was removed on
+  # 2026-11-20: the annual cron expressions had expired and could only no-op
+  # under the date guard below. Manual retrigger is still available.
   workflow_dispatch:
 
 permissions:
