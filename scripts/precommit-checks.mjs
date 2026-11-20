@@ -38,7 +38,7 @@ if (
 
 // Workflow security only reads .github/workflows; the mainline governance
 // check reads protocol/, the workflow directory, the published coverage-trust
-// document, vercel.json and its own helper under scripts/lib.
+// document and its own helper under scripts/lib.
 if (
   staged.length === 0 ||
   touches(
@@ -46,7 +46,7 @@ if (
     /^\.github\/workflows\//,
     /^protocol\//,
     /^public\/\.well-known\//,
-    /^vercel\.json$/,
+    /^cloudflare\.config\.ts$/,
     /^scripts\/lib\//
   )
 ) {

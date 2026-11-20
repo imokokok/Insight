@@ -19,7 +19,7 @@ const contentSecurityPolicy = [
   // route-specific and constantly regenerated header set. Keep the required
   // inline compatibility for static pages, but never permit eval in production
   // and use SRI below to verify every framework bundle.
-  `script-src 'self' 'unsafe-inline' https://vercel.live${isDevelopment ? " 'unsafe-eval'" : ''}`,
+  `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ''}`,
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' data: https://fonts.gstatic.com",
   "img-src 'self' data: blob: https:",
@@ -175,7 +175,6 @@ const sentryConfig = {
   widenClientFileUpload: true,
   tunnelRoute: '/monitoring',
   disableLogger: true,
-  automaticVercelMonitors: true,
 };
 
 const config = process.env.NEXT_PUBLIC_SENTRY_DSN

@@ -43,6 +43,6 @@ The signed `rawResponseSha256` is a digest of the source body, but the raw body 
 
 ## Rollback and release record
 
-If response validation, signing, key admission, view binding, or verifier behavior fails, stop promotion and use the established Vercel rollback process. Since this is an advisory lane, an absent field is the safe degraded behavior; do not change the verdict to compensate for missing evidence. Preserve the failed response, request ID, deployment SHA, registry snapshot hash, and CLI result without API credentials.
+If response validation, signing, key admission, view binding, or verifier behavior fails, stop promotion and use the established Cloudflare Worker rollback process in [the release runbook](../operations/release-runbook.md). Since this is an advisory lane, an absent field is the safe degraded behavior; do not change the verdict to compensate for missing evidence. Preserve the failed response, request ID, deployment SHA, registry snapshot hash, and CLI result without API credentials.
 
 Only after preview and production acceptance should a separate package-release decision update the npm version, run `npm run verifier:release:check`, publish `verify-insight-receipt`, and verify the published tarball/version. Production evidence and package publication status must be reported separately.

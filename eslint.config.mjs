@@ -4,6 +4,7 @@ import nextTs from 'eslint-config-next/typescript';
 import prettierConfig from 'eslint-config-prettier';
 import prettierPlugin from 'eslint-plugin-prettier';
 import importPlugin from 'eslint-plugin-import';
+import reactHooksPlugin from 'eslint-plugin-react-hooks';
 
 const eslintConfig = defineConfig([
   ...nextVitals,
@@ -13,6 +14,7 @@ const eslintConfig = defineConfig([
     plugins: {
       prettier: prettierPlugin,
       import: importPlugin,
+      'react-hooks': reactHooksPlugin,
     },
     rules: {
       // Prettier 集成
@@ -157,6 +159,8 @@ const eslintConfig = defineConfig([
   globalIgnores([
     // Default ignores of eslint-config-next:
     '.next/**',
+    '.cloudflare/**',
+    '.vinext/**',
     'out/**',
     'build/**',
     'next-env.d.ts',
@@ -174,6 +178,7 @@ const eslintConfig = defineConfig([
     'ml/.venv/**',
     'integrations/**',
     '*.config.{js,mjs,ts}',
+    'jest.config.cjs',
     'scripts/**',
   ]),
 ]);

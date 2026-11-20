@@ -1,13 +1,5 @@
 import { metadata } from '../layout';
 
-jest.mock('@vercel/analytics/react', () => ({
-  Analytics: () => null,
-}));
-
-jest.mock('@vercel/speed-insights/next', () => ({
-  SpeedInsights: () => null,
-}));
-
 jest.mock('@/components/AppInitializer', () => ({
   AppInitializer: ({ children }: { children: React.ReactNode }) => children,
 }));

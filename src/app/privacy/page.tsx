@@ -156,9 +156,9 @@ export default function PrivacyPage() {
                     <strong>Sentry:</strong> For error tracking and performance observability
                   </li>
                   <li>
-                    <strong>Vercel Analytics &amp; Speed Insights:</strong> For aggregated,
-                    privacy-preserving traffic and performance metrics. These only load after you
-                    opt in to the &quot;Analytics&quot; cookie category.
+                    <strong>Cloudflare Web Analytics:</strong> If enabled for this site, it provides
+                    aggregated traffic metrics and only loads after you opt in to the
+                    &quot;Analytics&quot; cookie category.
                   </li>
                   <li>
                     <strong>NOWPayments:</strong> For crypto payment processing of paid
@@ -188,9 +188,10 @@ export default function PrivacyPage() {
                     operate without them.
                   </p>
                   <p>
-                    <strong>Analytics cookies</strong> — Vercel Analytics, Speed Insights, and
-                    Sentry. These help us understand usage patterns and diagnose errors. They are
-                    <em> off by default</em> and only load after you opt in.
+                    <strong>Analytics</strong> — Cloudflare Web Analytics, when configured, helps us
+                    understand aggregate usage patterns. It is <em>off by default</em> and only
+                    loads after you opt in. Sentry is used separately for technical error
+                    monitoring.
                   </p>
                   <p>
                     <strong>Functional cookies</strong> — Remember your preferences and personalize

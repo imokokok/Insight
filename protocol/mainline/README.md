@@ -22,9 +22,9 @@ immutable protocol objects and explicit activation, not by partner branches.
 7. A partner production call uses `/api/v1/partners/{partnerId}/...` and must
    carry the exact active immutable `policyId`; generic public verification is
    not a partner activation path.
-8. Vercel Git auto-deploy is disabled. Production is queued only by the GitHub
-   Actions deploy job after both `validate` and browser `smoke` have passed on
-   the same `main` commit.
+8. GitHub Actions is the only production release controller. The Cloudflare
+   Worker deploy job runs after the merged PR's `validate`, browser `smoke`, and
+   `analyze` checks pass, then confirms the public domain serves that exact SHA.
 9. Production ExecutionReceipt signing is v5-only. Retired v1-v4 layouts may be
    signed only by the dedicated sample-role key for conformance vectors.
 10. `oracleRegistryReleaseIds` are lineage floors, not exact-current matches. A

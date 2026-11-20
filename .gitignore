@@ -48,9 +48,6 @@ yarn-error.log*
 .env*
 !.env.local.example
 
-# vercel
-.vercel
-
 # typescript
 *.tsbuildinfo
 next-env.d.ts
@@ -77,3 +74,7 @@ supabase/backups/
 # are tracked on purpose; these two are not evidence.
 scripts/vrt1-e2e-prototype/builders/vrt1-action.json
 scripts/vrt1-e2e-prototype/builders/anchor-epoch.json
+/dist/
+.vinext/
+.wrangler/
+.cloudflare/

@@ -1,27 +1,27 @@
 import { extractTrustedClientIp } from '../../trustedClientIp';
 
 describe('extractTrustedClientIp', () => {
-  const originalVercel = process.env.VERCEL;
+  const originalRuntime = process.env.INSIGHT_RUNTIME;
 
   afterEach(() => {
-    if (originalVercel === undefined) delete process.env.VERCEL;
-    else process.env.VERCEL = originalVercel;
+    if (originalRuntime === undefined) delete process.env.INSIGHT_RUNTIME;
+    else process.env.INSIGHT_RUNTIME = originalRuntime;
   });
 
-  it('ignores caller supplied forwarded headers outside Vercel', () => {
-    delete process.env.VERCEL;
+  it('ignores caller supplied forwarded headers outside Cloudflare Workers', () => {
+    delete process.env.INSIGHT_RUNTIME;
     const headers = new Headers({
       'x-forwarded-for': '198.51.100.9',
       'x-real-ip': '198.51.100.10',
-      'x-vercel-forwarded-for': '198.51.100.11',
+      'cf-connecting-ip': '198.51.100.11',
     });
 
     expect(extractTrustedClientIp({ headers } as never)).toBe('unknown');
   });
 
-  it('uses the platform forwarded client IP on Vercel', () => {
-    process.env.VERCEL = '1';
-    const headers = new Headers({ 'x-vercel-forwarded-for': '198.51.100.9, 10.0.0.1' });
+  it('uses the edge client IP on Cloudflare Workers', () => {
+    process.env.INSIGHT_RUNTIME = 'cloudflare';
+    const headers = new Headers({ 'cf-connecting-ip': '198.51.100.9' });
 
     expect(extractTrustedClientIp({ headers } as never)).toBe('198.51.100.9');
   });

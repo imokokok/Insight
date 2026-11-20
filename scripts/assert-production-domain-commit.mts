@@ -1,59 +1,55 @@
 import { pathToFileURL } from 'node:url';
 
-import { fetchProductionDomainDeployment, projectIdFromHook } from './deploy-vercel-production.mts';
-
-// Hard gate before the live smoke: the smoke probes the public domain, so a
-// domain pinned to an older deployment would "pass" while the new release never
-// reached users. Compare the domain's actual commit with the released commit.
+// Hard gate before the live smoke: verify the public domain serves this exact
+// Cloudflare build before probing payment routes.
 export async function assertProductionDomainCommit({
-  token,
   commitSha,
-  teamId,
-  projectId,
   domain,
   fetcher = fetch,
 }: {
-  token: string;
   commitSha: string;
-  teamId?: string;
-  projectId?: string;
   domain?: string;
   fetcher?: typeof fetch;
 }) {
-  if (!token) throw new Error('VERCEL_TOKEN is required to assert the production domain');
-  if (!/^[0-9a-f]{40}$/.test(commitSha)) throw new Error('Expected a Git commit SHA');
-  const domainDeployment = await fetchProductionDomainDeployment({
-    token,
-    teamId,
-    projectId,
-    fetcher,
-    domain,
-  });
-  if (!domainDeployment) {
-    throw new Error(
-      `The production domain ${domain ?? 'www.oracleinsight.xyz'} has no deployment alias`
-    );
+  if (!/^[0-9a-f]{40}$/i.test(commitSha)) throw new Error('Expected a Git commit SHA');
+  const baseUrl = domain ?? 'https://www.oracleinsight.xyz';
+  const releaseUrl = new URL('/api/health/release', baseUrl);
+  let lastObservedSha = 'unavailable';
+
+  for (let attempt = 1; attempt <= 8; attempt += 1) {
+    const response = await fetcher(releaseUrl, {
+      headers: { 'Cache-Control': 'no-cache' },
+      signal: AbortSignal.timeout(10_000),
+    }).catch(() => null);
+    if (response?.ok) {
+      const payload: unknown = await response.json().catch(() => null);
+      if (
+        typeof payload === 'object' &&
+        payload !== null &&
+        'releaseSha' in payload &&
+        typeof payload.releaseSha === 'string'
+      ) {
+        lastObservedSha = payload.releaseSha;
+        if (lastObservedSha.toLowerCase() === commitSha.toLowerCase()) {
+          return { commitSha: lastObservedSha, domain: new URL(baseUrl).origin };
+        }
+      }
+    }
+    if (attempt < 8) await new Promise((resolve) => setTimeout(resolve, attempt * 2_000));
   }
-  if (domainDeployment.commitSha !== commitSha) {
-    throw new Error(
-      `The production domain ${domain ?? 'www.oracleinsight.xyz'} serves ${domainDeployment.commitSha ?? 'no commit'} (${domainDeployment.deploymentId ?? 'unknown deployment'}) instead of the released commit ${commitSha}`
-    );
-  }
-  return domainDeployment;
+
+  throw new Error(
+    `The production domain ${new URL(baseUrl).origin} serves ${lastObservedSha} instead of the released commit ${commitSha}`
+  );
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   try {
-    const hookUrl = process.env.VERCEL_DEPLOY_HOOK_URL;
-    const projectId =
-      process.env.VERCEL_PROJECT_ID ?? (hookUrl ? projectIdFromHook(hookUrl) : undefined);
     const result = await assertProductionDomainCommit({
-      token: process.env.VERCEL_TOKEN ?? '',
       commitSha: process.env.GITHUB_SHA ?? '',
-      teamId: process.env.VERCEL_TEAM_ID,
-      projectId,
+      domain: process.env.PRODUCTION_BASE_URL,
     });
-    console.log(`production-domain-commit=${result.commitSha} deployment=${result.deploymentId}`);
+    console.log(`production-domain-commit=${result.commitSha} domain=${result.domain}`);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error(`::error::${message}`);

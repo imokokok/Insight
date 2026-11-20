@@ -13,7 +13,7 @@ describe('pre-auth burst limiter', () => {
     return {
       url: url.toString(),
       method: 'GET',
-      headers: new Headers({ 'x-vercel-forwarded-for': ip }),
+      headers: new Headers({ 'cf-connecting-ip': ip }),
       nextUrl: url,
     } as unknown as NextRequest;
   }
@@ -32,27 +32,27 @@ describe('pre-auth burst limiter', () => {
     expect((await response?.json()).error.details.phase).toBe('pre-auth');
   });
 
-  it('keeps trusted Vercel client IPs isolated', () => {
-    const previousVercel = process.env.VERCEL;
-    process.env.VERCEL = '1';
+  it('keeps trusted Cloudflare client IPs isolated', () => {
+    const previousRuntime = process.env.INSIGHT_RUNTIME;
+    process.env.INSIGHT_RUNTIME = 'cloudflare';
     try {
       checkPreAuthBurstLimit(request('203.0.113.10'), 1);
       expect(checkPreAuthBurstLimit(request('203.0.113.11'), 1)).toBeNull();
     } finally {
-      if (previousVercel === undefined) delete process.env.VERCEL;
-      else process.env.VERCEL = previousVercel;
+      if (previousRuntime === undefined) delete process.env.INSIGHT_RUNTIME;
+      else process.env.INSIGHT_RUNTIME = previousRuntime;
     }
   });
 
-  it('does not trust caller supplied IP headers outside Vercel', () => {
-    const previousVercel = process.env.VERCEL;
-    process.env.VERCEL = '0';
+  it('does not trust caller supplied IP headers outside Cloudflare Workers', () => {
+    const previousRuntime = process.env.INSIGHT_RUNTIME;
+    delete process.env.INSIGHT_RUNTIME;
     try {
       expect(checkPreAuthBurstLimit(request('203.0.113.10'), 1)).toBeNull();
       expect(checkPreAuthBurstLimit(request('203.0.113.11'), 1)?.status).toBe(429);
     } finally {
-      if (previousVercel === undefined) delete process.env.VERCEL;
-      else process.env.VERCEL = previousVercel;
+      if (previousRuntime === undefined) delete process.env.INSIGHT_RUNTIME;
+      else process.env.INSIGHT_RUNTIME = previousRuntime;
     }
   });
 });

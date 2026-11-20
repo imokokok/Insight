@@ -54,7 +54,7 @@ const layers = [
     title: 'Automation',
     subtitle: 'pg_cron + GitHub Actions',
     description:
-      'Supabase pg_cron dispatches eight product-critical workflows through pg_net using a token encrypted in Vault. Dependency-free GitHub runners perform the heavy work, guarded native schedules provide fallback, and a 30-day ledger records completion. Vercel is not used for background compute.',
+      'Supabase pg_cron dispatches eight product-critical workflows through pg_net using a token encrypted in Vault. GitHub Actions performs the heavy collection and scheduled work, with guarded native schedules as fallback and a 30-day ledger for completion. Cloudflare Workers serves the web app and API.',
   },
 ];
 
@@ -140,7 +140,8 @@ const cronJobs = [
   {
     name: 'ml-train',
     schedule: '3 days',
-    purpose: 'Retrain the oracle-risk ML model and trigger a Vercel redeploy',
+    purpose:
+      'Retrain the oracle-risk ML model and publish the updated model through GitHub Actions',
   },
 ];
 

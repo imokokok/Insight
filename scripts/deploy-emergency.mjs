@@ -6,11 +6,11 @@
  * releases from a clean `main` through the Vercel deploy hook. This wrapper is
  * the emergency entry point to that same workflow: it refuses anything but the
  * newest `main`, records why the normal path could not be used, and dispatches
- * `workflow_dispatch` with the expected SHA.
+ * `workflow_dispatch` with the expected SHA. GitHub Actions builds and deploys
+ * the Worker using the protected Cloudflare production environment.
  *
- * It never calls the Vercel CLI. A production deployment built from a laptop is
- * always outside the release gate, and the scheduled provenance audit files an
- * issue for every such deployment.
+ * It never deploys from a laptop. A production release still passes the merged
+ * PR checks, Cloudflare deployment, domain SHA assertion and live smoke gates.
  *
  * Usage:
  *   npm run release:emergency -- --reason "deploy hook returned HTTP 503 for 20 minutes"
@@ -90,7 +90,7 @@ const record = {
 
 console.log('Emergency release record (paste this into the incident issue):');
 console.log(JSON.stringify(record, null, 2));
-console.log('A direct `vercel deploy --prod` is never permitted; the provenance audit flags it.');
+console.log('A direct production deploy is outside the GitHub Actions release gate.');
 
 if (dryRun) {
   console.log(`dry run: would dispatch ${WORKFLOW_FILE} on main for ${sha}`);
@@ -128,4 +128,4 @@ if (!run) {
 }
 
 console.log(`dispatched ${run.url} (${run.status})`);
-console.log('Verify: run conclusion, deployment id, node=22.x in the deploy log, then live smoke.');
+console.log('Verify: run conclusion, Worker version tag, domain SHA assertion, then live smoke.');

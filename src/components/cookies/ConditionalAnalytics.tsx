@@ -1,18 +1,10 @@
 'use client';
 
-import { useSyncExternalStore } from 'react';
-
-import dynamic from 'next/dynamic';
+import { useEffect, useSyncExternalStore } from 'react';
 
 import { hasAnalyticsConsent } from '@/lib/cookies/consent';
 
-const Analytics = dynamic(() => import('@vercel/analytics/react').then((m) => m.Analytics), {
-  ssr: false,
-});
-const SpeedInsights = dynamic(
-  () => import('@vercel/speed-insights/next').then((m) => m.SpeedInsights),
-  { ssr: false }
-);
+const analyticsToken = process.env.NEXT_PUBLIC_CLOUDFLARE_WEB_ANALYTICS_TOKEN;
 
 function subscribe(callback: () => void): () => void {
   if (typeof window === 'undefined') return () => {};
@@ -35,20 +27,27 @@ function getServerSnapshot(): boolean {
 }
 
 /**
- * Conditionally renders Vercel Analytics and Speed Insights based on the user's
- * cookie consent. Required for GDPR / ePrivacy compliance — non-essential
- * tracking scripts must not load until the user has explicitly opted in to the
- * "analytics" category via the {@link CookieConsent} banner.
+ * Loads Cloudflare Web Analytics only after the user's explicit analytics
+ * consent. The token is optional so local and preview builds stay untracked
+ * until the zone is configured.
  */
 export function ConditionalAnalytics() {
   const consented = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
-  if (!consented) return null;
+  useEffect(() => {
+    if (!consented || !analyticsToken) return;
 
-  return (
-    <>
-      <Analytics />
-      <SpeedInsights />
-    </>
-  );
+    const script = document.createElement('script');
+    script.src = 'https://static.cloudflareinsights.com/beacon.min.js';
+    script.defer = true;
+    script.setAttribute('data-cf-beacon', JSON.stringify({ token: analyticsToken }));
+    script.dataset.insightAnalytics = 'cloudflare';
+    document.head.appendChild(script);
+
+    return () => {
+      script.remove();
+    };
+  }, [consented]);
+
+  return null;
 }
