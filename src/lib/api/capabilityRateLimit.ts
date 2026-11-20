@@ -9,11 +9,9 @@ const CAPABILITY_WINDOW_MS = 60_000;
 const CAPABILITY_MAX_REQUESTS = 20;
 
 function capabilityClientKey(request: NextRequest): string {
-  // Vercel supplies this TLS fingerprint. Accept only the compact digest form
-  // so an arbitrary header cannot turn the rate-limit store into a key sink.
-  const ja4 = request.headers.get('x-vercel-ja4-digest')?.trim();
-  const fingerprint = ja4 && /^[A-Za-z0-9_-]{8,128}$/.test(ja4) ? `ja4:${ja4}` : null;
-  return fingerprint ?? `ip:${extractClientIp(request)}`;
+  // Use the client IP supplied by the trusted ingress adapter. Caller-provided
+  // fingerprint headers are not accepted as rate-limit identities.
+  return `ip:${extractClientIp(request)}`;
 }
 
 /** Apply a cheap outer limit before a capability token causes a database lookup. */

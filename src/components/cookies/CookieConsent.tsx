@@ -130,8 +130,7 @@ export function CookieConsent({ onDecision }: CookieConsentProps) {
                 <div className="flex-1">
                   <div className="text-sm font-medium text-gray-900">Analytics & Performance</div>
                   <div className="text-xs text-gray-500">
-                    Vercel Analytics, Speed Insights, Sentry. Helps us understand usage and fix
-                    bugs.
+                    Optional Cloudflare Web Analytics. Helps us understand aggregate site usage.
                   </div>
                 </div>
               </label>

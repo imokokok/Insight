@@ -31,8 +31,9 @@ browser and synthetic monitoring without changing response bodies.
 3. Enable Sentry release tracking and alerts for new regressions, 5xx rate, and
    frontend crash-free sessions. Keep `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_ORG`, and
    `SENTRY_PROJECT` in the deployment secret store, never in repository files.
-4. Use Vercel Analytics and Speed Insights for Core Web Vitals. Compare p75 LCP,
-   INP, and CLS by route after every material frontend release.
+4. Use Cloudflare Web Analytics for Core Web Vitals. Compare p75 LCP, INP, and
+   CLS by route after every material frontend release. The consent-gated beacon
+   is enabled only when `NEXT_PUBLIC_CLOUDFLARE_WEB_ANALYTICS_TOKEN` is set.
 5. Route GitHub Actions failures for the quality gate and six product-critical
    data jobs to the on-call channel.
 6. Review CSP violation logs weekly. The policy is report-only so existing
@@ -143,9 +144,9 @@ otherwise mechanical dependency PR.
    API middleware changes. CI repeats the smoke suite on every pull request.
 4. Apply pending Supabase migrations before code that relies on them. Confirm
    RLS policies and service-role-only tables in a staging project.
-5. Keep Vercel compute in the same geography as the Supabase project. Verify
-   latency from the deployed region rather than assuming the configured region.
-6. Deploy to preview, check `/`, `/login`, `/settings`, `/docs/api`, liveness,
+5. Workers runs at the edge; verify database latency to Supabase and Turso from
+   the deployed Worker rather than assuming geographic locality.
+6. Deploy to a Cloudflare preview, check `/`, `/login`, `/settings`, `/docs/api`, liveness,
    readiness, and a real authenticated API request. Confirm that data timestamps
    advance and that wallet/payment integrations are still reachable.
 7. When the Robinhood issuer-context surface is included, configure a dedicated
@@ -156,19 +157,20 @@ otherwise mechanical dependency PR.
 8. Promote the already-tested artifact. Watch 5xx rate, p95 latency, Sentry, CSP
    reports, and snapshot freshness for at least 30 minutes.
 
-The gated GitHub production release (`deploy-production.yml`) requires
-`VERCEL_DEPLOY_HOOK_URL` and a `VERCEL_TOKEN` repository secret with read access
-to the Vercel project. Set `VERCEL_TEAM_ID` as a repository variable when the
-project belongs to a team. After the hook queues a deployment, CI queries Vercel
-for the exact commit and waits until the production deployment is ready and
-promoted. A missing token, failed build, wrong commit, or timeout fails the
-GitHub release job.
+The gated GitHub production release (`deploy-production.yml`) builds the app
+with vinext and deploys the Cloudflare Worker. It requires a scoped
+`CLOUDFLARE_API_TOKEN` repository secret and `CLOUDFLARE_ACCOUNT_ID` repository
+variable in the `Production` environment. The job tags each Worker version with
+the full commit SHA, verifies that the public domain serves that exact SHA, and
+then runs the live payment-rail smoke. GitHub Actions remains responsible for
+heavy scheduled data and ML work; Cloudflare serves the web application and API.
 
 When the deployment is live, the release workflow smoke-tests the payment rails.
-An application-class failure reverts production to the previous READY deployment
-automatically; infrastructure-class failures (timeouts, 429, 502/503/504) are
-retried and never trigger a rollback. The decision table, the rollback guard, and
-the manual fallback are in `docs/operations/release-runbook.md`.
+An application-class failure rolls the Worker back automatically only while the
+public domain still reports this run's SHA; infrastructure-class failures
+(timeouts, 429, 502/503/504) are retried and never trigger a rollback. The
+decision table, rollback guard, and manual fallback are in
+`docs/operations/release-runbook.md`.
 
 ## Load and failure testing
 

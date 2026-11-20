@@ -155,7 +155,6 @@ async function buildRestReplayResponse(
  */
 export function applyProtectedCachePolicy(response: NextResponse): void {
   response.headers.set('Cache-Control', PROTECTED_CACHE_CONTROL);
-  response.headers.set('Vercel-CDN-Cache-Control', 'no-store');
   response.headers.set('CDN-Cache-Control', 'no-store');
   response.headers.set('Pragma', 'no-cache');
   response.headers.set('Expires', '0');

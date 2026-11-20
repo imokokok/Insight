@@ -58,8 +58,8 @@ function createMppServer(cfg: X402Config, secretKey: string) {
         },
       }),
     ],
-    // Pin the MPP realm to the production hostname. mppx otherwise resolves
-    // VERCEL_URL, which leaks the internal deployment host into challenges.
+    // Pin the MPP realm to the production hostname. This avoids leaking an
+    // internal deployment host into challenges.
     realm: 'www.oracleinsight.xyz',
     secretKey,
   });

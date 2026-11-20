@@ -47,7 +47,6 @@ if (
 ) {
   throw new Error('Invalid production coverage trust reference');
 }
-const vercelConfigPath = join(workspace, 'vercel.json');
 
 function canonicalJson(value) {
   if (value === null || typeof value === 'boolean' || typeof value === 'number') {
@@ -78,11 +77,6 @@ function json(path) {
   return JSON.parse(readFileSync(path, 'utf8'));
 }
 
-const vercelConfig = json(vercelConfigPath);
-if (vercelConfig.git?.deploymentEnabled !== false) {
-  throw new Error('vercel.json must disable Git auto-deployment; CI owns production release');
-}
-
 const releaseWorkflowName = 'deploy-production.yml';
 const releaseWorkflowPath = join(workflowsRoot, releaseWorkflowName);
 const requiredDeploymentGateFragments = [
@@ -99,9 +93,13 @@ const requiredDeploymentGateFragments = [
   // codeql.yml and cannot be a `needs` target; the evidence gate covers it.
   'name: Verify the merged commit passed its pull-request checks',
   'node scripts/verify-merged-pr-checks.mts',
-  'VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}',
-  'node scripts/deploy-vercel-production.mts',
-  'node scripts/auto-rollback-production.mjs',
+  'CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}',
+  'CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}',
+  'node --import tsx scripts/write-cloudflare-worker-secrets.mts "$RUNNER_TEMP/insight-worker-secrets.json"',
+  'npm run build:vinext',
+  'npx cf deploy --prebuilt --secrets-file "$RUNNER_TEMP/insight-worker-secrets.json" --tag "$GITHUB_SHA" --message "$RELEASE_MESSAGE"',
+  'node scripts/assert-production-domain-commit.mts',
+  'node --import tsx scripts/auto-rollback-cloudflare.mts',
 ];
 const releaseWorkflow = readFileSync(releaseWorkflowPath, 'utf8');
 for (const fragment of requiredDeploymentGateFragments) {
@@ -118,9 +116,9 @@ if (readFileSync(ciWorkflowPath, 'utf8').includes('deploy-production:')) {
 for (const workflowFile of readdirSync(workflowsRoot)) {
   if (!workflowFile.match(/\.ya?ml$/) || workflowFile === releaseWorkflowName) continue;
   const workflow = readFileSync(join(workflowsRoot, workflowFile), 'utf8');
-  if (workflow.includes('VERCEL_DEPLOY_HOOK_URL')) {
+  if (workflow.includes('VERCEL_') || workflow.includes('vercel deploy')) {
     throw new Error(
-      `${workflowFile} must not access VERCEL_DEPLOY_HOOK_URL; only ${releaseWorkflowName} may deploy production`
+      `${workflowFile} must not use Vercel deployment credentials or commands after the Cloudflare migration`
     );
   }
 }

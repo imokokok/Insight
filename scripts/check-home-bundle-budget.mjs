@@ -4,7 +4,7 @@ import { gzipSync } from 'node:zlib';
 
 const maxGzipKb = Number(process.env.HOME_JS_BUDGET_KB ?? 375);
 // CI sets this so a Next.js output-layout change can never silently drop the
-// gate. Deploy-target builds (Vercel) only warn: a reporting script must not
+// gate. The Next.js compatibility build only warns: a reporting script must not
 // be able to block a production release on its own.
 const requireArtifact = process.env.HOME_JS_BUDGET_REQUIRE_ARTIFACT === '1';
 
@@ -34,15 +34,12 @@ function collectRouteCacheHomepages(directory, depth = 0) {
 }
 
 // ISR pages may be written under .next/server/route-cache instead of
-// .next/server/app, and deploy targets relocate the build output again.
+// .next/server/app. The Cloudflare Worker build has a separate Vite output.
 const routeCacheHomepages = collectRouteCacheHomepages('.next/server/route-cache');
 const htmlCandidates = [
   '.next/server/app/index.html',
   '.next/server/app/index.body',
   ...routeCacheHomepages,
-  '.vercel/output/static/index.html',
-  '.vercel/output/functions/index.prerender-fallback.html',
-  '.vercel/output/functions/index.prerender-fallback.body',
 ];
 const htmlPath = htmlCandidates.find((path) => existsSync(path));
 
@@ -76,7 +73,7 @@ const chunkUrls = [
 ];
 
 const chunkPaths = chunkUrls.map((url) => {
-  const candidates = [`.next/${url}`, `.vercel/output/static/_next/${url}`];
+  const candidates = [`.next/${url}`];
   const path = candidates.find((candidate) => existsSync(candidate));
   if (!path) {
     console.error(

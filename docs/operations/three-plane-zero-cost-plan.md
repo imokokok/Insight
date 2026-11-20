@@ -1,6 +1,7 @@
 # Supabase + Turso + Cloudflare 三线并行：零成本分工与实施计划
 
 状态：目标架构（非探索方向）。全部账号按 **Free / Hobby** 档规划。
+2026-11-20 托管决策：Insight 网站/API 迁移至 Cloudflare Workers + vinext，GitHub Actions 负责构建、门禁发布和长任务；Supabase 与 Turso 继续承担现有数据职责。生产切换仍需配置 GitHub `production` 环境、Worker secrets 与 `oracleinsight.xyz` 域名绑定。
 存储只有三样：**Supabase、Turso、Cloudflare D1（PriorSeal 侧）**。**R2 已取消，不引入**（用户决定），本文不保留任何 R2 待办。
 2026-11-08 架构核对的定论集中在 §9–§11（七项明确不做、ACK 压缩语义、保留期与清理、迁移收敛）；旧章节若与这三节冲突，以 §9–§11 为准。
 2026-11-08 采集断档事故（14 slot 永久丢失）与已落地缓解见 §12；§9.1 第 1、7 项（CF 派发时钟）进入待重新裁决状态。
@@ -11,8 +12,8 @@ C1–C4 档位基数与地板数值、运行时判词字面量均不在本计划
 
 | 事实                                                                                                                                                                                                                                                  | 处理方式                                                                                                                                                                                                                                                 |
 | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Vercel 为 Hobby：Cron 每天最多 1 次、精度 ±59 分钟；当前 `crons.definitions=[]`；11/1–11/7 有 140 次生产部署并已出现 Fluid Compute 预警                                                                                                               | **Vercel 不进入分工表的任何“承接方”行**。只托管 Next.js 应用；后台任务、补偿任务、批处理一律不新增到 Vercel 函数                                                                                                                                         |
-| Cloudflare 账号下只有 PriorSeal 的 5 个 Worker，没有 Insight 的采集/投影 Worker                                                                                                                                                                       | 迁移 0115/0118 描述的“Cloudflare 主时钟”在当前账号并未落地；现行权威时钟是 0121 的 Supabase `pg_cron` → GitHub `workflow_dispatch`。计划按“Cloudflare 无 Insight Worker”写                                                                               |
+| Vercel 退出 Insight 应用托管；Insight 网站/API 迁移至 Cloudflare Workers                                                                                                                                                                              | GitHub Actions 保持 PR 质量门、生产发布控制器和长任务计算面。Cloudflare Worker 只承载 web/API，必须经完整 SHA 与 smoke gate 后切换生产域名                                                                                                               |
+| 2026-11-20 Cloudflare API 核对：`insight-web` Worker 壳已创建，但无已部署版本和自定义域名；`oracleinsight.xyz` zone 不在该账号                                                                                                                        | 先配 Worker runtime secrets、GitHub `Production` 环境和 DNS zone，再由受门禁的 GitHub Actions 发布；不改 Supabase `pg_cron` → GitHub `workflow_dispatch` 权威调度，也不把采集/投影任务搬到 Worker                                                        |
 | Supabase `pg_cron` 现役 17 个 job：**13 个 dispatcher**（含第二探针）+ **4 个独立清理**（`nightly-retention-cleanup`、`price-records-cleanup`、`rate-limits-cleanup`、`api-keys-deactivation`）；0133 已把 18 个日清合并为 1 个，active 从 31 降到 17 | 搬定时器只省调度开销，价格明细一行不少。剩余启动竞争来自 **worker 池容量（`max_worker_processes = 6`）**，不是 dispatcher 的分钟分布；批次围绕**数据落点与读路径**，不围绕“把定时器搬家”                                                                 |
 | `snapshot_slots` 的 30 天压缩与小时投影**执行**已经在 GitHub Actions 投影器里，不在数据库内                                                                                                                                                           | 只把“触发”留在 `pg_cron`。本计划不把触发搬到边缘；理由与可选做法见 §5                                                                                                                                                                                    |
 | Cloudflare R2 当前未开通（账号接口 10042），且**用户已决定取消 R2**                                                                                                                                                                                   | 不引入第四种存储。所有“冷存/外置”设想作废；存储压力只能在 Supabase 与 Turso 现有额度内解决                                                                                                                                                               |
@@ -25,7 +26,7 @@ C1–C4 档位基数与地板数值、运行时判词字面量均不在本计划
 
 ## 1. 分工表
 
-落点只有四个：**Supabase**（权威关系/事务/审计）、**Turso**（高频 append/控制面）、**Cloudflare**（D1 轻量与可选派发；**不接 R2**）、**GitHub Actions**（唯一能跑长任务的采集/投影计算面）。Vercel 仅作为应用托管，不承接任何后台负载。
+落点包括四个：**Supabase**（权威关系/事务/审计）、**Turso**（高频 append/控制面）、**Cloudflare Workers**（Insight web/API；PriorSeal 继续按各自职责使用 D1/Workers；**不接 R2**）、**GitHub Actions**（PR 与生产发布门禁、唯一长任务采集/投影计算面）。
 
 ### 1.1 Supabase
 

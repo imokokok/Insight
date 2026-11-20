@@ -28,10 +28,6 @@ export function createCachedJsonResponse<T>(
   const response = NextResponse.json(data);
   response.headers.set('Cache-Control', header);
   if (header.includes('public')) {
-    // Keep the CDN policy explicit even if a future framework default changes
-    // Cache-Control handling. Vercel consumes this header before responding to
-    // the browser.
-    response.headers.set('Vercel-CDN-Cache-Control', header);
   }
   return response;
 }

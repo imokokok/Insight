@@ -22,9 +22,7 @@ export const metadata = {
 export const dynamic = 'force-dynamic';
 
 const ENV =
-  process.env.NEXT_PUBLIC_ENV ??
-  process.env.VERCEL_ENV ??
-  (process.env.NODE_ENV === 'development' ? 'DEV' : 'PROD');
+  process.env.NEXT_PUBLIC_ENV ?? (process.env.NODE_ENV === 'development' ? 'DEV' : 'PROD');
 
 export default async function OpsLayout({ children }: { children: ReactNode }) {
   await requireOpsOwner();

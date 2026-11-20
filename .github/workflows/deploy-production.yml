@@ -79,17 +79,14 @@ jobs:
       contents: read
       checks: read
       pull-requests: read
-    environment: production
+    environment: Production
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-      # This job runs on a fresh runner, but it installs nothing: the deploy
-      # controller uses only Node builtins and Node 22.18+ strips the script's
-      # TypeScript types natively. Zero third-party code executes here, so a
-      # compromised release dependency cannot touch the deploy path.
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: 22.23.2
+          cache: npm
       - name: Verify the dispatched commit
         if: github.event_name == 'workflow_dispatch' && inputs.expected_sha != ''
         env:
@@ -111,32 +108,126 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: node scripts/verify-merged-pr-checks.mts
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Prepare Cloudflare Worker Secrets
+        env:
+          MPP_ENABLED: ${{ vars.MPP_ENABLED }}
+          ALCHEMY_ARBITRUM_RPC: ${{ secrets.ALCHEMY_ARBITRUM_RPC }}
+          ALCHEMY_AVALANCHE_RPC: ${{ secrets.ALCHEMY_AVALANCHE_RPC }}
+          ALCHEMY_BASE_RPC: ${{ secrets.ALCHEMY_BASE_RPC }}
+          ALCHEMY_BNB_RPC: ${{ secrets.ALCHEMY_BNB_RPC }}
+          ALCHEMY_ETHEREUM_RPC: ${{ secrets.ALCHEMY_ETHEREUM_RPC }}
+          ALCHEMY_LINEA_RPC: ${{ secrets.ALCHEMY_LINEA_RPC }}
+          ALCHEMY_MONAD_RPC: ${{ secrets.ALCHEMY_MONAD_RPC }}
+          ALCHEMY_OPTIMISM_RPC: ${{ secrets.ALCHEMY_OPTIMISM_RPC }}
+          ALCHEMY_POLYGON_RPC: ${{ secrets.ALCHEMY_POLYGON_RPC }}
+          ALCHEMY_SOLANA_RPC: ${{ secrets.ALCHEMY_SOLANA_RPC }}
+          ATTESTATION_KEYS_CONFIG: ${{ secrets.ATTESTATION_KEYS_CONFIG }}
+          ATTESTATION_REVOKED_KEYS_CONFIG: ${{ secrets.ATTESTATION_REVOKED_KEYS_CONFIG }}
+          ATTESTATION_SAMPLE_SIGNER_PRIVATE_KEY: ${{ secrets.ATTESTATION_SAMPLE_SIGNER_PRIVATE_KEY }}
+          ATTESTATION_SIGNER_PRIVATE_KEY: ${{ secrets.ATTESTATION_SIGNER_PRIVATE_KEY }}
+          COVERAGE_SIGNER_PRIVATE_KEY: ${{ secrets.COVERAGE_SIGNER_PRIVATE_KEY }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          CSRF_SECRET: ${{ secrets.CSRF_SECRET }}
+          ERC8004_REGISTRAR_PRIVATE_KEY: ${{ secrets.ERC8004_REGISTRAR_PRIVATE_KEY }}
+          EVM_PRIVATE_KEY: ${{ secrets.EVM_PRIVATE_KEY }}
+          GOPLUS_API_KEY: ${{ secrets.GOPLUS_API_KEY }}
+          GOPLUS_APP_KEY: ${{ secrets.GOPLUS_APP_KEY }}
+          GOPLUS_APP_SECRET: ${{ secrets.GOPLUS_APP_SECRET }}
+          HEADLESS_ORACLE_API_KEY: ${{ secrets.HEADLESS_ORACLE_API_KEY }}
+          HEADLESS_X402_PRIVATE_KEY: ${{ secrets.HEADLESS_X402_PRIVATE_KEY }}
+          HELIUS_SOLANA_RPC: ${{ secrets.HELIUS_SOLANA_RPC }}
+          INSIGHT_API_KEY: ${{ secrets.INSIGHT_API_KEY }}
+          INSIGHT_SOLANA_EVIDENCE_SIGNER_SEED: ${{ secrets.INSIGHT_SOLANA_EVIDENCE_SIGNER_SEED }}
+          INTERNAL_API_SECRET: ${{ secrets.INTERNAL_API_SECRET }}
+          JUPITER_API_KEY: ${{ secrets.JUPITER_API_KEY }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          MPP_SECRET_KEY: ${{ secrets.MPP_SECRET_KEY }}
+          NOWPAYMENTS_API_KEY: ${{ secrets.NOWPAYMENTS_API_KEY }}
+          NOWPAYMENTS_IPN_SECRET: ${{ secrets.NOWPAYMENTS_IPN_SECRET }}
+          OPS_OWNER_USER_IDS: ${{ secrets.OPS_OWNER_USER_IDS }}
+          ROBINHOOD_RPC_URL: ${{ secrets.ROBINHOOD_RPC_URL }}
+          SOLANA_PRIVATE_KEY: ${{ secrets.SOLANA_PRIVATE_KEY }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          TRONGRID_API_KEY: ${{ secrets.TRONGRID_API_KEY }}
+          TRON_FULLNODE_RPC: ${{ secrets.TRON_FULLNODE_RPC }}
+          TRON_RPC_URL: ${{ secrets.TRON_RPC_URL }}
+          TRON_SOLIDITY_RPC: ${{ secrets.TRON_SOLIDITY_RPC }}
+          TURSO_OPS_AUTH_TOKEN: ${{ secrets.TURSO_OPS_AUTH_TOKEN }}
+          TURSO_OPS_DATABASE_URL: ${{ secrets.TURSO_OPS_DATABASE_URL }}
+          TURSO_PRICE_AUTH_TOKEN: ${{ secrets.TURSO_PRICE_AUTH_TOKEN }}
+          TURSO_PRICE_DATABASE_URL: ${{ secrets.TURSO_PRICE_DATABASE_URL }}
+          X402_CDP_API_KEY_ID: ${{ secrets.X402_CDP_API_KEY_ID }}
+          X402_CDP_API_KEY_SECRET: ${{ secrets.X402_CDP_API_KEY_SECRET }}
+          X402_ENABLED: ${{ vars.X402_ENABLED }}
+          X402_FACILITATOR_BEARER_TOKEN: ${{ secrets.X402_FACILITATOR_BEARER_TOKEN }}
+          X402_FACILITATOR_BEARER_TOKENS: ${{ secrets.X402_FACILITATOR_BEARER_TOKENS }}
+          X402_FACILITATOR_URL: ${{ vars.X402_FACILITATOR_URL }}
+          X402_FACILITATOR_URLS: ${{ vars.X402_FACILITATOR_URLS }}
+          X402_NETWORK: ${{ vars.X402_NETWORK }}
+          X402_PAY_TO: ${{ vars.X402_PAY_TO }}
+          X402_PRICE_USD: ${{ vars.X402_PRICE_USD }}
+          X402_HYPERCORE_MERCHANT_SECRET: ${{ secrets.X402_HYPERCORE_MERCHANT_SECRET }}
+        run: node --import tsx scripts/write-cloudflare-worker-secrets.mts "$RUNNER_TEMP/insight-worker-secrets.json"
       - name: Deploy the commit to production
         id: deploy
         env:
-          VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_TEAM_ID: ${{ vars.VERCEL_TEAM_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          MPP_ENABLED: ${{ vars.MPP_ENABLED }}
+          MPP_MCP_ENABLED: ${{ vars.MPP_MCP_ENABLED }}
+          RATE_LIMIT_STORE: ${{ vars.RATE_LIMIT_STORE }}
+          TURSO_COVERAGE_SLO_MODE: ${{ vars.TURSO_COVERAGE_SLO_MODE }}
+          TURSO_DAILY_REPORTS_MODE: ${{ vars.TURSO_DAILY_REPORTS_MODE }}
+          TURSO_DEX_MARKET_MODE: ${{ vars.TURSO_DEX_MARKET_MODE }}
+          TURSO_FEED_CADENCE_MODE: ${{ vars.TURSO_FEED_CADENCE_MODE }}
+          TURSO_MANIP_COST_MODE: ${{ vars.TURSO_MANIP_COST_MODE }}
+          TURSO_ORACLE_WATCH_HISTORY_MODE: ${{ vars.TURSO_ORACLE_WATCH_HISTORY_MODE }}
+          TURSO_PRICE_PROJECTION_MODE: ${{ vars.TURSO_PRICE_PROJECTION_MODE }}
+          TURSO_PRICE_READ_CUTOVER_AT: ${{ vars.TURSO_PRICE_READ_CUTOVER_AT }}
+          TURSO_PRICE_WRITE_MODE: ${{ vars.TURSO_PRICE_WRITE_MODE }}
+          WAK_P1_EXTENDED_VALIDITY_UNTIL: ${{ vars.WAK_P1_EXTENDED_VALIDITY_UNTIL }}
+          WAK_P1_SIGNED_TTL_SECONDS: ${{ vars.WAK_P1_SIGNED_TTL_SECONDS }}
+          X402_EVM_ENABLED: ${{ vars.X402_EVM_ENABLED }}
+          X402_EVM_NETWORKS: ${{ vars.X402_EVM_NETWORKS }}
+          X402_HYPERCORE_ENABLED: ${{ vars.X402_HYPERCORE_ENABLED }}
+          X402_HYPERCORE_FACILITATOR_URL: ${{ vars.X402_HYPERCORE_FACILITATOR_URL }}
+          X402_HYPERCORE_MERCHANT_ID: ${{ vars.X402_HYPERCORE_MERCHANT_ID }}
+          X402_HYPERCORE_NETWORK: ${{ vars.X402_HYPERCORE_NETWORK }}
+          X402_HYPERCORE_PAY_TO: ${{ vars.X402_HYPERCORE_PAY_TO }}
+          X402_HYPERCORE_TIMEOUT_MS: ${{ vars.X402_HYPERCORE_TIMEOUT_MS }}
+          X402_SOLANA_ENABLED: ${{ vars.X402_SOLANA_ENABLED }}
+          X402_SOLANA_FACILITATOR_URL: ${{ vars.X402_SOLANA_FACILITATOR_URL }}
+          X402_SOLANA_FEE_PAYER: ${{ vars.X402_SOLANA_FEE_PAYER }}
+          X402_SOLANA_NETWORK: ${{ vars.X402_SOLANA_NETWORK }}
+          X402_SOLANA_PAY_TO: ${{ vars.X402_SOLANA_PAY_TO }}
         run: |
-          if [ -z "$VERCEL_DEPLOY_HOOK_URL" ]; then
-            echo "VERCEL_DEPLOY_HOOK_URL is required for gated production deployment" >&2
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "CLOUDFLARE_API_TOKEN is required for gated production deployment" >&2
             exit 1
           fi
-          if [ -z "$VERCEL_TOKEN" ]; then
-            echo "VERCEL_TOKEN is required to verify the production deployment" >&2
+          if [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "CLOUDFLARE_ACCOUNT_ID is required for gated production deployment" >&2
             exit 1
           fi
-
-          node scripts/deploy-vercel-production.mts
+          if [ -z "$NEXT_PUBLIC_SUPABASE_URL" ] || [ -z "$NEXT_PUBLIC_SUPABASE_ANON_KEY" ]; then
+            echo "NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are required for the production build" >&2
+            exit 1
+          fi
+          RELEASE_MESSAGE="$GITHUB_SHA via GitHub Actions run $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          npm run build:vinext
+          npx cf deploy --prebuilt --secrets-file "$RUNNER_TEMP/insight-worker-secrets.json" --tag "$GITHUB_SHA" --message "$RELEASE_MESSAGE"
 
       # The live smoke below probes the public domain, so it can only prove the
       # release if the domain actually serves it. A READY (even STAGED) deployment
       # with aliasAssigned=true is not enough: assert the domain's commit first.
       - name: Assert the production domain serves the released commit
         env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_TEAM_ID: ${{ vars.VERCEL_TEAM_ID }}
-          VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+          PRODUCTION_BASE_URL: https://www.oracleinsight.xyz
         run: node scripts/assert-production-domain-commit.mts
 
       # A READY deployment only proves the build succeeded. Probe the live
@@ -188,12 +279,10 @@ jobs:
         id: rollback
         if: failure() && steps.live-smoke.outcome == 'failure' && steps.live-smoke.outputs.classification == 'application'
         env:
-          VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_TEAM_ID: ${{ vars.VERCEL_TEAM_ID }}
-          EXPECTED_DEPLOYMENT_ID: ${{ steps.deploy.outputs.deployment-id }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
           ROLLBACK_BASE_URL: https://www.oracleinsight.xyz
-        run: node scripts/auto-rollback-production.mjs
+        run: node --import tsx scripts/auto-rollback-cloudflare.mts
 
       - name: Verify the release that was restored
         if: failure() && steps.rollback.outputs.rollback == 'executed'

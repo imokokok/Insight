@@ -241,12 +241,12 @@ export const EXECUTION_DOMAIN = {
  *
  * Derivation is a documented rule, not a guess: we check the configured public
  * app URL first (a preview deploy keeps its own URL) and fall back to the
- * platform's environment variable.
+ * runtime mode.
  */
 export function executionEnvironment(): 'production' | 'nonproduction' {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
   if (appUrl.includes('oracleinsight.xyz')) return 'production';
-  if (process.env.VERCEL_ENV === 'production') return 'production';
+  if (process.env.NODE_ENV === 'production') return 'production';
   return 'nonproduction';
 }
 

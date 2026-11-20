@@ -27,7 +27,7 @@ async function checkNodeVersionAlignment(workspace: string, workflows: Map<strin
   };
   const enginesNode = packageJson.engines?.node;
   if (typeof enginesNode !== 'string' || enginesNode.length === 0) {
-    failures.push('package.json: engines.node is required to pin the Vercel runtime');
+    failures.push('package.json: engines.node must remain pinned to the supported Node.js major');
   } else {
     if (/[<>*]|\|\|/.test(enginesNode)) {
       failures.push(

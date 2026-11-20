@@ -61,10 +61,10 @@ function createMockRequest(
 }
 
 describe('API Rate Limit Tests', () => {
-  const originalVercel = process.env.VERCEL;
+  const originalRuntime = process.env.INSIGHT_RUNTIME;
 
   beforeAll(() => {
-    process.env.VERCEL = '1';
+    process.env.INSIGHT_RUNTIME = 'cloudflare';
   });
 
   beforeEach(() => {
@@ -73,8 +73,8 @@ describe('API Rate Limit Tests', () => {
   });
 
   afterAll(() => {
-    if (originalVercel === undefined) delete process.env.VERCEL;
-    else process.env.VERCEL = originalVercel;
+    if (originalRuntime === undefined) delete process.env.INSIGHT_RUNTIME;
+    else process.env.INSIGHT_RUNTIME = originalRuntime;
   });
 
   describe('Normal Request Handling', () => {
@@ -116,10 +116,10 @@ describe('API Rate Limit Tests', () => {
     it('should handle multiple independent keys', async () => {
       const middleware = createRateLimitMiddleware({ maxRequests: 1 });
       const request1 = createMockRequest({
-        headers: { 'x-vercel-forwarded-for': '192.168.1.1' },
+        headers: { 'cf-connecting-ip': '192.168.1.1' },
       });
       const request2 = createMockRequest({
-        headers: { 'x-vercel-forwarded-for': '192.168.1.2' },
+        headers: { 'cf-connecting-ip': '192.168.1.2' },
       });
 
       const result1 = await middleware(request1);
@@ -314,7 +314,7 @@ describe('API Rate Limit Tests', () => {
     it('should use IP from Vercel forwarded-for header', async () => {
       const middleware = createRateLimitMiddleware();
       const request = createMockRequest({
-        headers: { 'x-vercel-forwarded-for': '192.168.1.1, 10.0.0.1' },
+        headers: { 'cf-connecting-ip': '192.168.1.1' },
       });
 
       const result = await middleware(request);
@@ -334,10 +334,10 @@ describe('API Rate Limit Tests', () => {
     it('should handle different IPs independently', async () => {
       const middleware = createRateLimitMiddleware({ maxRequests: 1 });
       const request1 = createMockRequest({
-        headers: { 'x-vercel-forwarded-for': '192.168.1.1' },
+        headers: { 'cf-connecting-ip': '192.168.1.1' },
       });
       const request2 = createMockRequest({
-        headers: { 'x-vercel-forwarded-for': '192.168.1.2' },
+        headers: { 'cf-connecting-ip': '192.168.1.2' },
       });
 
       await middleware(request1);

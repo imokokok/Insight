@@ -10,58 +10,40 @@ function response(body: unknown, status = 200) {
   return { ok: status >= 200 && status < 300, status, json: async () => body } as Response;
 }
 
-function harness({
-  domainCommit,
-  deploymentId = 'dpl_domain',
-}: {
-  domainCommit: string | null;
-  deploymentId?: string | null;
-}) {
+function harness(releaseSha: string | null) {
   const requests: string[] = [];
   return {
     requests,
     fetcher: async (url: URL | string) => {
-      const endpoint = String(url);
-      requests.push(endpoint);
-      if (endpoint.includes('/v4/aliases')) {
-        return response({
-          aliases: deploymentId ? [{ alias: 'www.oracleinsight.xyz', deploymentId }] : [],
-        });
-      }
-      return response({
-        uid: 'dpl_domain',
-        readyState: 'READY',
-        meta: { githubCommitSha: domainCommit },
-      });
+      requests.push(String(url));
+      return response(releaseSha === null ? null : { releaseSha });
     },
   };
 }
 
 test('passes only when the production domain serves the released commit', async () => {
-  const setup = harness({ domainCommit: commitSha });
+  const setup = harness(commitSha);
   const result = await assertProductionDomainCommit({
-    token: 'test-token',
     commitSha,
     fetcher: setup.fetcher,
   });
   assert.equal(result.commitSha, commitSha);
-  assert.equal(result.deploymentId, 'dpl_domain');
+  assert.equal(result.domain, 'https://www.oracleinsight.xyz');
+  assert.equal(setup.requests.length, 1);
 });
 
-// Regression for the STAGED release: a READY deployment with aliasAssigned=true
-// passed the old check while the domain still served the previous commit.
 test('fails when the production domain still serves another commit', async () => {
-  const setup = harness({ domainCommit: staleSha });
+  const setup = harness(staleSha);
   await assert.rejects(
-    assertProductionDomainCommit({ token: 'test-token', commitSha, fetcher: setup.fetcher }),
-    /serves b{40} \(dpl_domain\) instead of the released commit a{40}/
+    assertProductionDomainCommit({ commitSha, fetcher: setup.fetcher }),
+    /serves b{40} instead of the released commit a{40}/
   );
 });
 
-test('fails when the production domain has no deployment alias', async () => {
-  const setup = harness({ domainCommit: staleSha, deploymentId: null });
+test('fails when the release endpoint does not return a build identity', async () => {
+  const setup = harness(null);
   await assert.rejects(
-    assertProductionDomainCommit({ token: 'test-token', commitSha, fetcher: setup.fetcher }),
-    /has no deployment alias/
+    assertProductionDomainCommit({ commitSha, fetcher: setup.fetcher }),
+    /serves unavailable instead of the released commit/
   );
 });
