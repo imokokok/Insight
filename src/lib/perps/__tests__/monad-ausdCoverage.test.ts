@@ -277,3 +277,61 @@ describe('assessMonadPerpGuard AUSD strict mode (P1-1)', () => {
     expect(result.ausdCoverage?.covered).toBe(true);
   });
 });
+
+// Regression guard for the 2026-11-20 rollback: an AUSD observation that is
+// not a fresh, in-quorum Pyth Core Monad:AUSD/USD read must NEVER be promoted
+// to an independently VERIFIED coverage source, even under strict mode. Only
+// the exact, quorum-eligible observation may produce covered=true.
+describe('AUSD coverage fail-closed on non-qualifying Pyth observations (P1-1)', () => {
+  const qualifyingPyth = {
+    price: 1,
+    deviationPct: 0.02,
+    isOutlier: false,
+    dataAgeSeconds: 12,
+    isStale: false,
+    confidence: 0.9,
+    reputationScore: 95,
+    status: 'success' as const,
+    countsTowardOracleQuorum: true,
+    timestamp: Math.floor(NOW.getTime() / 1000) - 12,
+    retrievedAt: NOW.getTime(),
+    timestampProvenance: 'provider_timestamp' as const,
+    source: 'Pyth Core Monad:AUSD/USD',
+    freshnessKnown: true,
+    timestampAnomaly: false,
+  };
+
+  function checkOracleWith(overrides: Partial<typeof qualifyingPyth>) {
+    return jest.fn(async (input: { asset: string }) => ({
+      verdict: 'PASS' as const,
+      consensusPrice: input.asset.trim().toUpperCase() === 'AUSD' ? 1 : 78_139,
+      maxDeviationPct: 0.1,
+      staleDataRisk: false,
+      participantCount: 3,
+      attestation: { uid: 'uid-1', attester: '0xattester' },
+      providerPrices:
+        input.asset.trim().toUpperCase() === 'AUSD'
+          ? { pyth: { ...qualifyingPyth, ...overrides } }
+          : {},
+    })) as never;
+  }
+
+  const nonQualifying: Array<[string, Partial<typeof qualifyingPyth>]> = [
+    ['not quorum-eligible', { countsTowardOracleQuorum: false }],
+    ['outlier', { isOutlier: true }],
+    ['stale', { isStale: true }],
+    ['freshness unknown', { freshnessKnown: false }],
+    ['timestamp anomaly', { timestampAnomaly: false, dataAgeSeconds: 7200 }], // beyond 1h heartbeat
+    ['wrong provider source', { source: 'Pyth Core Monad:BTC/USD' }],
+  ];
+
+  it.each(nonQualifying)('strict mode stays UNVERIFIED when the observation is %s', async (_label, overrides) => {
+    const result = await assessMonadPerpGuard(
+      { ...BASE_INPUT, requireIndependentAusdCoverage: true },
+      guardDeps({ checkOracle: checkOracleWith(overrides) })
+    );
+    expect(result.ausdCoverage.covered).toBe(false);
+    expect(result.ausdCoverage.reasonCode).toBe('AUSD_COVERAGE_UNVERIFIED');
+    expect(result.verdict).toBe('BLOCK');
+  });
+});
