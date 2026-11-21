@@ -944,10 +944,32 @@ export async function handlePaidPreTradeRequest(
   runBusiness: (requestId: string) => Promise<NextResponse>,
   options?: HandlePaidOptions
 ): Promise<NextResponse> {
-  const rateLimited = await checkX402RateLimit(request);
+  const requestId = newRequestId();
+  let rateLimited: NextResponse | null;
+  try {
+    rateLimited = await checkX402RateLimit(request);
+  } catch (error) {
+    // Rate limiting is fail-closed: an unavailable shared store must never
+    // turn into an unhandled 500 or silently fall back to per-isolate memory.
+    // Report it as a retryable infrastructure failure so deploy smoke checks
+    // can distinguish it from a broken payment challenge.
+    logger.warn('x402 rate limit store unavailable', {
+      requestId,
+      path: request.nextUrl.pathname,
+      errorName: error instanceof Error ? error.name : 'unknown',
+    });
+    const response = NextResponse.json(
+      {
+        error: 'RATE_LIMIT_STORE_UNAVAILABLE',
+        message: 'The payment rate limit service is temporarily unavailable. Please retry shortly.',
+      },
+      { status: 503, headers: { 'Cache-Control': 'no-store' } }
+    );
+    response.headers.set('X-Request-Id', requestId);
+    return response;
+  }
   if (rateLimited) return rateLimited;
 
-  const requestId = newRequestId();
   const acquisitionSource = x402AcquisitionSource(request);
   const hypercoreResponse = await handleHypercorePayment(
     request,
