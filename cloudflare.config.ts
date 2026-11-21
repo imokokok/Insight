@@ -7,7 +7,10 @@ export default defineConfig({
   worker: defineWorker({
     ...cache,
     name: 'insight-web',
-    triggers: [triggers.fetch({ pattern: 'www.oracleinsight.xyz/*', zone: 'oracleinsight.xyz' })],
+    triggers: [
+      triggers.fetch({ pattern: 'oracleinsight.xyz/*', zone: 'oracleinsight.xyz' }),
+      triggers.fetch({ pattern: 'www.oracleinsight.xyz/*', zone: 'oracleinsight.xyz' }),
+    ],
     workersDev: false,
     entrypoint: 'vinext/server/fetch-handler',
     compatibilityDate: '2026-11-20',
