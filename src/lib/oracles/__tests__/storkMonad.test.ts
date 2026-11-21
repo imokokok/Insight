@@ -201,6 +201,32 @@ describe('StorkMonadClient', () => {
     expect(result.confidence).toBeUndefined();
   });
 
+  it('counts MON/USD toward strict quorum when it is on the promotion allowlist', async () => {
+    const publishedAtMs = Date.now() - 10_000;
+    jest.spyOn(storkMonadOnChainService, 'getPrice').mockResolvedValue({
+      symbol: 'MON/USD',
+      assetId: 'MONUSD',
+      encodedAssetId: resolveStorkMonadFeed('MON')!.encodedAssetId,
+      price: 0.0149,
+      timestampNs: BigInt(publishedAtMs) * 1_000_000n,
+      sourceTimestamp: Math.floor(publishedAtMs / 1000),
+      timestamp: publishedAtMs,
+      quantizedValue: 14_900_000_000_000_000n,
+      maxAgeSeconds: 3600,
+      priceDeviationPercent: 0.02,
+    });
+    const client = new StorkMonadClient();
+
+    const result = await client.getPrice('MON', Blockchain.MONAD);
+
+    expect(result).toMatchObject({
+      provider: OracleProvider.STORK,
+      symbol: 'MON/USD',
+      countsTowardOracleQuorum: true,
+    });
+    expect(result.verification?.assetId).toBe('MONUSD');
+  });
+
   it('is Monad-only and recognizes both bare symbols and canonical pairs', () => {
     const client = new StorkMonadClient();
     expect(client.isSymbolSupported('BTC', Blockchain.MONAD)).toBe(true);
