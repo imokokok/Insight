@@ -1,9 +1,11 @@
 import { createClient, type Client } from '@libsql/client';
 
 import type { HourlySnapshotRow } from '@/lib/supabase/adaptiveSnapshotPersistence';
+import { expectedRecentSlotMs } from '@/lib/supabase/captureContinuity';
 import {
   readTursoOracleHistoryBaseline,
   readTursoPriceProjectionMode,
+  readTursoPriceSlotContinuity,
   upsertTursoHourlySnapshots,
   writeProjectedTursoPriceSlot,
 } from '@/lib/turso/ops/hourlyPriceProjectionRepository';
@@ -134,6 +136,29 @@ describe('writeProjectedTursoPriceSlot', () => {
         snapshotTs: new Date('not-a-date'),
       })
     ).rejects.toThrow('invalid timestamp');
+  });
+});
+
+describe('readTursoPriceSlotContinuity', () => {
+  it('reads projected slots from the Turso delivery ledger', async () => {
+    const nowMs = Date.UTC(2026, 10, 9, 10, 10, 0);
+    const slots = expectedRecentSlotMs(nowMs);
+    await Promise.all(
+      slots.map((slotMs, index) =>
+        writeProjectedTursoPriceSlot(client, {
+          hourlyRows: [],
+          snapshotTs: new Date(slotMs),
+          inputHash: `continuity-hash-${index}`,
+          partitionKey: 'bootstrap',
+          rawDigest: `continuity-digest-${index}`,
+        })
+      )
+    );
+
+    const result = await readTursoPriceSlotContinuity(client, nowMs);
+
+    expect(result.check).toBe('ok');
+    expect(result.details).toMatchObject({ coveredSlots: 8, expectedSlots: 8, missingSlotMs: [] });
   });
 });
 

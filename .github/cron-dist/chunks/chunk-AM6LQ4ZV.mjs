@@ -1,5 +1,5 @@
 import { createRequire as __createRequire } from 'node:module'; import { fileURLToPath as __fileURLToPath } from 'node:url'; import { dirname as __pathDirname } from 'node:path'; const require = __createRequire(import.meta.url); const __filename = __fileURLToPath(import.meta.url); const __dirname = __pathDirname(__filename);
-function readTursoPriceProjectionMode(value=process.env.TURSO_PRICE_PROJECTION_MODE){if(value===void 0||value===""||value==="supabase")return"supabase";if(value==="turso")return value;throw new Error("TURSO_PRICE_PROJECTION_MODE must be supabase or turso")}function toInt(flag){return flag?1:0}var HOURLY_UPSERT_CHUNK=200,HOURLY_UPSERT_SQL=`
+function readTursoPriceProjectionMode(value=process.env.TURSO_PRICE_PROJECTION_MODE){if(value===void 0||value===""||value==="supabase")return"supabase";if(value==="turso")return value;throw new Error("TURSO_PRICE_PROJECTION_MODE must be supabase or turso")}function toInt(flag){return flag?1:0}var HOURLY_UPSERT_CHUNK=200;var HOURLY_UPSERT_SQL=`
   INSERT INTO hourly_price_snapshots (
     provider, symbol, chain_id, price,
     consensus_price, deviation_pct, latency_ms, data_age_seconds,
