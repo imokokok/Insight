@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { BASE_USDC_ADDRESS, SOLANA_USDC_MINT } from '@/lib/constants/tokenAddresses';
+import { readInsightRuntimeEnvironment } from '@/lib/runtime/insightEnvironment';
 import { createLogger } from '@/lib/utils/logger';
 
 import {
@@ -572,7 +573,9 @@ function parseFacilitatorCdpAuth(
  * misconfigured deployment fails loudly instead of silently under- or
  * over-charging.
  */
-export function parseX402Config(env: NodeJS.ProcessEnv = process.env): X402Config {
+export function parseX402Config(
+  env: NodeJS.ProcessEnv = readInsightRuntimeEnvironment()
+): X402Config {
   const network = NetworkSchema.parse(env.X402_NETWORK ?? 'eip155:84532');
   const evmNetworks = parseEvmNetworks(env.X402_EVM_NETWORKS, network);
   const priceUsd = parsePriceUsd(env.X402_PRICE_USD);
@@ -1105,6 +1108,8 @@ export function getX402PaymentOptions(
  * master switch is off or no network has a configured receiving wallet, in
  * which case the caller falls through to the legacy API-key path.
  */
-export function getX402Config(env: NodeJS.ProcessEnv = process.env): X402Config {
+export function getX402Config(
+  env: NodeJS.ProcessEnv = readInsightRuntimeEnvironment()
+): X402Config {
   return parseX402Config(env);
 }

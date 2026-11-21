@@ -3,6 +3,7 @@ import {
   payToForEvmNetwork,
   type X402Config,
 } from '@/lib/api/x402/config';
+import { readInsightRuntimeEnvironment } from '@/lib/runtime/insightEnvironment';
 
 export const MPP_MCP_TOOL = 'pre_trade_safety_check';
 
@@ -20,7 +21,7 @@ export interface MppConfig {
  */
 export function getMppConfig(
   x402Config: X402Config,
-  env: NodeJS.ProcessEnv = process.env
+  env: NodeJS.ProcessEnv = readInsightRuntimeEnvironment()
 ): MppConfig {
   if (env.MPP_MCP_ENABLED === 'true' && env.MPP_ENABLED !== 'true') {
     throw new Error('MPP_MCP_ENABLED requires MPP_ENABLED=true');
