@@ -36,40 +36,63 @@ env:
 
 jobs:
   readiness:
+    environment: Production
     runs-on: ubuntu-24.04
     timeout-minutes: 3
     steps:
       - name: Checkout
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
-      - name: Check public control-plane readiness
+      - name: Check authenticated Supabase and Turso readiness
         id: readiness
         env:
-          READINESS_URL: https://www.oracleinsight.xyz/api/v1/health/ready
+          READINESS_URL: https://www.oracleinsight.xyz/api/v1/health/ready?deep=1
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
           set -u
+          if [ -z "${CRON_SECRET:-}" ]; then
+            echo '::error::CRON_SECRET is required for the deep readiness check.'
+            echo 'healthy=false' >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
           response_file="$(mktemp)"
-          status="$(curl --silent --show-error --max-time 20 --output "$response_file" --write-out '%{http_code}' "$READINESS_URL" || true)"
-          body="$(tr '\n' ' ' < "$response_file" | cut -c 1-3000)"
-          if [ "$status" = '200' ]; then
+          status="$(curl --silent --show-error --max-time 20 --header "Authorization: Bearer ${CRON_SECRET}" --output "$response_file" --write-out '%{http_code}' "$READINESS_URL" || true)"
+          summary="$(python3 - "$response_file" <<'PY'
+          import json
+          import sys
+          try:
+              payload = json.load(open(sys.argv[1], encoding='utf-8'))
+              data = payload.get('data') or {}
+              print('status=' + str(data.get('status', 'unknown')) + '; checks=' + json.dumps(data.get('checks', {}), sort_keys=True))
+          except Exception:
+              print('response=unparseable')
+          PY
+          )"
+          if [ "$status" = '200' ] && python3 - "$response_file" <<'PY'
+          import json
+          import sys
+          try:
+              payload = json.load(open(sys.argv[1], encoding='utf-8'))
+              ready = payload.get('success') is True and (payload.get('data') or {}).get('status') == 'ready'
+          except Exception:
+              ready = False
+          raise SystemExit(0 if ready else 1)
+          PY
+          then
             echo 'healthy=true' >> "$GITHUB_OUTPUT"
-            echo "Control plane ready: $body"
+            echo "Turso/Supabase deep readiness passed: $summary"
             exit 0
           fi
           echo 'healthy=false' >> "$GITHUB_OUTPUT"
           {
             echo 'body<<EOF'
-            echo "Automated readiness check failed at $(date -u +'%Y-%m-%dT%H:%M:%SZ')."
+            echo "Automated deep readiness check failed at $(date -u +'%Y-%m-%dT%H:%M:%SZ')."
             echo
             echo "HTTP status: ${status:-transport-error}"
-            echo
-            echo 'Response:'
-            echo '```json'
-            echo "$body"
-            echo '```'
+            echo "Readiness summary: $summary"
             echo EOF
           } >> "$GITHUB_OUTPUT"
-          echo "::error::Turso control plane is not ready (HTTP ${status:-transport-error})"
+          echo "::error::Turso/Supabase deep readiness failed (HTTP ${status:-transport-error}): $summary"
           exit 1
 
       - name: Open or resolve the incident issue
