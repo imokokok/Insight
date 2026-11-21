@@ -295,6 +295,25 @@ describe('x402 guard', () => {
   });
 
   describe('handlePaidPreTradeRequest', () => {
+    it('fails closed with a retryable 503 when the shared rate limit store is unavailable', async () => {
+      const unavailable = Object.assign(new Error('database unavailable'), {
+        code: 'RATE_LIMIT_STORE_UNAVAILABLE',
+      });
+      incrementRateLimitMock.mockRejectedValueOnce(unavailable);
+      const business = jest.fn(OK_BUSINESS);
+
+      const response = await handlePaidPreTradeRequest(makeRequest(), CFG, business);
+
+      expect(response.status).toBe(503);
+      expect(response.headers.get('Cache-Control')).toBe('no-store');
+      expect(response.headers.get('X-Request-Id')).toMatch(/^req_/);
+      await expect(response.json()).resolves.toMatchObject({
+        error: 'RATE_LIMIT_STORE_UNAVAILABLE',
+      });
+      expect(mockedGetServer).not.toHaveBeenCalled();
+      expect(business).not.toHaveBeenCalled();
+    });
+
     it('returns an explicit unavailable response when the selected rail cannot initialize', async () => {
       mockedGetServer.mockRejectedValueOnce(new Error('facilitator unavailable'));
       const business = jest.fn(OK_BUSINESS);
