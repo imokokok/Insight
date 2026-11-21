@@ -63,7 +63,12 @@ jobs:
           try:
               payload = json.load(open(sys.argv[1], encoding='utf-8'))
               data = payload.get('data') or {}
-              print('status=' + str(data.get('status', 'unknown')) + '; checks=' + json.dumps(data.get('checks', {}), sort_keys=True))
+              if payload.get('success') is True:
+                  print('status=' + str(data.get('status', 'unknown')) + '; checks=' + json.dumps(data.get('checks', {}), sort_keys=True))
+              else:
+                  error = payload.get('error') or {}
+                  details = error.get('details') or {}
+                  print('error=' + str(error.get('code', 'unknown')) + '; message=' + str(error.get('message', 'unavailable')) + '; details=' + json.dumps(details, sort_keys=True))
           except Exception:
               print('response=unparseable')
           PY
