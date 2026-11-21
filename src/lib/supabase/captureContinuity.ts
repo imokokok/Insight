@@ -71,13 +71,27 @@ export async function readCaptureContinuity(
     return { check: 'unknown' };
   }
 
-  const coveredSlotMs = new Set(
+  return evaluateCaptureContinuity(
     result.data.flatMap((row) => {
       if (!row.snapshot_ts) return [];
       const slotMs = new Date(row.snapshot_ts).getTime();
-      if (!Number.isFinite(slotMs)) return [];
-      return [Math.floor(slotMs / CAPTURE_SLOT_INTERVAL_MS) * CAPTURE_SLOT_INTERVAL_MS];
-    })
+      return Number.isFinite(slotMs) ? [slotMs] : [];
+    }),
+    nowMs
+  );
+}
+
+/** Applies the same fixed-grid coverage policy to any authoritative receipt ledger. */
+export function evaluateCaptureContinuity(
+  receiptTimesMs: readonly number[],
+  nowMs: number
+): CaptureContinuity {
+  const expected = expectedRecentSlotMs(nowMs);
+
+  const coveredSlotMs = new Set(
+    receiptTimesMs
+      .filter(Number.isFinite)
+      .map((slotMs) => Math.floor(slotMs / CAPTURE_SLOT_INTERVAL_MS) * CAPTURE_SLOT_INTERVAL_MS)
   );
 
   const missingSlotMs = expected.filter((slotMs) => !coveredSlotMs.has(slotMs));

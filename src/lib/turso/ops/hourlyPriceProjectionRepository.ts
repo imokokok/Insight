@@ -10,6 +10,11 @@
 // (slot_ms, input_hash). Re-projecting the same immutable payload is a no-op
 // that reports replayed=true.
 import type { HourlySnapshotRow } from '@/lib/supabase/adaptiveSnapshotPersistence';
+import {
+  evaluateCaptureContinuity,
+  expectedRecentSlotMs,
+  type CaptureContinuity,
+} from '@/lib/supabase/captureContinuity';
 
 import type { Client, InStatement, InValue } from '@libsql/client/web';
 
@@ -47,6 +52,24 @@ function toInt(flag: boolean | undefined): 0 | 1 {
 }
 
 const HOURLY_UPSERT_CHUNK = 200;
+
+/** Read the active Turso projection ledger used when projection mode is `turso`. */
+export async function readTursoPriceSlotContinuity(
+  client: Client,
+  nowMs: number
+): Promise<CaptureContinuity> {
+  const expected = expectedRecentSlotMs(nowMs);
+  const result = await client.execute({
+    sql: `SELECT DISTINCT slot_ms FROM price_slot_projection_runs
+      WHERE slot_ms >= ? AND slot_ms <= ?`,
+    args: [expected[expected.length - 1] ?? nowMs, expected[0] ?? nowMs],
+  });
+
+  return evaluateCaptureContinuity(
+    result.rows.map((row) => Number(row.slot_ms)).filter(Number.isFinite),
+    nowMs
+  );
+}
 
 const HOURLY_UPSERT_SQL = `
   INSERT INTO hourly_price_snapshots (

@@ -11,6 +11,11 @@ import {
 } from '@/lib/supabase/captureContinuity';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { loadSnapshotHistoryPage } from '@/lib/supabase/snapshotHistory';
+import { getTursoOpsClient } from '@/lib/turso/ops/client';
+import {
+  readTursoPriceProjectionMode,
+  readTursoPriceSlotContinuity,
+} from '@/lib/turso/ops/hourlyPriceProjectionRepository';
 import { getTursoPriceClient, readTursoPriceWriteMode } from '@/lib/turso/price/client';
 import { getTursoPriceIngestStatus } from '@/lib/turso/price/controlPlaneRepository';
 import { readTursoPriceProjectionMaxLagSeconds } from '@/lib/turso/price/projectionConfig';
@@ -149,18 +154,25 @@ export const GET = createApiHandler(
         try {
           await withTimeout(checkSupabaseQueryLiveness(), CHECK_TIMEOUT_MS);
           supabase = 'ok';
-          // The newest-slot age above cannot see a dead capture window that
-          // already ended: zero pending slots plus a fresh latest slot looks
-          // healthy while a run of interior slots was never captured. Compare
-          // the Supabase receipt ledger against the 15-minute grid instead.
-          const continuityResult = await withTimeout(
-            readCaptureContinuity(createServiceRoleClient(), Date.now()),
-            CHECK_TIMEOUT_MS
-          );
+        } catch {
+          supabase = 'unavailable';
+        }
+        try {
+          // Projection receipts live in the active delivery plane. In Turso
+          // mode the Supabase receipt table is intentionally not written.
+          const continuityResult =
+            readTursoPriceProjectionMode() === 'turso'
+              ? await withTimeout(
+                  readTursoPriceSlotContinuity(getTursoOpsClient(), Date.now()),
+                  CHECK_TIMEOUT_MS
+                )
+              : await withTimeout(
+                  readCaptureContinuity(createServiceRoleClient(), Date.now()),
+                  CHECK_TIMEOUT_MS
+                );
           continuity = continuityResult.check;
           continuityDetails = continuityResult.details;
         } catch {
-          supabase = 'unavailable';
           continuity = 'unknown';
         }
       } else {
