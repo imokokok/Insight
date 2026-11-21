@@ -152,6 +152,10 @@ export class TTLCache {
     // Guard against re-entry, a non-positive interval (which would spin a
     // busy-loop timer), and resurrection of a destroyed instance's timer.
     if (this.cleanupInterval || this.cleanupIntervalMs <= 0 || this.destroyed) return;
+    // Workers reject timers started during module initialization. Most caches
+    // are constructed at module scope, so rely on lazy expiry and bounded
+    // eviction there; request handlers can still read and write entries safely.
+    if (process.env.INSIGHT_RUNTIME === 'cloudflare') return;
     this.cleanupInterval = setInterval(() => this.cleanup(), this.cleanupIntervalMs);
     if (typeof this.cleanupInterval.unref === 'function') {
       this.cleanupInterval.unref();
