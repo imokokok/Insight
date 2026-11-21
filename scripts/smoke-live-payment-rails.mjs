@@ -400,13 +400,13 @@ async function smokePublicCatalog() {
   );
 }
 
-// The public risk read tier must never regress behind authentication. Only a
-// lockout (401/403) is an application failure here: 5xx answers are typically a
-// degraded database (which this smoke must not roll back on) and a 200 needs no
-// opinion from a smoke probe.
+// The public risk read tier must remain queryable without an API key. Send a
+// contract-valid two-provider request: HTTP 400 would otherwise pass this
+// lockout-only smoke while only proving that validation ran. A 5xx can reflect
+// a degraded database and must not roll back an otherwise healthy release.
 async function smokePublicRiskTierUnlocked() {
   const response = await fetchWithRetry(
-    `${BASE_URL}/api/v1/risk/summary?symbol=BTC&providers=chainlink`,
+    `${BASE_URL}/api/v1/risk/summary?symbol=BTC&providers=chainlink,pyth`,
     { headers: { accept: 'application/json' } },
     'risk-tier'
   );
@@ -416,6 +416,23 @@ async function smokePublicRiskTierUnlocked() {
       `public risk summary answered ${response.status}; the free read tier regressed behind authentication`
     );
     return;
+  }
+  if (response.status === 400) {
+    fail('risk-tier', 'the known-valid public query was rejected by request validation (HTTP 400)');
+    return;
+  }
+  if (response.status === 200) {
+    const payload = await response.json().catch(() => null);
+    if (
+      payload?.success !== true ||
+      payload.data?.symbol !== 'BTC' ||
+      !Array.isArray(payload.data?.providers) ||
+      payload.data.providers.length < 2 ||
+      typeof payload.data?.riskMetrics !== 'object'
+    ) {
+      fail('risk-tier', 'HTTP 200 response does not contain the public risk-summary contract');
+      return;
+    }
   }
   console.log(`[risk-tier] public tier reachable (HTTP ${response.status}) OK`);
 }
