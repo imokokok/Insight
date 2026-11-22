@@ -18,7 +18,7 @@ await client.callTool({
   name: 'trade_guard',
   arguments: {
     op: 'prepare_swap',
-    chain: 'bnb',
+    chain_id: 56,
     from: 'USDT',
     to: 'WBNB',
     amount: '1000',

@@ -18,7 +18,7 @@ await client.callTool({
   name: 'trade_guard',
   arguments: {
     op: 'prepare_swap',
-    chain: 'solana',
+    chain_id: 'solana',
     from: 'USDC',
     to: 'SOL',
     amount: '500',

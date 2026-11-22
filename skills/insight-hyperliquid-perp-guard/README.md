@@ -19,7 +19,7 @@ await client.callTool({
   arguments: {
     op: 'check_safety',
     action: 'perp_open',
-    chain: 'hyperliquid',
+    chain_id: 'hyperliquid',
     symbol: 'ETH',
     direction: 'open_short',
     sizeUsd: '8000',

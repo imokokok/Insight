@@ -63,7 +63,7 @@ async function checkTradeSafety() {
       op: 'check_safety',
       action: 'swap',
       symbol: 'ETH',
-      chain: 'base',
+      chain_id: 8453,
       amount: '1000',
       venue: 'uniswap_v3',
     },
@@ -81,7 +81,7 @@ Using the deprecated alias (equivalent, sunset 2027-01-06):
 // Same call, different spelling
 await client.callTool({
   name: 'check_trade_safety',
-  arguments: { action: 'swap', symbol: 'ETH', chain: 'base', amount: '1000' },
+  arguments: { action: 'swap', symbol: 'ETH', chain_id: 8453, amount: '1000' },
 });
 ```
 
