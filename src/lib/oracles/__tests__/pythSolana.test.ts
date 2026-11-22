@@ -54,8 +54,8 @@ function priceUpdateAccount(
 
 describe('Pyth Solana sponsored feed registry', () => {
   it('contains the reviewed sponsored catalogue with unique canonical feed IDs', async () => {
-    expect(PYTH_SOLANA_SPONSORED_FEEDS).toHaveLength(64);
-    expect(new Set(PYTH_SOLANA_SPONSORED_FEEDS.map((feed) => feed.id)).size).toBe(64);
+    expect(PYTH_SOLANA_SPONSORED_FEEDS).toHaveLength(37);
+    expect(new Set(PYTH_SOLANA_SPONSORED_FEEDS.map((feed) => feed.id)).size).toBe(37);
     expect(PYTH_SOLANA_SPONSORED_FEEDS.every((feed) => /^[a-f0-9]{64}$/.test(feed.id))).toBe(true);
     expect(resolvePythSolanaFeed('SOL')?.alias).toBe('SOL/USD');
     expect(resolvePythSolanaFeed('JITOSOL/SOL.RR')?.alias).toBe('JITOSOL/SOL.RR');

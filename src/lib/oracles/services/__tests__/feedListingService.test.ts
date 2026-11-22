@@ -37,7 +37,10 @@ describe('listOracleFeeds', () => {
       offset: 25,
     });
 
-    expect(result).toEqual({ feeds: [feed], total: 47 });
+    expect(result).toEqual({
+      feeds: [{ ...feed, source: null, network: null, quote_type: null }],
+      total: 47,
+    });
     expect(from).toHaveBeenCalledWith('oracle_feeds');
     expect(select).toHaveBeenCalledWith(expect.not.stringContaining('*'), { count: 'exact' });
     expect(query.eq.mock.calls).toEqual([
