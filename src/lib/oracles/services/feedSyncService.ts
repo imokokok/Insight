@@ -2,7 +2,6 @@ import { type OracleFeedInsert } from '@/lib/supabase/queries';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { mapWithConcurrency } from '@/lib/utils/concurrency';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
-import { Blockchain } from '@/types/oracle';
 
 import { bandSymbols, getBandSignalId } from '../constants/bandConstants';
 import {
@@ -43,10 +42,6 @@ import {
   STORK_MONAD_CONTRACT_ADDRESS,
   STORK_MONAD_PUSHED_FEEDS,
 } from '../constants/storkMonad';
-import {
-  STORK_OTHER_EVM_CONTRACTS,
-  STORK_OTHER_EVM_PUSHED_FEEDS,
-} from '../constants/storkOtherEvm';
 import { getAssetClass, redstoneSymbols } from '../constants/supportedSymbols';
 import { SUPRA_PAIR_INDEX_MAP } from '../constants/supraConstants';
 import {
@@ -69,7 +64,6 @@ import { pythMonadOnChainService } from './pythMonadOnChainService';
 import { pythSolanaOnChainService } from './pythSolanaOnChainService';
 import { redStoneMonadOnChainService } from './redstoneMonadOnChainService';
 import { storkMonadOnChainService } from './storkMonadOnChainService';
-import { storkOtherEvmOnChainService } from './storkOtherEvmOnChainService';
 import { supraMonadOnChainService } from './supraMonadOnChainService';
 import { WINKLINK_PRICE_FEEDS } from './winklinkRealDataService';
 
@@ -119,9 +113,6 @@ async function deactivateRetiredCuratedFeeds(args: {
     | 'pyth-solana-sponsored-registry'
     | 'pyth-hyperevm-sponsored-registry'
     | 'stork-monad-pushed-registry'
-    | 'stork-bnb-chain-pushed-registry'
-    | 'stork-base-pushed-registry'
-    | 'stork-hyperevm-pushed-registry'
     | 'chronicle-monad-price-feed-registry'
     | 'redstone-monad-price-feed-registry'
     | 'supra-monad-dora-push-registry';
@@ -692,84 +683,6 @@ class FeedSyncService {
       catalogSymbols: STORK_MONAD_PUSHED_FEEDS.map((feed) => feed.alias),
     });
     return result;
-  }
-
-  /** Read and register Stork's officially pushed BNB, Base and HyperEVM assets. */
-  async seedStorkOtherEvmPushedFeeds(): Promise<SyncResult> {
-    const result: SyncResult = {
-      provider: 'stork',
-      discovered: STORK_OTHER_EVM_PUSHED_FEEDS.length,
-      upserted: 0,
-      deactivated: 0,
-      errors: 0,
-    };
-
-    const readings = await storkOtherEvmOnChainService.getPrices(STORK_OTHER_EVM_PUSHED_FEEDS);
-    const usableIds = new Set(readings.map((reading) => reading.encodedAssetId.toLowerCase()));
-    const usableFeeds = STORK_OTHER_EVM_PUSHED_FEEDS.filter((feed) =>
-      usableIds.has(feed.encodedAssetId.toLowerCase())
-    );
-    result.errors = result.discovered - usableFeeds.length;
-
-    const rows: OracleFeedInsert[] = usableFeeds.map((feed) => {
-      const contract = STORK_OTHER_EVM_CONTRACTS[feed.chain];
-      if (!contract) throw new Error(`Missing Stork contract for ${feed.chain}`);
-      return {
-        provider: 'stork',
-        symbol: feed.alias,
-        chain_id: feed.chainId,
-        address: contract.address,
-        name: `Stork ${feed.alias}`,
-        decimals: 18,
-        category: this.inferCategory(feed.alias.split(/[\/_]/)[0]),
-        is_active: true,
-        source: `stork-${feed.chain}-pushed-registry`,
-        metadata: {
-          assetId: feed.assetId,
-          encodedAssetId: feed.encodedAssetId,
-          storkContract: contract.address,
-          chainId: feed.chainId,
-          maxStalenessSeconds: feed.maxStalenessSeconds,
-          priceDeviationPercent: feed.priceDeviationPercent,
-          quoteType: 'reference-rate',
-          freshnessPolicy:
-            'getTemporalNumericValueV1 safe read and timestamp <= maxStalenessSeconds',
-          quorumStatus: 'shadow-only-reference-rate',
-          registrySource: 'https://docs.stork.network/resources/stork-pushed-assets',
-        },
-      };
-    });
-    result.upserted = await upsertFeeds(rows);
-
-    // A chain/RPC outage must not retire already captured rows. Reconcile only
-    // a network where at least one live read proved that the contract responded.
-    for (const chain of [Blockchain.BNB_CHAIN, Blockchain.BASE, Blockchain.HYPEREVM] as const) {
-      const feedsOnChain = STORK_OTHER_EVM_PUSHED_FEEDS.filter((feed) => feed.chain === chain);
-      if (!readings.some((reading) => reading.feed.chain === chain)) continue;
-      const contract = STORK_OTHER_EVM_CONTRACTS[chain];
-      if (!contract) continue;
-      result.deactivated += await deactivateRetiredCuratedFeeds({
-        provider: 'stork',
-        source: `stork-${chain}-pushed-registry`,
-        chainId: contract.chainId,
-        catalogSymbols: feedsOnChain.map((feed) => feed.alias),
-      });
-    }
-    return result;
-  }
-
-  async seedStorkPushedFeeds(): Promise<SyncResult> {
-    const [monad, otherEvm] = await Promise.all([
-      this.seedStorkMonadPushedFeeds(),
-      this.seedStorkOtherEvmPushedFeeds(),
-    ]);
-    return {
-      provider: 'stork',
-      discovered: monad.discovered + otherEvm.discovered,
-      upserted: monad.upserted + otherEvm.upserted,
-      deactivated: monad.deactivated + otherEvm.deactivated,
-      errors: monad.errors + otherEvm.errors,
-    };
   }
 
   // ─── Chronicle push feeds / Monad ─────────────────────────────────
@@ -1376,7 +1289,7 @@ class FeedSyncService {
       case 'pyth':
         return this.seedPythSponsoredFeeds();
       case 'stork':
-        return this.seedStorkPushedFeeds();
+        return this.seedStorkMonadPushedFeeds();
       case 'chronicle':
         return this.seedChronicleMonadPriceFeeds();
       case 'supra':
