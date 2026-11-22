@@ -49,7 +49,11 @@ describe('createApiHandler response normalization', () => {
     expect(body).toEqual({
       success: true,
       data: { n: 1 },
-      meta: { timestamp: expect.any(Number), source: 'fixture' },
+      meta: {
+        timestamp: expect.any(Number),
+        source: 'fixture',
+        insightDoesNotEnforce: true,
+      },
     });
   });
 
