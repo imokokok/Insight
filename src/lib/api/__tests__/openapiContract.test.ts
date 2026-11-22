@@ -38,6 +38,7 @@ describe('OpenAPI contract', () => {
       '/market-reference/sample',
       '/oracle-watch/attestation/sample',
       '/safety/attestation/sample',
+      '/pulse/latest',
     ]);
     const productionPaths = actualPaths().filter((path) => !explicitlyInternalSamples.has(path));
     expect(documentedPaths(spec)).toEqual(productionPaths);
