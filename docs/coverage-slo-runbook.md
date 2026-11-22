@@ -5,6 +5,8 @@ Design and rationale: [coverage-slo-design.md](./coverage-slo-design.md).
 ## Endpoints and ownership
 
 - `GET /api/v1/coverage/policy`: discovery of current policy bytes and content ID.
+  The newest policy is returned by default; an explicit `policyId` can request
+  a supported immutable v2/v3 artifact for callers that have not migrated.
 - `GET /api/v1/coverage/assessment?asset=USDC&chainId=1&policyId=...`:
   authenticated, existing coverage C2 metering (1 credit), no-store live report.
   Coverage does not replace pre-trade safety or principal authorization.
@@ -97,7 +99,9 @@ does not establish settlement-chain execution health.
 ## Diagnose failures
 
 - `UNCLASSIFIED_PROVIDER`: review ownership/upstream data, then append a new policy;
-  unknown providers cannot grant themselves independence.
+  unknown providers cannot grant themselves independence. `strict-300s.v4`
+  adds reviewed Pyth operator classification. Stork and Chronicle remain excluded
+  until their source review is complete.
 - `SOURCE_AGE_UNKNOWN` / `SOURCE_TIME_INVALID`: repair adapter timestamp provenance.
   Retrieval time cannot substitute for source time.
 - `SOURCE_TOO_OLD`: refresh/repair the feed; report TTL cannot extend source TTL.

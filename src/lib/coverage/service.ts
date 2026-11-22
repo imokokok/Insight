@@ -6,18 +6,30 @@ import { getBlockchainByChainId } from '@/lib/oracles/constants/chainMapping';
 import { getAllActiveFeedsByProviderWithStatus } from '@/lib/oracles/utils/dynamicFeedResolver';
 import { throwIfAborted } from '@/lib/utils/requestDeadline';
 
+import strict300sV2 from '../../../protocol/coverage/policies/strict-300s.v2.json';
+import strict300sV3 from '../../../protocol/coverage/policies/strict-300s.v3.json';
 import {
   buildCoverageReport,
   coveragePolicyId,
   coverageReportDigest,
   coverageSigningData,
   STRICT_COVERAGE_POLICY,
+  type CoveragePolicy,
   type SignedCoverageReport,
 } from '../../../sdk/src/coverage';
 
 import { toCoverageObservation } from './observations';
 
 export const COVERAGE_POLICY_ID = coveragePolicyId(STRICT_COVERAGE_POLICY);
+const COVERAGE_POLICIES = new Map<string, CoveragePolicy>([
+  [COVERAGE_POLICY_ID, STRICT_COVERAGE_POLICY],
+  [coveragePolicyId(strict300sV3.policy as CoveragePolicy), strict300sV3.policy as CoveragePolicy],
+  [coveragePolicyId(strict300sV2.policy as CoveragePolicy), strict300sV2.policy as CoveragePolicy],
+]);
+
+export function getCoveragePolicy(policyId: string): CoveragePolicy | null {
+  return COVERAGE_POLICIES.get(policyId) ?? null;
+}
 
 export async function assessCoverage(
   input: {
@@ -28,7 +40,8 @@ export async function assessCoverage(
   options: { signal?: AbortSignal } = {}
 ): Promise<SignedCoverageReport> {
   throwIfAborted(options.signal);
-  if (input.policyId !== COVERAGE_POLICY_ID) throw new ValidationError('Unknown coverage policyId');
+  const policy = getCoveragePolicy(input.policyId);
+  if (!policy) throw new ValidationError('Unknown coverage policyId');
   const chain = getBlockchainByChainId(input.chainId);
   if (!chain || input.chainId <= 0) throw new ValidationError('Unsupported evidence chainId');
   const registry = await getAllActiveFeedsByProviderWithStatus();
@@ -43,7 +56,7 @@ export async function assessCoverage(
   const observations = consensus.providers.map((p) => toCoverageObservation(p, input, chain));
   const report = buildCoverageReport(
     { asset: input.asset, evidenceChainId: input.chainId, observations, evaluatedAt: now },
-    STRICT_COVERAGE_POLICY
+    policy
   );
   const digest = coverageReportDigest(report);
   // A dedicated key must be distributed/pinned by consumers. No legacy/sample-key fallback.
