@@ -5,11 +5,11 @@ with double underlying and USDC cross-oracle consensus integrity checks.
 
 ## Tool mapping
 
-| What you want to do | Canonical MCP tool | `op` selector | Deprecated alias |
-|---|---|---|---|
-| Pre-perp safety gate | `trade_guard` | `check_safety` | `check_trade_safety` |
-| Prepare a perp order | `trade_guard` | `prepare_perp_order` | `prepare_perp_order` |
-| Post-trade verification | `trade_proof` | `verify_evidence` | `verify_evidence` |
+| What you want to do     | Canonical MCP tool | `op` selector        | Deprecated alias     |
+| ----------------------- | ------------------ | -------------------- | -------------------- |
+| Pre-perp safety gate    | `trade_guard`      | `check_safety`       | `check_trade_safety` |
+| Prepare a perp order    | `trade_guard`      | `prepare_perp_order` | `prepare_perp_order` |
+| Post-trade verification | `trade_proof`      | `verify_evidence`    | `verify_evidence`    |
 
 ## Minimal TypeScript example
 
