@@ -1,0 +1,60 @@
+{
+  "kind": "MainlineProtocolPromotion",
+  "promotionVersion": 39,
+  "effectiveFrom": "2026-11-22",
+  "classification": "Append-only coverage policy v4 adds reviewed Pyth source classification while preserving previous policy versions",
+  "registryReleaseId": "0xc90709876d4210c521d36a27171d4f45bca4a7b48e67658fac9c76c04ef50831",
+  "predecessorReleaseId": "0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b",
+  "predecessorPromotionId": "0xcbf3584af8bbe04728fd73b8708bfc0aab70bf084a6f7ac2b7d0df2dd9516df0",
+  "activationSetId": "0x32335b66b91bd4ab1742b86ffcaefa94bbfc063de5f9a1d51e0080df67896157",
+  "receiptImpact": "Adds immutable strict-300s.v4 with Pyth as its own reviewed non-derived source group and publishes a matching versioned production trust reference. The three-provider quorum, existing partner policies, activation set, receipt layouts and historical coverage policy artifacts remain unchanged.",
+  "activationRule": "Coverage v4 is additive and opt-in. Existing v2/v3 policy IDs remain discoverable and reportable. No partner policy, activation mapping, execution permission or receipt admission changes.",
+  "compatibilityMatrix": [
+    {
+      "partnerId": "agent-passport",
+      "outcome": "unchanged-pinned-contract-additive-coverage-v4",
+      "evidence": "Partner policy, activation, signing keys, and receipt layouts are unchanged. Coverage v4 is opt-in; consumers must pin the new policy and signer independently."
+    },
+    {
+      "partnerId": "andydgrea",
+      "outcome": "unchanged-pinned-contract-additive-coverage-v4",
+      "evidence": "Partner policy, activation, signing keys, and receipt layouts are unchanged. Coverage v4 is opt-in; consumers must pin the new policy and signer independently."
+    },
+    {
+      "partnerId": "emilia",
+      "outcome": "unchanged-pinned-contract-additive-coverage-v4",
+      "evidence": "Partner policy, activation, signing keys, and receipt layouts are unchanged. Coverage v4 is opt-in; consumers must pin the new policy and signer independently."
+    },
+    {
+      "partnerId": "frontier-compute",
+      "outcome": "unchanged-pinned-contract-additive-coverage-v4",
+      "evidence": "Partner policy, activation, signing keys, and receipt layouts are unchanged. Coverage v4 is opt-in; consumers must pin the new policy and signer independently."
+    },
+    {
+      "partnerId": "headless",
+      "outcome": "unchanged-pinned-contract-additive-coverage-v4",
+      "evidence": "Partner policy, activation, signing keys, and receipt layouts are unchanged. Coverage v4 is opt-in; consumers must pin the new policy and signer independently."
+    },
+    {
+      "partnerId": "interai",
+      "outcome": "unchanged-pinned-contract-additive-coverage-v4",
+      "evidence": "Partner policy, activation, signing keys, and receipt layouts are unchanged. Coverage v4 is opt-in; consumers must pin the new policy and signer independently."
+    },
+    {
+      "partnerId": "raul",
+      "outcome": "unchanged-pinned-contract-additive-coverage-v4",
+      "evidence": "Partner policy, activation, signing keys, and receipt layouts are unchanged. Coverage v4 is opt-in; consumers must pin the new policy and signer independently."
+    },
+    {
+      "partnerId": "vaara",
+      "outcome": "unchanged-pinned-contract-additive-coverage-v4",
+      "evidence": "Partner policy, activation, signing keys, and receipt layouts are unchanged. Coverage v4 is opt-in; consumers must pin the new policy and signer independently."
+    },
+    {
+      "partnerId": "veritas",
+      "outcome": "unchanged-pinned-contract-additive-coverage-v4",
+      "evidence": "Partner policy, activation, signing keys, and receipt layouts are unchanged. Coverage v4 is opt-in; consumers must pin the new policy and signer independently."
+    }
+  ],
+  "promotionId": "0x3b28826b5eb7a1b43d841d5938953de85d718f6e97edd02527b5049b0e267e3f"
+}
