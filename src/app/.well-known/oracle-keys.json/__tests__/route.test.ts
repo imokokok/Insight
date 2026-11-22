@@ -50,15 +50,12 @@ describe('.well-known/oracle-keys.json route', () => {
       ])
     );
     // Advisory boundary is published at the top of the document.
-    expect(body.advisory_boundary).toEqual(
-      expect.objectContaining({
-        insightDoesNotEnforce: true,
-        signerRoles: expect.objectContaining({
-          attester: expect.stringContaining('production'),
-          sample: expect.stringContaining('SYNTHETIC'),
-          'trail-signer': expect.stringContaining('historical'),
-        }),
-      })
+    expect(body.advisory_boundary).toBeDefined();
+    expect(body.advisory_boundary.insightDoesNotEnforce).toBe(true);
+    expect(body.advisory_boundary.signerRoles.attester).toContain('production');
+    expect(body.advisory_boundary.signerRoles.sample).toContain('SYNTHETIC');
+    expect(body.advisory_boundary.signerRoles['trail-signer']).toContain(
+      'historical'
     );
     expect(body.attestation_enabled).toBe(true);
 
