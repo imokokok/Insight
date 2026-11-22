@@ -2,6 +2,11 @@
 
 审计日期：2026-09-27，北京时间。代码基线：`e8b2d37e6a0121b11d5993db41c083fa01de03fe`。范围为 Insight 的 Supabase、Vercel、GitHub Actions、外部数据请求和前端读取链路。
 
+历史快照提示：本文结论和平台度量反映 2026-09-27 的 Vercel 架构。Insight
+现已迁移到 Cloudflare Workers，本文中的 Vercel 区域、函数、账单和运行拓扑
+均不描述当前生产；当前部署以 `cloudflare-deployment.md` 和
+`release-runbook.md` 为准。数据库与采集数据仅在其原观测窗口内有效。
+
 ## 结论
 
 优先优化数据库写放大、历史数据容量和重复历史读取。现有“Vercel 提供 API，GitHub runner 执行主要采集，Supabase 保存状态”的分工可以继续使用。仅迁移网站托管平台无法消除数据库的持续采集成本。

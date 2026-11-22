@@ -14,8 +14,10 @@ Supabase receipt check (only missing slot) → GitHub workflow_dispatch → same
 Supabase pg_cron → pg_net → GitHub workflow_dispatch → GitHub runner
 ```
 
-Vercel is not in this path. The public API routes remain available as manual
-recovery paths; their response contracts are unchanged.
+The dispatch and recovery path runs through Supabase and GitHub Actions; it does
+not depend on an application-hosting cron service. Public API routes remain
+available on the Cloudflare Worker as manual recovery paths; their response
+contracts are unchanged.
 
 The dispatcher covers the low-frequency product-critical jobs:
 

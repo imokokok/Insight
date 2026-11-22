@@ -1,5 +1,8 @@
 # Insight hosting architecture
 
+Status: current production hosting is Cloudflare Workers. This is the operating
+architecture and release guide, not a pending migration plan.
+
 ## Runtime and release ownership
 
 | Layer                       | Service                     | Responsibility                                                                         |
@@ -10,7 +13,7 @@
 | Price and projection data   | Turso                       | Existing libSQL workloads and projections                                              |
 | CI/CD and scheduled compute | GitHub Actions              | PR checks, serialized production release, scheduled data/ML jobs, and provenance audit |
 
-This migration does not add KV or Cloudflare Images. Supabase and Turso remain
+The hosting change did not add KV or Cloudflare Images. Supabase and Turso remain
 the data services. Long-running collectors and ML training stay in GitHub Actions
 runners; the Worker only serves the application/API workload.
 
@@ -46,15 +49,15 @@ allowlist in `scripts/write-cloudflare-worker-secrets.mts`. It writes a mode
 `0600` temporary JSON file in the runner directory, then `cf deploy` uploads
 those values as Worker Secrets with the first Worker version. The file is not
 checked into the repository or printed in logs. The allowlist excludes CI
-credentials such as `CLOUDFLARE_API_TOKEN`, Vercel credentials, and unrelated
-repository secrets. Runtime configuration values are passed from GitHub
+credentials such as `CLOUDFLARE_API_TOKEN` and unrelated repository secrets.
+Runtime configuration values are passed from GitHub
 `Production` variables into `cloudflare.config.ts` as Worker Vars.
 
 The workflow stops before deployment when required Supabase, Turso, signing,
 cron, or CSRF/JWT secrets are absent. If `MPP_ENABLED=true`, it also requires
-the MPP key and the x402 production configuration. Vercel values marked
-Sensitive cannot be retrieved by the Vercel API or CLI; restore those values
-from the original secret source into GitHub `Production` before releasing.
+the MPP key and the x402 production configuration. Restore missing values from
+their original secret source into GitHub `Production` before releasing; secret
+values are intentionally not read back from the Worker or printed by CI.
 
 Keep the Cloudflare token in GitHub's secret store. Do not use the local
 Wrangler OAuth credential as a GitHub Actions secret. Configure application
@@ -62,28 +65,22 @@ runtime secrets in Cloudflare Workers' secret store separately from CI
 credentials; never put Supabase service-role, Turso auth, payment, Sentry, or
 other runtime secrets into public `NEXT_PUBLIC_*` variables.
 
-Before cutover, compare the old production environment variable names against
-the variables the app still reads. Put public build-time values in the protected
-GitHub environment, private runtime values in Worker secrets, and remove
-Vercel-only values such as `VERCEL_OIDC_TOKEN`. Verify the Supabase, Turso,
-provider API, signing, cron, payment, and Sentry configuration without printing
-secret values. This secret migration is a separate prerequisite to the code
-deployment; the local Cloudflare build does not prove production secrets exist.
+For a configuration change, compare the current GitHub `Production` variable
+and secret names against the values the app still reads. Put public build-time
+values in the protected GitHub environment and private runtime values in Worker
+secrets. Remove obsolete platform-only settings from the active deployment
+configuration. Verify the Supabase, Turso, provider API, signing, cron, payment,
+and Sentry configuration without printing secret values. A local Cloudflare
+build does not prove production secrets exist.
 
 ## Custom domain cutover
 
-The Workers account must have an active `oracleinsight.xyz` zone. The Worker
-declares a `www.oracleinsight.xyz/*` route and disables the public `workers.dev`
-hostname. Cloudflare will route the existing proxied `www` DNS record to the
-Worker after the zone is active. The current apex `oracleinsight.xyz` record is
-kept separate; decide separately whether it should redirect to `www` or serve
-the same Worker. Once DNS resolves through Cloudflare, run the domain SHA
-assertion, health/readiness checks, and payment smoke before treating the
-migration as live.
-
-Do not remove the Vercel deployment until the Cloudflare domain is serving the
-same reviewed release SHA and the smoke checks pass. A Cloudflare `workers.dev`
-preview URL does not prove custom-domain cutover.
+The production Worker serves `https://www.oracleinsight.xyz`; production release
+verification checks the public domain's reported SHA, health/readiness routes,
+and payment smoke. The apex `oracleinsight.xyz` is managed separately from the
+`www` Worker route. A `workers.dev` preview URL is not evidence of production
+domain behavior. Vercel is retired for Insight production and is not a fallback
+release target.
 
 ## Validation and platform limits
 

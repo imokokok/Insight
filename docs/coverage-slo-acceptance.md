@@ -1,5 +1,11 @@
 # Coverage readiness v1 — local acceptance, 2026-09-20
 
+Historical acceptance record. Its production-environment statement below
+describes the pre-migration Vercel deployment and does not establish the current
+Cloudflare Worker secret state. The current deployment allowlist includes
+`COVERAGE_SIGNER_PRIVATE_KEY`; production availability must be verified through
+the Cloudflare release/runtime checks.
+
 Implemented the design in `coverage-slo-design.md` across Insight and PriorSeal.
 Existing partner activations and signed pre-trade/execution wire layouts are
 unchanged. Consumers explicitly opt in to the new coverage domain and policy.
@@ -30,8 +36,8 @@ unchanged. Consumers explicitly opt in to the new coverage domain and policy.
 
 ## Production activation status
 
-Production migration 0056 is applied and the dedicated coverage signer is
-provisioned in the Vercel production environment. Its public address, validity
+Production migration 0056 was applied and the dedicated coverage signer was
+provisioned in the Vercel production environment at the time of this record. Its public address, validity
 interval and policy pin are published in the reviewed trust reference described
 by `coverage-slo-runbook.md`. No funded transaction or partner activation is
 required or implied. Deployment, first production sampling and online
