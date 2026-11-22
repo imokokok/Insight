@@ -50,6 +50,13 @@ import {
 } from '@/lib/attestations/interaiEconomicEvidenceCommitment';
 import { buildKeyRegistryConfig } from '@/lib/attestations/keyRegistryConfig';
 import {
+  PULSE_DOMAIN,
+  PULSE_PRIMARY_TYPE,
+  PULSE_SCHEMA_VERSION,
+  PULSE_TYPES,
+  PULSE_VALID_FOR_SECONDS,
+} from '@/lib/attestations/pulseAttestation';
+import {
   CURRENT_ORACLE_REGISTRY_RELEASE,
   CURRENT_ORACLE_REGISTRY_RELEASE_ID,
 } from '@/lib/attestations/oracleRegistryRelease';
@@ -187,7 +194,22 @@ export async function GET(request: NextRequest) {
      *  its `attester` field equals one of these addresses AND it verifies
      *  against the schema below AND (when enforced) its `checkedAt` falls
      *  inside the key's [validFrom, validUntil) window and it is not revoked. */
-    public_keys: registry.keys,
+    public_keys: [
+      ...registry.keys,
+      // Trail sample signer — dedicated key for insight-pulse-trail's 15-minute
+      // oracle-quality pulse commits. Role "sample" so verifiers can distinguish
+      // trail attestations from production receipts purely by signer.
+      {
+        key_id: 'insight-pulse-trail-sample',
+        public_key: '0x25cD6643947A6C9B77708dE235F90377f82293a0',
+        algorithm: 'EIP-712/secp256k1' as const,
+        validFrom: '2026-11-22',
+        validUntil: null,
+        revoked: false,
+        role: 'sample' as const,
+        note: 'Trail sample signer — signs Oracle Pulse EIP-712 attestations for the insight-pulse-trail GitHub repo (15min oracle health snapshot, weekly OTS BTC anchoring). Trail attestations carry role "sample" and must never be treated as production trust evidence.',
+      },
+    ],
     revoked_keys: registry.revoked,
     attestation_enabled: attester !== null,
     /** Commitment rules shared by OracleSafetyCheck and OracleWatchCheck.
@@ -278,6 +300,20 @@ export async function GET(request: NextRequest) {
         retiredForSigning: true,
         eip712: descriptor(WATCH_DOMAIN, WATCH_TYPES as never, WATCH_PRIMARY_TYPE),
         verify: `${origin}/api/v1/oracle-watch/attestation/verify`,
+      },
+      /**
+       * Oracle Pulse — the always-on cross-oracle health snapshot for the
+       * insight-pulse-trail GitHub repo. A minimal 10-field EIP-712 envelope
+       * (smaller than Watch's 22 fields) designed for compact 15-minute trail
+       * commits + weekly OpenTimestamps BTC anchoring. Its signer is a
+       * dedicated trail-only sample key (see public_keys below).
+       */
+      OraclePulse: {
+        schemaVersion: PULSE_SCHEMA_VERSION,
+        eip712: descriptor(PULSE_DOMAIN, PULSE_TYPES as never, PULSE_PRIMARY_TYPE),
+        validForSeconds: PULSE_VALID_FOR_SECONDS,
+        trail: 'https://github.com/imokokok/insight-pulse-trail',
+        verify: `${origin}/api/v1/pulse/latest`,
       },
       /**
        * Execution Receipt — the "did the agent actually fill at the certified
