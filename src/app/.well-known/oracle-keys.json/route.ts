@@ -50,13 +50,6 @@ import {
 } from '@/lib/attestations/interaiEconomicEvidenceCommitment';
 import { buildKeyRegistryConfig } from '@/lib/attestations/keyRegistryConfig';
 import {
-  PULSE_DOMAIN,
-  PULSE_PRIMARY_TYPE,
-  PULSE_SCHEMA_VERSION,
-  PULSE_TYPES,
-  PULSE_VALID_FOR_SECONDS,
-} from '@/lib/attestations/pulseAttestation';
-import {
   CURRENT_ORACLE_REGISTRY_RELEASE,
   CURRENT_ORACLE_REGISTRY_RELEASE_ID,
 } from '@/lib/attestations/oracleRegistryRelease';
@@ -95,6 +88,13 @@ import {
   WATCH_REQUIRED_PARTICIPANT_COUNT,
   WATCH_REQUIRED_SOURCE_GROUP_COUNT,
 } from '@/lib/attestations/oracleWatchAttestation';
+import {
+  PULSE_DOMAIN,
+  PULSE_PRIMARY_TYPE,
+  PULSE_SCHEMA_VERSION,
+  PULSE_TYPES,
+  PULSE_VALID_FOR_SECONDS,
+} from '@/lib/attestations/pulseAttestation';
 import { PROVIDER_OBSERVATIONS_HASH_CANONICALIZATION } from '@/lib/attestations/providerObservationsHash';
 import {
   CURRENT_MAINLINE_PROTOCOL_PROMOTION,
