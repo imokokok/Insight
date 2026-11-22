@@ -1,30 +1,62 @@
 # Insight Base Perp Guard skill
 
-Focused decision-input skill for opening a Synthetix Perps V3 position on Base mainnet. It wraps the read-only `base_perp_guard` decision gate — separate underlying and USDC margin oracle integrity checks plus caller-declared post-action leverage against reviewed market caps, with disclosed spot/TWAP/in-range liquidity evidence for the underlying when a reviewed Base spot market exists (ETH today; context only, not oracle consensus, and observed thin execution liquidity can downgrade an `ALLOW` to `CAUTION`), returning `ALLOW` / `CAUTION` / `BLOCK` — and the `base_perp_guard_exact_call` variant that binds one unsigned direct PerpsMarketProxy `commitOrder` call into a short-lived EIP-712 decision attestation.
+Read-only pre-trade safety gate for Synthetix Perps V3 on Base mainnet, with
+double underlying and USDC cross-oracle consensus integrity checks.
 
-## Install
+## Tool mapping
 
-Point any MCP-compatible client at the hosted Insight MCP server using [`mcp.json`](mcp.json), or install the tool catalog directly:
+| What you want to do | Canonical MCP tool | `op` selector | Deprecated alias |
+|---|---|---|---|
+| Pre-perp safety gate | `trade_guard` | `check_safety` | `check_trade_safety` |
+| Prepare a perp order | `trade_guard` | `prepare_perp_order` | `prepare_perp_order` |
+| Post-trade evidence verification | `trade_proof` | `verify_evidence` | `verify_evidence` |
 
-```json
-{
-  "mcpServers": {
-    "insight": {
-      "url": "https://www.oracleinsight.xyz/api/mcp"
-    }
-  }
-}
+Effective leverage is derived, not input — declare direction (`open_long` or
+`open_short`), notional `sizeUsd`, and USDC collateral available.
+
+## Minimal TypeScript example
+
+```typescript
+await client.callTool({
+  name: 'trade_guard',
+  arguments: {
+    op: 'check_safety',
+    action: 'perp_open',
+    chain: 'base',
+    symbol: 'BTC',
+    direction: 'open_long',
+    sizeUsd: '5000',
+    collateralUsd: '2000',
+  },
+});
+// Returns PASS / CAUTION / DANGER / BLOCK + derived leverage and oracle integrity
 ```
 
-The tool is x402-metered; keyless calls receive a standard x402 v2 challenge and settle only after a complete decision.
+Exact-call variant (binds unsigned `commitOrder` transaction to market id,
+settlement strategy 0, direction-matching sizeDelta):
 
-## Boundaries
+```typescript
+await client.callTool({
+  name: 'trade_guard',
+  arguments: {
+    op: 'check_safety',
+    action: 'perp_open',
+    chain: 'base',
+    symbol: 'BTC',
+    transaction: {
+      chainId: 8453,
+      from: '0x...',
+      to: '0x...market...',
+      data: '0x...commitOrder calldata...',
+      nonce: 3,
+      value: '0',
+    },
+  },
+});
+```
 
-- Reviewed markets only: BTC, ETH, SOL, XRP, DOGE, PEPE (USDC margin). Anything else fails closed.
-- Leverage caps are static reviewed values; live Synthetix governance parameters can change. Every result says so.
-- Liquidity evidence is disclosed context from one reviewed Base DEX venue (spot, TWAP deviation, in-range balances, quote ladder); it never enters oracle consensus, and unavailability is disclosed, never fabricated.
-- Assessment only. Insight does not evaluate the venue's mark-price aggregation, funding, or liquidation engine, and never signs, broadcasts, or authorizes an order.
-- Exact-call decisions bind one unsigned `commitOrder` call (canonical proxy, reviewed market id, settlement strategy 0, direction-matching sizeDelta, no tracking code or referrer) but remain decision evidence, not execution authority. Margin must already be in the Synthetix account.
-- `BLOCK` is a complete paid decision, not an API error.
+## Boundary
 
-See the full contract in [docs/base-perp-guard.md](../../docs/base-perp-guard.md) and the scenario rationale in [the research document](../../docs/research/2026-11-02-base-perp-guard-research.md).
+Margin must already be in the Synthetix account. Insight returns a five-minute
+signed decision that is evidence, not execution authority. Every response
+carries `meta.insightDoesNotEnforce: true`.
