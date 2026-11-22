@@ -8,6 +8,7 @@ import { throwIfAborted } from '@/lib/utils/requestDeadline';
 
 import strict300sV2 from '../../../protocol/coverage/policies/strict-300s.v2.json';
 import strict300sV3 from '../../../protocol/coverage/policies/strict-300s.v3.json';
+import strict300sV4 from '../../../protocol/coverage/policies/strict-300s.v4.json';
 import {
   buildCoverageReport,
   coveragePolicyId,
@@ -23,6 +24,7 @@ import { toCoverageObservation } from './observations';
 export const COVERAGE_POLICY_ID = coveragePolicyId(STRICT_COVERAGE_POLICY);
 const COVERAGE_POLICIES = new Map<string, CoveragePolicy>([
   [COVERAGE_POLICY_ID, STRICT_COVERAGE_POLICY],
+  [coveragePolicyId(strict300sV4.policy as CoveragePolicy), strict300sV4.policy as CoveragePolicy],
   [coveragePolicyId(strict300sV3.policy as CoveragePolicy), strict300sV3.policy as CoveragePolicy],
   [coveragePolicyId(strict300sV2.policy as CoveragePolicy), strict300sV2.policy as CoveragePolicy],
 ]);
