@@ -8,6 +8,7 @@ import {
   Gauge,
   Search,
   ShieldCheck,
+  Wallet,
 } from 'lucide-react';
 
 import { EditorialWorkspaceHeader, EvidenceProcessRail } from '@/components/editorial';
@@ -46,6 +47,13 @@ const tools = [
     title: 'Position Stress Test',
     body: 'Calculate the critical oracle deviation and liquidation exposure for a supported lending position.',
     label: 'Position-specific',
+  },
+  {
+    href: '/polymarket',
+    icon: Wallet,
+    title: 'Polymarket Positions',
+    body: 'Review public open positions and reported values for an account address, with no wallet connection or trading permissions.',
+    label: 'Read-only account view',
   },
   {
     href: '/peg-risk',
