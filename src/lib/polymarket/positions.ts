@@ -1,43 +1,6 @@
-import { z } from 'zod';
+import { PolymarketPositionsPageSchema, type PolymarketPosition } from './positions-schema';
 
 const DATA_API_URL = 'https://data-api.polymarket.com/v2/positions';
-
-const PositionSchema = z
-  .object({
-    title: z.string(),
-    outcome: z.string(),
-    current_size: z.number().finite(),
-    avg_price: z.number().finite().nullable().optional(),
-    current_value: z.number().finite(),
-    unrealized_pnl: z.number().finite(),
-    redeemable: z.boolean(),
-    condition_id: z.string(),
-    token_id: z.string(),
-    event_slug: z.string().optional(),
-  })
-  .passthrough();
-
-const PositionsResponseSchema = z
-  .object({
-    data: z.array(PositionSchema),
-    pagination: z
-      .object({
-        has_more: z.boolean(),
-        next_cursor: z.string().nullable(),
-      })
-      .passthrough(),
-  })
-  .passthrough()
-  .superRefine((value, context) => {
-    if (value.pagination.has_more && !value.pagination.next_cursor) {
-      context.addIssue({
-        code: 'custom',
-        message: 'A next_cursor is required when has_more is true.',
-      });
-    }
-  });
-
-export type PolymarketPosition = z.infer<typeof PositionSchema>;
 
 export class PolymarketDataApiError extends Error {
   constructor(
@@ -79,7 +42,7 @@ export async function fetchPolymarketPositionsPage(
   }
 
   const payload: unknown = await response.json();
-  const parsed = PositionsResponseSchema.safeParse(payload);
+  const parsed = PolymarketPositionsPageSchema.safeParse(payload);
   if (!parsed.success) {
     throw new PolymarketDataApiError(
       'The Polymarket positions service returned an unexpected response.',

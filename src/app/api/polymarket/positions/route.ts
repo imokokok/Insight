@@ -6,7 +6,7 @@ import { createApiHandler } from '@/lib/api/handler';
 import { fetchPolymarketPositionsPage, PolymarketDataApiError } from '@/lib/polymarket/positions';
 
 const MAX_CURSOR_LENGTH = 8_192;
-const PositionQuerySchema = z.object({
+const PositionRequestSchema = z.object({
   user: z.string().regex(/^0x[0-9a-fA-F]{40}$/),
   cursor: z
     .string()
@@ -17,9 +17,9 @@ const PositionQuerySchema = z.object({
 
 export const dynamic = 'force-dynamic';
 
-export const GET = createApiHandler(
+export const POST = createApiHandler(
   async (_request: NextRequest, context) => {
-    const { user, cursor } = context.validated!.query as z.infer<typeof PositionQuerySchema>;
+    const { user, cursor } = context.validated!.body as z.infer<typeof PositionRequestSchema>;
     const headers = { 'Cache-Control': 'private, no-store' };
 
     try {
@@ -49,7 +49,8 @@ export const GET = createApiHandler(
     }
   },
   {
-    middlewares: { logging: true, rateLimit: { preset: 'moderate' } },
-    validation: { query: PositionQuerySchema },
+    middlewares: { logging: { logQuery: false }, rateLimit: { preset: 'moderate' } },
+    validation: { body: PositionRequestSchema },
+    maxBodyBytes: 12 * 1024,
   }
 );
