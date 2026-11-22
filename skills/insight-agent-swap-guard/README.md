@@ -1,25 +1,35 @@
 # Insight Agent Swap Guard
 
-This skill packages the neutral multichain Agent Swap Guard for MCP hosts and
-agent runtimes.
+Pre-trade safety for EVM agent-directed exact-route swaps. Covers reviewed
+direct-router profiles; aggregator routes go through the generic pre-trade
+safety Skill.
 
-## Quick install
+## Tool mapping
 
-1. Add [`mcp.json`](mcp.json) to an MCP-compatible host.
-2. Discover the live catalog with `initialize` and `tools/list`.
-3. Use `prepare_agent_swap_guard` before a wallet prompt for a reviewed direct
-   profile.
-4. Preserve the returned decision and exact calls; bind them with PriorSeal.
-5. Use `settle_agent_swap_guard` after execution and verify the closure with
-   `verify_agent_swap_guard_settlement`.
+| What you want to do | Canonical MCP tool | `op` selector | Deprecated alias |
+|---|---|---|---|
+| Pre-swap safety gate | `trade_guard` | `check_safety` | `check_trade_safety` |
+| Prepare an exact swap call | `trade_guard` | `prepare_swap` | `prepare_swap` |
+| Post-trade settlement verification | `trade_proof` | `verify_evidence` | `verify_evidence` |
 
-## Distribution adapters
+## Minimal TypeScript example
 
-Uniswap and 1inch are supported as integration targets, not as silently
-accepted direct-router profiles. Their API or intent output must be treated as
-an external route proposal. See
-[`references/channel-adapters.md`](references/channel-adapters.md) for the
-safe handoff pattern and the explicit unsupported cases.
+```typescript
+await client.callTool({
+  name: 'trade_guard',
+  arguments: {
+    op: 'prepare_swap',
+    chain: 'base',
+    from: 'USDC',
+    to: 'WETH',
+    amount: '1000',
+    venue: 'uniswap_v3',
+  },
+});
+// Returns unsigned tx blob + safety verdict + receipt request
+```
 
-The older Base-named skill remains available for clients that pin its archive.
-This package is the preferred entry point for new integrations.
+## Boundary
+
+Insight never signs or broadcasts the prepared transaction. Every response
+carries `meta.insightDoesNotEnforce: true`.

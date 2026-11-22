@@ -1,19 +1,33 @@
 # Insight BNB PancakeSwap V3 Guard
 
-This Skill is the BNB-specific discovery layer for Insight's existing reviewed
-PancakeSwap V3 guard. It is intentionally narrower than a general DEX router:
-the protected call shape is one reviewed pool, one direct router call, and one
-exact-input swap.
+BNB mainnet PancakeSwap V3 exact-route swap guard with canonical `approve` +
+`exactInputSingle` calldata decoding.
 
-Use it with PriorSeal for the authorization and receipt layer:
+## Tool mapping
 
-```text
-Insight ALLOW + signed decision
-→ PriorSeal exact-call approval authorization
-→ approval observation
-→ PriorSeal exact-call swap authorization
-→ swap observation and evidence receipt
+| What you want to do | Canonical MCP tool | `op` selector | Deprecated alias |
+|---|---|---|---|
+| Pre-swap safety gate | `trade_guard` | `check_safety` | `check_trade_safety` |
+| Prepare an exact PancakeSwap V3 swap | `trade_guard` | `prepare_swap` | `prepare_swap` |
+| Post-trade verification | `trade_proof` | `verify_evidence` | `verify_evidence` |
+
+## Minimal TypeScript example
+
+```typescript
+await client.callTool({
+  name: 'trade_guard',
+  arguments: {
+    op: 'prepare_swap',
+    chain: 'bnb',
+    from: 'USDT',
+    to: 'WBNB',
+    amount: '1000',
+    venue: 'pancakeswap_v3',
+  },
+});
 ```
 
-The companion example is in the PriorSeal repository:
-[bnb-pancakeswap-priorseal-v1](https://github.com/imokokok/PriorSeal/tree/main/examples/bnb-pancakeswap-priorseal-v1).
+## Boundary
+
+Insight canonical-decodes `approve` and `exactInputSingle` calldata but does
+not modify or resubmit. Every response carries `meta.insightDoesNotEnforce: true`.

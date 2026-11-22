@@ -1,16 +1,33 @@
 # Insight Solana Jupiter Swap Guard
 
-This package exposes the existing Jupiter route guard through the unified MCP
-surface for Solana agent distribution.
+Reviewed Solana Jupiter route guard for agent-directed swaps using the
+aggregator's direct-router profiles.
 
-## Quick install
+## Tool mapping
 
-1. Add [`mcp.json`](mcp.json) to an MCP-compatible host.
-2. Discover the catalog with `initialize` and `tools/list`.
-3. Call `prepare_swap` with `venue: "solana_jupiter"`, or use the equivalent
-   `trade_guard` swap action.
-4. Stop on `unavailable`, `rejected`, or a non-approved coverage result.
-5. Bind the exact returned transaction with PriorSeal before signing.
+| What you want to do | Canonical MCP tool | `op` selector | Deprecated alias |
+|---|---|---|---|
+| Pre-swap safety gate | `trade_guard` | `check_safety` | `check_trade_safety` |
+| Prepare a Jupiter swap message | `trade_guard` | `prepare_swap` | `prepare_swap` |
+| Post-trade verification | `trade_proof` | `verify_evidence` | `verify_evidence` |
 
-This is a route-level guard with reviewed-pool coverage. It is not a claim
-that every Jupiter route or every Solana venue is safe.
+## Minimal TypeScript example
+
+```typescript
+await client.callTool({
+  name: 'trade_guard',
+  arguments: {
+    op: 'prepare_swap',
+    chain: 'solana',
+    from: 'USDC',
+    to: 'SOL',
+    amount: '500',
+    venue: 'solana_jupiter',
+  },
+});
+```
+
+## Boundary
+
+Coverage is limited to reviewed route pools. Insight never signs, submits,
+relays, or authorizes. Every response carries `meta.insightDoesNotEnforce: true`.
