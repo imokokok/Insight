@@ -15,6 +15,15 @@ export interface ApiSuccessResponse<T = unknown> {
   meta?: {
     timestamp: number;
     requestId?: string;
+    /**
+     * Always true on every Insight response. Read-only advisory boundary:
+     * Insight never signs or broadcasts transactions, never gates or blocks
+     * execution, never proves a price is correct. Applications and agents
+     * own the decision to act on any verdict. The boundary is published
+     * here as well as in GET /.well-known/oracle-keys.json advisory_boundary
+     * so verifiers and SDK consumers see it at every entry point.
+     */
+    insightDoesNotEnforce?: true;
     [key: string]: unknown;
   };
 }
@@ -39,6 +48,7 @@ export class ApiResponseBuilder {
   ): ApiSuccessResponse<T> {
     const meta: ApiSuccessResponse<T>['meta'] = {
       timestamp: Date.now(),
+      insightDoesNotEnforce: true,
       ...options?.meta,
     };
     if (options?.requestId) {

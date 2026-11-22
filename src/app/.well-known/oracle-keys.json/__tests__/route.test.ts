@@ -39,15 +39,26 @@ describe('.well-known/oracle-keys.json route', () => {
         }),
       ])
     );
-    // Trail sample key is always published (hardcoded in route).
+    // Trail signer key is always published (hardcoded in route).
     expect(keys).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          key_id: 'insight-pulse-trail-sample',
+          key_id: 'insight-pulse-trail-signer',
           public_key: '0x25cD6643947A6C9B77708dE235F90377f82293a0',
-          role: 'sample',
+          role: 'trail-signer',
         }),
       ])
+    );
+    // Advisory boundary is published at the top of the document.
+    expect(body.advisory_boundary).toEqual(
+      expect.objectContaining({
+        insightDoesNotEnforce: true,
+        signerRoles: expect.objectContaining({
+          attester: expect.stringContaining('production'),
+          sample: expect.stringContaining('SYNTHETIC'),
+          'trail-signer': expect.stringContaining('historical'),
+        }),
+      })
     );
     expect(body.attestation_enabled).toBe(true);
 
