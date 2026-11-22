@@ -18,7 +18,7 @@ await client.callTool({
   name: 'trade_guard',
   arguments: {
     op: 'prepare_swap',
-    chain: 'base',
+    chain_id: 8453,
     from: 'USDC',
     to: 'WETH',
     amount: '1000',

@@ -29,7 +29,7 @@ await client.callTool({
   arguments: {
     op: 'check_safety',
     action: 'lend',
-    chain: 'base',
+    chain_id: 8453,
     symbol: 'USDC',
     amount: '5000',
     transaction: {

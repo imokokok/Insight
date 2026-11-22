@@ -19,7 +19,7 @@ await client.callTool({
   arguments: {
     op: 'check_safety',
     action: 'perp_open',
-    chain: 'solana',
+    chain_id: 'solana',
     symbol: 'SOL',
     direction: 'open_long',
     sizeUsd: '3000',

@@ -22,7 +22,7 @@ await client.callTool({
   arguments: {
     op: 'check_safety',
     action: 'perp_open',
-    chain: 'base',
+    chain_id: 8453,
     symbol: 'BTC',
     direction: 'open_long',
     sizeUsd: '5000',
@@ -41,7 +41,7 @@ await client.callTool({
   arguments: {
     op: 'check_safety',
     action: 'perp_open',
-    chain: 'base',
+    chain_id: 8453,
     symbol: 'BTC',
     transaction: {
       chainId: 8453,
