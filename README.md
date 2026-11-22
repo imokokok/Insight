@@ -1,14 +1,18 @@
-# Insight — Decision-Input Integrity & Oracle Risk Intelligence
+# Insight — Oracle Risk Intelligence & Decision-Input Integrity
 
-Insight is oracle transparency, decision-input integrity, and risk intelligence infrastructure for DeFi and AI agents, built on **BNB Smart Chain (BSC)** and compatible with other EVM networks.
+Insight is an **independent oracle risk assessment layer** for DeFi and AI agents, built on **BNB Smart Chain (BSC)** and compatible with other EVM networks.
 
-Insight helps DeFi applications, operators, developers, and AI agents inspect oracle prices and the risks of relying on them. It compares data from **13 oracle providers across 40+ blockchain networks**, evaluates deviation, freshness, source independence, and protocol impact, and can issue signed evidence of its assessments. For AI agents specifically, this is **decision-input integrity**: a signed, re-verifiable answer to "can this price be trusted" before a trade is signed.
+Insight evaluates the oracle inputs DeFi applications and AI agents are about to trust — checking freshness, source diversity, cross-provider agreement, and data anomalies — and returns **verifiable risk judgments** (signed EIP-712 when configured). Applications and agents decide whether to continue, proceed with caution, or halt. Insight does **not** quote prices, settle transactions, or prove a price is correct; it proves Insight's own assessment of that price.
 
 ```text
-Oracle observations → Cross-source comparison → Risk assessment → Decision-input integrity → Verifiable evidence
+Oracle observations → Cross-source comparison → Risk assessment → Verifiable judgment → Application decides action
 ```
 
-**Pre-Trade Safety Check** assesses a proposed action. **Oracle Watch** monitors changing conditions between actions. The REST API, MCP server, [Guard SDK](sdk/README.md), and [independent verifier](verifier/README.md) make these capabilities available to applications and agents. Insight also works independently of [PriorSeal](https://github.com/imokokok/PriorSeal); see the [product positioning guide](docs/product-positioning.md) for the combined assessment, authorization, execution, and review workflow.
+**Pre-Trade Safety Check** assesses a proposed action. **Oracle Watch** monitors changing conditions between actions. The REST API, MCP server, [Guard SDK](sdk/README.md), and [independent verifier](verifier/README.md) make these capabilities available. Insight also works independently of [PriorSeal](https://github.com/imokokok/PriorSeal); see the [product positioning guide](docs/product-positioning.md) for the combined assessment, authorization, execution, and review workflow.
+
+### Coverage, not universal availability
+
+Insight pulls from 13 oracle providers across 40+ networks, but **no single provider covers every asset on every chain**. Each guard family reviews specific exact-call profiles, and each profile maps to a particular set of oracles. The coverage table below shows what has been audited and wired; anything outside it is unsupported, even if a provider nominally lists that pair.
 
 ## Start here
 
@@ -35,24 +39,39 @@ Oracle observations → Cross-source comparison → Risk assessment → Decision
 
 **Agent Swap Guard** evaluates reviewed exact-call swap profiles across Base, BNB, Monad, and Solana. It checks quote and call identity, execution thresholds, and price inputs; CAUTION or BLOCK returns no calls, and the guard never routes, signs, or broadcasts. Solana Orca supports the legacy `swap` instruction only. See the [Agent Swap Guard guide](docs/base-agent-swap-guard.md).
 
-**Perp Guard** covers reviewed profiles on Base, BNB, Monad, Solana, and Hyperliquid. It checks underlying and margin-oracle integrity plus caller-declared leverage, but not a venue’s mark-price or liquidation engine; it never signs or broadcasts orders. Solana Drift has been frozen since 2026-04-01 and is marked `STALE`, so the guard blocks it by default. Monad’s Perpl attestation binds a centralized order-payload hash, not chain calldata; BNB Aster has no exact-order attestation. See the [Base Perp Guard guide](docs/base-perp-guard.md).
+**Perp Guard** covers reviewed profiles on Base, BNB, Monad, Solana, and Hyperliquid. It checks underlying and margin-oracle integrity plus caller-declared leverage, but not a venue's mark-price or liquidation engine; it never signs or broadcasts orders. Solana Drift has been frozen since 2026-04-01 and is marked `STALE`, so the guard blocks it by default. Monad's Perpl attestation binds a centralized order-payload hash, not chain calldata; BNB Aster has no exact-order attestation. See the [Base Perp Guard guide](docs/base-perp-guard.md).
 
-**Prediction Guard** covers Polymarket/Gamma and Kalshi market metadata. It checks market lifecycle, resolution timing, quotes, settlement rules, and evidence limits; it is chain-agnostic, applies no cross-oracle consensus, and does not assess event outcomes or control execution. Kalshi evidence is off-chain and official-API-declared; the guard is read-only and never handles API keys, submits orders, or observes fills.
+**Prediction Guard** covers Polymarket/Gamma and Kalshi market metadata. It checks market lifecycle, resolution timing, quotes, settlement rules, and evidence limits; it is chain-agnostic, applies no cross-oracle consensus, and does not assess event outcomes or control execution. Kalshi evidence is off-chain and official-API-declared; the guard is read-only and never handles API keys, signs orders, submits orders or observes fills.
 
 > Insight is **not a real-time oracle tracker**. Price snapshots and feed health are collected every 15 minutes, reputation scores are recalculated hourly, and data is aggregated into daily reports. Check each assessment's freshness and validity window before using it.
 
 ## Scope & non-goals
 
-Insight sells **independently recomputable, tamper-evident decision inputs** — not conclusions, not execution guarantees, not custody, and not order routing. These limits are explicit, not hidden:
+Insight sells **independently recomputable, tamper-evident risk judgments** — not conclusions, not execution guarantees, not custody, and not order routing. These limits are explicit, not hidden:
 
+- Insight **never signs or broadcasts transactions**. It returns a verdict + optional EIP-712 attestation; the application or agent decides whether to act on it. An agent receiving `BLOCK` can still swap — Insight does not enforce. This is by design: a read-only advisory layer cannot be a single point of failure for trading.
 - Every guarded swap evaluates an **exact call only**. It does **not** cover aggregator routes (Jupiter / 1inch / 0x), arbitrary multicalls, smart-account UserOperations, permit / EIP-2612 flows, native-value swaps, or alternate routes. Solana Orca admits only the legacy `swap` discriminator and rejects `swapV2` / two-hop variants.
 - The reviewed Uniswap V3 lane and the aggregator route quote are **read-only quotes**, not transaction simulations and not fill / landing guarantees.
 - Prediction Guard applies no oracle consensus and does not assess the truth of event-outcome probabilities. Kalshi support is read-only: it never handles Kalshi API keys, signs orders, submits orders or observes fills.
 - `manipulationCost`, token-security, decision-input and GoPlus evidence are **advisory-only**: never a verdict input and never part of a signed attestation. `manipulationCost` is additionally limited to Ethereum mainnet (`chainId === 1`), so it is unavailable on Base, BNB, Solana, and Monad and is not part of the public capability list.
 
+### About the EIP-712 attestation
+
+A signature proves who issued the signed fields and whether they changed. It does **not** prove that the underlying prices were correct or that an agent obeyed the verdict. See the [verifier's supported schemas](verifier/README.md#supported-schemas) for version-specific verification requirements.
+
+### The promotion chain
+
+Insight's protocol surface (`.well-known/oracle-*`, key registry, partner policies) evolves through an immutable, append-only **promotion chain**. Each promotion is a JSON file with a keccak256 `promotionId`, a `predecessorPromotionId` linking to the prior one, and a global monotonic `promotionVersion`. Anyone can reconstruct the chain from `current-promotion.json` and verify no fork exists.
+
+However: the `current-promotion.json` pointer is a regular file committed to main, and the attester keys are configured via environment variables. A pointer commit can be wrong; a production key can expire. The promotion chain provides **verifiability**, not automatic trust — callers must independently establish trust in which `current-promotion.json` to read and which attester keys to accept.
+
+### Pulse Trail — the 15-minute heartbeat
+
+The [insight-pulse-trail](https://github.com/imokokok/insight-pulse-trail) GitHub repo signs an Oracle Pulse EIP-712 attestation every 15 minutes and weekly anchors it with OpenTimestamps on Bitcoin. This is a **historical verification record**, not a real-time pre-trade check. Trail attestations are signed by a dedicated sample key (`0x25cD...3a0`, role `sample`) and carry no production trust weight. Trail verification runs offline and independently of the Insight service.
+
 ## Technology Stack
 
-- **Blockchain:** BNB Smart Chain (BSC) — the primary deployment chain — + EVM-compatible chains (oracle data covers 40+ networks)
+- **Blockchain:** BNB Smart Chain (BSC) — the primary deployment chain — + EVM-compatible chains (oracle data covers 40+ networks; coverage per guard family varies — see above)
 - **Smart Contracts:** none deployed by Insight — it integrates the official ERC-8004 Identity & Reputation Registries and x402 (AEON facilitator) settlement
 - **Frontend:** Next.js (React) + viem
 - **Development:** TypeScript, Node.js 22.x, Jest, Supabase
@@ -61,7 +80,7 @@ Insight sells **independently recomputable, tamper-evident decision inputs** —
 ## Supported Networks
 
 - Oracle data covers 40+ networks; guard and protocol support varies by asset and chain. See the reviewed coverage above and the linked guides.
-- Payment availability is route-specific and dynamic; the live 402 `accepts[]` is authoritative. Callers must choose a currently advertised option. The public [x402 manifest](https://www.oracleinsight.xyz/.well-known/x402) and each endpoint’s unsigned `PAYMENT-REQUIRED` response show those options; do not infer settlement availability from assessment coverage.
+- Payment availability is route-specific and dynamic; the live 402 `accepts[]` is authoritative. Callers must choose a currently advertised option. The public [x402 manifest](https://www.oracleinsight.xyz/.well-known/x402) and each endpoint's unsigned `PAYMENT-REQUIRED` response show those options; do not infer settlement availability from assessment coverage.
 
 ## Contract Addresses
 
@@ -77,11 +96,13 @@ Insight is an API/agent service and issues no token. Its on-chain footprint is i
 
 ### For AI agents: decision-input integrity
 
-Agents fail differently from humans: they act on the prices they read, and a manipulated or stale price produces a confident agent executing a bad trade. `pre_trade_safety_check` answers the question the transaction simulator cannot — **whether the price the agent is about to trust is currently trustworthy** — with cross-provider agreement and feed health, returned as a signed EIP-712 verdict. Advisory-only risk context (manipulation cost, token security) is reported separately and never enters the verdict or the signed attestation; see [Scope & non-goals](#scope--non-goals). Agents reach it via the [MCP endpoint](#mcp-endpoint-production) or [x402 pay-per-call](#x402-quickstart-pay-per-call); humans re-verify the receipt with the [independent verifier](verifier/README.md).
+Agents fail differently from humans: they act on the prices they read, and a manipulated or stale price produces a confident agent executing a bad trade. `pre_trade_safety_check` answers the question the transaction simulator cannot — **whether the price the agent is about to trust is currently healthy** — with cross-provider agreement and feed health, returned as a signed EIP-712 judgment. Advisory-only risk context (manipulation cost, token security) is reported separately and never enters the verdict or the signed attestation; see [Scope & non-goals](#scope--non-goals). Agents reach it via the [MCP endpoint](#mcp-endpoint-production) or [x402 pay-per-call](#x402-quickstart-pay-per-call); humans re-verify the receipt with the [independent verifier](verifier/README.md).
 
 ### Pre-Trade Safety Check
 
-Before a swap, borrow, lend, liquidation, or repayment, an application can request a cross-oracle assessment. The response combines price agreement, deviation, freshness, stablecoin peg status, reputation, and relevant protocol risk into a **PASS, CAUTION, DANGER, or BLOCK** verdict with a recommended maximum position size. Agents should not execute when the verdict is DANGER or BLOCK.
+Before a swap, borrow, lend, liquidation, or repayment, an application can request a cross-oracle assessment. The response combines price agreement, deviation, freshness, stablecoin peg status, reputation, and relevant protocol risk into a **PASS, CAUTION, DANGER, or BLOCK** verdict with a recommended maximum position size.
+
+> ⚠️ Insight never enforces BLOCK. The verdict is advisory — the calling application or agent owns the decision. A verdict of DANGER or BLOCK means "Insight recommends against proceeding," not "Insight will prevent you." This is intentionally read-only: Insight cannot be a single point of failure for trading, and agents must retain autonomy to override judgments they have independently evaluated.
 
 The verdict comes from deterministic rules; experimental ML scores provide additional context but do not drive it. Lending checks can freeze new borrowing when sustained oracle dispersion consumes the protocol's liquidation buffer. Successfully returned judgments are audit-logged before issuance; an audit-storage failure prevents a successful response.
 
@@ -89,7 +110,7 @@ When signing is configured, the check can include an EIP-712 attestation. A sign
 
 ### Oracle Watch
 
-Oracle Watch gives a running strategy a cross-oracle **NORMAL, CAUTION, or DANGER** signal and a `proceed`, `proceed_with_caution`, or `halt` recommendation. Applications can poll it between trades and pause on `halt`. It checks deviation, agreement, stale or outlying feeds, coverage, and independent source groups; it can also issue signed receipts when an attester key is configured.
+Oracle Watch gives a running strategy a cross-oracle **NORMAL, CAUTION, or DANGER** signal and a `proceed`, `proceed_with_caution`, or `halt` recommendation. Applications can poll it between trades and pause on `halt` — but as with all Insight verdicts, the pause is the caller's choice, not enforced. It checks deviation, agreement, stale or outlying feeds, coverage, and independent source groups; it can also issue signed receipts when an attester key is configured.
 
 Historical coverage is guaranteed for **ETH, BTC, USDC, and USDT on Ethereum, Arbitrum, and Base**. Other pairs can return a current signal without a historical curve; check `meta.historyGuaranteed` rather than treating an empty series as evidence of no incidents. Use the [Decision Integrity page](https://www.oracleinsight.xyz/decision-integrity#oracle-watch-demo) or `GET /api/v1/oracle-watch?symbol=ETH&chain=ethereum` to explore the signal.
 
