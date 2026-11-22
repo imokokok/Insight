@@ -4,7 +4,7 @@
 
 Insight provides a user-controlled, read-only view of the open Polymarket positions reported for an account or proxy wallet address. The viewer adds portfolio context to Insight's risk-intelligence surface; it does not interpret a position as a recommendation to enter, exit, or redeem.
 
-The account view calls Polymarket Data API v2 `GET /v2/positions` with `status=OPEN`. It validates upstream JSON and the same-origin response, follows the API's opaque `next_cursor`, and displays market/outcome, share size, average price, reported current value, unrealized P&L, and redeemable state. The UI shows loaded-page totals, the local query time, and an upstream indexing caveat. The query time is when Insight fetched the response; it is not an upstream data timestamp.
+The account view calls Polymarket Data API v2 `GET /v2/positions` with `status=OPEN`, `filter_type=TOKENS`, and `filter_amount=0`. Polymarket's default token floor is 0.1 shares; explicitly requesting zero keeps smaller open positions visible. Insight re-sends the filter on every cursor page. It validates upstream JSON and the same-origin response, follows the API's opaque `next_cursor`, and displays market/outcome, share size, average price, reported current value, unrealized P&L, and redeemable state. The UI shows loaded-page totals, the local query time, and an upstream indexing caveat. The query time is when Insight fetched the response; it is not an upstream data timestamp.
 
 ## User control and privacy
 
