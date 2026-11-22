@@ -77,7 +77,12 @@ function normalizeKey(raw: Partial<KeyEntry> & { public_key: string }): KeyEntry
   if (!/^0x[0-9a-fA-F]{40}$/.test(raw.public_key)) {
     throw new Error('attestation public_key must be a 20-byte hex address');
   }
-  if (raw.role !== undefined && raw.role !== 'attester' && raw.role !== 'sample' && raw.role !== 'trail-signer') {
+  if (
+    raw.role !== undefined &&
+    raw.role !== 'attester' &&
+    raw.role !== 'sample' &&
+    raw.role !== 'trail-signer'
+  ) {
     throw new Error('attestation key role must be attester, sample, or trail-signer');
   }
   const validFrom = raw.validFrom ?? process.env.ATTESTATION_KEY_VALID_FROM ?? DEFAULT_VALID_FROM;
