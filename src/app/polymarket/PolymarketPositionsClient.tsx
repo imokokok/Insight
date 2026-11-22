@@ -402,8 +402,10 @@ export function PolymarketPositionsClient() {
         )}
 
         <p className="mt-10 border-t border-slate-900/10 pt-5 text-xs leading-5 text-slate-500">
-          Position values and P&amp;L are reported by Polymarket&apos;s public Data API and may be
-          delayed. Insight does not provide a buy/sell recommendation or perform wallet actions.
+          Insight requests a zero-share threshold so positions below Polymarket&apos;s default
+          0.1-share dust filter remain visible. Position values and P&amp;L are reported by
+          Polymarket&apos;s public Data API and may be delayed. Insight does not provide a buy/sell
+          recommendation or perform wallet actions.
         </p>
       </section>
     </div>

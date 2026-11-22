@@ -24,6 +24,8 @@ export async function fetchPolymarketPositionsPage(
   const url = new URL(DATA_API_URL);
   url.searchParams.set('user', address);
   url.searchParams.set('status', 'OPEN');
+  url.searchParams.set('filter_type', 'TOKENS');
+  url.searchParams.set('filter_amount', '0');
   url.searchParams.set('sort_by', 'CURRENT_VALUE');
   url.searchParams.set('sort_direction', 'DESC');
   if (cursor) url.searchParams.set('cursor', cursor);
