@@ -1,7 +1,9 @@
 import { CHRONICLE_MONAD_PRICE_FEEDS } from '@/lib/oracles/constants/chronicleMonad';
+import { PYTH_HYPEREVM_SPONSORED_FEEDS } from '@/lib/oracles/constants/pythHyperEvm';
 import { PYTH_MONAD_SPONSORED_FEEDS } from '@/lib/oracles/constants/pythMonad';
 import { PYTH_SOLANA_SPONSORED_FEEDS } from '@/lib/oracles/constants/pythSolana';
 import { STORK_MONAD_PUSHED_FEEDS } from '@/lib/oracles/constants/storkMonad';
+import { STORK_OTHER_EVM_PUSHED_FEEDS } from '@/lib/oracles/constants/storkOtherEvm';
 import {
   API3_AVAILABLE_PAIRS,
   oracleSupportedSymbols,
@@ -51,8 +53,13 @@ export const ORACLE_SUPPORTED_CHAINS: Record<OracleProvider, readonly Blockchain
     Blockchain.MONAD,
     Blockchain.HYPEREVM,
   ],
-  [OracleProvider.PYTH]: [Blockchain.MONAD, Blockchain.SOLANA],
-  [OracleProvider.STORK]: [Blockchain.MONAD],
+  [OracleProvider.PYTH]: [Blockchain.MONAD, Blockchain.SOLANA, Blockchain.HYPEREVM],
+  [OracleProvider.STORK]: [
+    Blockchain.MONAD,
+    Blockchain.BNB_CHAIN,
+    Blockchain.BASE,
+    Blockchain.HYPEREVM,
+  ],
   [OracleProvider.CHRONICLE]: [Blockchain.MONAD],
   [OracleProvider.API3]: [
     Blockchain.ETHEREUM,
@@ -121,9 +128,19 @@ const PAIRS_BY_PROVIDER: Partial<Record<OracleProvider, Record<string, string[]>
   [OracleProvider.PYTH]: {
     [Blockchain.MONAD]: PYTH_MONAD_SPONSORED_FEEDS.map((feed) => feed.alias),
     [Blockchain.SOLANA]: PYTH_SOLANA_SPONSORED_FEEDS.map((feed) => feed.alias),
+    [Blockchain.HYPEREVM]: PYTH_HYPEREVM_SPONSORED_FEEDS.map((feed) => feed.alias),
   },
   [OracleProvider.STORK]: {
     [Blockchain.MONAD]: STORK_MONAD_PUSHED_FEEDS.map((feed) => feed.alias),
+    [Blockchain.BNB_CHAIN]: STORK_OTHER_EVM_PUSHED_FEEDS.filter(
+      (feed) => feed.chain === Blockchain.BNB_CHAIN
+    ).map((feed) => feed.alias),
+    [Blockchain.BASE]: STORK_OTHER_EVM_PUSHED_FEEDS.filter(
+      (feed) => feed.chain === Blockchain.BASE
+    ).map((feed) => feed.alias),
+    [Blockchain.HYPEREVM]: STORK_OTHER_EVM_PUSHED_FEEDS.filter(
+      (feed) => feed.chain === Blockchain.HYPEREVM
+    ).map((feed) => feed.alias),
   },
   [OracleProvider.CHRONICLE]: {
     [Blockchain.MONAD]: CHRONICLE_MONAD_PRICE_FEEDS.map((feed) => feed.alias),

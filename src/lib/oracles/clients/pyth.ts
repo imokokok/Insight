@@ -1,5 +1,11 @@
 import { BaseOracleClient } from '@/lib/oracles/base';
 import {
+  PYTH_HYPEREVM_CHAIN_ID,
+  PYTH_HYPEREVM_CORE_ADDRESS,
+  PYTH_HYPEREVM_SPONSORED_FEEDS,
+  resolvePythHyperEvmFeed,
+} from '@/lib/oracles/constants/pythHyperEvm';
+import {
   PYTH_MONAD_CHAIN_ID,
   PYTH_MONAD_CORE_ADDRESS,
   PYTH_MONAD_SPONSORED_FEEDS,
@@ -9,6 +15,7 @@ import {
   PYTH_SOLANA_SPONSORED_FEEDS,
   resolvePythSolanaFeed,
 } from '@/lib/oracles/constants/pythSolana';
+import { pythHyperEvmOnChainService } from '@/lib/oracles/services/pythHyperEvmOnChainService';
 import { pythMonadOnChainService } from '@/lib/oracles/services/pythMonadOnChainService';
 import { pythSolanaOnChainService } from '@/lib/oracles/services/pythSolanaOnChainService';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
@@ -310,5 +317,168 @@ export class PythClient extends BaseOracleClient {
       verification: solanaVerification(reading),
     };
     return this.validatePriceData(data, 'pyth-solana:getPrice');
+  }
+}
+
+/** Production Pyth client that adds HyperEVM while retaining Monad and Solana paths. */
+export class PythMultiChainClient extends PythClient {
+  supportedChains = [Blockchain.MONAD, Blockchain.SOLANA, Blockchain.HYPEREVM];
+  protected supportedSymbolsList = [
+    ...new Set([
+      ...PYTH_MONAD_SPONSORED_FEEDS.map((feed) => feed.alias),
+      ...PYTH_SOLANA_SPONSORED_FEEDS.map((feed) => feed.alias),
+      ...PYTH_HYPEREVM_SPONSORED_FEEDS.map((feed) => feed.alias),
+    ]),
+  ];
+
+  async getPrice(
+    symbol: string,
+    chain?: Blockchain,
+    options?: { signal?: AbortSignal }
+  ): Promise<PriceData> {
+    if (chain !== Blockchain.HYPEREVM) return super.getPrice(symbol, chain, options);
+    this.validateGetPriceParams(symbol, options);
+    const feed = resolvePythHyperEvmFeed(symbol);
+    if (!feed) throw this.createUnsupportedSymbolError(symbol, chain);
+    try {
+      const reading = await withOracleRetry(
+        () => pythHyperEvmOnChainService.getPrice(feed, options?.signal),
+        'pyth-hyperevm:getPrice',
+        ORACLE_RETRY_PRESETS.standard,
+        options?.signal
+      );
+      const dataAge = Math.max(0, Math.floor(Date.now() / 1000) - reading.publishTime);
+      const data: PriceData = {
+        provider: this.name,
+        chain: Blockchain.HYPEREVM,
+        symbol: feed.alias,
+        price: reading.price,
+        timestamp: reading.timestamp,
+        decimals: Math.max(0, -reading.exponent),
+        confidence: confidenceScore(reading.confidenceRatio),
+        confidenceSource: 'calculated',
+        confidenceInterval: {
+          bid: reading.price - reading.confidence,
+          ask: reading.price + reading.confidence,
+          widthPercentage: reading.confidenceRatio * 200,
+        },
+        source: `Pyth Core HyperEVM:${feed.alias}`,
+        priceId: reading.feedId,
+        feedId: reading.feedId,
+        exponent: reading.exponent,
+        conf: reading.confidence,
+        publishTime: reading.publishTime,
+        dataAge,
+        dataSource: 'real',
+        ingestionTimestamp: Date.now(),
+        failureMode: FailureMode.NONE,
+        countsTowardOracleQuorum: false,
+        signalVector: buildSignalVector({
+          dataAgeSeconds: dataAge,
+          isOnChain: true,
+          hasVerification: true,
+          providerUptime: PYTH_RELIABILITY * 100,
+          hasConfidence: true,
+          hasTimestamp: true,
+          hasDecimals: true,
+          hasSource: true,
+          verificationMethod: 'getPriceUnsafe+freshness-and-confidence-gates',
+        }),
+        verification: {
+          ...buildEvmVerification(
+            PYTH_HYPEREVM_CORE_ADDRESS,
+            PYTH_HYPEREVM_CHAIN_ID,
+            'getPriceUnsafe(bytes32)+freshness-and-confidence-gates'
+          ),
+          feedHash: reading.feedId,
+          rawValue: reading.rawPrice,
+          sourceTimestamp: reading.publishTime,
+          valueExponent: reading.exponent,
+          rawConfidenceRaw: reading.rawConfidence,
+          maxStalenessSeconds: reading.maxAgeSeconds,
+          priceDeviationPercent: feed.priceDeviationPercent,
+          quoteType: feed.quoteType,
+        },
+      };
+      return this.validatePriceData(data, 'pyth-hyperevm:getPrice');
+    } catch (error) {
+      this.handleGetPriceError(error, 'Pyth Core on HyperEVM', 'PYTH_PRICE_ERROR');
+    }
+  }
+
+  isSymbolSupported(symbol: string, chain?: Blockchain): boolean {
+    if (chain === Blockchain.HYPEREVM) return resolvePythHyperEvmFeed(symbol) !== null;
+    if (chain === undefined && resolvePythHyperEvmFeed(symbol)) return true;
+    return super.isSymbolSupported(symbol, chain);
+  }
+
+  getSupportedChainsForSymbol(symbol: string): Blockchain[] {
+    const chains = super.getSupportedChainsForSymbol(symbol);
+    if (resolvePythHyperEvmFeed(symbol)) chains.push(Blockchain.HYPEREVM);
+    return chains;
+  }
+
+  async getSnapshotPricesBatch(
+    requests: readonly SnapshotBatchPriceRequest[],
+    signal?: AbortSignal
+  ): Promise<SnapshotBatchPriceResult[]> {
+    const standardRequests = requests.filter((request) => request.chain !== Blockchain.HYPEREVM);
+    const hyperRequests = requests.filter((request) => request.chain === Blockchain.HYPEREVM);
+    const results = new Map(
+      (await super.getSnapshotPricesBatch(standardRequests, signal)).map((result) => [
+        result.id,
+        result,
+      ])
+    );
+    const feedsByRequest = new Map(
+      hyperRequests.map((request) => [request.id, resolvePythHyperEvmFeed(request.symbol)])
+    );
+    const feeds = [
+      ...new Map(
+        [...feedsByRequest.values()]
+          .filter((feed): feed is NonNullable<typeof feed> => feed !== null)
+          .map((feed) => [feed.alias, feed])
+      ).values(),
+    ];
+    const readings = await pythHyperEvmOnChainService.getPrices(feeds, signal);
+    const readingsByAlias = new Map(readings.map((reading) => [reading.alias, reading]));
+
+    await Promise.all(
+      hyperRequests.map(async (request) => {
+        const feed = feedsByRequest.get(request.id);
+        if (!feed) {
+          results.set(request.id, {
+            id: request.id,
+            price: null,
+            error: new Error(`No reviewed Pyth HyperEVM feed for ${request.symbol}`),
+          });
+          return;
+        }
+        try {
+          // The batch read primes the freshness-bounded cache. The common
+          // converter still validates and emits the same evidence fields.
+          const reading = readingsByAlias.get(feed.alias);
+          const price = reading
+            ? await this.getPrice(feed.alias, Blockchain.HYPEREVM, { signal })
+            : await this.getPrice(request.symbol, Blockchain.HYPEREVM, { signal });
+          results.set(request.id, { id: request.id, price, error: null });
+        } catch (error) {
+          results.set(request.id, {
+            id: request.id,
+            price: null,
+            error: error instanceof Error ? error : new Error(String(error)),
+          });
+        }
+      })
+    );
+
+    return requests.map(
+      (request) =>
+        results.get(request.id) ?? {
+          id: request.id,
+          price: null,
+          error: new Error('Pyth batch request was not resolved'),
+        }
+    );
   }
 }

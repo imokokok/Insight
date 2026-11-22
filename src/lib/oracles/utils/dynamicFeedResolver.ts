@@ -11,7 +11,9 @@ import {
 } from '@/lib/turso/price/controlPlaneRepository';
 import { ensureTursoPriceSchema } from '@/lib/turso/price/schema';
 import { createLogger } from '@/lib/utils/logger';
+import { Blockchain } from '@/types/oracle';
 
+import { resolveOracleFeedBlockchain } from './feedChain';
 import { extractBaseSymbol } from './oracleDataUtils';
 
 const logger = createLogger('DynamicFeedResolver');
@@ -360,6 +362,15 @@ async function loadFeedsForProvider(provider: string): Promise<Map<string, Oracl
 
 export function matchesChainId(feed: OracleFeed, chainId?: number): boolean {
   if (chainId === undefined) return true;
+  // Solana shares numeric id 0 with chain-agnostic feeds. Never let a
+  // source-bound Solana row match an EVM request through the generic 0 rule.
+  if (
+    feed.chain_id === 0 &&
+    resolveOracleFeedBlockchain(feed) === Blockchain.SOLANA &&
+    chainId !== 0
+  ) {
+    return false;
+  }
   // chain_id 0 means the feed is chain-agnostic (e.g. Supra, API-offchain).
   return feed.chain_id === 0 || feed.chain_id === chainId;
 }

@@ -29,10 +29,17 @@ export interface OnChainVerification {
   valueExponent?: number;
   /** Provider-native absolute confidence interval, when published. */
   rawConfidence?: number;
+  /** Exact provider-native confidence value before numeric scaling. */
+  rawConfidenceRaw?: string;
   /** Serialized provider timestamp when it exceeds JS-safe integer precision. */
   sourceTimestampNs?: string;
   /** Provider-native asset key paired with the canonical feed hash. */
   assetId?: string;
+  /** Feed-level freshness and routing policy evidence. */
+  maxStalenessSeconds?: number;
+  priceDeviationPercent?: number;
+  quoteType?: 'price' | 'reference-rate' | 'exchange-rate';
+  quorumStatus?: string;
   signatureScheme?: 'ed25519' | 'secp256k1';
   recoveryId?: number;
 }

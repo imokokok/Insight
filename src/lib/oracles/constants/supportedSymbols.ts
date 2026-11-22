@@ -1,10 +1,12 @@
 import { bandSymbols } from './bandConstants';
 import { CHRONICLE_MONAD_PRICE_FEEDS } from './chronicleMonad';
 import { flareSymbols } from './flareConstants';
+import { PYTH_HYPEREVM_SPONSORED_FEEDS } from './pythHyperEvm';
 import { PYTH_MONAD_SPONSORED_FEEDS } from './pythMonad';
 import { PYTH_SOLANA_SPONSORED_FEEDS } from './pythSolana';
 import { reflectorSymbols } from './reflectorConstants';
 import { STORK_MONAD_PUSHED_FEEDS } from './storkMonad';
+import { STORK_OTHER_EVM_PUSHED_FEEDS } from './storkOtherEvm';
 import { supraSymbols } from './supraConstants';
 import { twapSymbols } from './twapConstants';
 
@@ -639,11 +641,15 @@ const pythSymbols = [
   ...new Set([
     ...PYTH_MONAD_SPONSORED_FEEDS.map((feed) => feed.alias),
     ...PYTH_SOLANA_SPONSORED_FEEDS.map((feed) => feed.alias),
+    ...PYTH_HYPEREVM_SPONSORED_FEEDS.map((feed) => feed.alias),
   ]),
 ];
 
-// Stork support is derived from the complete committed Monad pushed-feed set.
-const storkSymbols = STORK_MONAD_PUSHED_FEEDS.map((feed) => feed.alias);
+// Stork support is derived from the committed EVM pushed-feed directories.
+const storkSymbols = [
+  ...STORK_MONAD_PUSHED_FEEDS.map((feed) => feed.alias),
+  ...STORK_OTHER_EVM_PUSHED_FEEDS.map((feed) => feed.alias),
+];
 
 // WINkLink supported symbols (primarily supports TRON ecosystem, only including trading pairs with real contract addresses)
 export const winklinkSymbols = [
