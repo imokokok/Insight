@@ -88,6 +88,7 @@ import {
   WATCH_REQUIRED_PARTICIPANT_COUNT,
   WATCH_REQUIRED_SOURCE_GROUP_COUNT,
 } from '@/lib/attestations/oracleWatchAttestation';
+import { PROVIDER_OBSERVATIONS_HASH_CANONICALIZATION } from '@/lib/attestations/providerObservationsHash';
 import {
   PULSE_DOMAIN,
   PULSE_PRIMARY_TYPE,
@@ -95,7 +96,6 @@ import {
   PULSE_TYPES,
   PULSE_VALID_FOR_SECONDS,
 } from '@/lib/attestations/pulseAttestation';
-import { PROVIDER_OBSERVATIONS_HASH_CANONICALIZATION } from '@/lib/attestations/providerObservationsHash';
 import {
   CURRENT_MAINLINE_PROTOCOL_PROMOTION,
   CURRENT_MAINLINE_PROTOCOL_PROMOTION_ID,
