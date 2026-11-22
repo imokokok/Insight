@@ -81,7 +81,9 @@ describe('key registry time and role enforcement', () => {
     process.env.ATTESTATION_KEYS_CONFIG = JSON.stringify([
       { public_key: ADDRESS, role: 'unexpected' },
     ]);
-    expect(() => buildKeyRegistryConfig(ADDRESS)).toThrow(/role must be attester, sample, or trail-signer/);
+    expect(() => buildKeyRegistryConfig(ADDRESS)).toThrow(
+      /role must be attester, sample, or trail-signer/
+    );
   });
 
   it('applies revocations to the single-key fallback registry', () => {
