@@ -11,13 +11,13 @@ MCP product tools**. The canonical tool names are stable through 2027-01-06;
 the deprecated alias names (e.g. `check_trade_safety`, `prepare_swap`) are
 equivalent until that same date.
 
-| What you want to do | Canonical MCP tool | `op` selector | Deprecated alias (until 2027-01-06) |
-|---|---|---|---|
-| Pre-trade oracle safety gate | `trade_guard` | `check_safety` | `check_trade_safety` |
-| Prepare an exact swap call | `trade_guard` | `prepare_swap` | `prepare_swap` |
-| Prepare a perpetual order | `trade_guard` | `prepare_perp_order` | `prepare_perp_order` |
-| Verify a signed execution receipt | `trade_proof` | `verify_evidence` | `verify_evidence` |
-| Continuous oracle health monitoring | `oracle_watch_window` | `snapshot` / `history` | `oracle_watch` |
+| What you want to do                 | Canonical MCP tool    | `op` selector          | Deprecated alias (until 2027-01-06) |
+| ----------------------------------- | --------------------- | ---------------------- | ----------------------------------- |
+| Pre-trade oracle safety gate        | `trade_guard`         | `check_safety`         | `check_trade_safety`                |
+| Prepare an exact swap call          | `trade_guard`         | `prepare_swap`         | `prepare_swap`                      |
+| Prepare a perpetual order           | `trade_guard`         | `prepare_perp_order`   | `prepare_perp_order`                |
+| Verify a signed execution receipt   | `trade_proof`         | `verify_evidence`      | `verify_evidence`                   |
+| Continuous oracle health monitoring | `oracle_watch_window` | `snapshot` / `history` | `oracle_watch`                      |
 
 **Base/Monad Aave V3 lending direct calls** — use the dedicated
 [`insight-lending-guard`](../insight-lending-guard/README.md) Skill which wraps

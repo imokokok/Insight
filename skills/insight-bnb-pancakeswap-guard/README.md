@@ -5,11 +5,11 @@ BNB mainnet PancakeSwap V3 exact-route swap guard with canonical `approve` +
 
 ## Tool mapping
 
-| What you want to do | Canonical MCP tool | `op` selector | Deprecated alias |
-|---|---|---|---|
-| Pre-swap safety gate | `trade_guard` | `check_safety` | `check_trade_safety` |
-| Prepare an exact PancakeSwap V3 swap | `trade_guard` | `prepare_swap` | `prepare_swap` |
-| Post-trade verification | `trade_proof` | `verify_evidence` | `verify_evidence` |
+| What you want to do                  | Canonical MCP tool | `op` selector     | Deprecated alias     |
+| ------------------------------------ | ------------------ | ----------------- | -------------------- |
+| Pre-swap safety gate                 | `trade_guard`      | `check_safety`    | `check_trade_safety` |
+| Prepare an exact PancakeSwap V3 swap | `trade_guard`      | `prepare_swap`    | `prepare_swap`       |
+| Post-trade verification              | `trade_proof`      | `verify_evidence` | `verify_evidence`    |
 
 ## Minimal TypeScript example
 

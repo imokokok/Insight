@@ -10,11 +10,11 @@ This Skill wraps `trade_guard` with lending-specific parameter defaults. Call
 the canonical product tool directly, or use the deprecated alias
 `check_trade_safety` (sunset 2027-01-06).
 
-| What you want to do | Canonical MCP tool | `op` selector | Deprecated alias |
-|---|---|---|---|
-| Pre-lending safety gate | `trade_guard` | `check_safety` | `check_trade_safety` |
-| Decode + verify an exact unsigned transaction | `trade_guard` | `check_safety` (with calldata) | `base_lending_guard_exact_call` (conceptual; resolves to `check_safety`) |
-| Post-trade evidence verify | `trade_proof` | `verify_evidence` | `verify_evidence` |
+| What you want to do                           | Canonical MCP tool | `op` selector                  | Deprecated alias                                                         |
+| --------------------------------------------- | ------------------ | ------------------------------ | ------------------------------------------------------------------------ |
+| Pre-lending safety gate                       | `trade_guard`      | `check_safety`                 | `check_trade_safety`                                                     |
+| Decode + verify an exact unsigned transaction | `trade_guard`      | `check_safety` (with calldata) | `base_lending_guard_exact_call` (conceptual; resolves to `check_safety`) |
+| Post-trade evidence verify                    | `trade_proof`      | `verify_evidence`              | `verify_evidence`                                                        |
 
 Install the remote endpoint with [`mcp.json`](mcp.json), then use the
 no-money discovery check from the companion
