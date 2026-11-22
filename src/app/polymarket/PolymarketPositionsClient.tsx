@@ -11,7 +11,8 @@ import {
   Wallet,
 } from 'lucide-react';
 
-import type { PolymarketPosition } from '@/lib/polymarket/positions';
+import { PolymarketPositionsPageSchema } from '@/lib/polymarket/positions-schema';
+import type { PolymarketPosition } from '@/lib/polymarket/positions-schema';
 
 const ADDRESS_PATTERN = /^0x[0-9a-fA-F]{40}$/;
 const STORAGE_KEY = 'insight:polymarket:public-account-address';
@@ -38,11 +39,6 @@ function notifySavedAddressChanged() {
   window.dispatchEvent(new Event(STORAGE_EVENT));
 }
 
-type PositionsPage = {
-  data: PolymarketPosition[];
-  pagination: { has_more: boolean; next_cursor: string | null };
-};
-
 const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
 const quantity = new Intl.NumberFormat('en-US', { maximumFractionDigits: 4 });
 
@@ -61,18 +57,20 @@ export function PolymarketPositionsClient() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [storageWarning, setStorageWarning] = useState('');
-  const [refreshedAt, setRefreshedAt] = useState<Date | null>(null);
+  const [queriedAt, setQueriedAt] = useState<Date | null>(null);
 
   async function loadPage(walletAddress: string, nextCursor: string | null, append: boolean) {
     setLoading(true);
     setError('');
     try {
-      const params = new URLSearchParams({ user: walletAddress });
-      if (nextCursor) params.set('cursor', nextCursor);
-      const response = await fetch(`/api/polymarket/positions?${params.toString()}`, {
-        method: 'GET',
+      const response = await fetch('/api/polymarket/positions', {
+        method: 'POST',
         cache: 'no-store',
-        headers: { accept: 'application/json' },
+        headers: { accept: 'application/json', 'content-type': 'application/json' },
+        body: JSON.stringify({
+          user: walletAddress,
+          ...(nextCursor ? { cursor: nextCursor } : {}),
+        }),
       });
       const payload: unknown = await response.json();
       if (!response.ok) {
@@ -86,21 +84,19 @@ export function PolymarketPositionsClient() {
         throw new Error(message);
       }
 
-      const page = payload as PositionsPage;
-      if (
-        !Array.isArray(page.data) ||
-        typeof page.pagination?.has_more !== 'boolean' ||
-        (page.pagination.has_more && typeof page.pagination.next_cursor !== 'string') ||
-        (page.pagination.next_cursor !== null && typeof page.pagination.next_cursor !== 'string') ||
-        (nextCursor !== null && page.pagination.next_cursor === nextCursor)
-      ) {
+      const parsedPage = PolymarketPositionsPageSchema.safeParse(payload);
+      if (!parsedPage.success) {
+        throw new Error('The positions response was incomplete. Refresh and try again.');
+      }
+      const page = parsedPage.data;
+      if (nextCursor !== null && page.pagination.next_cursor === nextCursor) {
         throw new Error('The positions response was incomplete. Refresh and try again.');
       }
       setPositions((current) => (append ? [...current, ...page.data] : page.data));
       setCursor(page.pagination.next_cursor);
       setHasMore(page.pagination.has_more);
       setActiveAddress(walletAddress);
-      setRefreshedAt(new Date());
+      setQueriedAt(new Date());
     } catch (loadError) {
       setError(
         loadError instanceof Error ? loadError.message : 'Positions could not be loaded. Try again.'
@@ -238,8 +234,8 @@ export function PolymarketPositionsClient() {
               Remember this public address on this device
             </label>
             <p className="text-xs leading-5 text-slate-500">
-              The address is sent to Insight&apos;s read-only endpoint and Polymarket&apos;s public
-              Data API.
+              The address is sent in the request body to Insight&apos;s read-only endpoint, then to
+              Polymarket&apos;s public Data API.
             </p>
           </div>
           {storageWarning && (
@@ -283,11 +279,20 @@ export function PolymarketPositionsClient() {
                 >
                   {currency.format(loadedUnrealizedPnl)} unrealized P&amp;L
                 </span>
-                {refreshedAt && (
+                {queriedAt && (
                   <span className="text-xs text-slate-500">
-                    Updated {refreshedAt.toLocaleTimeString()}
+                    Last successful query {queriedAt.toLocaleString()}
                   </span>
                 )}
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={() => void loadPage(activeAddress, null, false)}
+                  className="inline-flex items-center gap-1.5 border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-blue-700 hover:text-blue-800 disabled:cursor-wait disabled:opacity-60"
+                >
+                  <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+                  Refresh positions
+                </button>
               </div>
             </div>
 
