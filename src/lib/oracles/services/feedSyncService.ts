@@ -2,6 +2,7 @@ import { type OracleFeedInsert } from '@/lib/supabase/queries';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { mapWithConcurrency } from '@/lib/utils/concurrency';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
+import { Blockchain } from '@/types/oracle';
 
 import { bandSymbols, getBandSignalId } from '../constants/bandConstants';
 import {
@@ -20,6 +21,11 @@ import { CHRONICLE_MONAD_CHAIN_ID, CHRONICLE_MONAD_PRICE_FEEDS } from '../consta
 import { DIA_ASSET_MAPPING, type DIAAssetConfig } from '../constants/diaConstants';
 import { FLARE_SYMBOL_TO_FEED_ID } from '../constants/flareConstants';
 import {
+  PYTH_HYPEREVM_CHAIN_ID,
+  PYTH_HYPEREVM_CORE_ADDRESS,
+  PYTH_HYPEREVM_SPONSORED_FEEDS,
+} from '../constants/pythHyperEvm';
+import {
   PYTH_MONAD_CHAIN_ID,
   PYTH_MONAD_CORE_ADDRESS,
   PYTH_MONAD_SPONSORED_FEEDS,
@@ -37,6 +43,10 @@ import {
   STORK_MONAD_CONTRACT_ADDRESS,
   STORK_MONAD_PUSHED_FEEDS,
 } from '../constants/storkMonad';
+import {
+  STORK_OTHER_EVM_CONTRACTS,
+  STORK_OTHER_EVM_PUSHED_FEEDS,
+} from '../constants/storkOtherEvm';
 import { getAssetClass, redstoneSymbols } from '../constants/supportedSymbols';
 import { SUPRA_PAIR_INDEX_MAP } from '../constants/supraConstants';
 import {
@@ -54,10 +64,12 @@ import {
 import { chainlinkSolanaOnChainService } from './chainlinkSolanaOnChainService';
 import { chronicleMonadOnChainService } from './chronicleMonadOnChainService';
 import { feedRegistryService } from './feedRegistryService';
+import { pythHyperEvmOnChainService } from './pythHyperEvmOnChainService';
 import { pythMonadOnChainService } from './pythMonadOnChainService';
 import { pythSolanaOnChainService } from './pythSolanaOnChainService';
 import { redStoneMonadOnChainService } from './redstoneMonadOnChainService';
 import { storkMonadOnChainService } from './storkMonadOnChainService';
+import { storkOtherEvmOnChainService } from './storkOtherEvmOnChainService';
 import { supraMonadOnChainService } from './supraMonadOnChainService';
 import { WINKLINK_PRICE_FEEDS } from './winklinkRealDataService';
 
@@ -105,7 +117,11 @@ async function deactivateRetiredCuratedFeeds(args: {
     | 'chainlink-solana-rdd'
     | 'pyth-monad-sponsored-registry'
     | 'pyth-solana-sponsored-registry'
+    | 'pyth-hyperevm-sponsored-registry'
     | 'stork-monad-pushed-registry'
+    | 'stork-bnb-chain-pushed-registry'
+    | 'stork-base-pushed-registry'
+    | 'stork-hyperevm-pushed-registry'
     | 'chronicle-monad-price-feed-registry'
     | 'redstone-monad-price-feed-registry'
     | 'supra-monad-dora-push-registry';
@@ -555,18 +571,71 @@ class FeedSyncService {
     return result;
   }
 
-  /** Seed both native Pyth Core sponsored registries as one provider refresh. */
+  /** Resolve the three official HyperEVM feed IDs from Pyth metadata, then read Pyth Core directly. */
+  async seedPythHyperEvmSponsoredFeeds(): Promise<SyncResult> {
+    const result: SyncResult = {
+      provider: 'pyth',
+      discovered: PYTH_HYPEREVM_SPONSORED_FEEDS.length,
+      upserted: 0,
+      deactivated: 0,
+      errors: 0,
+    };
+    const readings = await pythHyperEvmOnChainService.getPrices(PYTH_HYPEREVM_SPONSORED_FEEDS);
+    const readingsByAlias = new Map(readings.map((reading) => [reading.alias, reading]));
+    const usableFeeds = PYTH_HYPEREVM_SPONSORED_FEEDS.flatMap((feed) => {
+      const reading = readingsByAlias.get(feed.alias);
+      return reading ? [{ feed, reading }] : [];
+    });
+    result.errors = result.discovered - usableFeeds.length;
+    result.upserted = await upsertFeeds(
+      usableFeeds.map(({ feed, reading }) => ({
+        provider: 'pyth',
+        symbol: feed.alias,
+        chain_id: PYTH_HYPEREVM_CHAIN_ID,
+        address: PYTH_HYPEREVM_CORE_ADDRESS,
+        name: `Pyth HyperEVM ${feed.alias}`,
+        decimals: Math.max(0, -reading.exponent),
+        category: this.inferCategory(feed.alias.split('/')[0]),
+        is_active: true,
+        source: 'pyth-hyperevm-sponsored-registry',
+        metadata: {
+          feedId: reading.feedId,
+          pythContract: PYTH_HYPEREVM_CORE_ADDRESS,
+          chainId: PYTH_HYPEREVM_CHAIN_ID,
+          timeDifferenceSeconds: feed.timeDifferenceSeconds,
+          priceDeviationPercent: feed.priceDeviationPercent,
+          quoteType: feed.quoteType,
+          freshnessPolicy: 'publish_time <= 2 * sponsored_time_difference',
+          directorySource: 'https://docs.pyth.network/pro/sponsored-feeds',
+          feedIdSource: 'https://docs.pyth.network/api-reference/hermes/price-feeds',
+          quorumStatus: 'shadow-only-pending-freshness-and-source-review',
+        },
+      }))
+    );
+    if (readings.length > 0) {
+      result.deactivated = await deactivateRetiredCuratedFeeds({
+        provider: 'pyth',
+        source: 'pyth-hyperevm-sponsored-registry',
+        chainId: PYTH_HYPEREVM_CHAIN_ID,
+        catalogSymbols: PYTH_HYPEREVM_SPONSORED_FEEDS.map((feed) => feed.alias),
+      });
+    }
+    return result;
+  }
+
+  /** Seed the reviewed Monad, Solana and HyperEVM Pyth directories. */
   async seedPythSponsoredFeeds(): Promise<SyncResult> {
-    const [monad, solana] = await Promise.all([
+    const [monad, solana, hyperevm] = await Promise.all([
       this.seedPythMonadSponsoredFeeds(),
       this.seedPythSolanaSponsoredFeeds(),
+      this.seedPythHyperEvmSponsoredFeeds(),
     ]);
     return {
       provider: 'pyth',
-      discovered: monad.discovered + solana.discovered,
-      upserted: monad.upserted + solana.upserted,
-      deactivated: monad.deactivated + solana.deactivated,
-      errors: monad.errors + solana.errors,
+      discovered: monad.discovered + solana.discovered + hyperevm.discovered,
+      upserted: monad.upserted + solana.upserted + hyperevm.upserted,
+      deactivated: monad.deactivated + solana.deactivated + hyperevm.deactivated,
+      errors: monad.errors + solana.errors + hyperevm.errors,
     };
   }
 
@@ -623,6 +692,84 @@ class FeedSyncService {
       catalogSymbols: STORK_MONAD_PUSHED_FEEDS.map((feed) => feed.alias),
     });
     return result;
+  }
+
+  /** Read and register Stork's officially pushed BNB, Base and HyperEVM assets. */
+  async seedStorkOtherEvmPushedFeeds(): Promise<SyncResult> {
+    const result: SyncResult = {
+      provider: 'stork',
+      discovered: STORK_OTHER_EVM_PUSHED_FEEDS.length,
+      upserted: 0,
+      deactivated: 0,
+      errors: 0,
+    };
+
+    const readings = await storkOtherEvmOnChainService.getPrices(STORK_OTHER_EVM_PUSHED_FEEDS);
+    const usableIds = new Set(readings.map((reading) => reading.encodedAssetId.toLowerCase()));
+    const usableFeeds = STORK_OTHER_EVM_PUSHED_FEEDS.filter((feed) =>
+      usableIds.has(feed.encodedAssetId.toLowerCase())
+    );
+    result.errors = result.discovered - usableFeeds.length;
+
+    const rows: OracleFeedInsert[] = usableFeeds.map((feed) => {
+      const contract = STORK_OTHER_EVM_CONTRACTS[feed.chain];
+      if (!contract) throw new Error(`Missing Stork contract for ${feed.chain}`);
+      return {
+        provider: 'stork',
+        symbol: feed.alias,
+        chain_id: feed.chainId,
+        address: contract.address,
+        name: `Stork ${feed.alias}`,
+        decimals: 18,
+        category: this.inferCategory(feed.alias.split(/[\/_]/)[0]),
+        is_active: true,
+        source: `stork-${feed.chain}-pushed-registry`,
+        metadata: {
+          assetId: feed.assetId,
+          encodedAssetId: feed.encodedAssetId,
+          storkContract: contract.address,
+          chainId: feed.chainId,
+          maxStalenessSeconds: feed.maxStalenessSeconds,
+          priceDeviationPercent: feed.priceDeviationPercent,
+          quoteType: 'reference-rate',
+          freshnessPolicy:
+            'getTemporalNumericValueV1 safe read and timestamp <= maxStalenessSeconds',
+          quorumStatus: 'shadow-only-reference-rate',
+          registrySource: 'https://docs.stork.network/resources/stork-pushed-assets',
+        },
+      };
+    });
+    result.upserted = await upsertFeeds(rows);
+
+    // A chain/RPC outage must not retire already captured rows. Reconcile only
+    // a network where at least one live read proved that the contract responded.
+    for (const chain of [Blockchain.BNB_CHAIN, Blockchain.BASE, Blockchain.HYPEREVM] as const) {
+      const feedsOnChain = STORK_OTHER_EVM_PUSHED_FEEDS.filter((feed) => feed.chain === chain);
+      if (!readings.some((reading) => reading.feed.chain === chain)) continue;
+      const contract = STORK_OTHER_EVM_CONTRACTS[chain];
+      if (!contract) continue;
+      result.deactivated += await deactivateRetiredCuratedFeeds({
+        provider: 'stork',
+        source: `stork-${chain}-pushed-registry`,
+        chainId: contract.chainId,
+        catalogSymbols: feedsOnChain.map((feed) => feed.alias),
+      });
+    }
+    return result;
+  }
+
+  async seedStorkPushedFeeds(): Promise<SyncResult> {
+    const [monad, otherEvm] = await Promise.all([
+      this.seedStorkMonadPushedFeeds(),
+      this.seedStorkOtherEvmPushedFeeds(),
+    ]);
+    return {
+      provider: 'stork',
+      discovered: monad.discovered + otherEvm.discovered,
+      upserted: monad.upserted + otherEvm.upserted,
+      deactivated: monad.deactivated + otherEvm.deactivated,
+      errors: monad.errors + otherEvm.errors,
+    };
   }
 
   // ─── Chronicle push feeds / Monad ─────────────────────────────────
@@ -1229,7 +1376,7 @@ class FeedSyncService {
       case 'pyth':
         return this.seedPythSponsoredFeeds();
       case 'stork':
-        return this.seedStorkMonadPushedFeeds();
+        return this.seedStorkPushedFeeds();
       case 'chronicle':
         return this.seedChronicleMonadPriceFeeds();
       case 'supra':

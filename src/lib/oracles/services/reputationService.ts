@@ -322,8 +322,11 @@ class ReputationService {
       if (result.price) prices.push(result.price);
     }
 
-    if (prices.length >= 2) {
-      const inputs = prices.map((price) => ({
+    const consensusEligiblePrices = prices.filter(
+      (price) => price.countsTowardOracleQuorum !== false
+    );
+    if (consensusEligiblePrices.length >= 2) {
+      const inputs = consensusEligiblePrices.map((price) => ({
         provider: price.provider,
         price: price.price,
         timestamp: price.timestamp,

@@ -9,7 +9,7 @@ import { ChainlinkClient } from './clients/chainlink';
 import { ChronicleMonadClient } from './clients/chronicleMonad';
 import { DIAClient } from './clients/dia';
 import { FlareClient } from './clients/flare';
-import { PythClient } from './clients/pyth';
+import { PythMultiChainClient } from './clients/pyth';
 import { RedStoneClient } from './clients/redstone';
 import { ReflectorClient } from './clients/reflector';
 import { StorkMonadClient } from './clients/storkMonad';
@@ -29,7 +29,7 @@ const logger = createLogger('OracleClientFactory');
 const ORACLE_CLIENT_CONSTRUCTORS: Record<OracleProvider, () => BaseOracleClient> = {
   [OracleProvider.CHAINLINK]: () =>
     new ChainlinkClient({ useRealData: FEATURE_FLAGS.useRealChainlinkData }),
-  [OracleProvider.PYTH]: () => new PythClient(),
+  [OracleProvider.PYTH]: () => new PythMultiChainClient(),
   [OracleProvider.STORK]: () => new StorkMonadClient(),
   [OracleProvider.CHRONICLE]: () => new ChronicleMonadClient(),
   [OracleProvider.API3]: () => new API3Client(),

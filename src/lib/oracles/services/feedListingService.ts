@@ -1,7 +1,7 @@
 import { createServiceRoleClient } from '@/lib/supabase/server';
 
 const FEED_COLUMNS =
-  'id,provider,symbol,chain_id,address,name,decimals,category,is_active,consecutive_failures,last_success_at,last_failure_at';
+  'id,provider,symbol,chain_id,address,name,decimals,category,is_active,consecutive_failures,last_success_at,last_failure_at,source,metadata';
 
 export interface FeedListFilters {
   provider?: string;
@@ -26,6 +26,9 @@ export interface ListedFeed {
   consecutive_failures: number;
   last_success_at: string | null;
   last_failure_at: string | null;
+  source: string | null;
+  network: string | null;
+  quote_type: string | null;
 }
 
 /** Filter, count, and page in Postgres so callers never download the whole registry. */
@@ -53,5 +56,23 @@ export async function listOracleFeeds(
     throw new Error('Feed listing query did not return data and an exact count');
   }
 
-  return { feeds: data as ListedFeed[], total: count };
+  const feeds = data.map((row) => {
+    const metadata =
+      row.metadata && typeof row.metadata === 'object' && !Array.isArray(row.metadata)
+        ? (row.metadata as Record<string, unknown>)
+        : {};
+    return {
+      ...row,
+      source: typeof row.source === 'string' ? row.source : null,
+      network:
+        typeof metadata.solanaNetwork === 'string'
+          ? metadata.solanaNetwork
+          : typeof metadata.network === 'string'
+            ? metadata.network
+            : null,
+      quote_type: typeof metadata.quoteType === 'string' ? metadata.quoteType : null,
+    } as ListedFeed;
+  });
+
+  return { feeds, total: count };
 }
