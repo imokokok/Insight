@@ -12,7 +12,7 @@ import { FlareClient } from './clients/flare';
 import { PythMultiChainClient } from './clients/pyth';
 import { RedStoneClient } from './clients/redstone';
 import { ReflectorClient } from './clients/reflector';
-import { StorkMonadClient } from './clients/storkMonad';
+import { StorkEvmClient } from './clients/storkEvm';
 import { SupraClient } from './clients/supra';
 import { TWAPClient } from './clients/twap';
 import { WINkLinkClient } from './clients/winklink';
@@ -30,7 +30,7 @@ const ORACLE_CLIENT_CONSTRUCTORS: Record<OracleProvider, () => BaseOracleClient>
   [OracleProvider.CHAINLINK]: () =>
     new ChainlinkClient({ useRealData: FEATURE_FLAGS.useRealChainlinkData }),
   [OracleProvider.PYTH]: () => new PythMultiChainClient(),
-  [OracleProvider.STORK]: () => new StorkMonadClient(),
+  [OracleProvider.STORK]: () => new StorkEvmClient(),
   [OracleProvider.CHRONICLE]: () => new ChronicleMonadClient(),
   [OracleProvider.API3]: () => new API3Client(),
   [OracleProvider.REDSTONE]: () => new RedStoneClient(),

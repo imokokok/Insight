@@ -6,6 +6,7 @@ import { resolveSupraMonadFeed } from '@/lib/oracles/constants/supraMonad';
 import { getDefaultFactory } from '@/lib/oracles/factory';
 import { feedDiscoveryService } from '@/lib/oracles/services/feedDiscovery';
 import { feedSyncService } from '@/lib/oracles/services/feedSyncService';
+import { seedStorkOtherEvmPushedFeeds } from '@/lib/oracles/services/storkOtherEvmFeedSync';
 import { supraMonadOnChainService } from '@/lib/oracles/services/supraMonadOnChainService';
 import { invalidateAllFeedsCache } from '@/lib/oracles/utils/dynamicFeedResolver';
 import { resolveOracleFeedBlockchain } from '@/lib/oracles/utils/feedChain';
@@ -402,6 +403,9 @@ export async function runFeedSync(mode: string, provider: string): Promise<FeedS
           };
         }
         const results = await feedSyncService.fullSync(provider);
+        if (provider === 'stork') {
+          results.push(await seedStorkOtherEvmPushedFeeds());
+        }
         // Feed rows changed — drop the cross-provider aggregate cache so
         // the next dashboard SSR / cron read picks up the new state
         // without waiting for the 5-minute TTL.

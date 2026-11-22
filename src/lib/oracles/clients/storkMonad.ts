@@ -5,13 +5,7 @@ import {
   STORK_MONAD_PUSHED_FEEDS,
   resolveStorkMonadFeed,
 } from '@/lib/oracles/constants/storkMonad';
-import {
-  STORK_OTHER_EVM_CONTRACTS,
-  STORK_OTHER_EVM_PUSHED_FEEDS,
-  resolveStorkOtherEvmFeed,
-} from '@/lib/oracles/constants/storkOtherEvm';
 import { storkMonadOnChainService } from '@/lib/oracles/services/storkMonadOnChainService';
-import { storkOtherEvmOnChainService } from '@/lib/oracles/services/storkOtherEvmOnChainService';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
 import {
   type SnapshotBatchPriceRequest,
@@ -29,12 +23,9 @@ const STORK_MONAD_RELIABILITY = 0.9;
  */
 export class StorkMonadClient extends BaseOracleClient {
   name = OracleProvider.STORK;
-  supportedChains = [Blockchain.MONAD, Blockchain.BNB_CHAIN, Blockchain.BASE, Blockchain.HYPEREVM];
+  supportedChains = [Blockchain.MONAD];
   protected defaultChain = Blockchain.MONAD;
-  protected supportedSymbolsList = [
-    ...STORK_MONAD_PUSHED_FEEDS.map((feed) => feed.alias),
-    ...STORK_OTHER_EVM_PUSHED_FEEDS.map((feed) => feed.alias),
-  ];
+  protected supportedSymbolsList = STORK_MONAD_PUSHED_FEEDS.map((feed) => feed.alias);
 
   async getPrice(
     symbol: string,
@@ -43,48 +34,34 @@ export class StorkMonadClient extends BaseOracleClient {
   ): Promise<PriceData> {
     this.validateGetPriceParams(symbol, options);
     const targetChain = chain ?? this.defaultChain;
-    const isMonad = targetChain === Blockchain.MONAD;
-    const feed = isMonad ? resolveStorkMonadFeed(symbol) : null;
-    const otherFeed = isMonad ? null : resolveStorkOtherEvmFeed(symbol, targetChain);
-    if (!feed && !otherFeed) throw this.createUnsupportedSymbolError(symbol, targetChain);
+    if (targetChain !== Blockchain.MONAD) {
+      throw this.createUnsupportedSymbolError(symbol, targetChain);
+    }
+
+    const feed = resolveStorkMonadFeed(symbol);
+    if (!feed) throw this.createUnsupportedSymbolError(symbol, targetChain);
 
     try {
-      const reading = feed
-        ? await withOracleRetry(
-            () => storkMonadOnChainService.getPrice(feed, options?.signal),
-            'stork-monad:getPrice',
-            ORACLE_RETRY_PRESETS.standard,
-            options?.signal
-          )
-        : await withOracleRetry(
-            () => storkOtherEvmOnChainService.getPrice(otherFeed!, options?.signal),
-            'stork-evm:getPrice',
-            ORACLE_RETRY_PRESETS.standard,
-            options?.signal
-          );
-      const alias = feed?.alias ?? otherFeed!.alias;
-      const assetId = feed?.assetId ?? otherFeed!.assetId;
-      const encodedAssetId = reading.encodedAssetId;
-      const maxStalenessSeconds = feed?.maxStalenessSeconds ?? otherFeed!.maxStalenessSeconds;
-      const deviationPercent = feed?.priceDeviationPercent ?? otherFeed!.priceDeviationPercent;
-      const contractAddress = feed
-        ? STORK_MONAD_CONTRACT_ADDRESS
-        : STORK_OTHER_EVM_CONTRACTS[targetChain]!.address;
-      const chainId = feed ? STORK_MONAD_CHAIN_ID : otherFeed!.chainId;
+      const reading = await withOracleRetry(
+        () => storkMonadOnChainService.getPrice(feed, options?.signal),
+        'stork-monad:getPrice',
+        ORACLE_RETRY_PRESETS.standard,
+        options?.signal
+      );
       const dataAge = Math.max(0, Math.floor(Date.now() / 1000) - reading.sourceTimestamp);
       const data: PriceData = {
         provider: this.name,
-        chain: targetChain,
-        symbol: alias,
+        chain: Blockchain.MONAD,
+        symbol: feed.alias,
         price: reading.price,
         timestamp: reading.timestamp,
         decimals: 18,
         // Stork's safe EVM getter attests timestamp/value freshness but does
         // not publish a statistical interval. Do not manufacture a confidence
         // number that downstream quality metrics could mistake for evidence.
-        source: `Stork pushed feed on ${targetChain}:${assetId}`,
-        priceId: encodedAssetId,
-        feedId: encodedAssetId,
+        source: `Stork pushed feed on Monad:${feed.assetId}`,
+        priceId: reading.encodedAssetId,
+        feedId: reading.encodedAssetId,
         dataAge,
         dataSource: 'real',
         ingestionTimestamp: Date.now(),
@@ -106,25 +83,21 @@ export class StorkMonadClient extends BaseOracleClient {
         }),
         verification: {
           ...buildEvmVerification(
-            contractAddress,
-            chainId,
+            STORK_MONAD_CONTRACT_ADDRESS,
+            STORK_MONAD_CHAIN_ID,
             'getTemporalNumericValueV1(bytes32)+freshness-gate'
           ),
-          feedHash: encodedAssetId,
+          feedHash: reading.encodedAssetId,
           rawValue: reading.quantizedValue.toString(),
           sourceTimestamp: reading.sourceTimestamp,
           sourceTimestampNs: reading.timestampNs.toString(),
           valueExponent: -18,
-          assetId,
-          maxStalenessSeconds,
-          priceDeviationPercent: deviationPercent,
-          quoteType: feed?.alias.endsWith('.RR') ? 'reference-rate' : 'price',
-          quorumStatus: 'shadow-only-pending-direct-price-and-source-review',
+          assetId: reading.assetId,
         },
       };
       return this.validatePriceData(data, 'stork-monad:getPrice');
     } catch (error) {
-      this.handleGetPriceError(error, 'Stork pushed EVM feed', 'STORK_PRICE_ERROR');
+      this.handleGetPriceError(error, 'Stork pushed feed on Monad', 'STORK_PRICE_ERROR');
     }
   }
 
@@ -133,10 +106,13 @@ export class StorkMonadClient extends BaseOracleClient {
     signal?: AbortSignal
   ): Promise<SnapshotBatchPriceResult[]> {
     const feeds = new Map<string, (typeof STORK_MONAD_PUSHED_FEEDS)[number]>();
+    const failures = new Map<string, Error>();
     for (const request of requests) {
       const feed =
         request.chain === Blockchain.MONAD ? resolveStorkMonadFeed(request.symbol) : null;
       if (feed) feeds.set(feed.encodedAssetId.toLowerCase(), feed);
+      else
+        failures.set(request.id, new Error(`No reviewed Stork Monad feed for ${request.symbol}`));
     }
     if (feeds.size > 0) {
       try {
@@ -152,9 +128,14 @@ export class StorkMonadClient extends BaseOracleClient {
     }
     return Promise.all(
       requests.map(async (request): Promise<SnapshotBatchPriceResult> => {
+        const failure = failures.get(request.id);
+        if (failure) return { id: request.id, price: null, error: failure };
         try {
-          const price = await this.getPrice(request.symbol, request.chain, { signal });
-          return { id: request.id, price, error: null };
+          return {
+            id: request.id,
+            price: await this.getPrice(request.symbol, Blockchain.MONAD, { signal }),
+            error: null,
+          };
         } catch (error) {
           return {
             id: request.id,
@@ -167,28 +148,12 @@ export class StorkMonadClient extends BaseOracleClient {
   }
 
   isSymbolSupported(symbol: string, chain?: Blockchain): boolean {
-    if (chain === undefined) {
-      return (
-        resolveStorkMonadFeed(symbol) !== null ||
-        STORK_OTHER_EVM_PUSHED_FEEDS.some(
-          (feed) => feed.alias.toUpperCase() === symbol.trim().toUpperCase()
-        )
-      );
-    }
-    return chain === Blockchain.MONAD
-      ? resolveStorkMonadFeed(symbol) !== null
-      : resolveStorkOtherEvmFeed(symbol, chain) !== null;
+    return (
+      (chain === undefined || chain === Blockchain.MONAD) && resolveStorkMonadFeed(symbol) !== null
+    );
   }
 
   getSupportedChainsForSymbol(symbol: string): Blockchain[] {
-    const normalized = symbol.trim().toUpperCase();
-    return [
-      ...(resolveStorkMonadFeed(normalized) ? [Blockchain.MONAD] : []),
-      ...new Set(
-        STORK_OTHER_EVM_PUSHED_FEEDS.filter((feed) => feed.alias.toUpperCase() === normalized).map(
-          (feed) => feed.chain
-        )
-      ),
-    ];
+    return resolveStorkMonadFeed(symbol) ? [Blockchain.MONAD] : [];
   }
 }
