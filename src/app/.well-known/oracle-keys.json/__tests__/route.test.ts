@@ -29,13 +29,26 @@ describe('.well-known/oracle-keys.json route', () => {
 
     expect(response.status).toBe(200);
     // Trusted signer address is published.
-    expect(body.public_keys).toEqual([
-      expect.objectContaining({
-        key_id: 'insight-oracle-safety-v2',
-        public_key: TEST_ATTESTER,
-        algorithm: 'EIP-712/secp256k1',
-      }),
-    ]);
+    const keys = body.public_keys;
+    expect(keys).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          key_id: 'insight-oracle-safety-v2',
+          public_key: TEST_ATTESTER,
+          algorithm: 'EIP-712/secp256k1',
+        }),
+      ])
+    );
+    // Trail sample key is always published (hardcoded in route).
+    expect(keys).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          key_id: 'insight-pulse-trail-sample',
+          public_key: '0x25cD6643947A6C9B77708dE235F90377f82293a0',
+          role: 'sample',
+        }),
+      ])
+    );
     expect(body.attestation_enabled).toBe(true);
 
     // Both signed schema families are described.
@@ -195,7 +208,7 @@ describe('.well-known/oracle-keys.json route', () => {
     expect(body.execution_sample).toContain('/api/v1/execution/attestation/sample');
   });
 
-  it('reports empty public_keys when the attester key is unconfigured', async () => {
+  it('reports only trail sample key when the production attester is unconfigured', async () => {
     delete process.env.ATTESTATION_SIGNER_PRIVATE_KEY;
     jest.resetModules();
 
@@ -205,7 +218,13 @@ describe('.well-known/oracle-keys.json route', () => {
     );
     const body = await response.json();
 
-    expect(body.public_keys).toEqual([]);
+    // Trail sample key is always present (hardcoded), but production attester is not.
+    expect(body.public_keys).toEqual([
+      expect.objectContaining({
+        key_id: 'insight-pulse-trail-sample',
+        role: 'sample',
+      }),
+    ]);
     expect(body.attestation_enabled).toBe(false);
   });
 });
