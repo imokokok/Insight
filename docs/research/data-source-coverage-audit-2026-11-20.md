@@ -15,9 +15,10 @@ or historical backfill is part of this audit.
 
 ## Closed in this change
 
-| Gap                                                                                                                              | Change                                                                                                                                                                                                              | Resource impact                                                                     |
-| -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| Perpl's AUSD margin coverage stayed `UNVERIFIED` even though Monad Pyth Core AUSD/USD was already in the checked-in feed catalog | The guard now requests AUSD consensus on Monad and derives a coverage record from that same request's fresh, non-outlier, quorum-eligible Pyth observation. The strict option also requires the complete v2 quorum. | No additional provider request: coverage reuses the existing AUSD consensus result. |
+| Gap                                                                                                                                                                                 | Change                                                                                                                                                                                                                                                         | Resource impact                                                                                |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Perpl's AUSD margin coverage stayed `UNVERIFIED` even though Monad Pyth Core AUSD/USD was already in the checked-in feed catalog                                                    | The guard now requests AUSD consensus on Monad and derives a coverage record from that same request's fresh, non-outlier, quorum-eligible Pyth observation. The strict option also requires the complete v2 quorum.                                            | No additional provider request: coverage reuses the existing AUSD consensus result.            |
+| The signed `strict-300s.v3` coverage policy did not classify Pyth, although the reviewed operator map and production oracle safety gate already recognize it as a distinct provider | Added Pyth to immutable `strict-300s.v4` as its own non-derived group and synchronized the reference production trust policy ID. The v3 policy remains available for existing pins. This does not change the three-provider quorum or promote Stork/Chronicle. | No additional provider request. Policy ID changes; consumers must explicitly pin v4 to use it. |
 
 Pyth's official sponsored-feed page lists AUSD/USD on Monad with a one-hour
 heartbeat and 0.2% update threshold. Insight already commits the Pyth feed ID
@@ -25,6 +26,12 @@ and uses the Monad Pyth Core contract; runtime coverage remains false when the
 source read is absent, stale, shadow-only, anomalous, or excluded from quorum.
 
 ## Remaining source and evidence gaps
+
+The strict policy now recognizes Pyth as a source class, but exact asset/chain
+support and source freshness are still evaluated per request. A classified
+provider is not automatically available for every feed. The remaining source
+gaps below require evidence or rights that are not present in this repository;
+they must stay unavailable or shadow-only until those inputs are obtained.
 
 | Priority | Area                                | Current state                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | What is required to close it                                                                                                                                                                                         |
 | -------- | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -59,6 +66,14 @@ result are bound into authorization and receipt evidence.
   lists unverified Solana-native entries.
 - Official Pyth sources: [Monad sponsored feeds](https://docs.pyth.network/pro/sponsored-feeds)
   and [contract addresses](https://docs.pyth.network/pro/contract-addresses).
+- Source provenance review: Stork's [subscriber response format](https://docs.stork.network/getting-started/becoming-a-subscriber)
+  includes publisher keys and signed prices in its authenticated aggregator API,
+  but Insight's Monad adapter reads only the aggregate from the on-chain getter.
+  Chronicle's [dashboard documentation](https://docs.chroniclelabs.org/Products/DataFeeds/dashboard)
+  describes per-validator underlying-source details; those feed-level details
+  still need to be captured and compared before classifying Chronicle or
+  promoting Stork. Distinct oracle operators alone do not prove disjoint market
+  inputs.
 - Official Jupiter sources: [Prediction Market API](https://developers.jup.ag/docs/prediction/index.md),
   [Jupiter Forecast](https://developers.jup.ag/docs/prediction/forecast.md), and
   [API documentation index](https://developers.jup.ag/docs/llms.txt). Jupiter documents

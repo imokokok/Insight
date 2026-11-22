@@ -37,7 +37,7 @@ not proof of independent upstream data.
 
 ## Initial profile
 
-`strict-300s.v3`: at least 3 eligible providers, 2 known non-derived operator
+`strict-300s.v4`: at least 3 eligible providers, 2 known non-derived operator
 groups, source age <=300 seconds, spread <=100 bps relative to median, report
 TTL <=60 seconds and bounded by the earliest included source expiry. These are
 explicit profile settings, not a universal claim that all assets support them.
@@ -45,7 +45,10 @@ Band is classified as its own non-derived operator group, but only observations
 whose evidence chain matches the requested chain can qualify. Band's REST
 adapter preserves source age for the shared freshness checks; this strict
 profile independently caps eligible observations at 300 seconds. The source map
-is pinned in policy bytes; changes require a new policy hash.
+is pinned in policy bytes; changes require a new policy hash. Pyth is included
+as its own reviewed non-derived group, matching the source-group classification
+already used by the oracle safety independence gate. Stork and Chronicle remain
+unclassified in this profile until their feed-level source review is complete.
 Cross-chain candidate observations cannot satisfy the profile.
 
 ## Measurement
