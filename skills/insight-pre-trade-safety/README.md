@@ -49,14 +49,11 @@ import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/
 // Insight runs streamable HTTP at https://www.oracleinsight.xyz/api/mcp
 // (or http://localhost:3001/api/mcp for local dev).
 async function checkTradeSafety() {
-  const transport = new StreamableHTTPClientTransport(
-    'https://www.oracleinsight.xyz/api/mcp',
-    {
-      headers: {
-        'X-API-Key': process.env.INSIGHT_API_KEY ?? '',
-      },
-    }
-  );
+  const transport = new StreamableHTTPClientTransport('https://www.oracleinsight.xyz/api/mcp', {
+    headers: {
+      'X-API-Key': process.env.INSIGHT_API_KEY ?? '',
+    },
+  });
   const client = new Client({ name: 'my-agent', version: '1.0.0' });
   await client.connect(transport);
 
