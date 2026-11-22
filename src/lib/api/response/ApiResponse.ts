@@ -36,6 +36,8 @@ interface ApiErrorResponse {
     requestId?: string;
     path?: string;
     method?: string;
+    /** Same advisory boundary as success responses — always true. */
+    insightDoesNotEnforce?: true;
   };
 }
 
@@ -48,8 +50,9 @@ export class ApiResponseBuilder {
   ): ApiSuccessResponse<T> {
     const meta: ApiSuccessResponse<T>['meta'] = {
       timestamp: Date.now(),
-      insightDoesNotEnforce: true,
       ...options?.meta,
+      // Force advisory boundary — callers cannot override this
+      insightDoesNotEnforce: true,
     };
     if (options?.requestId) {
       meta.requestId = options.requestId;
@@ -72,6 +75,8 @@ export class ApiResponseBuilder {
   ): ApiErrorResponse {
     const meta: ApiErrorResponse['meta'] = {
       timestamp: Date.now(),
+      // Force advisory boundary — callers cannot override this
+      insightDoesNotEnforce: true,
     };
     if (options?.requestId) {
       meta.requestId = options.requestId;
