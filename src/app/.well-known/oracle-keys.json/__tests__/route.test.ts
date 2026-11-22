@@ -219,7 +219,7 @@ describe('.well-known/oracle-keys.json route', () => {
     expect(body.execution_sample).toContain('/api/v1/execution/attestation/sample');
   });
 
-  it('reports only trail sample key when the production attester is unconfigured', async () => {
+  it('reports only trail signer key when the production attester is unconfigured', async () => {
     delete process.env.ATTESTATION_SIGNER_PRIVATE_KEY;
     jest.resetModules();
 
@@ -229,11 +229,11 @@ describe('.well-known/oracle-keys.json route', () => {
     );
     const body = await response.json();
 
-    // Trail sample key is always present (hardcoded), but production attester is not.
+    // Trail signer key is always present (hardcoded), but production attester is not.
     expect(body.public_keys).toEqual([
       expect.objectContaining({
-        key_id: 'insight-pulse-trail-sample',
-        role: 'sample',
+        key_id: 'insight-pulse-trail-signer',
+        role: 'trail-signer',
       }),
     ]);
     expect(body.attestation_enabled).toBe(false);
