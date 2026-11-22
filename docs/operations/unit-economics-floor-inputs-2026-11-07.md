@@ -21,6 +21,12 @@
 在 ①③④ 补齐前，不能对外声称"完整单位经济地板"，也不应把下面的数字当成
 最终地板系数。
 
+平台观测和账单来源是截至 2026-11-07 的历史记录。当时文中列出的 Vercel
+日志、Cron、函数用量与账单入口已不适用于当前生产；Insight 现运行在
+Cloudflare Workers。重新采集时，请从 Cloudflare Workers Analytics/Logs 与
+Cloudflare 账单取得 Worker 请求、CPU、带宽和用量数据，并把 API 路由与
+GitHub Actions 采集任务分别统计。旧窗口的数据库实测值仍只代表其标注日期。
+
 ## 1. ① 上游数据成本（P95 而非均值）
 
 ### 口径

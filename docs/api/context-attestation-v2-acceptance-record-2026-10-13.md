@@ -1,5 +1,10 @@
 # Context Attestation V2 acceptance record — 2026-10-13
 
+Historical acceptance evidence from the Vercel-hosted production deployment.
+Insight production now runs on Cloudflare Workers; deployment IDs, preview
+URLs, and environment metadata below describe the 2026-10-13 run only and are
+not current endpoints or proof of today's Worker secret configuration.
+
 ## Scope
 
 Acceptance was performed against commit `c487be19b51760ed047fba4a37842739ab440281` (PR #186), using one low-impact authenticated pre-trade request on Preview and one on Production. Both requests used `asset=ETH`, `chainId=1`, `action=swap`, and `tradeAmountUsd=1`.
