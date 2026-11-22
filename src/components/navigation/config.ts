@@ -12,6 +12,7 @@ import {
   Code,
   CircleDollarSign,
   BadgeCheck,
+  Wallet,
 } from 'lucide-react';
 
 import { type NavStructure } from './types';
@@ -55,6 +56,13 @@ export const navigationConfig: NavStructure = [
         icon: ShieldCheck,
         description:
           'Calculate a position critical deviation and liquidation risk across supported lending protocols',
+      },
+      {
+        href: '/polymarket',
+        label: 'Polymarket Positions',
+        icon: Wallet,
+        description:
+          'View public open positions by wallet address. No wallet connection or trading permission required.',
       },
       {
         href: '/peg-risk',
