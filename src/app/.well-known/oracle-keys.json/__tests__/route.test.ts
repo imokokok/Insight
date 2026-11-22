@@ -54,9 +54,7 @@ describe('.well-known/oracle-keys.json route', () => {
     expect(body.advisory_boundary.insightDoesNotEnforce).toBe(true);
     expect(body.advisory_boundary.signerRoles.attester).toContain('production');
     expect(body.advisory_boundary.signerRoles.sample).toContain('SYNTHETIC');
-    expect(body.advisory_boundary.signerRoles['trail-signer']).toContain(
-      'historical'
-    );
+    expect(body.advisory_boundary.signerRoles['trail-signer']).toContain('historical');
     expect(body.attestation_enabled).toBe(true);
 
     // Both signed schema families are described.
