@@ -1,0 +1,60 @@
+{
+  "kind": "MainlineProtocolPromotion",
+  "promotionVersion": 40,
+  "effectiveFrom": "2026-11-22",
+  "classification": "Append-only strict coverage v5 classifies all reviewed feed providers while preserving freshness, quorum, and shadow eligibility rules",
+  "registryReleaseId": "0xc90709876d4210c521d36a27171d4f45bca4a7b48e67658fac9c76c04ef50831",
+  "predecessorReleaseId": "0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b",
+  "predecessorPromotionId": "0x3b28826b5eb7a1b43d841d5938953de85d718f6e97edd02527b5049b0e267e3f",
+  "activationSetId": "0x32335b66b91bd4ab1742b86ffcaefa94bbfc063de5f9a1d51e0080df67896157",
+  "receiptImpact": "Adds immutable strict-300s.v5 with Stork and Chronicle source-group classifications, completing the reviewed provider catalog. Source classification only: the three-provider quorum, 300-second freshness threshold, excluded/shadow statuses, partner policies, activation set, receipt layouts, and historical policy artifacts remain unchanged.",
+  "activationRule": "Coverage v5 is additive and opt-in. Existing policy IDs remain discoverable and reportable. Stork and Chronicle remain excluded from strict quorum unless their runtime observations are explicitly eligible; classification alone cannot promote a source. No partner policy, activation mapping, execution permission, or receipt admission changes.",
+  "compatibilityMatrix": [
+    {
+      "partnerId": "agent-passport",
+      "outcome": "unchanged-pinned-contract-additive-coverage-v5",
+      "evidence": "Partner policy, activation, signing keys, and receipt layouts are unchanged. Coverage v5 only adds provider group labels; freshness and runtime quorum eligibility are unchanged, and consumers must pin the new policy independently."
+    },
+    {
+      "partnerId": "andydgrea",
+      "outcome": "unchanged-pinned-contract-additive-coverage-v5",
+      "evidence": "Partner policy, activation, signing keys, and receipt layouts are unchanged. Coverage v5 only adds provider group labels; freshness and runtime quorum eligibility are unchanged, and consumers must pin the new policy independently."
+    },
+    {
+      "partnerId": "emilia",
+      "outcome": "unchanged-pinned-contract-additive-coverage-v5",
+      "evidence": "Partner policy, activation, signing keys, and receipt layouts are unchanged. Coverage v5 only adds provider group labels; freshness and runtime quorum eligibility are unchanged, and consumers must pin the new policy independently."
+    },
+    {
+      "partnerId": "frontier-compute",
+      "outcome": "unchanged-pinned-contract-additive-coverage-v5",
+      "evidence": "Partner policy, activation, signing keys, and receipt layouts are unchanged. Coverage v5 only adds provider group labels; freshness and runtime quorum eligibility are unchanged, and consumers must pin the new policy independently."
+    },
+    {
+      "partnerId": "headless",
+      "outcome": "unchanged-pinned-contract-additive-coverage-v5",
+      "evidence": "Partner policy, activation, signing keys, and receipt layouts are unchanged. Coverage v5 only adds provider group labels; freshness and runtime quorum eligibility are unchanged, and consumers must pin the new policy independently."
+    },
+    {
+      "partnerId": "interai",
+      "outcome": "unchanged-pinned-contract-additive-coverage-v5",
+      "evidence": "Partner policy, activation, signing keys, and receipt layouts are unchanged. Coverage v5 only adds provider group labels; freshness and runtime quorum eligibility are unchanged, and consumers must pin the new policy independently."
+    },
+    {
+      "partnerId": "raul",
+      "outcome": "unchanged-pinned-contract-additive-coverage-v5",
+      "evidence": "Partner policy, activation, signing keys, and receipt layouts are unchanged. Coverage v5 only adds provider group labels; freshness and runtime quorum eligibility are unchanged, and consumers must pin the new policy independently."
+    },
+    {
+      "partnerId": "vaara",
+      "outcome": "unchanged-pinned-contract-additive-coverage-v5",
+      "evidence": "Partner policy, activation, signing keys, and receipt layouts are unchanged. Coverage v5 only adds provider group labels; freshness and runtime quorum eligibility are unchanged, and consumers must pin the new policy independently."
+    },
+    {
+      "partnerId": "veritas",
+      "outcome": "unchanged-pinned-contract-additive-coverage-v5",
+      "evidence": "Partner policy, activation, signing keys, and receipt layouts are unchanged. Coverage v5 only adds provider group labels; freshness and runtime quorum eligibility are unchanged, and consumers must pin the new policy independently."
+    }
+  ],
+  "promotionId": "0x3dcc4fd48aa02fa58ef8cd1818aad3f9cfa7946e882327972125662a6a51fe40"
+}

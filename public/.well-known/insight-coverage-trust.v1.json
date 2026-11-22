@@ -2,7 +2,7 @@
   "schema": "insight.coverage-trust.v1",
   "environment": "production",
   "origin": "https://www.oracleinsight.xyz",
-  "policyId": "0xed7e8057004dcbede9089933ca942e4a0a7ce1926a853a086a5434c21bc46f6b",
+  "policyId": "0x633ca10530e5e042cdb31518afc4e02891adcc22e072011f52891a708cafe54f",
   "keys": [
     {
       "address": "0xc68181D91942e26725186519A41951AC3135F086",
