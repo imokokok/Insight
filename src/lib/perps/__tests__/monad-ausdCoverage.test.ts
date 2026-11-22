@@ -325,13 +325,16 @@ describe('AUSD coverage fail-closed on non-qualifying Pyth observations (P1-1)',
     ['wrong provider source', { source: 'Pyth Core Monad:BTC/USD' }],
   ];
 
-  it.each(nonQualifying)('strict mode stays UNVERIFIED when the observation is %s', async (_label, overrides) => {
-    const result = await assessMonadPerpGuard(
-      { ...BASE_INPUT, requireIndependentAusdCoverage: true },
-      guardDeps({ checkOracle: checkOracleWith(overrides) })
-    );
-    expect(result.ausdCoverage.covered).toBe(false);
-    expect(result.ausdCoverage.reasonCode).toBe('AUSD_COVERAGE_UNVERIFIED');
-    expect(result.verdict).toBe('BLOCK');
-  });
+  it.each(nonQualifying)(
+    'strict mode stays UNVERIFIED when the observation is %s',
+    async (_label, overrides) => {
+      const result = await assessMonadPerpGuard(
+        { ...BASE_INPUT, requireIndependentAusdCoverage: true },
+        guardDeps({ checkOracle: checkOracleWith(overrides) })
+      );
+      expect(result.ausdCoverage.covered).toBe(false);
+      expect(result.ausdCoverage.reasonCode).toBe('AUSD_COVERAGE_UNVERIFIED');
+      expect(result.verdict).toBe('BLOCK');
+    }
+  );
 });
