@@ -37,10 +37,10 @@ import promotionInterAiD8EconomicEvidenceAdmissionJson from '../../../protocol/m
 import promotionPaidSwapIntentJourneysJson from '../../../protocol/mainline/promotions/2026-10-25-paid-swap-intent-journeys.json';
 import promotionOracleSafetyV4AssetProxyJson from '../../../protocol/mainline/promotions/2026-11-08-oracle-safety-v4-asset-proxy.json';
 import promotionCloudflareRuntimeEnvironmentJson from '../../../protocol/mainline/promotions/2026-11-21-cloudflare-runtime-environment.json';
+import promotionAdvisoryBoundaryAndTrailSignerJson from '../../../protocol/mainline/promotions/2026-11-22-advisory-boundary-and-trail-signer.json';
 import promotionCoverageProviderClassificationV5Json from '../../../protocol/mainline/promotions/2026-11-22-coverage-provider-classification-v5.json';
 import promotionCoveragePythV4Json from '../../../protocol/mainline/promotions/2026-11-22-coverage-pyth-v4.json';
 import promotionPulseTrailSignerRegistrationJson from '../../../protocol/mainline/promotions/2026-11-22-pulse-trail-signer-registration.json';
-import promotionAdvisoryBoundaryAndTrailSignerJson from '../../../protocol/mainline/promotions/2026-11-22-advisory-boundary-and-trail-signer.json';
 
 import { bodyWithoutId, keccakContentId } from './contentAddress';
 
