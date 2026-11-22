@@ -43,15 +43,20 @@ tool, different guard family).
 
 ```typescript
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 
-// Pre-trade safety gate via the canonical product tool
+// Pre-trade safety gate via the canonical product tool.
+// Insight runs streamable HTTP at https://www.oracleinsight.xyz/api/mcp
+// (or http://localhost:3001/api/mcp for local dev).
 async function checkTradeSafety() {
-  const transport = new StdioClientTransport({
-    command: 'npx',
-    args: ['-y', '@modelcontextprotocol/insight-mcp'], // or your local entry
-    env: { INSIGHT_API_KEY: process.env.INSIGHT_API_KEY },
-  });
+  const transport = new StreamableHTTPClientTransport(
+    'https://www.oracleinsight.xyz/api/mcp',
+    {
+      headers: {
+        'X-API-Key': process.env.INSIGHT_API_KEY ?? '',
+      },
+    }
+  );
   const client = new Client({ name: 'my-agent', version: '1.0.0' });
   await client.connect(transport);
 
@@ -67,6 +72,7 @@ async function checkTradeSafety() {
     },
   });
   console.log(result.content); // PASS / CAUTION / DANGER / BLOCK + reasons
+  // result.content[].text carries the advisory verdict + boundary note.
 }
 
 checkTradeSafety().catch(console.error);
