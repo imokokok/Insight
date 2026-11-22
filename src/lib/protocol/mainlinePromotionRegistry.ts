@@ -37,6 +37,7 @@ import promotionInterAiD8EconomicEvidenceAdmissionJson from '../../../protocol/m
 import promotionPaidSwapIntentJourneysJson from '../../../protocol/mainline/promotions/2026-10-25-paid-swap-intent-journeys.json';
 import promotionOracleSafetyV4AssetProxyJson from '../../../protocol/mainline/promotions/2026-11-08-oracle-safety-v4-asset-proxy.json';
 import promotionCloudflareRuntimeEnvironmentJson from '../../../protocol/mainline/promotions/2026-11-21-cloudflare-runtime-environment.json';
+import promotionCoveragePythV4Json from '../../../protocol/mainline/promotions/2026-11-22-coverage-pyth-v4.json';
 
 import { bodyWithoutId, keccakContentId } from './contentAddress';
 
@@ -105,6 +106,7 @@ const rawPromotions = [
   promotionPaidSwapIntentJourneysJson,
   promotionOracleSafetyV4AssetProxyJson,
   promotionCloudflareRuntimeEnvironmentJson,
+  promotionCoveragePythV4Json,
 ] as unknown as MainlineProtocolPromotion[];
 
 for (const promotion of rawPromotions) {
