@@ -166,11 +166,11 @@ export async function GET(request: NextRequest) {
       insightDoesNotEnforce: true,
       signerRoles: {
         attester:
-          'Production attestations over real settlements. Full trust weight when the key is inside its validFrom/validUntil window and not revoked.',
+          'production attestations over real settlements. Full trust weight when the key is inside its validFrom/validUntil window and not revoked.',
         sample:
           'SYNTHETIC demo receipts only. Never treat as evidence of a real trade, no matter how well it verifies.',
         'trail-signer':
-          'Historical verification records (e.g. Oracle Pulse trail, weekly OTS BTC anchoring). No production trust weight; verifiable integrity only.',
+          'historical verification records (e.g. Oracle Pulse trail, weekly OTS BTC anchoring). No production trust weight; verifiable integrity only.',
       },
     },
     /** Publication metadata changes only during an explicit protocol release.
