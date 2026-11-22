@@ -24,6 +24,7 @@ on:
         type: string
 
 permissions:
+  actions: read
   contents: read
   issues: write
 
@@ -100,6 +101,82 @@ jobs:
           echo "::error::Turso/Supabase deep readiness failed (HTTP ${status:-transport-error}): $summary"
           exit 1
 
+      # Reuse the existing Supabase-dispatched hourly watchdog. This adds no
+      # new schedule or service and catches a missed/failed export even when
+      # GitHub's native schedule is delayed or skipped.
+      - name: Check database backup freshness
+        id: backups
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          now="$(date -u +%s)"
+          healthy=true
+          summary_file="$(mktemp)"
+          body_file="$(mktemp)"
+          # Fail closed if the probe itself exits early; the issue step still
+          # runs because it uses `if: always()` below.
+          echo 'healthy=false' >> "$GITHUB_OUTPUT"
+          while IFS='|' read -r label workflow_file max_age_hours; do
+            if ! latest="$(gh run list \
+              --repo "$GITHUB_REPOSITORY" \
+              --workflow "$workflow_file" \
+              --branch main \
+              --limit 20 \
+              --json conclusion,createdAt \
+              --jq '[.[] | select(.conclusion == "success")] | .[0].createdAt // empty')"; then
+              healthy=false
+              printf '%s: GitHub Actions history query failed.\n' "$label" >> "$summary_file"
+              printf -- '- %s: GitHub Actions history query failed.\n' "$label" >> "$body_file"
+              continue
+            fi
+            if [ -z "$latest" ]; then
+              healthy=false
+              printf '%s: no successful run found in the latest 20 runs.\n' "$label" >> "$summary_file"
+              printf -- '- %s: no successful run found in the latest 20 runs.\n' "$label" >> "$body_file"
+              continue
+            fi
+
+            latest_epoch="$(date -u -d "$latest" +%s)"
+            age_seconds=$((now - latest_epoch))
+            max_age_seconds=$((max_age_hours * 3600))
+            age_hours=$((age_seconds / 3600))
+            if [ "$age_seconds" -gt "$max_age_seconds" ]; then
+              healthy=false
+              printf '%s: latest success %s (%sh old; limit %sh).\n' \
+                "$label" "$latest" "$age_hours" "$max_age_hours" >> "$summary_file"
+              printf -- '- %s: latest success %s (%sh old; limit %sh).\n' \
+                "$label" "$latest" "$age_hours" "$max_age_hours" >> "$body_file"
+            else
+              printf '%s: latest success %s (%sh old).\n' \
+                "$label" "$latest" "$age_hours" >> "$summary_file"
+            fi
+          done <<'BACKUPS'
+          Turso ops|turso-ops-backup.yml|36
+          Supabase assets|supabase-assets-backup.yml|36
+          Supabase archives|supabase-archives-backup.yml|1000
+          BACKUPS
+
+          echo "healthy=$healthy" >> "$GITHUB_OUTPUT"
+          {
+            echo 'summary<<EOF'
+            cat "$summary_file"
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
+          if [ "$healthy" = false ]; then
+            {
+              echo 'body<<EOF'
+              echo "A scheduled database backup is missing or stale as of $(date -u +'%Y-%m-%dT%H:%M:%SZ')."
+              cat "$body_file"
+              echo EOF
+            } >> "$GITHUB_OUTPUT"
+            echo "::error::One or more database backups are stale."
+          else
+            echo "Database backups are within their freshness limits."
+            cat "$summary_file"
+          fi
+
       - name: Open or resolve the incident issue
         if: always()
         env:
@@ -122,6 +199,38 @@ jobs:
           else
             gh issue comment "$issue_number" --repo "$GITHUB_REPOSITORY" --body "$INCIDENT_BODY"
           fi
+
+      - name: Open or resolve the backup incident issue
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BACKUPS_HEALTHY: ${{ steps.backups.outputs.healthy }}
+          BACKUP_SUMMARY: ${{ steps.backups.outputs.summary }}
+          BACKUP_BODY: ${{ steps.backups.outputs.body }}
+        run: |
+          set -euo pipefail
+          title='[Insight Backup] scheduled exports missing or stale'
+          issue_number="$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "in:title $title" --json number --jq '.[0].number // empty')"
+          if [ "$BACKUPS_HEALTHY" = true ]; then
+            if [ -n "$issue_number" ]; then
+              recovery_body="$(printf 'All scheduled database backups recovered at %s. Closing this incident.\n\n%s' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$BACKUP_SUMMARY")"
+              gh issue comment "$issue_number" --repo "$GITHUB_REPOSITORY" --body "$recovery_body"
+              gh issue close "$issue_number" --repo "$GITHUB_REPOSITORY"
+            fi
+            exit 0
+          fi
+          if [ -z "$BACKUP_BODY" ]; then
+            BACKUP_BODY="Backup freshness probe did not complete. Review workflow run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          fi
+          if [ -z "$issue_number" ]; then
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body "$BACKUP_BODY"
+          else
+            gh issue comment "$issue_number" --repo "$GITHUB_REPOSITORY" --body "$BACKUP_BODY"
+          fi
+
+      - name: Fail the run when backups are stale
+        if: steps.backups.outputs.healthy == 'false'
+        run: exit 1
 
       # Supabase owns the clock and inserts the dispatch row before GitHub
       # starts. Report this run's conclusion so the row reaches a terminal
