@@ -7,13 +7,28 @@
   "predecessorReleaseId": "0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b",
   "predecessorPromotionId": "0xdc269b9bcdb85bdc6072d8e6fa9ce1e4d3ae66c23c43d17e48545c7ff37c1966",
   "activationSetId": "0x32335b66b91bd4ab1742b86ffcaefa94bbfc063de5f9a1d51e0080df67896157",
-  "receiptImpact": "No receipt fields or signing-key trust windows change. This promotion adds an advisory_boundary section to .well-known/oracle-keys.json (insightDoesNotEnforce=true + signer role descriptions), renames the trail key role from 'sample' to 'trail-signer' and key_id from 'insight-pulse-trail-sample' to 'insight-pulse-trail-signer', and injects insightDoesNotEnforce=true into ApiResponseBuilder.success() meta for every HTTP response. EIP-712 receipt layouts, partner policies, and production attester trust remain identical.",
+  "receiptImpact": "No receipt fields or signing-key trust windows change. This promotion adds an advisory_boundary section to .well-known/oracle-keys.json (insightDoesNotEnforce=true + signer role descriptions), renames the trail key role from sample to trail-signer and key_id from insight-pulse-trail-sample to insight-pulse-trail-signer, and injects insightDoesNotEnforce=true into ApiResponseBuilder.success() meta for every HTTP response. EIP-712 receipt layouts, partner policies, and production attester trust remain identical.",
   "activationRule": "This promotion records three boundary-clarity changes: (1) a new trail-signer role in the key registry that verifiers can distinguish from both production attester and synthetic sample roles; (2) a published advisory_boundary section in .well-known/oracle-keys.json so any verifier sees Insight does not enforce verdicts; (3) an ApiResponseBuilder.meta.insightDoesNotEnforce field on every HTTP response. No partner activation, execution authority, or production receipt admission is affected.",
   "compatibilityMatrix": [
     {
       "partnerId": "agent-passport",
       "outcome": "unchanged",
-      "evidence": "No partner policy, activation, key, trust pin, receipt layout or verification rule changes. The advisory_boundary declaration is informational only."
+      "evidence": "No partner policy, activation, key, trust pin, receipt layout or verification rule changes."
+    },
+    {
+      "partnerId": "andydgrea",
+      "outcome": "unchanged",
+      "evidence": "No partner policy, activation, key, trust pin, receipt layout or verification rule changes."
+    },
+    {
+      "partnerId": "emilia",
+      "outcome": "unchanged",
+      "evidence": "No partner policy, activation, key, trust pin, receipt layout or verification rule changes."
+    },
+    {
+      "partnerId": "frontier-compute",
+      "outcome": "unchanged",
+      "evidence": "No partner policy, activation, key, trust pin, receipt layout or verification rule changes."
     },
     {
       "partnerId": "headless",
@@ -26,15 +41,20 @@
       "evidence": "No partner policy, activation, key, trust pin, receipt layout or verification rule changes."
     },
     {
-      "partnerId": "veritas",
+      "partnerId": "raul",
       "outcome": "unchanged",
       "evidence": "No partner policy, activation, key, trust pin, receipt layout or verification rule changes."
     },
     {
-      "partnerId": "raul",
+      "partnerId": "vaara",
+      "outcome": "unchanged",
+      "evidence": "No partner policy, activation, key, trust pin, receipt layout or verification rule changes."
+    },
+    {
+      "partnerId": "veritas",
       "outcome": "unchanged",
       "evidence": "No partner policy, activation, key, trust pin, receipt layout or verification rule changes."
     }
   ],
-  "promotionId": "0x2d789775513593804b0eeea6d20fd6584b5602275dd7a5a495d5866726a57aa3"
+  "promotionId": "0x52b05c04ebdb544cfa2f41cbc57d84df88ad16c3d9567253ccc9571b2496bc0f"
 }
