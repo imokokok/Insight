@@ -246,6 +246,14 @@ export interface ResponseMeta {
   status: number;
   success: boolean;
   requestId?: string;
+  /**
+   * Always true on every Insight response. Read-only advisory boundary:
+   * Insight never signs or broadcasts transactions, never gates or blocks
+   * execution, never proves a price is correct. Applications and agents own
+   * the decision to act on any verdict. Also published in
+   * GET /.well-known/oracle-keys.json (advisory_boundary).
+   */
+  insightDoesNotEnforce?: true;
   creditCost?: number;
   /** Snapshot before this request; concurrent requests can change the balance. */
   creditBalance?: number;

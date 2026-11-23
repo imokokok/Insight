@@ -95,7 +95,8 @@ broadcast, select a route, or guarantee an outcome.
 **Boundary**: Every response from Insight carries `meta.insightDoesNotEnforce: true`.
 Insight never signs or broadcasts transactions, never gates or blocks execution,
 never proves a price is correct. Applications and agents own the decision to
-act on any verdict.
+act on any verdict. A `BLOCK` verdict is Insight's recommendation that you
+stop — Insight does not and cannot stop you; the enforcement is entirely yours.
 
 For the authorization and execution-evidence leg, use PriorSeal's
 [`Guarded Action` integration](https://github.com/imokokok/PriorSeal/blob/main/docs/integrations/guarded-action.md).

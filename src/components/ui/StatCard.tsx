@@ -5,7 +5,8 @@ import { cn } from '@/lib/utils';
 import { Tooltip } from './Tooltip';
 
 interface StatCardProps {
-  icon?: React.ElementType;
+  /** Component reference (e.g. a lucide-react icon); callers pass components, not strings. */
+  icon?: React.ComponentType<{ className?: string }>;
   iconColor?: string;
   title: string;
   value: React.ReactNode;

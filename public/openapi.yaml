@@ -5899,7 +5899,16 @@ components:
         requestId:
           type: string
           description: Unique request identifier
-      required: [timestamp]
+        insightDoesNotEnforce:
+          type: boolean
+          enum: [true]
+          description: >-
+            Always true on every Insight response. Read-only advisory boundary:
+            Insight never signs or broadcasts transactions, never gates or
+            blocks execution, never proves a price is correct. Applications and
+            agents own the decision to act on any verdict. Also published in
+            GET /.well-known/oracle-keys.json (advisory_boundary).
+      required: [timestamp, insightDoesNotEnforce]
 
     ApiError:
       type: object
