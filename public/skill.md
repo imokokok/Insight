@@ -161,6 +161,8 @@ GET https://www.oracleinsight.xyz/api/v1/safety/prediction-guard
 
 A chain-agnostic pre-signing metadata screen for one Polymarket event position (`action` is `buy_up` or `buy_down`). It screens Gamma price-contract metadata, market lifecycle, resolution timing, quoted-probability integrity, and post-hoc settlement verifiability, and returns an entry-chain × settlement-chain evidence map (for example, a Jupiter-embedded Polymarket entry is on Solana while settlement remains primarily on Polygon). It applies no cross-oracle consensus, does not judge the truth of event outcomes, and is not execution risk control. Keyless calls are x402 metered; the live 402 challenge carries the price. API-key callers use the standard v1 path.
 
+For a portable, short-lived signature over the complete read-only result, use `GET /api/v1/safety/prediction-guard/attestation` with the same query parameters and an API key. Insight returns an EIP-712 attestation valid for at most 60 seconds; verification requires the published Insight key registry. This signature proves issuance of those assessment bytes only. It does not establish event truth, authorize an order, or grant transaction authority. The endpoint returns `503` when no published attester is available.
+
 ## Payment
 
 Paid calls use x402 v2. The REST `/api/v1/safety/pre-trade` route is C3 at **$0.02 USDC** (`20000` atomic units on a 6-decimal rail); the MCP `trade_guard` trade-safety ops (`check_safety`, `prepare_swap`, `prepare_perp_order`) are C4 at **$0.040 USDC** (`40000` atomic units). Available networks, assets, payees, schemes, and facilitator-specific fields are deployment-specific.

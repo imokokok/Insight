@@ -5144,6 +5144,40 @@ paths:
         '200': { description: Complete ALLOW, CAUTION, or BLOCK screening decision. }
         '400': { $ref: '#/components/responses/ValidationError' }
         '402': { $ref: '#/components/responses/CreditExhausted' }
+  /safety/prediction-guard/attestation:
+    get:
+      operationId: attestPolymarketGuardDecision
+      tags: [Safety]
+      summary: Get a signed, read-only Polymarket screening decision
+      description: >-
+        Re-runs the same read-only Polymarket Guard and returns its complete
+        result with an Insight EIP-712 signature valid for at most 60 seconds.
+        The attestation proves which assessment bytes Insight issued; it does
+        not establish event truth, price fairness, or execution authority.
+        This endpoint accepts API-key access only and never signs or submits
+        orders. A published attester must be configured or the endpoint returns
+        503.
+      security:
+        - apiKey: []
+      parameters:
+        - {
+            name: protocolId,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [polymarket-prediction-mainnet] },
+          }
+        - {
+            name: action,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [buy_up, buy_down] },
+          }
+        - { name: marketSlug, in: query, required: true, schema: { type: string, maxLength: 200 } }
+      responses:
+        '200':
+          { description: Signed complete screening decision and short-lived EIP-712 attestation. }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '503': { description: Published Insight attester is not available. }
   /safety/tokenized-stock-guard:
     get:
       operationId: assessTokenizedStockGuard
