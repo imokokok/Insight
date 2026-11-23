@@ -20,7 +20,7 @@ describe('validateApiKey expiration cache boundary', () => {
     mockFrom.mockReturnValue({
       select: jest.fn().mockReturnThis(),
       eq: jest.fn().mockReturnThis(),
-      single: mockSingle,
+      maybeSingle: mockSingle,
       update: jest.fn().mockReturnValue({
         eq: jest.fn().mockResolvedValue({ error: null }),
       }),
@@ -64,5 +64,41 @@ describe('validateApiKey expiration cache boundary', () => {
     await expect(validateApiKey('ins_test-key')).resolves.toBeNull();
     expect(mockSingle).toHaveBeenCalledTimes(2);
     jest.useRealTimers();
+  });
+
+  it('treats an absent key as an invalid credential without a database error', async () => {
+    mockSingle.mockResolvedValueOnce({ data: null, error: null });
+    const { validateApiKey } = await import('../apiKey');
+
+    await expect(validateApiKey('ins_unknown-key')).resolves.toBeNull();
+    await expect(validateApiKey('ins_unknown-key')).resolves.toBeNull();
+    expect(mockSingle).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores surrounding copy/paste whitespace before validating a key', async () => {
+    mockSingle.mockResolvedValueOnce({
+      data: {
+        id: 'key-2',
+        user_id: 'user-1',
+        plan: 'developer',
+        rate_limit: 60,
+        is_active: true,
+        expires_at: null,
+      },
+      error: null,
+    });
+    const { validateApiKey } = await import('../apiKey');
+
+    await expect(validateApiKey('  ins_copy-key\n')).resolves.toMatchObject({ keyId: 'key-2' });
+    expect(mockSingle).toHaveBeenCalledTimes(1);
+  });
+
+  it('raises a retryable store error when the key lookup fails', async () => {
+    mockSingle.mockResolvedValueOnce({ data: null, error: { message: 'database unavailable' } });
+    const { ApiKeyStoreUnavailableError, validateApiKey } = await import('../apiKey');
+
+    await expect(validateApiKey('ins_retry-key')).rejects.toBeInstanceOf(
+      ApiKeyStoreUnavailableError
+    );
   });
 });

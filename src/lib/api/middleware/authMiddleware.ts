@@ -3,7 +3,11 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { createUserClient } from '@/lib/supabase/server';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
 
-import { validateApiKey, type ApiKeyValidationResult } from '../apiKey';
+import {
+  ApiKeyStoreUnavailableError,
+  validateApiKey,
+  type ApiKeyValidationResult,
+} from '../apiKey';
 import { ApiResponseBuilder } from '../response';
 
 const logger = createLogger('auth-middleware');
@@ -110,7 +114,23 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
   const { required = true, roles = [], allowApiKey = false, requireApiKey = false } = options;
 
   return async (request: NextRequest): Promise<AuthMiddlewareResult> => {
-    const authContext = await extractAuthContext(request, { allowApiKey, requireApiKey });
+    let authContext: AuthContext | null;
+    try {
+      authContext = await extractAuthContext(request, { allowApiKey, requireApiKey });
+    } catch (error) {
+      if (!(error instanceof ApiKeyStoreUnavailableError)) throw error;
+      return {
+        success: false,
+        response: NextResponse.json(
+          ApiResponseBuilder.error(
+            'API_KEY_STORE_UNAVAILABLE',
+            'API key verification is temporarily unavailable. Retry shortly.',
+            { retryable: true }
+          ),
+          { status: 503, headers: { 'Retry-After': '5', 'Cache-Control': 'no-store' } }
+        ),
+      };
+    }
 
     if (!authContext) {
       if (required) {

@@ -1,9 +1,12 @@
 import { type NextRequest } from 'next/server';
 
-import { validateApiKey } from '../../apiKey';
+import { ApiKeyStoreUnavailableError, validateApiKey } from '../../apiKey';
 import { createAuthMiddleware } from '../authMiddleware';
 
-jest.mock('../../apiKey', () => ({ validateApiKey: jest.fn() }));
+jest.mock('../../apiKey', () => ({
+  ApiKeyStoreUnavailableError: class extends Error {},
+  validateApiKey: jest.fn(),
+}));
 
 const mockedValidateApiKey = validateApiKey as jest.MockedFunction<typeof validateApiKey>;
 
@@ -33,5 +36,21 @@ describe('auth middleware role checks', () => {
 
     expect(result.success).toBe(false);
     if (!result.success) expect(result.response.status).toBe(403);
+  });
+
+  it('returns a retryable service error when the API key store is unavailable', async () => {
+    mockedValidateApiKey.mockRejectedValue(new ApiKeyStoreUnavailableError());
+
+    const result = await createAuthMiddleware({ requireApiKey: true })(apiKeyRequest());
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.response.status).toBe(503);
+      expect(result.response.headers.get('retry-after')).toBe('5');
+      expect(result.response.headers.get('cache-control')).toBe('no-store');
+      await expect(result.response.json()).resolves.toMatchObject({
+        error: { code: 'API_KEY_STORE_UNAVAILABLE', retryable: true },
+      });
+    }
   });
 });

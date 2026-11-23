@@ -1,22 +1,37 @@
 # Authentication for Insight APIs
 
-**No accounts. No API keys. No OAuth. Payment is the authentication.**
+Insight supports two access paths: account-based API keys billed against credits, or
+keyless pay-per-call through x402 (and MPP where enabled). Choose one for each
+request; API keys do not require a payment signature or wallet.
 
-Insight's paid endpoints use HTTP 402 payment challenges on two interoperable
-rails. You authenticate by paying — and settlement only happens after the
-business outcome succeeds.
+Keyless paid requests use HTTP 402 payment challenges on two interoperable
+rails. Payment is verified before the response is settled, and settlement
+only happens after the business outcome succeeds. API-key requests use the
+account's credit balance instead.
 
 ## Free (no payment required)
 
-| Route                                                  | Notes                                                              |
-| ------------------------------------------------------ | ------------------------------------------------------------------ |
-| `GET /api/v1/safety/pre-trade` without payment headers | Returns `402` + payment challenge. Doubles as a free health check. |
-| MCP `initialize`, `tools/list`                         | Free discovery of the tool catalog.                                |
+| Route                          | Notes                               |
+| ------------------------------ | ----------------------------------- |
+| MCP `initialize`, `tools/list` | Free discovery of the tool catalog. |
+
+An unauthenticated pre-trade request is not a free health check: when
+pay-per-call is enabled, it returns a `402` payment quote. Issuing the quote
+does not charge; payment is required to run the assessment. Use `/api/v1/health`
+for a free service-health response.
+
+## API key access
+
+Sign in, create an API key in Settings, and send it in the `X-API-Key`
+header on metered REST calls or configure `INSIGHT_API_KEY` for the MCP
+launcher. Key-authenticated calls consume account credits and do not start a
+wallet payment flow. Email verification is required for the one-time 400-credit
+trial grant; it is not part of API-key authentication.
 
 ## Paid (pay per call, $0.02 USDC on configured EVM networks; Base and Polygon in production)
 
-Every paid response starts as `402` carrying **both** rails — use whichever
-your client stack speaks:
+Every keyless paid request starts as `402` carrying **both** rails — use
+whichever your client stack speaks:
 
 - **x402 v2** — `PAYMENT-REQUIRED` header (base64). Clients: `@x402/fetch`,
   `x402-axios`, or any EIP-3009 signer. The quote lists configured EVM and

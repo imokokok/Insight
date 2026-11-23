@@ -29,6 +29,16 @@ export interface ApiKeyValidationResult {
   rateLimit: number;
 }
 
+/** A database failure while authenticating is temporary, not an invalid key. */
+export class ApiKeyStoreUnavailableError extends Error {
+  readonly code = 'API_KEY_STORE_UNAVAILABLE';
+
+  constructor() {
+    super('API key verification is temporarily unavailable');
+    this.name = 'ApiKeyStoreUnavailableError';
+  }
+}
+
 interface GeneratedApiKey {
   name: string;
   plainKey: string;
@@ -111,32 +121,35 @@ function invalidateApiKeyCache(keyHash?: string): void {
 }
 
 export async function validateApiKey(plainKey: string): Promise<ApiKeyValidationResult | null> {
-  if (!plainKey.startsWith(KEY_PREFIX)) {
+  // API keys are opaque tokens but have no meaningful surrounding whitespace.
+  // Normalize copy/paste whitespace before hashing so a terminal or host that
+  // preserves a trailing newline does not turn a valid key into a false 401.
+  const normalizedKey = plainKey.trim();
+  if (!normalizedKey.startsWith(KEY_PREFIX)) {
     return null;
   }
 
-  const keyHash = await hashApiKey(plainKey);
+  const keyHash = await hashApiKey(normalizedKey);
 
   const cached = getCachedApiKey(keyHash);
   if (cached !== undefined) {
     return cached;
   }
 
-  const client = createServiceRoleClient();
-
   try {
+    const client = createServiceRoleClient();
     const { data, error } = await client
       .from('api_keys')
       .select('id, user_id, plan, rate_limit, is_active, expires_at')
       .eq('key_hash', keyHash)
-      .single();
+      .maybeSingle();
 
     if (error) {
-      // DB lookup error (network, timeout, etc.). Do NOT cache null here —
-      // caching would cause valid keys to be rejected for CACHE_TTL_MS
-      // during transient DB issues. Let the next request retry the lookup.
-      logger.debug('API key lookup error', { error: error.message });
-      return null;
+      // A transient database error is not evidence that the caller's key is
+      // invalid. Do not cache it as a negative result; let the auth boundary
+      // return a retryable service error instead of a misleading 401.
+      logger.warn('API key lookup unavailable', { error: error.message });
+      throw new ApiKeyStoreUnavailableError();
     }
 
     if (!data) {
@@ -186,8 +199,9 @@ export async function validateApiKey(plainKey: string): Promise<ApiKeyValidation
 
     return result;
   } catch (error) {
+    if (error instanceof ApiKeyStoreUnavailableError) throw error;
     logger.error('API key validation failed', normalizeError(error));
-    return null;
+    throw new ApiKeyStoreUnavailableError();
   }
 }
 
