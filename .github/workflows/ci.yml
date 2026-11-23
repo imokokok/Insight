@@ -199,8 +199,15 @@ jobs:
           node-version: 22.23.2
           cache: npm
       - run: npm ci
+      - name: Install the fixture's pinned viem version
+        run: >-
+          npm install --prefix "$RUNNER_TEMP/stale-admissibility-fixture"
+          --no-save --no-package-lock --ignore-scripts --no-audit --no-fund
+          viem@2.57.13
       - run: npm run build --prefix verifier
       - name: Run reliability tests
+        env:
+          INSIGHT_STALE_FIXTURE_VIEM_MODULES: ${{ runner.temp }}/stale-admissibility-fixture/node_modules
         run: npm run test:reliability
 
   # Keep the historical required-check name. This status only passes after all

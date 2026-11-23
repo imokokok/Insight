@@ -8,9 +8,7 @@
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
-import { dirname, resolve } from 'node:path';
-
-import { verifyTypedData } from 'viem';
+import { dirname, isAbsolute, resolve } from 'node:path';
 
 const require = createRequire(import.meta.url);
 const RESULT_SCHEMA = 'insight.x402-stale-admissibility-result/v1';
@@ -18,6 +16,30 @@ const RESULT_SCHEMA = 'insight.x402-stale-admissibility-result/v1';
 function fail(message) {
   throw new Error(`stale-admissibility fixture: ${message}`);
 }
+
+function loadPinnedViem() {
+  const modulesPath = process.env.INSIGHT_STALE_FIXTURE_VIEM_MODULES;
+  if (modulesPath !== undefined && (typeof modulesPath !== 'string' || !isAbsolute(modulesPath))) {
+    fail('INSIGHT_STALE_FIXTURE_VIEM_MODULES must be an absolute path');
+  }
+  const fixtureRequire = modulesPath
+    ? createRequire(resolve(modulesPath, '..', 'fixture-loader.cjs'))
+    : require;
+  let viem;
+  let version;
+  try {
+    viem = fixtureRequire('viem');
+    version = fixtureRequire('viem/package.json').version;
+  } catch {
+    fail('could not load the pinned viem dependency');
+  }
+  if (typeof viem?.verifyTypedData !== 'function' || typeof version !== 'string') {
+    fail('pinned viem dependency has an unsupported shape');
+  }
+  return { verifyTypedData: viem.verifyTypedData, version };
+}
+
+const { verifyTypedData, version: viemVersion } = loadPinnedViem();
 
 function sha256(raw) {
   return createHash('sha256').update(raw).digest('hex');
@@ -162,7 +184,7 @@ async function main() {
   const { value: manifest } = await readJson(resolve(manifestPath));
   if (manifest?.schema !== 'insight.x402-stale-admissibility-fixture/v1')
     fail('unsupported manifest schema');
-  if (manifest?.evaluator?.dependency !== `viem@${require('viem/package.json').version}`) {
+  if (manifest?.evaluator?.dependency !== `viem@${viemVersion}`) {
     fail(`requires ${manifest?.evaluator?.dependency}`);
   }
   const config = manifest.cases?.[caseId];

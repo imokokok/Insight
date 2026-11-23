@@ -42,9 +42,12 @@ function verifyProjection(artifactPath, receiptPath) {
 function evaluateStaleControl(caseId, { manifestPath = staleManifestPath, check = true } = {}) {
   const args = [staleEvaluatorPath, '--manifest', manifestPath, '--case', caseId];
   if (check) args.push('--check');
+  const fixtureModules =
+    process.env.INSIGHT_STALE_FIXTURE_VIEM_MODULES ?? join(root, 'node_modules');
   return JSON.parse(
     execFileSync(process.execPath, args, {
       cwd: root,
+      env: { ...process.env, INSIGHT_STALE_FIXTURE_VIEM_MODULES: fixtureModules },
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'pipe'],
     })
