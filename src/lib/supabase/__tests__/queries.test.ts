@@ -3,6 +3,7 @@ import { type SupabaseClient } from '@supabase/supabase-js';
 import {
   DatabaseQueries,
   createQueries,
+  UserProfileStoreUnavailableError,
   type PriceRecord,
   type PriceRecordInsert,
   type UserProfile,
@@ -271,7 +272,7 @@ describe('User Profile operations - getUserProfile', () => {
       },
     };
 
-    mockQuery.single.mockResolvedValueOnce({ data: mockData, error: null });
+    mockQuery.maybeSingle.mockResolvedValueOnce({ data: mockData, error: null });
 
     const result = await queries.getUserProfile('user-id');
 
@@ -279,15 +280,23 @@ describe('User Profile operations - getUserProfile', () => {
     expect(result).toEqual(mockData);
   });
 
-  it('should return null for PGRST116 error (not found)', async () => {
-    mockQuery.single.mockResolvedValueOnce({
-      data: null,
-      error: { code: 'PGRST116' },
-    });
+  it('should return null when the profile does not exist', async () => {
+    mockQuery.maybeSingle.mockResolvedValueOnce({ data: null, error: null });
 
     const result = await queries.getUserProfile('non-existent');
 
     expect(result).toBeNull();
+  });
+
+  it('should raise a retryable store error when the profile lookup fails', async () => {
+    mockQuery.maybeSingle.mockResolvedValueOnce({
+      data: null,
+      error: { code: '08006', message: 'Database unavailable' },
+    });
+
+    await expect(queries.getUserProfile('user-id')).rejects.toBeInstanceOf(
+      UserProfileStoreUnavailableError
+    );
   });
 });
 
@@ -308,15 +317,15 @@ describe('User Profile operations - upsertUserProfile', () => {
     expect(result).toEqual(mockData);
   });
 
-  it('should return null on error', async () => {
+  it('should raise a retryable store error on failure', async () => {
     mockQuery.single.mockResolvedValueOnce({
       data: null,
       error: { message: 'Database error' },
     });
 
-    const result = await queries.upsertUserProfile('user-id', {});
-
-    expect(result).toBeNull();
+    await expect(queries.upsertUserProfile('user-id', {})).rejects.toBeInstanceOf(
+      UserProfileStoreUnavailableError
+    );
   });
 });
 
