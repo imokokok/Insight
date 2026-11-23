@@ -47,6 +47,32 @@ import type { McpAuthContext } from './auth';
 const logger = createLogger('mcp-server');
 
 /**
+ * Advisory boundary, stated once and injected into every tool result. Mirrors
+ * `ApiResponseBuilder.meta.insightDoesNotEnforce` on the REST surface and
+ * `advisory_boundary` in GET /.well-known/oracle-keys.json: whatever entry
+ * point an agent uses, the machine-readable boundary is present.
+ */
+const MCP_ADVISORY_INSTRUCTIONS = [
+  'Insight is a read-only oracle risk assessment layer. Advisory boundary: Insight never signs or broadcasts transactions, never gates or blocks execution, and never proves a price is correct.',
+  'Every verdict, attestation, and risk judgment is advisory-only input; applications and agents own the decision to act on them.',
+  'EIP-712 signatures prove who issued the signed fields and whether they changed; verify them against GET /.well-known/oracle-keys.json (advisory_boundary section).',
+].join(' ');
+
+/**
+ * Force `insightDoesNotEnforce: true` onto a tool result's `_meta`. Callers
+ * cannot override it — same contract as the REST response envelope.
+ */
+function withAdvisoryBoundary<T extends { _meta?: Record<string, unknown> }>(result: T): T {
+  return {
+    ...result,
+    _meta: {
+      ...(result._meta ?? {}),
+      insightDoesNotEnforce: true,
+    },
+  };
+}
+
+/**
  * Map a consume outcome to its receipt status. Kept out of the tool handler so
  * the handler's branching stays within the complexity budget.
  */
@@ -190,6 +216,7 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
       version: packageJson.version,
     },
     {
+      instructions: MCP_ADVISORY_INSTRUCTIONS,
       capabilities: {
         tools: {},
         ...(options.mppPaymentEnabled
@@ -265,11 +292,13 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
           const replayedIsError = (cached.result as { isError?: boolean } | null)?.isError === true;
           recordMcpToolUsage(auth, name, replayedIsError ? 500 : 200, Date.now() - startTime);
           logger.info(`MCP tool replayed from idempotency cache: ${name}`);
-          return cached.result as {
-            content: Array<{ type: 'text'; text: string }>;
-            isError?: boolean;
-            _meta?: Record<string, unknown>;
-          };
+          return withAdvisoryBoundary(
+            cached.result as {
+              content: Array<{ type: 'text'; text: string }>;
+              isError?: boolean;
+              _meta?: Record<string, unknown>;
+            }
+          );
         }
       }
 
@@ -557,11 +586,13 @@ export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions
         : await runBusiness();
 
       // Cast required due to minor zod v4 / MCP SDK type compatibility gap at compile time
-      return result as {
-        content: Array<{ type: 'text'; text: string }>;
-        isError?: boolean;
-        _meta?: Record<string, unknown>;
-      };
+      return withAdvisoryBoundary(
+        result as {
+          content: Array<{ type: 'text'; text: string }>;
+          isError?: boolean;
+          _meta?: Record<string, unknown>;
+        }
+      );
     }
   );
 

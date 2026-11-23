@@ -24,7 +24,7 @@ interface ApiEnvelope<T> {
   success: boolean;
   data?: T;
   error?: { code?: string; message?: string; retryable?: boolean };
-  meta?: { requestId?: string };
+  meta?: { requestId?: string; insightDoesNotEnforce?: true };
 }
 
 type RwaDiagnosticResult = {
@@ -321,6 +321,9 @@ export class InsightClient {
       status: response.status,
       success: response.ok && payload?.success === true && payload.data !== undefined,
       requestId: payload?.meta?.requestId ?? response.headers.get('x-request-id') ?? undefined,
+      // Advisory boundary echoed from the server envelope (always true on
+      // current servers; undefined only against stale deployments).
+      insightDoesNotEnforce: payload?.meta?.insightDoesNotEnforce === true || undefined,
       creditCost: readNumberHeader(response, 'x-credit-cost'),
       creditBalance: readNumberHeader(response, 'x-credit-balance'),
       balanceBasis: 'before_request_snapshot',
