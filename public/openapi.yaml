@@ -133,6 +133,7 @@ info:
     | Code | Status | Description |
     |------|--------|-------------|
     | `UNAUTHORIZED` | 401 | Missing or invalid X-API-Key header |
+    | `API_KEY_STORE_UNAVAILABLE` | 503 | API-key verification could not reach its backing store; retry after the `Retry-After` header |
     | `FORBIDDEN` | 403 | Insufficient permissions |
     | `BAD_REQUEST` | 400 | Malformed request or missing required parameters |
     | `VALIDATION_ERROR` | 400 | Query or body parameters failed validation |

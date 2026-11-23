@@ -34,8 +34,8 @@ export default function ApiDocsPage() {
         <div className="api-reference-orientation-steps">
           <div>
             <span>01 / Access</span>
-            <strong>Bring an API key</strong>
-            <small>Use X-API-Key on metered endpoints.</small>
+            <strong>Choose an access path</strong>
+            <small>Use X-API-Key with account credits, or x402 pay-per-call.</small>
           </div>
           <div>
             <span>02 / Discover</span>
