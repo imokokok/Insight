@@ -4,7 +4,7 @@ import { z } from 'zod';
 
 import { createApiHandler, ApiResponseBuilder } from '@/lib/api/handler';
 import { PREFERENCE_CURRENCIES, PREFERENCE_TIME_RANGES } from '@/lib/constants';
-import { type UserProfileUpdate } from '@/lib/supabase/queries';
+import { type UserProfileUpdate, UserProfileStoreUnavailableError } from '@/lib/supabase/queries';
 import { getUserQueries } from '@/lib/supabase/server';
 import { ORACLE_PROVIDER_VALUES } from '@/types/oracle';
 
@@ -34,6 +34,17 @@ const UpdateProfileSchema = z
     message: 'No valid fields to update',
   });
 
+function profileStoreUnavailableResponse(requestId?: string): NextResponse {
+  return NextResponse.json(
+    ApiResponseBuilder.error(
+      'USER_PROFILE_STORE_UNAVAILABLE',
+      'Profile settings are temporarily unavailable. Retry shortly.',
+      { retryable: true, requestId }
+    ),
+    { status: 503, headers: { 'Retry-After': '5', 'Cache-Control': 'no-store' } }
+  );
+}
+
 export const GET = createApiHandler(
   async (_request: NextRequest, context) => {
     const userId = context.auth?.userId;
@@ -41,8 +52,13 @@ export const GET = createApiHandler(
       return ApiResponseBuilder.unauthorized();
     }
 
-    const queries = getUserQueries(context.auth.accessToken);
-    const profile = await queries.getUserProfile(userId);
+    let profile: Awaited<ReturnType<ReturnType<typeof getUserQueries>['getUserProfile']>>;
+    try {
+      profile = await getUserQueries(context.auth.accessToken).getUserProfile(userId);
+    } catch (error) {
+      if (!(error instanceof UserProfileStoreUnavailableError)) throw error;
+      return profileStoreUnavailableResponse(context.requestId);
+    }
 
     if (!profile) {
       return NextResponse.json({
@@ -92,8 +108,16 @@ export const PUT = createApiHandler(
 
     const updateData: UserProfileUpdate = result.data as UserProfileUpdate;
 
-    const queries = getUserQueries(context.auth.accessToken);
-    const updatedProfile = await queries.upsertUserProfile(userId, updateData);
+    let updatedProfile: Awaited<ReturnType<ReturnType<typeof getUserQueries>['upsertUserProfile']>>;
+    try {
+      updatedProfile = await getUserQueries(context.auth.accessToken).upsertUserProfile(
+        userId,
+        updateData
+      );
+    } catch (error) {
+      if (!(error instanceof UserProfileStoreUnavailableError)) throw error;
+      return profileStoreUnavailableResponse(context.requestId);
+    }
 
     if (!updatedProfile) {
       return ApiResponseBuilder.serverError('Failed to update profile');

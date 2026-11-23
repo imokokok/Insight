@@ -12,6 +12,21 @@ import { ApiResponseBuilder } from '../response';
 
 const logger = createLogger('auth-middleware');
 
+class AuthServiceUnavailableError extends Error {
+  readonly code = 'AUTH_SERVICE_UNAVAILABLE';
+
+  constructor(cause?: unknown) {
+    super('Session verification is temporarily unavailable', { cause });
+    this.name = 'AuthServiceUnavailableError';
+  }
+}
+
+function isRetryableAuthServiceError(error: unknown): boolean {
+  if (!error || typeof error !== 'object' || !('status' in error)) return true;
+  const status = error.status;
+  return typeof status !== 'number' || status === 408 || status === 429 || status >= 500;
+}
+
 export interface AuthContext {
   userId: string | null;
   email?: string;
@@ -51,8 +66,16 @@ async function extractBearerAuthContext(request: NextRequest): Promise<AuthConte
       error,
     } = await client.auth.getUser(token);
 
-    if (error || !user) {
-      logger.debug('Token validation failed', { error: error?.message });
+    if (error) {
+      if (isRetryableAuthServiceError(error)) {
+        logger.warn('Session verification service unavailable', { status: error.status });
+        throw new AuthServiceUnavailableError(error);
+      }
+      logger.debug('Token validation failed', { error: error.message, status: error.status });
+      return null;
+    }
+
+    if (!user) {
       return null;
     }
 
@@ -63,8 +86,9 @@ async function extractBearerAuthContext(request: NextRequest): Promise<AuthConte
       accessToken: token,
     };
   } catch (error) {
+    if (error instanceof AuthServiceUnavailableError) throw error;
     logger.error('Auth extraction failed', normalizeError(error));
-    return null;
+    throw new AuthServiceUnavailableError(error);
   }
 }
 
@@ -118,15 +142,23 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
     try {
       authContext = await extractAuthContext(request, { allowApiKey, requireApiKey });
     } catch (error) {
-      if (!(error instanceof ApiKeyStoreUnavailableError)) throw error;
+      if (
+        !(error instanceof ApiKeyStoreUnavailableError) &&
+        !(error instanceof AuthServiceUnavailableError)
+      ) {
+        throw error;
+      }
+      const isApiKeyStoreUnavailable = error instanceof ApiKeyStoreUnavailableError;
+      const errorCode = isApiKeyStoreUnavailable
+        ? 'API_KEY_STORE_UNAVAILABLE'
+        : 'AUTH_SERVICE_UNAVAILABLE';
+      const errorMessage = isApiKeyStoreUnavailable
+        ? 'API key verification is temporarily unavailable. Retry shortly.'
+        : 'Session verification is temporarily unavailable. Retry shortly.';
       return {
         success: false,
         response: NextResponse.json(
-          ApiResponseBuilder.error(
-            'API_KEY_STORE_UNAVAILABLE',
-            'API key verification is temporarily unavailable. Retry shortly.',
-            { retryable: true }
-          ),
+          ApiResponseBuilder.error(errorCode, errorMessage, { retryable: true }),
           { status: 503, headers: { 'Retry-After': '5', 'Cache-Control': 'no-store' } }
         ),
       };
