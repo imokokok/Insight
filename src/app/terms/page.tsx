@@ -23,7 +23,7 @@ export default function TermsPage() {
         >
           <div>
             <p className="editorial-index">17 — Governance</p>
-            <p className="mt-5 text-sm text-slate-500">Last updated: July 2026</p>
+            <p className="mt-5 text-sm text-slate-500">Last updated: November 24, 2026</p>
           </div>
           <div>
             <h1 className="text-4xl font-semibold tracking-[-0.045em] text-slate-950 sm:text-5xl lg:text-6xl">
@@ -169,7 +169,14 @@ export default function TermsPage() {
             </section>
 
             <section id="clause-11" className="mb-8">
-              <h2 className="text-xl font-semibold text-slate-900 mb-3">11. Contact Information</h2>
+              <h2 className="text-xl font-semibold text-slate-900 mb-3">11. Operator</h2>
+              <p className="text-slate-700 leading-relaxed">
+                Insight is operated by its individual developer, YuTao Peng.
+              </p>
+            </section>
+
+            <section id="clause-12" className="mb-8">
+              <h2 className="text-xl font-semibold text-slate-900 mb-3">12. Contact Information</h2>
               <div className="text-slate-700 leading-relaxed space-y-2">
                 <p>If you have any questions about these Terms of Service, you can reach us at:</p>
                 <p>
