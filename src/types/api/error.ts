@@ -71,6 +71,9 @@ export function createErrorResponse(
     meta: {
       requestId: options?.requestId,
       timestamp,
+      // Advisory-only boundary rides on every response surface, including
+      // standard error envelopes (see docs/advisory-only-boundary.md).
+      insightDoesNotEnforce: true as const,
     },
   };
 }

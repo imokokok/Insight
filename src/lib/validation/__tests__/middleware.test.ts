@@ -53,6 +53,8 @@ describe('validation middleware', () => {
         const body = JSON.parse(await result.response.text());
         expect(body.success).toBe(false);
         expect(body.error.code).toBe('VALIDATION_ERROR');
+        // Advisory-only boundary must ride on validation-failure envelopes.
+        expect(body.meta?.insightDoesNotEnforce).toBe(true);
       }
     });
 

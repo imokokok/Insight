@@ -45,6 +45,9 @@ function createErrorResponse(
         ...(details ? { details } : {}),
       },
       timestamp: Date.now(),
+      // Advisory-only boundary must ride on every response surface, including
+      // validation-failure envelopes (see docs/advisory-only-boundary.md).
+      meta: { insightDoesNotEnforce: true as const },
     },
     { status }
   );
