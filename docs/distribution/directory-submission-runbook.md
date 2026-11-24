@@ -56,6 +56,16 @@ Shared facts for every form or listing:
   them in the MCP host's `env` block)
 - Safety boundary: assessment only; no custody, no signing, no broadcast
 
+Advisory-boundary blurb (paste into any listing description that has room; the
+convention reference is `docs/advisory-only-boundary.md`):
+
+> Advisory only: Insight never signs or broadcasts transactions, never gates
+> or blocks execution, and never proves a price is correct. Every response
+> carries `insightDoesNotEnforce: true`. The calling agent owns every decision.
+
+One-liner for tight character limits: `Advisory only: never signs, broadcasts,
+or enforces; insightDoesNotEnforce: true on every response.`
+
 ## Account-gated actions (account holder only)
 
 These are browser or wallet actions. An agent may prepare the text but must not
