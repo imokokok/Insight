@@ -22,6 +22,8 @@ Every Insight response carries `meta.insightDoesNotEnforce: true`, and `GET /.we
 
 Note on the diagrams above: "Insight gates" means the SDK's _optional_ gated execution helper (`assessV3Swap()` / `authorizeAssessedV3Swap()`, the `TradeBlockedError` path) runs **inside your application process** and enforces the policy **you** configured before anything is submitted. It is your code rejecting your own transaction; Insight has no enforcement authority over any transaction and is never in the submission path.
 
+This boundary is published as a machine-readable convention that other advisory APIs can adopt too — see the [Advisory-Only Boundary convention](https://github.com/imokokok/Insight/blob/main/docs/advisory-only-boundary.md).
+
 The SDK sends oracle risk decisions and attestation signing to Insight with the supplied API key, so normal API authentication, credit metering, audit rows, and EIP-712 attestations remain intact. The optional `assessV3Swap()` adapter adds an unsigned local review of a concrete swap call using pinned-block RPC simulation; it supports the original deadline-in-tuple SwapRouter and a one-swap, deadline-protected SwapRouter02 multicall. `authorizeAssessedV3Swap()` requires a fresh acceptable review before PriorSeal authorization. See [transaction-specific swap risk](https://github.com/imokokok/Insight/blob/main/docs/swap-transaction-risk.md) for its exact scope and trust limits.
 
 ## Install

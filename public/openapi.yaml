@@ -5907,7 +5907,8 @@ components:
             Insight never signs or broadcasts transactions, never gates or
             blocks execution, never proves a price is correct. Applications and
             agents own the decision to act on any verdict. Also published in
-            GET /.well-known/oracle-keys.json (advisory_boundary).
+            GET /.well-known/oracle-keys.json (advisory_boundary). Convention
+            reference: docs/advisory-only-boundary.md
       required: [timestamp, insightDoesNotEnforce]
 
     ApiError:
