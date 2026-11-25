@@ -57,7 +57,11 @@ env:
 jobs:
   probe:
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
+    # Budget: up to 80s for the initial probe, 90s for the Management API
+    # request, 5min for PostgreSQL recovery, and 90s for the follow-up probe.
+    # A shorter job timeout cancels the restart step before it can record the
+    # outcome and its 45-minute cooldown marker.
+    timeout-minutes: 15
     steps:
       - name: Probe Supabase DB/REST health
         id: probe
@@ -186,14 +190,24 @@ jobs:
               fi
             fi
           fi
-          echo "attempting postgresql restart at $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          attempted_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          marker="[auto-restart] attempted at ${attempted_at}; restart request pending."
+          # Persist the cooldown before the external restart call. If the runner
+          # is cancelled while Supabase is restarting, the next run must not
+          # issue another restart inside the 45-minute window.
+          if [ -n "${INCIDENT:-}" ]; then
+            gh issue comment "$INCIDENT" --repo "$REPO" --body "$marker"
+          else
+            echo "$marker"
+          fi
+          echo "attempting postgresql restart at ${attempted_at}"
           http="$(curl -sS -o /tmp/restart.json -w '%{http_code}' -m 90 -X POST \
             "https://api.supabase.com/v1/projects/${SUPABASE_PROJECT_REF}/restart" \
             -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
             -H "Content-Type: application/json" \
             -d '{"restart_type":"postgresql"}' || echo "000")"
           echo "restart HTTP ${http}: $(head -c 300 /tmp/restart.json || true)"
-          note="[auto-restart] attempted at $(date -u +%Y-%m-%dT%H:%M:%SZ), HTTP ${http}."
+          note="PostgreSQL restart request at ${attempted_at}: HTTP ${http}."
           # Give the instance time to come back (measured: ~8 min including
           # crash recovery), then re-probe once and record the outcome.
           sleep 300
