@@ -1,0 +1,220 @@
+import { normalizePolymarketMarket } from './market';
+import { collectPolymarketMarketEvidence } from './sourceEvidence';
+
+const originalBindings = process.env.POLYMARKET_RULE_BINDINGS_JSON;
+const originalRegistrationKey = process.env.BLS_API_REGISTRATION_KEY;
+const market = {
+  id: 'generic-market-501',
+  version: 'v1',
+  slug: 'generic-market-501',
+  question: 'A reviewed market question?',
+  description: 'The source reference identifies the official published data.',
+  resolutionSource: 'https://www.bls.gov/example/series',
+  endDate: '2026-12-31T00:00:00.000Z',
+  active: true,
+  closed: false,
+  outcomes: '["Yes","No"]',
+  clobTokenIds: '["111","222"]',
+  outcomePrices: '["0.5","0.5"]',
+};
+const rulesDigest = normalizePolymarketMarket(market)?.rulesDigest;
+const jsonResponse = (body: unknown) =>
+  ({
+    ok: true,
+    status: 200,
+    headers: { get: () => null },
+    text: async () => JSON.stringify(body),
+  }) as Response;
+
+describe('Polymarket source-evidence collection', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+    Reflect.deleteProperty(globalThis, 'fetch');
+    if (originalBindings === undefined) delete process.env.POLYMARKET_RULE_BINDINGS_JSON;
+    else process.env.POLYMARKET_RULE_BINDINGS_JSON = originalBindings;
+    if (originalRegistrationKey === undefined) delete process.env.BLS_API_REGISTRATION_KEY;
+    else process.env.BLS_API_REGISTRATION_KEY = originalRegistrationKey;
+  });
+
+  it('returns market and source integrity evidence without evaluating an outcome', async () => {
+    process.env.BLS_API_REGISTRATION_KEY = 'local-test-key';
+    process.env.POLYMARKET_RULE_BINDINGS_JSON = JSON.stringify([
+      {
+        marketId: market.id,
+        rulesDigest,
+        reviewedAt: '2026-11-25T00:00:00.000Z',
+        reviewer: 'rules-review',
+        observations: [
+          {
+            id: 'inflation-source',
+            provider: 'bls.percent-change',
+            input: { seriesId: 'CUUR0000SA0', year: '2026', period: 'M11', months: 12 },
+          },
+          {
+            id: 'employment-source',
+            provider: 'bls.series',
+            input: { seriesId: 'LNS00000002', year: '2026', period: 'M10' },
+          },
+        ],
+      },
+    ]);
+    const fetchMock = jest.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = new URL(String(input));
+      if (url.hostname === 'gamma-api.polymarket.com') return jsonResponse([market]);
+      if (url.hostname === 'api.bls.gov' && url.pathname.endsWith('/v2/timeseries/data/')) {
+        expect(init?.method).toBe('POST');
+        const body = JSON.parse(String(init?.body)) as {
+          calculations: boolean;
+          startyear: string;
+          endyear: string;
+        };
+        expect(body).toMatchObject({ calculations: true, startyear: '2025', endyear: '2026' });
+        return jsonResponse({
+          status: 'REQUEST_SUCCEEDED',
+          Results: {
+            series: [
+              {
+                seriesID: 'CUUR0000SA0',
+                data: [
+                  {
+                    year: '2026',
+                    period: 'M11',
+                    periodName: 'November',
+                    value: '103.7',
+                    calculations: { pct_changes: { '12': '3.7' } },
+                    footnotes: [],
+                  },
+                  {
+                    year: '2025',
+                    period: 'M11',
+                    periodName: 'November',
+                    value: '100',
+                    footnotes: [],
+                  },
+                ],
+              },
+            ],
+          },
+        });
+      }
+      if (url.hostname === 'api.bls.gov') {
+        return jsonResponse({
+          status: 'REQUEST_SUCCEEDED',
+          Results: [
+            {
+              series: [
+                {
+                  seriesID: 'LNS00000002',
+                  data: [
+                    {
+                      year: '2026',
+                      period: 'M10',
+                      periodName: 'October',
+                      value: '3.2',
+                      footnotes: [],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        });
+      }
+      throw new Error(`Unexpected upstream: ${url.hostname}`);
+    });
+    Object.defineProperty(globalThis, 'fetch', { configurable: true, value: fetchMock });
+
+    const result = await collectPolymarketMarketEvidence({ marketId: market.id });
+    expect(result.schema).toBe('insight.polymarket-source-evidence.v1');
+    expect(result.observations).toHaveLength(2);
+    expect(result.checks).toEqual({
+      marketActive: true,
+      marketOpen: true,
+      rulesDigestStable: true,
+      resolutionSourceDeclared: true,
+      sourceEvidenceRetrieved: true,
+    });
+    expect(result.scope.outcomeEvaluation).toBe('not_performed');
+    expect(result).not.toHaveProperty('evaluation');
+    expect(result).not.toHaveProperty('comparison');
+    expect(result).not.toHaveProperty('candidateOutcome');
+    expect(result).not.toHaveProperty('verdict');
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+  });
+
+  it('rejects legacy outcome-evaluation bindings instead of silently ignoring them', async () => {
+    process.env.POLYMARKET_RULE_BINDINGS_JSON = JSON.stringify([
+      {
+        marketId: market.id,
+        rulesDigest,
+        reviewedAt: '2026-11-25T00:00:00.000Z',
+        reviewer: 'rules-review',
+        logic: 'all',
+        trueOutcomeName: 'Yes',
+        falseOutcomeName: 'No',
+        observations: [
+          {
+            id: 'inflation',
+            provider: 'bls.series',
+            input: { seriesId: 'CUUR0000SA0', year: '2026', period: 'M10' },
+          },
+        ],
+        conditions: [{ observationId: 'inflation', operator: 'gt', threshold: '3.0' }],
+      },
+    ]);
+    const fetchMock = jest.fn();
+    Object.defineProperty(globalThis, 'fetch', { configurable: true, value: fetchMock });
+    await expect(collectPolymarketMarketEvidence({ marketId: market.id })).rejects.toMatchObject({
+      code: 'BINDING_NOT_CONFIGURED',
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('rejects a BLS calculation that does not match captured observations', async () => {
+    process.env.BLS_API_REGISTRATION_KEY = 'local-test-key';
+    process.env.POLYMARKET_RULE_BINDINGS_JSON = JSON.stringify([
+      {
+        marketId: market.id,
+        rulesDigest,
+        reviewedAt: '2026-11-25T00:00:00.000Z',
+        reviewer: 'rules-review',
+        observations: [
+          {
+            id: 'inflation',
+            provider: 'bls.percent-change',
+            input: { seriesId: 'CUUR0000SA0', year: '2026', period: 'M11', months: 12 },
+          },
+        ],
+      },
+    ]);
+    const fetchMock = jest.fn(async (input: RequestInfo | URL) => {
+      const url = new URL(String(input));
+      if (url.hostname === 'gamma-api.polymarket.com') return jsonResponse([market]);
+      return jsonResponse({
+        status: 'REQUEST_SUCCEEDED',
+        Results: {
+          series: [
+            {
+              seriesID: 'CUUR0000SA0',
+              data: [
+                {
+                  year: '2026',
+                  period: 'M11',
+                  periodName: 'November',
+                  value: '103.7',
+                  calculations: { pct_changes: { '12': '3.8' } },
+                  footnotes: [],
+                },
+                { year: '2025', period: 'M11', value: '100', footnotes: [] },
+              ],
+            },
+          ],
+        },
+      });
+    });
+    Object.defineProperty(globalThis, 'fetch', { configurable: true, value: fetchMock });
+    await expect(collectPolymarketMarketEvidence({ marketId: market.id })).rejects.toThrow(
+      /does not match/
+    );
+  });
+});

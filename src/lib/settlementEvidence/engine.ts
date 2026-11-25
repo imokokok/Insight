@@ -1,8 +1,10 @@
 /**
  * Settlement-evidence engine.
  *
- * Compares a price contract's DECLARED outcome against Insight's INDEPENDENT
- * sources and grades the window:
+ * Compares a price contract's DECLARED outcome against an independent
+ * Kraken 1-minute candle direction and grades the window. This is a
+ * cross-source consistency check, not an exact replay of Polymarket's
+ * Chainlink TWAP resolution calculation:
  *   - consistent        declared == independent, with full candle coverage
  *   - inconsistent      declared != independent under full coverage
  *   - insufficient_data coverage incomplete, venue unqueryable, or the market

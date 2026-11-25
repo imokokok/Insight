@@ -33,6 +33,7 @@ function gammaMarket(overrides: Partial<GammaMarket> = {}): GammaMarket {
     active: true,
     outcomes: '["Up", "Down"]',
     outcomePrices: '["0.52", "0.48"]',
+    clobTokenIds: '["1001", "1002"]',
     ...overrides,
   } as GammaMarket;
 }
@@ -44,6 +45,27 @@ function deps(
 ) {
   return {
     fetchMarket: fetchMarket ?? (jest.fn(async () => market) as never),
+    fetchOrderBook: jest.fn(async () => {
+      let prices: string[] = [];
+      try {
+        prices =
+          typeof market?.outcomePrices === 'string'
+            ? (JSON.parse(market.outcomePrices) as string[])
+            : [];
+      } catch {
+        /* malformed Gamma metadata remains separate from the CLOB quote */
+      }
+      const ask = Number(prices[0]);
+      const executableAsk = ask === 0.52 ? 0.53 : Number.isFinite(ask) && ask! > 0 ? ask : 0.53;
+      return {
+        timestamp: now.toISOString(),
+        hash: `0x${'1'.repeat(64)}`,
+        bestBid: 0.51,
+        bestBidSize: 12,
+        bestAsk: executableAsk,
+        bestAskSize: executableAsk ? 8 : null,
+      };
+    }),
     now: () => now,
   } as never;
 }
@@ -65,7 +87,7 @@ describe('assessPolymarketGuard', () => {
     const market = { ...gammaMarket(), ...aggregateFields() };
     const result = await assessPolymarketGuard(BASE_INPUT, deps(market));
     expect(result.verdict).toBe('ALLOW');
-    expect(result.schema).toBe('insight.polymarket-guard.v1');
+    expect(result.schema).toBe('insight.polymarket-guard.v2');
     expect(result.scope).toEqual({
       venue: 'polymarket',
       network: 'polymarket-mainnet',
@@ -77,7 +99,10 @@ describe('assessPolymarketGuard', () => {
     expect(result.market.settlementVenue).toBe('chainlink-stream');
     expect(result.market.endDateMatchesSlugWindow).toBe(true);
     expect(result.quotes.upProbability).toBeCloseTo(0.52, 4);
-    expect(result.quotes.chosenSidePrice).toBeCloseTo(0.52, 4);
+    expect(result.quotes.chosenSidePrice).toBeCloseTo(0.53, 4);
+    expect(result.quotes.executableBestAsk).toBeCloseTo(0.53, 4);
+    expect(result.quotes.executableAskSize).toBe(8);
+    expect(result.quotes.orderBookHash).toBe(`0x${'1'.repeat(64)}`);
     expect(result.quotes.volumeNum).toBe(93745.63);
     expect(result.timing.secondsToResolution).toBe(240);
     const failing = result.checks.filter((c) => c.status !== 'pass');
@@ -88,6 +113,24 @@ describe('assessPolymarketGuard', () => {
     const result = await assessPolymarketGuard(BASE_INPUT, deps(gammaMarket({ closed: true })));
     expect(result.verdict).toBe('BLOCK');
     expect(result.reasons).toContain('market closed');
+  });
+
+  it('blocks when the selected side has no fresh executable CLOB ask', async () => {
+    const stale = {
+      fetchMarket: async () => gammaMarket(),
+      fetchOrderBook: async () => ({
+        timestamp: new Date(MID_WINDOW_NOW.getTime() - 16_000).toISOString(),
+        hash: `0x${'2'.repeat(64)}`,
+        bestBid: 0.51,
+        bestBidSize: 2,
+        bestAsk: 0.53,
+        bestAskSize: 1,
+      }),
+      now: () => MID_WINDOW_NOW,
+    };
+    const result = await assessPolymarketGuard(BASE_INPUT, stale);
+    expect(result.verdict).toBe('BLOCK');
+    expect(result.reasons).toContain('executable order book is stale');
   });
 
   it('cautions when the metadata cannot state its own lifecycle state', async () => {
@@ -129,13 +172,13 @@ describe('assessPolymarketGuard', () => {
     expect(result.reasons).toContain('settlement venue unverifiable');
   });
 
-  it('cautions on a fresh market whose book is not yet quoted', async () => {
+  it('cautions when Gamma has no probability but the executable book is available', async () => {
     // Live-observed shape of a brand-new 5m contract (2026-11-04 sample).
     const market = gammaMarket({ outcomePrices: null });
     const result = await assessPolymarketGuard(BASE_INPUT, deps(market));
     expect(result.verdict).toBe('CAUTION');
     expect(result.reasons).toContain('venue probability not yet quoted');
-    expect(result.quotes.chosenSidePrice).toBeNull();
+    expect(result.quotes.chosenSidePrice).toBeCloseTo(0.53, 4);
   });
 
   it('cautions when the chosen side is priced near certainty', async () => {

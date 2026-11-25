@@ -38,6 +38,7 @@ function gammaMarket(overrides: Partial<GammaMarket> = {}): GammaMarket {
     active: true,
     outcomes: '["Up", "Down"]',
     outcomePrices: '["0.52", "0.48"]',
+    clobTokenIds: '["1001", "1002"]',
     ...overrides,
   } as GammaMarket;
 }
@@ -49,6 +50,22 @@ function deps(
 ) {
   return {
     fetchMarket: fetchMarket ?? (jest.fn(async () => market) as never),
+    fetchOrderBook: jest.fn(async () => {
+      const prices =
+        typeof market?.outcomePrices === 'string'
+          ? (JSON.parse(market.outcomePrices) as string[])
+          : [];
+      const ask = market?.outcomePrices === null ? null : Number(prices[0]);
+      const executableAsk = ask === 0.52 ? 0.53 : Number.isFinite(ask) && ask! > 0 ? ask : 0.53;
+      return {
+        timestamp: now.toISOString(),
+        hash: `0x${'a'.repeat(64)}`,
+        bestBid: 0.51,
+        bestBidSize: 9,
+        bestAsk: executableAsk,
+        bestAskSize: executableAsk ? 10 : null,
+      };
+    }),
     now: () => now,
   } as never;
 }
@@ -334,7 +351,7 @@ describe('prediction guard integration - structured assessment + zero regression
     const result = await assessPolymarketGuard(BASE_INPUT, deps());
     // Existing verdict semantics unchanged.
     expect(result.verdict).toBe('ALLOW');
-    expect(result.schema).toBe('insight.polymarket-guard.v1');
+    expect(result.schema).toBe('insight.polymarket-guard.v2');
     expect(result.market.settlementVenue).toBe('chainlink-stream');
     expect(result.disclosure.oracleConsensus).toBe('not_applicable_to_event_markets');
     // New structured field.

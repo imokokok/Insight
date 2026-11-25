@@ -128,10 +128,11 @@ export default async function SettlementEvidencePage() {
         </h1>
         <p className="mt-3 text-neutral-600 leading-relaxed">
           For every watched prediction-market crypto price contract, Insight compares the market’s{' '}
-          <strong>declared outcome</strong> against its own independent sources — settlement-window
-          exchange candles and the platform’s multi-provider oracle consensus — and signs the
-          result. Every pack is delivered as derived analytics and carries an offline-verifiable
-          EIP-712 attestation. Raw venue data is never redistributed.
+          <strong>declared outcome</strong> with an independent Kraken 1-minute candle direction and
+          reports aligned Insight oracle-consensus data when available. This is a cross-source
+          consistency check; it does not reproduce Polymarket’s Chainlink TWAP calculation. Every
+          pack is delivered as derived analytics and carries an offline-verifiable EIP-712
+          attestation when the signer is configured. Raw venue data is never redistributed.
         </p>
         <p className="mt-2 text-sm text-neutral-500">
           Insight supplies verifiable evidence; it does not arbitrate resolutions.
