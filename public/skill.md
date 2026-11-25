@@ -140,6 +140,15 @@ The catalog exposes 20 discoverable names: the product tools `trade_guard`, `tra
 
 MCP prices: `trade_guard` and `trade_proof` are $0.040; `oracle_watch_window` is $0.500; `position_lifecycle` is $0.550. The three `trade_guard` trade-safety ops (`check_safety`, `prepare_swap`, `prepare_perp_order`) are $0.040 each, while read-only `trade_guard` ops start at $0.002. The $0.02 C3 price is the REST `/api/v1/safety/pre-trade` route, not the MCP `trade_guard` price.
 
+#### MCP prepared execution outputs: `prepare_swap` and `prepare_perp_order`
+
+These operations return more than a verdict. When the selected reviewed venue can prepare an eligible action, they return an unsigned, venue-specific execution artifact together with the applicable guard result and available quote or route context. The response shape depends on the venue; the two operations do not promise one uniform transaction format.
+
+- `prepare_swap` returns unsigned swap data, such as an EVM transaction envelope or a Solana transaction/message, with the quote or route details and guard context available from that venue adapter. It does not sign or submit the swap. Unsupported routes, failed preparation, or a guard rejection can return no signable payload.
+- `prepare_perp_order` returns a venue-specific order artifact and guard context. Depending on the venue, the artifact can be an unsigned Hyperliquid exchange-order envelope, Synthetix Base EVM calldata, an Aster REST order body (not an on-chain transaction or proof of on-chain execution), or a Drift instruction that the caller must complete with the Drift SDK. Non-ready or rejected results can have no payload.
+
+Insight does not place or submit trades, custody customer trading funds or hold trading deposits, sign execution transactions or orders, or broadcast them. The caller's application and wallet owner control policy, approval, signing and submission. Any optional EIP-712 signature attests to assessment data; it is not an execution signature or authorization. A PASS or prepared artifact does not authorize execution.
+
 ### 4. Hyperliquid perpetual execution loop (MCP)
 
 For reviewed `BTC`, `ETH`, and `HYPE` perpetuals, use the MCP tools in this order:
@@ -194,4 +203,4 @@ verification reads live state and costs C2.
 
 ## Compliance notes
 
-The service is a safety oracle. It does not custody funds, execute trades, or provide investment advice; it returns data and verdicts about price-feed integrity.
+The service is an advisory safety oracle. It does not custody customer trading funds or hold trading deposits, place or submit trades, sign or broadcast execution transactions or orders, or provide investment advice. It returns data, guard results and venue-specific unsigned prepared artifacts where supported. Any optional signature attests to assessment data only; the caller retains execution authority.
