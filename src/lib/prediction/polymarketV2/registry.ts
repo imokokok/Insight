@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { PolymarketAviationWeatherMetarInputSchema } from './aviationweather';
 import { PolymarketBlsEvidenceInputSchema, PolymarketBlsPercentChangeInputSchema } from './bls';
 import { PolymarketNwsObservationInputSchema } from './nws';
 
@@ -24,6 +25,13 @@ const ObservationSchema = z.discriminatedUnion('provider', [
       id: z.string().trim().min(1).max(64),
       provider: z.literal('nws.latest-observation'),
       input: PolymarketNwsObservationInputSchema,
+    })
+    .strict(),
+  z
+    .object({
+      id: z.string().trim().min(1).max(64),
+      provider: z.literal('aviationweather.metar'),
+      input: PolymarketAviationWeatherMetarInputSchema,
     })
     .strict(),
 ]);
