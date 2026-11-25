@@ -22,21 +22,26 @@ The latest account observations (2026-11-25) support a cautious D1 rollout:
   `price_records` insert rows, 3,841 calls to price-record read statements, and
   23 TTL-cleanup calls. The 5,104 shared blocks dirtied by inserts are buffer
   activity, not a direct disk-I/O quota measurement.
-- A live Supabase check after deployment found 257 new cache rows in 30
-  minutes. At that observed pace, D1 would receive about 12,336 inserts/day.
-  With two secondary indexes and matching TTL deletes, estimate about 74,016
-  D1 row writes/day (12,336 inserts × 3 rows including index entries, plus
-  12,336 deletes × 3). Account usage adds about 692 D1 writes/day across the
-  other databases, for roughly 74.7% of the Free 100,000 writes/day limit.
-  This leaves about 25% headroom; review actual D1 usage daily during shadow
-  and reduce cache sampling or indexes if usage approaches 80,000 writes/day.
+- Supabase `created_at` counts showed 257 cache rows at each of the eight
+  latest hourly checkpoints (with 270–271 at some earlier checkpoints). The
+  15-minute collector still runs between those checkpoints, but the 15:45 UTC
+  production run logged `selected=0` and skipped the rich-cache write. Budget
+  D1 for about 6,168 inserts/day at 257 rows/hour. With two secondary indexes
+  and matching TTL deletes, estimate about 37,008 D1 row writes/day (6,168
+  inserts × 3 rows including index entries, plus 6,168 deletes × 3). Account
+  usage adds about 692 D1 writes/day across the other databases, for roughly
+  37.7% of the Free 100,000 writes/day limit and about 62% headroom. Review
+  actual D1 usage daily during shadow and reduce cache sampling or indexes if
+  usage approaches 80,000 writes/day.
 - Before this migration, the D1 free-tier account used 12.16 MiB of 5 GiB and 4
   of 10 databases. The new fifth database was created in APAC on 2026-11-25;
   after schema application it measured 36.9 KB. The first post-deploy check
-  found 0 rows in `price_records`; 12 D1 rows-written were migration/runtime
-  activity, not cached price rows. The 5 GiB storage and 10-database limits
-  have ample headroom, and the projected row-read workload remains below the
-  5 million rows-read/day ceiling.
+  found 0 rows in `price_records`; the first post-fix manual run was between
+  hourly cache checkpoints and therefore correctly wrote no cache rows. The
+  D1 shadow clock starts only after the next successful nonzero hourly batch.
+  The 5 GiB storage and 10-database limits have ample headroom, and the
+  projected row-read workload remains below the 5 million rows-read/day
+  ceiling.
 
 The D1 write ceiling is a hard stop after exhaustion. Keep the two-index schema,
 the 24-hour TTL, and the D1 daily write review together. Do not move Turso's
