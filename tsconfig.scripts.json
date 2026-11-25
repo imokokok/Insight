@@ -5,6 +5,7 @@
     "noEmit": true
   },
   "files": [
+    "src/types/cloudflare-workers.d.ts",
     "src/types/supra-oracle-sdk.d.ts",
     "scripts/backfill-market-reference.ts",
     "scripts/billing.ts",
