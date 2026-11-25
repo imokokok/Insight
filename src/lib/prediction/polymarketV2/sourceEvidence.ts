@@ -1,6 +1,11 @@
 import { z } from 'zod';
 
 import {
+  fetchPolymarketAviationWeatherMetarEvidence,
+  matchesPolymarketAviationWeatherResolutionSource,
+  type PolymarketAviationWeatherMetarInput,
+} from './aviationweather';
+import {
   fetchPolymarketBlsPercentChangeEvidence,
   fetchPolymarketBlsSeriesEvidence,
   type PolymarketBlsEvidenceInputSchema,
@@ -38,6 +43,7 @@ export class PolymarketEvidenceError extends Error {
 type RawBlsInput = z.infer<typeof PolymarketBlsEvidenceInputSchema>;
 type PercentChangeInput = z.infer<typeof PolymarketBlsPercentChangeInputSchema>;
 type NwsInput = z.infer<typeof PolymarketNwsObservationInputSchema>;
+type AviationWeatherInput = PolymarketAviationWeatherMetarInput;
 type ProviderResult = { evidence: unknown; warnings: string[] };
 type EvidenceProvider<I> = { fetch(input: I): Promise<ProviderResult> };
 
@@ -45,6 +51,7 @@ const providers: {
   'bls.series': EvidenceProvider<RawBlsInput>;
   'bls.percent-change': EvidenceProvider<PercentChangeInput>;
   'nws.latest-observation': EvidenceProvider<NwsInput>;
+  'aviationweather.metar': EvidenceProvider<AviationWeatherInput>;
 } = {
   'bls.series': {
     async fetch(input) {
@@ -79,6 +86,15 @@ const providers: {
       return {
         evidence: await fetchPolymarketNwsObservationEvidence(input),
         warnings: [],
+      };
+    },
+  },
+  'aviationweather.metar': {
+    async fetch(input) {
+      const evidence = await fetchPolymarketAviationWeatherMetarEvidence(input);
+      return {
+        evidence,
+        warnings: ['METAR snapshot may cover an incomplete source window; human review required.'],
       };
     },
   },
@@ -169,6 +185,23 @@ export async function collectPolymarketMarketEvidence(input: PolymarketEvidenceI
     );
   }
 
+  if (
+    binding.observations.some(
+      (definition) =>
+        definition.provider === 'aviationweather.metar' &&
+        !matchesPolymarketAviationWeatherResolutionSource(
+          market.resolutionSource!,
+          definition.input
+        )
+    )
+  ) {
+    throw new PolymarketEvidenceError(
+      'MARKET_UNSUPPORTED',
+      'AviationWeather binding does not exactly match the market resolution-source URL',
+      422
+    );
+  }
+
   const collected = await Promise.all(
     binding.observations.map(async (definition) => {
       let result: ProviderResult;
@@ -181,6 +214,9 @@ export async function collectPolymarketMarketEvidence(input: PolymarketEvidenceI
           break;
         case 'nws.latest-observation':
           result = await providers['nws.latest-observation'].fetch(definition.input);
+          break;
+        case 'aviationweather.metar':
+          result = await providers['aviationweather.metar'].fetch(definition.input);
           break;
       }
       return {
