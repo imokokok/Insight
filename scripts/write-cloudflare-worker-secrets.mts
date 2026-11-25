@@ -1,5 +1,6 @@
 import { chmod, mkdir, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
+import { PolymarketEvidenceRegistrySchema } from '../src/lib/prediction/polymarketV2/registry';
 
 const runtimeSecretNames = [
   'ALCHEMY_ARBITRUM_RPC',
@@ -16,6 +17,7 @@ const runtimeSecretNames = [
   'ATTESTATION_REVOKED_KEYS_CONFIG',
   'ATTESTATION_SAMPLE_SIGNER_PRIVATE_KEY',
   'ATTESTATION_SIGNER_PRIVATE_KEY',
+  'BLS_API_REGISTRATION_KEY',
   'COVERAGE_SIGNER_PRIVATE_KEY',
   'CRON_SECRET',
   'CSRF_SECRET',
@@ -37,6 +39,8 @@ const runtimeSecretNames = [
   'NOWPAYMENTS_IPN_SECRET',
   'NOWPAYMENTS_TEST_MODE',
   'OPS_OWNER_USER_IDS',
+  'POLYMARKET_EVIDENCE_ENABLED',
+  'POLYMARKET_RULE_BINDINGS_JSON',
   'ROBINHOOD_RPC_URL',
   'SOLANA_PRIVATE_KEY',
   'SUPABASE_DB_PASSWORD',
@@ -98,6 +102,33 @@ function readSecretMap(): Record<string, string> {
     }
     if (result.MPP_SECRET_KEY && Buffer.byteLength(result.MPP_SECRET_KEY, 'utf8') < 32) {
       throw new Error('MPP_SECRET_KEY must contain at least 32 bytes.');
+    }
+  }
+
+  if (process.env.POLYMARKET_EVIDENCE_ENABLED === 'true') {
+    const bindingsJson = result.POLYMARKET_RULE_BINDINGS_JSON;
+    if (!bindingsJson) {
+      throw new Error(
+        'POLYMARKET_RULE_BINDINGS_JSON is required when Polymarket evidence is enabled.'
+      );
+    }
+    let bindings: unknown;
+    try {
+      bindings = JSON.parse(bindingsJson) as unknown;
+    } catch {
+      throw new Error('POLYMARKET_RULE_BINDINGS_JSON must contain valid JSON.');
+    }
+    const parsedBindings = PolymarketEvidenceRegistrySchema.safeParse(bindings);
+    if (!parsedBindings.success || parsedBindings.data.length < 1) {
+      throw new Error(
+        'POLYMARKET_RULE_BINDINGS_JSON must be a non-empty array of valid, reviewed source bindings.'
+      );
+    }
+    const usesBls = parsedBindings.data.some((binding) =>
+      binding.observations.some((observation) => observation.provider.startsWith('bls.'))
+    );
+    if (usesBls && !result.BLS_API_REGISTRATION_KEY) {
+      throw new Error('BLS_API_REGISTRATION_KEY is required for configured BLS source bindings.');
     }
   }
 

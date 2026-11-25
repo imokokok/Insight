@@ -3,57 +3,15 @@ import { z } from 'zod';
 import {
   fetchPolymarketBlsPercentChangeEvidence,
   fetchPolymarketBlsSeriesEvidence,
-  PolymarketBlsEvidenceInputSchema,
-  PolymarketBlsPercentChangeInputSchema,
+  type PolymarketBlsEvidenceInputSchema,
+  type PolymarketBlsPercentChangeInputSchema,
 } from './bls';
 import { getPolymarketMarketById } from './market';
-
-const DIGEST = /^0x[\da-f]{64}$/i;
-const ObservationSchema = z.discriminatedUnion('provider', [
-  z
-    .object({
-      id: z.string().trim().min(1).max(64),
-      provider: z.literal('bls.series'),
-      input: PolymarketBlsEvidenceInputSchema.strict(),
-    })
-    .strict(),
-  z
-    .object({
-      id: z.string().trim().min(1).max(64),
-      provider: z.literal('bls.percent-change'),
-      input: PolymarketBlsPercentChangeInputSchema.strict(),
-    })
-    .strict(),
-]);
-const BindingSchema = z
-  .object({
-    marketId: z.string().trim().min(1).max(100),
-    rulesDigest: z.string().regex(DIGEST),
-    reviewedAt: z.string().datetime({ offset: true }),
-    reviewer: z.string().trim().min(1).max(100),
-    observations: z.array(ObservationSchema).min(1).max(10),
-  })
-  .strict()
-  .superRefine((binding, context) => {
-    const ids = new Set<string>();
-    for (const observation of binding.observations) {
-      if (ids.has(observation.id))
-        context.addIssue({ code: 'custom', message: 'Duplicate observation id' });
-      ids.add(observation.id);
-    }
-  });
-
-const RegistrySchema = z
-  .array(BindingSchema)
-  .max(200)
-  .superRefine((bindings, context) => {
-    const ids = new Set<string>();
-    for (const binding of bindings) {
-      if (ids.has(binding.marketId))
-        context.addIssue({ code: 'custom', message: 'Duplicate market binding' });
-      ids.add(binding.marketId);
-    }
-  });
+import {
+  fetchPolymarketNwsObservationEvidence,
+  type PolymarketNwsObservationInputSchema,
+} from './nws';
+import { PolymarketEvidenceRegistrySchema } from './registry';
 
 export const PolymarketEvidenceInputSchema = z.object({
   marketId: z.string().trim().min(1).max(100),
@@ -63,6 +21,7 @@ export type PolymarketEvidenceInput = z.infer<typeof PolymarketEvidenceInputSche
 export class PolymarketEvidenceError extends Error {
   constructor(
     readonly code:
+      | 'FEATURE_DISABLED'
       | 'BINDING_NOT_CONFIGURED'
       | 'MARKET_NOT_FOUND'
       | 'RULES_CHANGED'
@@ -78,12 +37,14 @@ export class PolymarketEvidenceError extends Error {
 
 type RawBlsInput = z.infer<typeof PolymarketBlsEvidenceInputSchema>;
 type PercentChangeInput = z.infer<typeof PolymarketBlsPercentChangeInputSchema>;
+type NwsInput = z.infer<typeof PolymarketNwsObservationInputSchema>;
 type ProviderResult = { evidence: unknown; warnings: string[] };
 type EvidenceProvider<I> = { fetch(input: I): Promise<ProviderResult> };
 
 const providers: {
   'bls.series': EvidenceProvider<RawBlsInput>;
   'bls.percent-change': EvidenceProvider<PercentChangeInput>;
+  'nws.latest-observation': EvidenceProvider<NwsInput>;
 } = {
   'bls.series': {
     async fetch(input) {
@@ -113,6 +74,14 @@ const providers: {
       };
     },
   },
+  'nws.latest-observation': {
+    async fetch(input) {
+      return {
+        evidence: await fetchPolymarketNwsObservationEvidence(input),
+        warnings: [],
+      };
+    },
+  },
 };
 
 function parseRegistry() {
@@ -133,7 +102,7 @@ function parseRegistry() {
       503
     );
   }
-  const parsed = RegistrySchema.safeParse(value);
+  const parsed = PolymarketEvidenceRegistrySchema.safeParse(value);
   if (!parsed.success)
     throw new PolymarketEvidenceError(
       'BINDING_NOT_CONFIGURED',
@@ -155,6 +124,13 @@ function isHttpsUrl(value: string | null): boolean {
 
 /** Collect bound source evidence and market-integrity facts without evaluating the event outcome. */
 export async function collectPolymarketMarketEvidence(input: PolymarketEvidenceInput) {
+  if (process.env.POLYMARKET_EVIDENCE_ENABLED !== 'true') {
+    throw new PolymarketEvidenceError(
+      'FEATURE_DISABLED',
+      'Polymarket source evidence is not enabled for this deployment',
+      503
+    );
+  }
   const binding = parseRegistry().find((entry) => entry.marketId === input.marketId);
   if (!binding)
     throw new PolymarketEvidenceError(
@@ -195,10 +171,18 @@ export async function collectPolymarketMarketEvidence(input: PolymarketEvidenceI
 
   const collected = await Promise.all(
     binding.observations.map(async (definition) => {
-      const result =
-        definition.provider === 'bls.series'
-          ? await providers['bls.series'].fetch(definition.input)
-          : await providers['bls.percent-change'].fetch(definition.input);
+      let result: ProviderResult;
+      switch (definition.provider) {
+        case 'bls.series':
+          result = await providers['bls.series'].fetch(definition.input);
+          break;
+        case 'bls.percent-change':
+          result = await providers['bls.percent-change'].fetch(definition.input);
+          break;
+        case 'nws.latest-observation':
+          result = await providers['nws.latest-observation'].fetch(definition.input);
+          break;
+      }
       return {
         id: definition.id,
         provider: definition.provider,
