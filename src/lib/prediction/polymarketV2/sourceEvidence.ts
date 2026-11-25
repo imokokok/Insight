@@ -16,6 +16,16 @@ import {
   fetchPolymarketNwsObservationEvidence,
   type PolymarketNwsObservationInputSchema,
 } from './nws';
+import {
+  fetchPolymarketBeaNipaEvidence,
+  fetchPolymarketFredSeriesEvidence,
+  fetchPolymarketOpenFdaApplicationEvidence,
+  fetchPolymarketSecSubmissionsEvidence,
+  type PolymarketBeaNipaInput,
+  type PolymarketFredSeriesInput,
+  type PolymarketOpenFdaApplicationInput,
+  type PolymarketSecSubmissionsInput,
+} from './publicEvidence';
 import { PolymarketEvidenceRegistrySchema } from './registry';
 
 export const PolymarketEvidenceInputSchema = z.object({
@@ -44,6 +54,10 @@ type RawBlsInput = z.infer<typeof PolymarketBlsEvidenceInputSchema>;
 type PercentChangeInput = z.infer<typeof PolymarketBlsPercentChangeInputSchema>;
 type NwsInput = z.infer<typeof PolymarketNwsObservationInputSchema>;
 type AviationWeatherInput = PolymarketAviationWeatherMetarInput;
+type SecInput = PolymarketSecSubmissionsInput;
+type BeaInput = PolymarketBeaNipaInput;
+type FredInput = PolymarketFredSeriesInput;
+type OpenFdaInput = PolymarketOpenFdaApplicationInput;
 type ProviderResult = { evidence: unknown; warnings: string[] };
 type EvidenceProvider<I> = { fetch(input: I): Promise<ProviderResult> };
 
@@ -52,6 +66,10 @@ const providers: {
   'bls.percent-change': EvidenceProvider<PercentChangeInput>;
   'nws.latest-observation': EvidenceProvider<NwsInput>;
   'aviationweather.metar': EvidenceProvider<AviationWeatherInput>;
+  'sec.submissions': EvidenceProvider<SecInput>;
+  'bea.nipa': EvidenceProvider<BeaInput>;
+  'fred.series': EvidenceProvider<FredInput>;
+  'openfda.application': EvidenceProvider<OpenFdaInput>;
 } = {
   'bls.series': {
     async fetch(input) {
@@ -98,7 +116,84 @@ const providers: {
       };
     },
   },
+  'sec.submissions': {
+    async fetch(input) {
+      return {
+        evidence: await fetchPolymarketSecSubmissionsEvidence(input),
+        warnings: ['Public record is source metadata only; human review required.'],
+      };
+    },
+  },
+  'bea.nipa': {
+    async fetch(input) {
+      const evidence = await fetchPolymarketBeaNipaEvidence(input);
+      return {
+        evidence,
+        warnings: evidence.partial
+          ? ['BEA table snapshot is partial; human review required.']
+          : ['Public record is source metadata only; human review required.'],
+      };
+    },
+  },
+  'fred.series': {
+    async fetch(input) {
+      return {
+        evidence: await fetchPolymarketFredSeriesEvidence(input),
+        warnings: ['Public record is source metadata only; human review required.'],
+      };
+    },
+  },
+  'openfda.application': {
+    async fetch(input) {
+      return {
+        evidence: await fetchPolymarketOpenFdaApplicationEvidence(input),
+        warnings: ['Public record is source metadata only; human review required.'],
+      };
+    },
+  },
 };
+
+function resolutionSourceMatchesProvider(provider: string, value: string): boolean {
+  try {
+    const url = new URL(value);
+    if (url.protocol !== 'https:' || url.username || url.password) return false;
+    const host = url.hostname.toLowerCase();
+    const suffix = (domain: string) => host === domain || host.endsWith(`.${domain}`);
+    switch (provider) {
+      case 'sec.submissions':
+        return suffix('sec.gov');
+      case 'bea.nipa':
+        return suffix('bea.gov');
+      case 'fred.series':
+        return suffix('stlouisfed.org');
+      case 'openfda.application':
+        return suffix('fda.gov');
+      default:
+        return false;
+    }
+  } catch {
+    return false;
+  }
+}
+
+async function mapWithLimit<T, R>(
+  items: readonly T[],
+  limit: number,
+  mapper: (item: T) => Promise<R>
+): Promise<R[]> {
+  const result = new Array<R>(items.length);
+  let cursor = 0;
+  await Promise.all(
+    Array.from({ length: Math.min(limit, items.length) }, async () => {
+      for (;;) {
+        const index = cursor++;
+        if (index >= items.length) return;
+        result[index] = await mapper(items[index]);
+      }
+    })
+  );
+  return result;
+}
 
 function parseRegistry() {
   const raw = process.env.POLYMARKET_RULE_BINDINGS_JSON;
@@ -184,7 +279,20 @@ export async function collectPolymarketMarketEvidence(input: PolymarketEvidenceI
       422
     );
   }
-
+  if (
+    binding.observations.some(
+      (definition) =>
+        ['sec.submissions', 'bea.nipa', 'fred.series', 'openfda.application'].includes(
+          definition.provider
+        ) && !resolutionSourceMatchesProvider(definition.provider, market.resolutionSource!)
+    )
+  ) {
+    throw new PolymarketEvidenceError(
+      'MARKET_UNSUPPORTED',
+      'Public data provider does not match the market resolution-source domain',
+      422
+    );
+  }
   if (
     binding.observations.some(
       (definition) =>
@@ -202,31 +310,42 @@ export async function collectPolymarketMarketEvidence(input: PolymarketEvidenceI
     );
   }
 
-  const collected = await Promise.all(
-    binding.observations.map(async (definition) => {
-      let result: ProviderResult;
-      switch (definition.provider) {
-        case 'bls.series':
-          result = await providers['bls.series'].fetch(definition.input);
-          break;
-        case 'bls.percent-change':
-          result = await providers['bls.percent-change'].fetch(definition.input);
-          break;
-        case 'nws.latest-observation':
-          result = await providers['nws.latest-observation'].fetch(definition.input);
-          break;
-        case 'aviationweather.metar':
-          result = await providers['aviationweather.metar'].fetch(definition.input);
-          break;
-      }
-      return {
-        id: definition.id,
-        provider: definition.provider,
-        evidence: result.evidence,
-        warnings: result.warnings,
-      };
-    })
-  );
+  const requestCache = new Map<string, Promise<ProviderResult>>();
+  const collected = await mapWithLimit(binding.observations, 2, async (definition) => {
+    const inputKey = JSON.stringify(definition.input, Object.keys(definition.input).sort());
+    const cacheKey = `${definition.provider}:${inputKey}`;
+    let pending = requestCache.get(cacheKey);
+    if (!pending) {
+      pending = (async () => {
+        switch (definition.provider) {
+          case 'bls.series':
+            return providers['bls.series'].fetch(definition.input);
+          case 'bls.percent-change':
+            return providers['bls.percent-change'].fetch(definition.input);
+          case 'nws.latest-observation':
+            return providers['nws.latest-observation'].fetch(definition.input);
+          case 'aviationweather.metar':
+            return providers['aviationweather.metar'].fetch(definition.input);
+          case 'sec.submissions':
+            return providers['sec.submissions'].fetch(definition.input);
+          case 'bea.nipa':
+            return providers['bea.nipa'].fetch(definition.input);
+          case 'fred.series':
+            return providers['fred.series'].fetch(definition.input);
+          case 'openfda.application':
+            return providers['openfda.application'].fetch(definition.input);
+        }
+      })();
+      requestCache.set(cacheKey, pending);
+    }
+    const result = await pending;
+    return {
+      id: definition.id,
+      provider: definition.provider,
+      evidence: result.evidence,
+      warnings: result.warnings,
+    };
+  });
 
   const latestMarket = await getPolymarketMarketById(input.marketId, deadlineAt);
   if (!latestMarket)
