@@ -45,7 +45,7 @@ import {
 } from '@/lib/settlementEvidence/venueChainMapping';
 
 export const POLYMARKET_GUARD_PROTOCOL_ID = 'polymarket-prediction-mainnet';
-export const POLYMARKET_GUARD_SCHEMA_VERSION = 'insight.polymarket-guard.v1';
+export const POLYMARKET_GUARD_SCHEMA_VERSION = 'insight.polymarket-guard.v2';
 
 /** Live-verified Gamma base URL for the default fetcher. */
 export const POLYMARKET_GUARD_GAMMA_BASE_URL = DEFAULT_GAMMA_BASE_URL;
@@ -67,6 +67,7 @@ const PROBABILITY_SUM_TOLERANCE = 0.05;
 const EXTREME_PROBABILITY = 0.95;
 /** Same endDate/slug-window tolerance the settlement collector applies. */
 const END_DATE_TOLERANCE_MS = 120_000;
+const MAX_CLOB_BOOK_AGE_MS = 15_000;
 
 export interface PolymarketGuardMarketEvidence {
   marketSlug: string;
@@ -97,7 +98,23 @@ export interface PolymarketGuardQuoteEvidence {
   bestBid: number | null;
   bestAsk: number | null;
   lastTradePrice: number | null;
+  /** Executable CLOB top of book for the selected outcome, sampled for this assessment. */
+  executableBestAsk: number | null;
+  executableBestBid: number | null;
+  executableAskSize: number | null;
+  executableBidSize: number | null;
+  orderBookTimestamp: string | null;
+  orderBookHash: string | null;
 }
+
+type PolymarketBook = {
+  timestamp: string | null;
+  hash: string | null;
+  bestBid: number | null;
+  bestBidSize: number | null;
+  bestAsk: number | null;
+  bestAskSize: number | null;
+};
 
 export interface PolymarketGuardTimingEvidence {
   evaluatedAtMs: number;
@@ -148,12 +165,237 @@ export interface PolymarketGuardResult {
 export interface PolymarketGuardDependencies {
   /** Injectable single-market fetcher. Must throw on transport failure. */
   fetchMarket?: (marketSlug: string) => Promise<GammaMarket | null>;
+  /** Injectable CLOB order-book fetcher; a missing/malformed book is a hard block. */
+  fetchOrderBook?: (assetId: string) => Promise<PolymarketBook>;
   now?: () => Date;
 }
 
 function roundTo(value: number, digits: number): number {
   const factor = 10 ** digits;
   return Math.round(value * factor) / factor;
+}
+
+type VerdictEscalator = (status: 'caution' | 'block') => void;
+
+function assessWindowAndLifecycle(
+  market: GammaMarket,
+  parsed: NonNullable<ReturnType<typeof parseUpdownSlug>>,
+  nowMs: number,
+  checks: PolymarketGuardCheck[],
+  reasons: string[],
+  escalate: VerdictEscalator
+): { windowEndMs: number; endDateMs: number } {
+  const windowEndMs = parsed.windowStartMs + parsed.windowSeconds * 1000;
+  const endDateMs = market.endDate ? Date.parse(market.endDate) : NaN;
+  const endDateMatches =
+    Number.isFinite(endDateMs) && Math.abs(endDateMs - windowEndMs) < END_DATE_TOLERANCE_MS;
+  if (!endDateMatches) {
+    escalate('caution');
+    checks.push({
+      id: 'window-integrity',
+      status: 'caution',
+      detail: market.endDate
+        ? `endDate ${market.endDate} disagrees with slug window end ${new Date(
+            windowEndMs
+          ).toISOString()}`
+        : 'endDate missing from market metadata',
+    });
+    reasons.push('market window metadata inconsistent');
+  } else {
+    checks.push({
+      id: 'window-integrity',
+      status: 'pass',
+      detail: 'endDate agrees with slug window',
+    });
+  }
+
+  if (market.closed === true) {
+    escalate('block');
+    checks.push({ id: 'lifecycle', status: 'block', detail: 'market is closed' });
+    reasons.push('market closed');
+  } else if (market.active === false) {
+    escalate('block');
+    checks.push({ id: 'lifecycle', status: 'block', detail: 'market is not active' });
+    reasons.push('market not active');
+  } else if (market.closed === null && market.active === null) {
+    escalate('caution');
+    checks.push({
+      id: 'lifecycle',
+      status: 'caution',
+      detail: 'lifecycle state unknown (closed and active both absent from metadata)',
+    });
+    reasons.push('market lifecycle state unknown');
+  } else {
+    checks.push({
+      id: 'lifecycle',
+      status: 'pass',
+      detail: `closed=${String(market.closed ?? 'unknown')} active=${String(
+        market.active ?? 'unknown'
+      )}`,
+    });
+  }
+
+  assessResolutionTiming(endDateMs, parsed.windowSeconds, nowMs, checks, reasons, escalate);
+  return { windowEndMs, endDateMs };
+}
+
+function assessResolutionTiming(
+  endDateMs: number,
+  windowSeconds: number,
+  nowMs: number,
+  checks: PolymarketGuardCheck[],
+  reasons: string[],
+  escalate: VerdictEscalator
+): void {
+  const secondsToResolution = Number.isFinite(endDateMs)
+    ? Math.round((endDateMs - nowMs) / 1000)
+    : null;
+  if (secondsToResolution === null) {
+    escalate('caution');
+    checks.push({
+      id: 'resolution-timing',
+      status: 'caution',
+      detail: 'resolution timing cannot be derived (no parsable endDate)',
+    });
+    reasons.push('resolution timing unknown');
+    return;
+  }
+
+  const imminentSeconds = Math.max(
+    IMMINENT_RESOLUTION_MIN_SECONDS,
+    windowSeconds * IMMINENT_RESOLUTION_WINDOW_FRACTION
+  );
+  if (secondsToResolution <= 0) {
+    escalate('block');
+    checks.push({
+      id: 'resolution-timing',
+      status: 'block',
+      detail: 'resolution window has already ended',
+    });
+    reasons.push('resolution window ended');
+  } else if (secondsToResolution < imminentSeconds) {
+    escalate('block');
+    checks.push({
+      id: 'resolution-timing',
+      status: 'block',
+      detail: `only ${secondsToResolution}s to resolution (reviewed minimum ${Math.round(
+        imminentSeconds
+      )}s)`,
+    });
+    reasons.push('imminent resolution, adverse-selection entry');
+  } else if (secondsToResolution < windowSeconds * LATE_WINDOW_FRACTION) {
+    escalate('caution');
+    checks.push({
+      id: 'resolution-timing',
+      status: 'caution',
+      detail: `late-window entry: ${secondsToResolution}s of ${windowSeconds}s remain`,
+    });
+    reasons.push('late-window entry');
+  } else {
+    checks.push({
+      id: 'resolution-timing',
+      status: 'pass',
+      detail: `${secondsToResolution}s to resolution`,
+    });
+  }
+}
+
+function assessQuoteIntegrity(
+  market: GammaMarket,
+  orderBook: PolymarketBook,
+  checks: PolymarketGuardCheck[],
+  reasons: string[],
+  escalate: VerdictEscalator
+): PolymarketGuardQuoteEvidence {
+  const probabilities = parseProbabilityList(market.outcomePrices);
+  const quotes: PolymarketGuardQuoteEvidence = {
+    upProbability: probabilities.up,
+    downProbability: probabilities.down,
+    chosenSidePrice: orderBook.bestAsk,
+    liquidityNum: finiteNumberOrNull(
+      (market as GammaMarket & { liquidityNum?: unknown }).liquidityNum
+    ),
+    volumeNum: finiteNumberOrNull((market as GammaMarket & { volumeNum?: unknown }).volumeNum),
+    spread: finiteNumberOrNull((market as GammaMarket & { spread?: unknown }).spread),
+    bestBid: finiteNumberOrNull((market as GammaMarket & { bestBid?: unknown }).bestBid),
+    bestAsk: finiteNumberOrNull((market as GammaMarket & { bestAsk?: unknown }).bestAsk),
+    lastTradePrice: finiteNumberOrNull(
+      (market as GammaMarket & { lastTradePrice?: unknown }).lastTradePrice
+    ),
+    executableBestAsk: orderBook.bestAsk,
+    executableBestBid: orderBook.bestBid,
+    executableAskSize: orderBook.bestAskSize,
+    executableBidSize: orderBook.bestBidSize,
+    orderBookTimestamp: orderBook.timestamp,
+    orderBookHash: orderBook.hash,
+  };
+
+  if (!probabilities.wellFormed || probabilities.up === null || probabilities.down === null) {
+    const detail =
+      market.outcomePrices == null
+        ? 'book not yet quoted (outcomePrices null)'
+        : 'outcomePrices malformed; quoted probability unusable';
+    escalate('caution');
+    checks.push({ id: 'quote-integrity', status: 'caution', detail });
+    reasons.push(
+      market.outcomePrices == null
+        ? 'venue probability not yet quoted'
+        : 'venue probability unusable'
+    );
+    return quotes;
+  }
+
+  const sum = probabilities.up + probabilities.down;
+  if (Math.abs(sum - 1) > PROBABILITY_SUM_TOLERANCE) {
+    escalate('caution');
+    checks.push({
+      id: 'quote-integrity',
+      status: 'caution',
+      detail: `quoted probabilities sum to ${roundTo(sum, 4)}`,
+    });
+    reasons.push('venue quote fails binary-consistency check');
+  } else {
+    checks.push({
+      id: 'quote-integrity',
+      status: 'pass',
+      detail: `Up=${roundTo(probabilities.up, 4)} Down=${roundTo(probabilities.down, 4)}`,
+    });
+  }
+
+  assessChosenSidePrice(orderBook.bestAsk, checks, reasons, escalate);
+  return quotes;
+}
+
+function assessChosenSidePrice(
+  chosen: number | null,
+  checks: PolymarketGuardCheck[],
+  reasons: string[],
+  escalate: VerdictEscalator
+): void {
+  if (chosen !== null && chosen >= EXTREME_PROBABILITY) {
+    escalate('caution');
+    checks.push({
+      id: 'chosen-side-price',
+      status: 'caution',
+      detail: `chosen side quoted at ${roundTo(chosen, 4)} — near-certain pricing, fee-dominated payoff`,
+    });
+    reasons.push('chosen side priced near certainty');
+  } else if (chosen !== null && chosen <= 1 - EXTREME_PROBABILITY) {
+    escalate('caution');
+    checks.push({
+      id: 'chosen-side-price',
+      status: 'caution',
+      detail: `chosen side quoted at ${roundTo(chosen, 4)} — deep out-of-the-money lottery pricing`,
+    });
+    reasons.push('chosen side priced as long shot');
+  } else {
+    checks.push({
+      id: 'chosen-side-price',
+      status: 'pass',
+      detail:
+        chosen !== null ? `chosen side quoted at ${roundTo(chosen, 4)}` : 'side price unavailable',
+    });
+  }
 }
 
 function parseProbabilityList(raw: string | null | undefined): {
@@ -219,6 +461,7 @@ async function defaultFetchMarket(marketSlug: string): Promise<GammaMarket | nul
     active: typeof record.active === 'boolean' ? record.active : null,
     outcomes: typeof record.outcomes === 'string' ? record.outcomes : null,
     outcomePrices: typeof record.outcomePrices === 'string' ? record.outcomePrices : null,
+    clobTokenIds: typeof record.clobTokenIds === 'string' ? record.clobTokenIds : null,
     // Disclosed aggregates (live-verified field names, 2026-11-04).
     liquidityNum: finiteNumberOrNull(record.liquidityNum),
     volumeNum: finiteNumberOrNull(record.volumeNum),
@@ -228,6 +471,98 @@ async function defaultFetchMarket(marketSlug: string): Promise<GammaMarket | nul
     lastTradePrice: finiteNumberOrNull(record.lastTradePrice),
   };
   return market;
+}
+
+function outcomeAssetId(market: GammaMarket, chosen: 'Up' | 'Down'): string | null {
+  if (typeof market.outcomes !== 'string' || typeof market.clobTokenIds !== 'string') return null;
+  try {
+    const outcomes: unknown = JSON.parse(market.outcomes);
+    const assets: unknown = JSON.parse(market.clobTokenIds);
+    if (
+      !Array.isArray(outcomes) ||
+      !Array.isArray(assets) ||
+      outcomes.length !== 2 ||
+      assets.length !== 2
+    )
+      return null;
+    const index = outcomes.findIndex(
+      (value) => typeof value === 'string' && value.toLowerCase() === chosen.toLowerCase()
+    );
+    const id = index >= 0 ? assets[index] : null;
+    return typeof id === 'string' && /^[0-9]+$/.test(id) ? id : null;
+  } catch {
+    return null;
+  }
+}
+
+async function defaultFetchOrderBook(assetId: string): Promise<PolymarketBook> {
+  const response = await fetch(
+    `https://clob.polymarket.com/book?token_id=${encodeURIComponent(assetId)}`,
+    {
+      headers: { accept: 'application/json' },
+      signal: AbortSignal.timeout(8_000),
+    }
+  );
+  if (!response.ok) throw new Error(`CLOB book API ${response.status}`);
+  const raw: unknown = await response.json();
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw))
+    throw new Error('CLOB book payload is malformed');
+  const record = raw as Record<string, unknown>;
+  const levels = (value: unknown, label: string): Array<{ price: number; size: number }> => {
+    if (!Array.isArray(value) || value.length > 10_000)
+      throw new Error(`CLOB ${label} levels are malformed`);
+    return value.map((entry) => {
+      if (!entry || typeof entry !== 'object' || Array.isArray(entry))
+        throw new Error(`CLOB ${label} level is malformed`);
+      const level = entry as Record<string, unknown>;
+      const price = finiteNumberOrNull(level.price);
+      const size = finiteNumberOrNull(level.size);
+      if (price === null || size === null || price <= 0 || price >= 1 || size <= 0)
+        throw new Error(`CLOB ${label} level is outside bounds`);
+      return { price, size };
+    });
+  };
+  const bids = levels(record.bids, 'bid');
+  const asks = levels(record.asks, 'ask');
+  const bestBid = bids.reduce<{ price: number; size: number } | null>(
+    (best, level) => (!best || level.price > best.price ? level : best),
+    null
+  );
+  const bestAsk = asks.reduce<{ price: number; size: number } | null>(
+    (best, level) => (!best || level.price < best.price ? level : best),
+    null
+  );
+  const timestampValue =
+    typeof record.timestamp === 'string' && /^\d{10,16}$/.test(record.timestamp)
+      ? Number(record.timestamp)
+      : typeof record.timestamp === 'number' &&
+          Number.isSafeInteger(record.timestamp) &&
+          record.timestamp > 0
+        ? record.timestamp
+        : null;
+  const timestampMillis =
+    timestampValue === null
+      ? null
+      : timestampValue < 100_000_000_000
+        ? timestampValue * 1_000
+        : timestampValue;
+  const timestamp =
+    timestampMillis !== null &&
+    Number.isSafeInteger(timestampMillis) &&
+    Number.isFinite(new Date(timestampMillis).getTime())
+      ? new Date(timestampMillis).toISOString()
+      : null;
+  return {
+    timestamp,
+    hash:
+      typeof record.hash === 'string' && /^0x[0-9a-fA-F]{64}$/.test(record.hash)
+        ? record.hash.toLowerCase()
+        : null,
+    bestBid: bestBid?.price ?? null,
+    bestBidSize: bestBid?.size ?? null,
+    bestAsk: bestAsk?.price ?? null,
+    bestAskSize: bestAsk?.size ?? null,
+  };
 }
 
 /**
@@ -311,192 +646,126 @@ export async function assessPolymarketGuard(
     ).toISOString()}`,
   });
 
-  // --- Window integrity: endDate must agree with the slug window ----------
-  const windowEndMs = parsed.windowStartMs + parsed.windowSeconds * 1000;
+  // Gamma's probability and aggregate quote are useful context, but they are
+  // not a current executable price. Read the selected outcome's CLOB book and
+  // block when its identity or snapshot cannot be verified.
+  let orderBook: PolymarketBook;
+  const chosenOutcome = input.action === 'buy_up' ? 'Up' : 'Down';
+  const assetId = outcomeAssetId(market, chosenOutcome);
+  if (!assetId) {
+    escalate('block');
+    checks.push({
+      id: 'order-book',
+      status: 'block',
+      detail: 'Gamma did not provide a valid outcome asset ID for the selected side',
+    });
+    reasons.push('executable order book unavailable');
+    return buildResult(input, nowMs, {
+      market: emptyMarketEvidence(input.marketSlug),
+      quotes: emptyQuoteEvidence(),
+      checks,
+      reasons,
+      verdict,
+      windowSeconds: parsed.windowSeconds,
+      windowStartMs: parsed.windowStartMs,
+      windowEndMs: parsed.windowStartMs + parsed.windowSeconds * 1000,
+    });
+  }
+  try {
+    orderBook = await (dependencies.fetchOrderBook ?? defaultFetchOrderBook)(assetId);
+  } catch (error) {
+    escalate('block');
+    const detail = error instanceof Error ? error.message : String(error);
+    checks.push({
+      id: 'order-book',
+      status: 'block',
+      detail: `CLOB order book unavailable (fail closed): ${detail}`,
+    });
+    reasons.push('executable order book unavailable');
+    return buildResult(input, nowMs, {
+      market: emptyMarketEvidence(input.marketSlug),
+      quotes: emptyQuoteEvidence(),
+      checks,
+      reasons,
+      verdict,
+      windowSeconds: parsed.windowSeconds,
+      windowStartMs: parsed.windowStartMs,
+      windowEndMs: parsed.windowStartMs + parsed.windowSeconds * 1000,
+    });
+  }
+  if (
+    !orderBook.timestamp ||
+    !/^0x[0-9a-f]{64}$/.test(orderBook.hash ?? '') ||
+    orderBook.bestAsk === null ||
+    orderBook.bestAskSize === null ||
+    orderBook.bestAskSize <= 0
+  ) {
+    escalate('block');
+    checks.push({
+      id: 'order-book',
+      status: 'block',
+      detail: 'CLOB order book has no valid hash and timestamped ask for the selected outcome',
+    });
+    reasons.push('executable order book unavailable');
+    return buildResult(input, nowMs, {
+      market: emptyMarketEvidence(input.marketSlug),
+      quotes: emptyQuoteEvidence(),
+      checks,
+      reasons,
+      verdict,
+      windowSeconds: parsed.windowSeconds,
+      windowStartMs: parsed.windowStartMs,
+      windowEndMs: parsed.windowStartMs + parsed.windowSeconds * 1000,
+    });
+  }
+  const bookTimestampMs = Date.parse(orderBook.timestamp);
+  if (
+    !Number.isFinite(bookTimestampMs) ||
+    nowMs - bookTimestampMs > MAX_CLOB_BOOK_AGE_MS ||
+    bookTimestampMs - nowMs > 2_000
+  ) {
+    escalate('block');
+    checks.push({
+      id: 'order-book-freshness',
+      status: 'block',
+      detail: 'CLOB order book timestamp is invalid, stale, or in the future',
+    });
+    reasons.push('executable order book is stale');
+    return buildResult(input, nowMs, {
+      market: emptyMarketEvidence(input.marketSlug),
+      quotes: emptyQuoteEvidence(),
+      checks,
+      reasons,
+      verdict,
+      windowSeconds: parsed.windowSeconds,
+      windowStartMs: parsed.windowStartMs,
+      windowEndMs: parsed.windowStartMs + parsed.windowSeconds * 1000,
+    });
+  }
+  checks.push({
+    id: 'order-book-freshness',
+    status: 'pass',
+    detail: `CLOB book age=${Math.max(0, nowMs - bookTimestampMs)}ms`,
+  });
+  checks.push({
+    id: 'order-book',
+    status: 'pass',
+    detail: `Selected-side ask=${roundTo(orderBook.bestAsk, 4)}; timestamp=${orderBook.timestamp}`,
+  });
+
+  // --- Window, lifecycle, timing and quote integrity ----------------------
+  const { windowEndMs } = assessWindowAndLifecycle(
+    market,
+    parsed,
+    nowMs,
+    checks,
+    reasons,
+    escalate
+  );
   const endDateMs = market.endDate ? Date.parse(market.endDate) : NaN;
   const endDateMatches =
     Number.isFinite(endDateMs) && Math.abs(endDateMs - windowEndMs) < END_DATE_TOLERANCE_MS;
-  if (!endDateMatches) {
-    escalate('caution');
-    checks.push({
-      id: 'window-integrity',
-      status: 'caution',
-      detail: market.endDate
-        ? `endDate ${market.endDate} disagrees with slug window end ${new Date(
-            windowEndMs
-          ).toISOString()}`
-        : 'endDate missing from market metadata',
-    });
-    reasons.push('market window metadata inconsistent');
-  } else {
-    checks.push({
-      id: 'window-integrity',
-      status: 'pass',
-      detail: 'endDate agrees with slug window',
-    });
-  }
-
-  // --- Lifecycle: active / not closed --------------------------------------
-  if (market.closed === true) {
-    escalate('block');
-    checks.push({ id: 'lifecycle', status: 'block', detail: 'market is closed' });
-    reasons.push('market closed');
-  } else if (market.active === false) {
-    escalate('block');
-    checks.push({ id: 'lifecycle', status: 'block', detail: 'market is not active' });
-    reasons.push('market not active');
-  } else if (market.closed === null && market.active === null) {
-    // Fail closed on honesty: metadata that cannot state its own lifecycle
-    // state is not a verified-open market.
-    escalate('caution');
-    checks.push({
-      id: 'lifecycle',
-      status: 'caution',
-      detail: 'lifecycle state unknown (closed and active both absent from metadata)',
-    });
-    reasons.push('market lifecycle state unknown');
-  } else {
-    checks.push({
-      id: 'lifecycle',
-      status: 'pass',
-      detail: `closed=${String(market.closed ?? 'unknown')} active=${String(
-        market.active ?? 'unknown'
-      )}`,
-    });
-  }
-
-  // --- Timing: resolution window must be open with margin ------------------
-  const secondsToResolution = Number.isFinite(endDateMs)
-    ? Math.round((endDateMs - nowMs) / 1000)
-    : null;
-  if (secondsToResolution !== null) {
-    const imminentSeconds = Math.max(
-      IMMINENT_RESOLUTION_MIN_SECONDS,
-      parsed.windowSeconds * IMMINENT_RESOLUTION_WINDOW_FRACTION
-    );
-    if (secondsToResolution <= 0) {
-      escalate('block');
-      checks.push({
-        id: 'resolution-timing',
-        status: 'block',
-        detail: 'resolution window has already ended',
-      });
-      reasons.push('resolution window ended');
-    } else if (secondsToResolution < imminentSeconds) {
-      escalate('block');
-      checks.push({
-        id: 'resolution-timing',
-        status: 'block',
-        detail: `only ${secondsToResolution}s to resolution (reviewed minimum ${Math.round(
-          imminentSeconds
-        )}s)`,
-      });
-      reasons.push('imminent resolution, adverse-selection entry');
-    } else if (secondsToResolution < parsed.windowSeconds * LATE_WINDOW_FRACTION) {
-      escalate('caution');
-      checks.push({
-        id: 'resolution-timing',
-        status: 'caution',
-        detail: `late-window entry: ${secondsToResolution}s of ${parsed.windowSeconds}s remain`,
-      });
-      reasons.push('late-window entry');
-    } else {
-      checks.push({
-        id: 'resolution-timing',
-        status: 'pass',
-        detail: `${secondsToResolution}s to resolution`,
-      });
-    }
-  } else {
-    escalate('caution');
-    checks.push({
-      id: 'resolution-timing',
-      status: 'caution',
-      detail: 'resolution timing cannot be derived (no parsable endDate)',
-    });
-    reasons.push('resolution timing unknown');
-  }
-
-  // --- Quote integrity + chosen-side pricing -------------------------------
-  const probabilities = parseProbabilityList(market.outcomePrices);
-  const quotes: PolymarketGuardQuoteEvidence = {
-    upProbability: probabilities.up,
-    downProbability: probabilities.down,
-    chosenSidePrice: input.action === 'buy_up' ? probabilities.up : probabilities.down,
-    liquidityNum: finiteNumberOrNull(
-      (market as GammaMarket & { liquidityNum?: unknown }).liquidityNum
-    ),
-    volumeNum: finiteNumberOrNull((market as GammaMarket & { volumeNum?: unknown }).volumeNum),
-    spread: finiteNumberOrNull((market as GammaMarket & { spread?: unknown }).spread),
-    bestBid: finiteNumberOrNull((market as GammaMarket & { bestBid?: unknown }).bestBid),
-    bestAsk: finiteNumberOrNull((market as GammaMarket & { bestAsk?: unknown }).bestAsk),
-    lastTradePrice: finiteNumberOrNull(
-      (market as GammaMarket & { lastTradePrice?: unknown }).lastTradePrice
-    ),
-  };
-
-  if (probabilities.wellFormed && probabilities.up !== null && probabilities.down !== null) {
-    const sumDeviation = Math.abs(probabilities.up + probabilities.down - 1);
-    if (sumDeviation > PROBABILITY_SUM_TOLERANCE) {
-      escalate('caution');
-      checks.push({
-        id: 'quote-integrity',
-        status: 'caution',
-        detail: `quoted probabilities sum to ${roundTo(probabilities.up + probabilities.down, 4)}`,
-      });
-      reasons.push('venue quote fails binary-consistency check');
-    } else {
-      checks.push({
-        id: 'quote-integrity',
-        status: 'pass',
-        detail: `Up=${roundTo(probabilities.up, 4)} Down=${roundTo(probabilities.down, 4)}`,
-      });
-    }
-    const chosen = input.action === 'buy_up' ? probabilities.up : probabilities.down;
-    if (chosen !== null && chosen >= EXTREME_PROBABILITY) {
-      escalate('caution');
-      checks.push({
-        id: 'chosen-side-price',
-        status: 'caution',
-        detail: `chosen side quoted at ${roundTo(chosen, 4)} — near-certain pricing, fee-dominated payoff`,
-      });
-      reasons.push('chosen side priced near certainty');
-    } else if (chosen !== null && chosen <= 1 - EXTREME_PROBABILITY) {
-      escalate('caution');
-      checks.push({
-        id: 'chosen-side-price',
-        status: 'caution',
-        detail: `chosen side quoted at ${roundTo(chosen, 4)} — deep out-of-the-money lottery pricing`,
-      });
-      reasons.push('chosen side priced as long shot');
-    } else {
-      checks.push({
-        id: 'chosen-side-price',
-        status: 'pass',
-        detail:
-          chosen !== null
-            ? `chosen side quoted at ${roundTo(chosen, 4)}`
-            : 'side price unavailable',
-      });
-    }
-  } else if (market.outcomePrices == null) {
-    // Fresh 5m contracts legitimately publish null before their window opens.
-    escalate('caution');
-    checks.push({
-      id: 'quote-integrity',
-      status: 'caution',
-      detail: 'book not yet quoted (outcomePrices null)',
-    });
-    reasons.push('venue probability not yet quoted');
-  } else {
-    escalate('caution');
-    checks.push({
-      id: 'quote-integrity',
-      status: 'caution',
-      detail: 'outcomePrices malformed; quoted probability unusable',
-    });
-    reasons.push('venue probability unusable');
-  }
+  const quotes = assessQuoteIntegrity(market, orderBook, checks, reasons, escalate);
 
   // --- Settlement verifiability --------------------------------------------
   const venue = classifySettlementVenue(market.description, market.resolutionSource);
@@ -590,6 +859,12 @@ function emptyQuoteEvidence(): PolymarketGuardQuoteEvidence {
     bestBid: null,
     bestAsk: null,
     lastTradePrice: null,
+    executableBestAsk: null,
+    executableBestBid: null,
+    executableAskSize: null,
+    executableBidSize: null,
+    orderBookTimestamp: null,
+    orderBookHash: null,
   };
 }
 
