@@ -1,9 +1,11 @@
 # Supabase + Turso + Cloudflare 三线并行：零成本分工与实施计划
 
 状态：当前架构与后续成本计划。全部账号按 **Free / Hobby** 档规划。
+2026-11-25 覆盖更新：Insight `price_records` 依据最新 Supabase/D1 实测改为 Cloudflare D1 短缓存候选，按 [D1 迁移运行说明](d1-price-records.md) 先 shadow 24 h 再切主；下文 2026-11-08 对该表“D1/Turso 均不迁”的决定属于历史快照，以本更新为准。
+本次用户明确授权 Insight `price_records` 的 D1 迁移；该授权覆盖本计划早前“不开生产写入/不部署”的通用限制，仅限新 D1 cache、迁移 schema 与其标准 GitHub release，不含其他数据库对象或套餐变更。
 2026-11-22 更新：Insight 网站/API 已在 Cloudflare Workers + vinext 生产运行；GitHub Actions 负责构建、门禁发布和长任务，Supabase 与 Turso 继续承担现有数据职责。生产 release gate 已验证 `www.oracleinsight.xyz` 自定义域名、release SHA 与支付 smoke。以下 2026-11-20 的资源与账号观测仍是当日快照，不代表本次更新后的账单或平台用量。
 存储只有三样：**Supabase、Turso、Cloudflare D1（PriorSeal 侧）**。**R2 已取消，不引入**（用户决定），本文不保留任何 R2 待办。
-2026-11-08 架构核对的定论集中在 §9–§11（七项明确不做、ACK 压缩语义、保留期与清理、迁移收敛）；旧章节若与这三节冲突，以 §9–§11 为准。
+2026-11-08 架构核对原有七项明确不做；其中 `price_records` 两条迁移判定由 2026-11-25 覆盖更新，其余五项和 §9–§11 的 ACK 压缩、保留期、清理定论仍有效。
 2026-11-08 采集断档事故（14 slot 永久丢失）与已落地缓解见 §12；§9.1 第 1、7 项（CF 派发时钟）进入待重新裁决状态。
 约束：不 push、不 `--no-verify`、不 deploy、不改生产环境变量、不对生产库写入；
 C1–C4 档位基数与地板数值、运行时判词字面量均不在本计划改动范围内。
@@ -30,45 +32,45 @@ C1–C4 档位基数与地板数值、运行时判词字面量均不在本计划
 
 ### 1.1 Supabase
 
-| 库/表/任务                                          | 写入方                                                 | 读取方                             | 更新频率                       | 保留期                                                    | 失败回退                                                          | 为什么在这一侧（判据）                                                                                                                                                             |
-| --------------------------------------------------- | ------------------------------------------------------ | ---------------------------------- | ------------------------------ | --------------------------------------------------------- | ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `oracle_feeds` + feed registry                      | 每周 discovery、后台管理                               | 采集器（经 Turso 镜像）、目录 API  | 每周/人工                      | 无上限                                                    | Turso `feed_registry_snapshots` 最近一次 last-known-good（≤24 h） | 关系型权威 + RLS + 人工管理；不能因为边缘故障丢失管理意图                                                                                                                          |
-| `price_records`（保持 Supabase，不迁 Turso）        | 快照采集器（每小时批量）、少量 opt-in 写入             | 价格 API 热路径、导出、signals     | 每小时批量                     | 24 h TTL                                                  | 无跨库回落：读写都在 Supabase（`TURSO_PRICE_RECORDS_MODE` 不设）  | 实测仅 **14 MB**、约 250 行/小时；9 个索引（含 **1 个 GIN**：`idx_price_records_signal_vector`）+ 每 30 分钟清理。留在权威库，迁 Turso 只会给价格 API 增加一个活读依赖（§9.1）     |
-| `hourly_price_snapshots`                            | GitHub Actions 投影器 → `project_turso_price_slot` RPC | 历史 API、日报、UI                 | 每小时（由 15 分钟 slot 投影） | 120 天（7 天后转 archive）                                | 回读 Turso `price_snapshots` 原始 slot 重投影；receipt 幂等       | 业务投影 + RPC + JSONB + receipt 审计。**实测 2026-11-08：92,747 行 / 36 MB，只覆盖 2026-10-24 → 11-08（约 15 天）**；7 天以前已在 archive。不是容量主源，也不再做保留期以外的动作 |
-| `price_snapshots`（Supabase 旧 15 分钟历史）        | 仅 Turso 主模式之前的存量；切换后不再新增              | 归档、历史回放                     | 冻结                           | 120 天                                                    | 无新增，读到存量为止                                              | 历史连续性；到期后归档并停止读取，属于“技术上能搬但没必要”                                                                                                                         |
-| `snapshot_archives`                                 | `archive_snapshot_day`（库内，日更）                   | 历史视图/导出（SQL 内 JSONB 展开） | 每天                           | 120 天（**已批准 120 → 90**，迁移 `0137` 已落 main，§10） | 归档事务失败则源行保留（同事务）                                  | **唯一的冷存层，不外置**。实测 110 MB（heap 39 MB + 索引 6 MB + TOAST ≈ 71 MB）；hourly 107 天、price 84 天，区间内零缺口。R2 已取消，见 §3                                        |
-| `market_reference_snapshots`                        | `snapshot-collect.yml` 的 market-reference 作业        | 行情参考 API、coverage             | 15 分钟批次内，受采样门控      | 120 天                                                    | 返回上一有效快照并标注年龄                                        | 关系型 join + 权利门控 + JSONB 元数据；当前不是最大写入方，暂不搬                                                                                                                  |
-| `dex_market_swap_events`                            | `monad-dex-market.yml`（每 10 分钟）                   | `get_dex_market_volume_window` RPC | 每 10 分钟                     | 35 天（目标值待拍板）                                     | 返回上一窗口并标注不完整                                          | 追加写 + SQL 聚合；**不搬 Turso，只调保留期**（§9.1、§4 批次 3）                                                                                                                   |
-| `feed_health_snapshots`                             | feed 健康评估（采集器/API）                            | 可信度趋势、SLA                    | 每日/批次                      | 90 天（**已批准 90 → 60**，迁移 `0137` 已落 main）        | 返回最近一次健康状态                                              | 与 `oracle_feeds` 关系 join；不搬库，只缩保留期（§10）                                                                                                                             |
-| `oracle_watch_checks`                               | API 检查 + 每小时采集                                  | 审计、导出、计费凭证               | 按调用/每小时                  | 180 天                                                    | 保留上次结果并标注                                                | 签名审计、RLS、与 entitlement/计费耦合；**不该搬**                                                                                                                                 |
-| `oracle_watch_windows`                              | `oracle-watch-collect.yml`                             | 窗口交付、审计                     | 每小时                         | 180 天                                                    | 保留上次结果                                                      | 同上；行很小，搬走收益可忽略                                                                                                                                                       |
-| `turso_price_slot_receipts`                         | 投影器 RPC                                             | 补偿探针、完整性审计               | 每 15 分钟 slot                | 随 slot（量小）                                           | 无 receipt 则触发补偿                                             | 跨库投影完整性的锚；必须与小时投影同事务，**不能搬**                                                                                                                               |
-| `cron_dispatch_runs`                                | dispatcher                                             | 运维看板                           | 每次派发                       | 30 天                                                     | 无                                                                | 派发账本；搬走只会多一个跨库失败点                                                                                                                                                 |
-| 计费/额度/API key/`execution_receipts`              | API、billing worker                                    | API、后台                          | 实时                           | 90–180 天                                                 | 事务回滚                                                          | `FOR UPDATE`、序列、RLS、签名审计；**技术上搬不了**                                                                                                                                |
-| `coverage_slo_samples`、`manip_cost_pool_snapshots` | 采集/评估                                              | 运维看板                           | 15 分钟/日                     | 90/365 天                                                 | 无                                                                | 观测数据，量小；暂留                                                                                                                                                               |
+| 库/表/任务                                          | 写入方                                                 | 读取方                             | 更新频率                       | 保留期                                                    | 失败回退                                                          | 为什么在这一侧（判据）                                                                                                                                                                                       |
+| --------------------------------------------------- | ------------------------------------------------------ | ---------------------------------- | ------------------------------ | --------------------------------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `oracle_feeds` + feed registry                      | 每周 discovery、后台管理                               | 采集器（经 Turso 镜像）、目录 API  | 每周/人工                      | 无上限                                                    | Turso `feed_registry_snapshots` 最近一次 last-known-good（≤24 h） | 关系型权威 + RLS + 人工管理；不能因为边缘故障丢失管理意图                                                                                                                                                    |
+| `price_records`（短期 cache → Cloudflare D1）       | 快照采集器（每小时批量）、少量 opt-in 写入             | 价格 API 热路径、导出、signals     | 每小时批量                     | 24 h TTL                                                  | D1 miss/error 回 Supabase；按运行说明 shadow 24 h 通过后切 D1 主  | 最新 `pg_total_relation_size` 实测 16.1 MB；`pg_stat_statements` 26.2 h 窗口记录 64 插入行、3,841 次读取调用。D1 两索引保留 exact decimal/JSON 数据，预计写入低于 100k rows/day；历史与关系数据仍留 Supabase |
+| `hourly_price_snapshots`                            | GitHub Actions 投影器 → `project_turso_price_slot` RPC | 历史 API、日报、UI                 | 每小时（由 15 分钟 slot 投影） | 120 天（7 天后转 archive）                                | 回读 Turso `price_snapshots` 原始 slot 重投影；receipt 幂等       | 业务投影 + RPC + JSONB + receipt 审计。**实测 2026-11-08：92,747 行 / 36 MB，只覆盖 2026-10-24 → 11-08（约 15 天）**；7 天以前已在 archive。不是容量主源，也不再做保留期以外的动作                           |
+| `price_snapshots`（Supabase 旧 15 分钟历史）        | 仅 Turso 主模式之前的存量；切换后不再新增              | 归档、历史回放                     | 冻结                           | 120 天                                                    | 无新增，读到存量为止                                              | 历史连续性；到期后归档并停止读取，属于“技术上能搬但没必要”                                                                                                                                                   |
+| `snapshot_archives`                                 | `archive_snapshot_day`（库内，日更）                   | 历史视图/导出（SQL 内 JSONB 展开） | 每天                           | 120 天（**已批准 120 → 90**，迁移 `0137` 已落 main，§10） | 归档事务失败则源行保留（同事务）                                  | **唯一的冷存层，不外置**。实测 110 MB（heap 39 MB + 索引 6 MB + TOAST ≈ 71 MB）；hourly 107 天、price 84 天，区间内零缺口。R2 已取消，见 §3                                                                  |
+| `market_reference_snapshots`                        | `snapshot-collect.yml` 的 market-reference 作业        | 行情参考 API、coverage             | 15 分钟批次内，受采样门控      | 120 天                                                    | 返回上一有效快照并标注年龄                                        | 关系型 join + 权利门控 + JSONB 元数据；当前不是最大写入方，暂不搬                                                                                                                                            |
+| `dex_market_swap_events`                            | `monad-dex-market.yml`（每 10 分钟）                   | `get_dex_market_volume_window` RPC | 每 10 分钟                     | 35 天（目标值待拍板）                                     | 返回上一窗口并标注不完整                                          | 追加写 + SQL 聚合；**不搬 Turso，只调保留期**（§9.1、§4 批次 3）                                                                                                                                             |
+| `feed_health_snapshots`                             | feed 健康评估（采集器/API）                            | 可信度趋势、SLA                    | 每日/批次                      | 90 天（**已批准 90 → 60**，迁移 `0137` 已落 main）        | 返回最近一次健康状态                                              | 与 `oracle_feeds` 关系 join；不搬库，只缩保留期（§10）                                                                                                                                                       |
+| `oracle_watch_checks`                               | API 检查 + 每小时采集                                  | 审计、导出、计费凭证               | 按调用/每小时                  | 180 天                                                    | 保留上次结果并标注                                                | 签名审计、RLS、与 entitlement/计费耦合；**不该搬**                                                                                                                                                           |
+| `oracle_watch_windows`                              | `oracle-watch-collect.yml`                             | 窗口交付、审计                     | 每小时                         | 180 天                                                    | 保留上次结果                                                      | 同上；行很小，搬走收益可忽略                                                                                                                                                                                 |
+| `turso_price_slot_receipts`                         | 投影器 RPC                                             | 补偿探针、完整性审计               | 每 15 分钟 slot                | 随 slot（量小）                                           | 无 receipt 则触发补偿                                             | 跨库投影完整性的锚；必须与小时投影同事务，**不能搬**                                                                                                                                                         |
+| `cron_dispatch_runs`                                | dispatcher                                             | 运维看板                           | 每次派发                       | 30 天                                                     | 无                                                                | 派发账本；搬走只会多一个跨库失败点                                                                                                                                                                           |
+| 计费/额度/API key/`execution_receipts`              | API、billing worker                                    | API、后台                          | 实时                           | 90–180 天                                                 | 事务回滚                                                          | `FOR UPDATE`、序列、RLS、签名审计；**技术上搬不了**                                                                                                                                                          |
+| `coverage_slo_samples`、`manip_cost_pool_snapshots` | 采集/评估                                              | 运维看板                           | 15 分钟/日                     | 90/365 天                                                 | 无                                                                | 观测数据，量小；暂留                                                                                                                                                                                         |
 
 ### 1.2 Turso
 
-| 库/表/任务                                                                          | 写入方                  | 读取方                  | 更新频率     | 保留期                                                                    | 失败回退                                                                                                 | 为什么在这一侧（判据）                                                                                     |
-| ----------------------------------------------------------------------------------- | ----------------------- | ----------------------- | ------------ | ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `snapshot_slots`                                                                    | GitHub Actions 采集器   | 投影器、补偿            | 15 分钟      | 原始 slot 30 天；ACK 后仍需超过 `rawRetentionDays`（30 天）才压缩 payload | Supabase 小时投影仍在；slot 丢失由下一个 slot 覆盖                                                       | 不可变 outbox + 租约；写便宜、读按 slot                                                                    |
-| `price_snapshots`（Turso 原始流）                                                   | 采集器                  | 投影器、历史兜底        | 15 分钟      | 30 天                                                                     | Supabase 小时投影                                                                                        | 高频 append 的正确落点；54% 占用来自未压缩 payload，压缩阈值保持 30 天（§9.3），不提前压缩                 |
-| `price_latest`                                                                      | 采集器                  | 价格 API 兜底、历史合并 | 每 slot 覆盖 | 永久覆盖                                                                  | 同库回读 `price_snapshots`（仅当前采集失败时）；`primary` 模式下 Turso 异常直接返回 `null`，无跨存储回落 | 热读模型，避免扫事件流；不做跨存储兜底                                                                     |
-| `snapshot_ingest_leases`                                                            | 采集器                  | 采集器/补偿             | 每 slot      | 短期                                                                      | 租约过期后可重取                                                                                         | 跨 runner 互斥；放 Supabase 会把并发协调变成网络事务                                                       |
-| `feed_registry_snapshots`                                                           | 采集器发布              | 采集器                  | 每日/变更    | 24 h 信任窗                                                               | 回读 Supabase `oracle_feeds`                                                                             | 让 Supabase 故障不阻断原始采集                                                                             |
-| `price_maintenance`                                                                 | 投影器                  | 投影器                  | 每日         | 永久                                                                      | 下一次运行重试                                                                                           | 维护水位；与 raw 表同库                                                                                    |
-| `settlement_market_watch`、`settlement_window_candles`、`settlement_evidence_packs` | GitHub Actions 结算采集 | 证据交付 API            | 每小时       | 按市场生命周期                                                            | 保留上次证据包                                                                                           | 已有 Turso 控制面；签名包原文与索引同在 Turso，不再外置（R2 已取消）                                       |
-| ~~`price_records` 迁入 Turso~~                                                      | —                       | —                       | —            | —                                                                         | —                                                                                                        | **判为不做（§9.1）**：14 MB / 约 250 行/小时，迁移只给价格 API 增加一个活读依赖；代码保留在 main、开关不设 |
+| 库/表/任务                                                                          | 写入方                  | 读取方                  | 更新频率     | 保留期                                                                    | 失败回退                                                                                                 | 为什么在这一侧（判据）                                                                     |
+| ----------------------------------------------------------------------------------- | ----------------------- | ----------------------- | ------------ | ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `snapshot_slots`                                                                    | GitHub Actions 采集器   | 投影器、补偿            | 15 分钟      | 原始 slot 30 天；ACK 后仍需超过 `rawRetentionDays`（30 天）才压缩 payload | Supabase 小时投影仍在；slot 丢失由下一个 slot 覆盖                                                       | 不可变 outbox + 租约；写便宜、读按 slot                                                    |
+| `price_snapshots`（Turso 原始流）                                                   | 采集器                  | 投影器、历史兜底        | 15 分钟      | 30 天                                                                     | Supabase 小时投影                                                                                        | 高频 append 的正确落点；54% 占用来自未压缩 payload，压缩阈值保持 30 天（§9.3），不提前压缩 |
+| `price_latest`                                                                      | 采集器                  | 价格 API 兜底、历史合并 | 每 slot 覆盖 | 永久覆盖                                                                  | 同库回读 `price_snapshots`（仅当前采集失败时）；`primary` 模式下 Turso 异常直接返回 `null`，无跨存储回落 | 热读模型，避免扫事件流；不做跨存储兜底                                                     |
+| `snapshot_ingest_leases`                                                            | 采集器                  | 采集器/补偿             | 每 slot      | 短期                                                                      | 租约过期后可重取                                                                                         | 跨 runner 互斥；放 Supabase 会把并发协调变成网络事务                                       |
+| `feed_registry_snapshots`                                                           | 采集器发布              | 采集器                  | 每日/变更    | 24 h 信任窗                                                               | 回读 Supabase `oracle_feeds`                                                                             | 让 Supabase 故障不阻断原始采集                                                             |
+| `price_maintenance`                                                                 | 投影器                  | 投影器                  | 每日         | 永久                                                                      | 下一次运行重试                                                                                           | 维护水位；与 raw 表同库                                                                    |
+| `settlement_market_watch`、`settlement_window_candles`、`settlement_evidence_packs` | GitHub Actions 结算采集 | 证据交付 API            | 每小时       | 按市场生命周期                                                            | 保留上次证据包                                                                                           | 已有 Turso 控制面；签名包原文与索引同在 Turso，不再外置（R2 已取消）                       |
+| `price_records` cache → D1                                                          | 价格采集器              | Worker/API              | 每小时批量   | 24 h                                                                      | D1 miss/error 回 Supabase；shadow 对账后切主                                                             | 只迁短缓存；运行证据见 `d1-price-records.md`                                               |
 
 ### 1.3 Cloudflare
 
-| 库/表/任务                                                     | 写入方     | 读取方                     | 更新频率 | 保留期 | 失败回退                           | 为什么在这一侧（判据）                                                                                                                                                                                                                             |
-| -------------------------------------------------------------- | ---------- | -------------------------- | -------- | ------ | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ~~R2 系列（archive 原文 / x402 证据包 / PriorSeal evidence）~~ | **已取消** | —                          | —        | —      | —                                  | **用户决定不引入 R2**；Insight 冷数据留在 Supabase `snapshot_archives`，证据包留在 Turso。此前的外置方案已整节删除，不再列为待办                                                                                                                   |
-| Worker Cron：应急派发（**判为不做**）                          | —          | GitHub `workflow_dispatch` | —        | —      | 保留 Supabase `pg_cron` 主时钟     | 免费版仅 5 条 cron；`pg_cron` 现役 **17 个 job**（`0141_cron_startup_trim` 之后，2026-11-09 实测 `cron.job` = 17：14 个派发/条件派发 + 3 个独立清理），日启动 **868 次**（0141 前 1,036 次），且没有证据表明 Supabase 时钟是 I/O 主源；见 §9.1、§5 |
-| D1：`price_records` 第二份缓存（**判为不做**）                 | —          | —                          | —        | —      | —                                  | 价格表只有 14 MB、约 250 行/小时，本就没有容量或读放大问题；再加 D1 等于新增第二份缓存、跨库同步与对账成本（§9.1）                                                                                                                                 |
-| KV：边缘读缓存（**判为不做**）                                 | —          | —                          | —        | —      | —                                  | 价格 API 是动态鉴权 + 多参数组合，KV 命中率无法预计；在 10 ms CPU 下也难证明净收益（§9.1）                                                                                                                                                         |
-| PriorSeal 侧存储（仓库外）                                     | —          | —                          | —        | —      | **D1 优先；无 D1 时退回 Postgres** | 更正旧表述：PriorSeal 是「D1 优先、无 D1 时退回 Postgres」，不是「无 binding 时回退 D1」；Insight 侧不接 D1                                                                                                                                        |
+| 库/表/任务                                                     | 写入方     | 读取方                     | 更新频率 | 保留期 | 失败回退                            | 为什么在这一侧（判据）                                                                                                                                                                                                                             |
+| -------------------------------------------------------------- | ---------- | -------------------------- | -------- | ------ | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ~~R2 系列（archive 原文 / x402 证据包 / PriorSeal evidence）~~ | **已取消** | —                          | —        | —      | —                                   | **用户决定不引入 R2**；Insight 冷数据留在 Supabase `snapshot_archives`，证据包留在 Turso。此前的外置方案已整节删除，不再列为待办                                                                                                                   |
+| Worker Cron：应急派发（**判为不做**）                          | —          | GitHub `workflow_dispatch` | —        | —      | 保留 Supabase `pg_cron` 主时钟      | 免费版仅 5 条 cron；`pg_cron` 现役 **17 个 job**（`0141_cron_startup_trim` 之后，2026-11-09 实测 `cron.job` = 17：14 个派发/条件派发 + 3 个独立清理），日启动 **868 次**（0141 前 1,036 次），且没有证据表明 Supabase 时钟是 I/O 主源；见 §9.1、§5 |
+| D1：`price_records` 短缓存（**本次迁移**）                     | 价格采集器 | Insight Worker/API         | 每小时   | 24 h   | miss/error 回 Supabase；shadow 对账 | 最新实测 Supabase 403 MB/500 MB，cache 16.1 MB；按 250 行/小时保守估算 D1 写入约 36k 行/日，低于 100k 行/日；详细依据见 `d1-price-records.md`                                                                                                      |
+| KV：边缘读缓存（**判为不做**）                                 | —          | —                          | —        | —      | —                                   | 价格 API 是动态鉴权 + 多参数组合，KV 命中率无法预计；在 10 ms CPU 下也难证明净收益（§9.1）                                                                                                                                                         |
+| PriorSeal 侧存储（仓库外）                                     | —          | —                          | —        | —      | **D1 优先；无 D1 时退回 Postgres**  | 更正旧表述：PriorSeal 是「D1 优先、无 D1 时退回 Postgres」，不是「无 binding 时回退 D1」；Insight 侧不接 D1                                                                                                                                        |
 
 ### 1.4 GitHub Actions（计算面，不是存储）
 
@@ -198,23 +200,17 @@ ACK payload 读取方审计（阈值保持 30 天；`7` 只作为假设上限）
 
 排序原则：先做“I/O 收益最大、可回滚、默认关闭”的；**再做归档 job 加固（唯一能腾出空间的确定性手段）**；容量类决策最后，且要人工批准。R2 已取消。
 
-### 批次 1：`price_records` 不迁 Turso（代码保留、开关不设）
+### 批次 1：`price_records` cache 迁 Cloudflare D1
 
-**结论：不做。** 实测该表只有 **14 MB**、写入约 **250 行/小时**，迁移换不来可测的容量收益，只会给价格 API 增加一个活读依赖（Turso 异常时仍要回落 Supabase，等于两条读路径都要维护）。读写继续留在 Supabase。
+2026-11-08 曾基于 Supabase 438 MB 与 14 MB 表大小决定不迁。当时没有 Cloudflare D1 账户写入余量和近期 I/O 查询证据。2026-11-25 新查询显示整库 403,139,731 B、`price_records` 16,130,048 B；最近 26.2 h 的 `pg_stat_statements` 记录 64 插入行、3,841 次读取调用，另有 23 次 TTL 清理调用。按旧计划较高的 250 行/小时估算，D1 写入含两索引及 TTL 删除约 36k rows/day；加上账户现有约 692 writes/day，低于 Free 100k/day。只迁 24 h cache，其他历史/关系表不搬。
 
-现状（代码已在 main、默认关闭）：
+实施状态：
 
-- Turso `price_records`（schema v7）、仓储层、导出/signals 的开关分支都已合入；`TURSO_PRICE_RECORDS_MODE` **不设**，默认 `supabase`，生产行为与迁移前一致。
-- `TURSO_PRICE_RECORDS_FALLBACK_ON_MISS` 保持默认 `true`，但未启用 Turso 主模式时不生效。
+- D1 `price_records` 两索引 schema 与 Worker binding 随本任务实现；`TURSO_PRICE_RECORDS_MODE=d1-shadow` 先镜像 24 h，读取仍由 Supabase 服务。
+- shadow 期对账通过后将模式切到 `d1`；D1 miss/error 保持 Supabase 回退，Supabase 源表至少保留 7 天。
 - `TURSO_PRICE_ACKED_PAYLOAD_RETENTION_DAYS` 保持 **30**：ACK 之后仍需超过 `rawRetentionDays`（30 天）才压缩 payload，不是 ACK 即时压缩（§9.3）。
 
-未来只有在容量所迫（例如 Supabase 再次逼近 500 MB 且归因到该表）时才重启这条线，前置条件：
-
-1. 先设 `TURSO_PRICE_RECORDS_MODE=shadow` **跑满 24 h**，对账同一采集 tick 的行数增量与抽样 100 行字段；有差异即停。
-2. 24 h 对账无差异后才考虑切 `turso`，且**必须同时开** `TURSO_PRICE_RECORDS_FALLBACK_ON_MISS=true`。
-3. 回滚：模式改回 `supabase`；`shadow` 期间 Supabase 一直有写入，切回无缺口。
-
-本批不设“X → 0”的验收指标：不启用即无迁移动作，现有测试与生产行为就是验收基线。
+运行步骤、测量来源、D1 budget 与回滚：[`d1-price-records.md`](d1-price-records.md)。
 
 ### 批次 2：归档追赶（已执行）+ worker 池容量决策（待做）
 
@@ -281,7 +277,7 @@ ACK payload 读取方审计（阈值保持 30 天；`7` 只作为假设上限）
 
 仍缺：
 
-- `price_records`：实测约 **250 行/小时 / 14 MB**，已够判断；不再需要“迁移基线 X → 0”。
+- `price_records`：2026-11-25 `pg_stat_statements` 26.2 h 窗口实测 64 插入行、3,841 次读取调用、23 次 TTL 清理；旧计划的 250 行/小时作为保守 D1 预算估算，需用 shadow 24 h 的实际行增量校准。
 - `market_reference_snapshots`（37 MB）、`dex_market_swap_events`（21 MB）、`feed_health_snapshots`（31 MB）的行数明细与日增速度。
 - Supabase 两次 `io_stalled` 的逐表归因（Free 档可能没有 `pg_stat_statements`；拿不到就明确写“不可归因”）。
 - **Turso 月度行读无实测**：只能按访问模式估计。
@@ -292,7 +288,7 @@ ACK payload 读取方审计（阈值保持 30 天；`7` 只作为假设上限）
 
 - `TURSO_PRICE_ACKED_PAYLOAD_RETENTION_DAYS` **保持 30**：ACK 之后仍需超过 `rawRetentionDays`（30 天）才压缩，不是 ACK 即时压缩；7 天只是把阈值提前，压缩不可逆，不启用。
 - `feed_health_snapshots` 90 → 60、`snapshot_archives` 120 → 90：**已批准**，迁移 `0137` 已落 main（§10）。
-- `price_records` 保持 Supabase、不迁 Turso（§9.2）；`dex_market_swap_events` 不搬库、只调保留期（§4 批次 3）。
+- `price_records` 的 24 h cache 改由 D1 承接、Supabase 保留回退（§9.2）；`dex_market_swap_events` 不搬库、只调保留期（§4 批次 3）。
 
 仍需拍板：
 
@@ -305,15 +301,15 @@ ACK payload 读取方审计（阈值保持 30 天；`7` 只作为假设上限）
 
 这一节只用于决策，零成本方案不依赖它。
 
-| 能力         | Free      | Workers Paid（$5/月）                              | 能接什么                                                      | 接不了什么                                     |
-| ------------ | --------- | -------------------------------------------------- | ------------------------------------------------------------- | ---------------------------------------------- |
-| Cron Trigger | 5 条/账号 | 250 条/账号                                        | 把 13 个 dispatcher 分散到边缘，或每类任务独立 cron           | 仍不能替代 GitHub 的 12 分钟采集               |
-| CPU          | 10 ms/次  | 30 M CPU-ms/月；cron 单次默认 30 s、可配置到 5 min | 在 Worker 内做 D1 对账、轻量聚合、单次派发                    | 完整采集器（Node/链上 SDK/多 RPC）仍超预算     |
-| D1 行写      | 10 万/日  | 5,000 万/月（约 166 万/日）                        | 理论上可放小表，但 `price_records` 第二份缓存判为不做（§9.1） | 与 Turso/Supabase 重复；不建议为此新增第二主库 |
-| D1 行读      | 500 万/日 | 250 亿/月                                          | 边缘读模型/导出索引                                           | 不能替代 Turso 的原始流                        |
-| 请求         | 10 万/日  | 无上限                                             | 边缘读缓存、证据签名 URL                                      | 仍受回源与 Supabase 连接数限制                 |
+| 能力         | Free      | Workers Paid（$5/月）                              | 能接什么                                                  | 接不了什么                                 |
+| ------------ | --------- | -------------------------------------------------- | --------------------------------------------------------- | ------------------------------------------ |
+| Cron Trigger | 5 条/账号 | 250 条/账号                                        | 把 13 个 dispatcher 分散到边缘，或每类任务独立 cron       | 仍不能替代 GitHub 的 12 分钟采集           |
+| CPU          | 10 ms/次  | 30 M CPU-ms/月；cron 单次默认 30 s、可配置到 5 min | 在 Worker 内做 D1 对账、轻量聚合、单次派发                | 完整采集器（Node/链上 SDK/多 RPC）仍超预算 |
+| D1 行写      | 10 万/日  | 5,000 万/月（约 166 万/日）                        | 仅接入 24 h `price_records` cache，先 shadow 对账（§9.2） | 不迁高频原始流、事务证据或长期关系数据     |
+| D1 行读      | 500 万/日 | 250 亿/月                                          | 边缘读模型/导出索引                                       | 不能替代 Turso 的原始流                    |
+| 请求         | 10 万/日  | 无上限                                             | 边缘读缓存、证据签名 URL                                  | 仍受回源与 Supabase 连接数限制             |
 
-**判断**：$5 最值得买的是“250 条 cron + 5 分钟 CPU 的独立派发/补偿”，不是“把采集搬到边缘”。即使升 Paid，§9.1 的七项仍然不做：付费只放宽时钟/Cron 数量约束，不产生新的读路径收益。
+**判断**：$5 最值得买的是“250 条 cron + 5 分钟 CPU 的独立派发/补偿”，不是“把采集搬到边缘”。即使升 Paid，§9.1 剩余五项仍然不做：付费只放宽时钟/Cron 数量约束，不产生新的读路径收益。
 
 ## 8. 批次 1 的代码现状（已合入 main、默认关闭）
 
@@ -345,25 +341,23 @@ ACK payload 读取方审计（阈值保持 30 天；`7` 只作为假设上限）
 
 ## 9. 2026-11-08 架构核对定论
 
-### 9.1 七项「不做」
+### 9.1 2026-11-08 五项「不做」（price_records 决定已由 2026-11-25 更新覆盖）
 
 | 项                                | 结论               | 理由                                                                                                                                                             | 依据      |
 | --------------------------------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
 | Cloudflare Worker 应急派发时钟    | **不做**           | 免费账号只有 5 条 cron；`pg_cron` 现役 **17 个 job**（0141 之后实测 = 17：14 个派发/条件派发 + 3 个独立清理）稳定运行；没有证据表明 Supabase 时钟本身是 I/O 主源 | §5        |
-| D1 `price_records` 第二份缓存     | **不做**           | 价格表仅 14 MB、约 250 行/小时，没有容量或读放大问题；第二份缓存要额外维护跨库同步与对账                                                                         | §1.3      |
 | KV 边缘读缓存                     | **不做**           | 价格 API 是动态鉴权 + 多参数组合，命中率无法预计；10 ms 计费 CPU 下也难证明净收益                                                                                | §1.3      |
 | R2 及任何冷存外置                 | **不做（已取消）** | 用户决定不引入第四种存储；`snapshot_archives` 是唯一冷存层，留 Supabase                                                                                          | §3        |
-| `price_records` 切 Turso          | **不做**           | 14 MB / 约 250 行/小时；切换换不来可测容量收益，只给价格 API 增加一个活读依赖                                                                                    | §4 批次 1 |
 | `dex_market_swap_events` 搬 Turso | **不做**           | 只做保留期调整（现状 35 天，目标值另行拍板），不搬库；聚合继续用库内 RPC                                                                                         | §4 批次 3 |
 | `snapshot_slots` 触发搬到边缘     | **不做**           | 执行已经在 GitHub Actions；搬触发不减少任何价格写入，只省 2 次/小时账本 + HTTP                                                                                   | §5        |
 
-这七项的共同判据是「**技术能做，但收益不可验证或会新增失败点**」，按 §2.3 的规则不做；不保留“待评估”尾巴，避免反复重启。
+这五项的共同判据是「**技术能做，但收益不可验证或会新增失败点**」，按 §2.3 的规则不做；不保留“待评估”尾巴，避免反复重启。
 
-### 9.2 `price_records` 保持 `supabase`
+### 9.2 `price_records` 24 h cache → Cloudflare D1
 
-- `TURSO_PRICE_RECORDS_MODE` **不设**，默认 `supabase`；生产读写全部留在 Supabase，与迁移前一致。
-- 代码（Turso v7 表、仓储、开关分支）已在 main，但**不启用**；`TURSO_PRICE_RECORDS_FALLBACK_ON_MISS` 默认 `true`，在未启用 Turso 主模式时不生效。
-- 未来若容量所迫（Supabase 再次逼近 500 MB 且归因到该表）：先 `shadow` **跑满 24 h 对账**（行数增量 + 抽样字段），无差异后才考虑切 `turso`，且**必须同时开** `FALLBACK_ON_MISS`；否则不切。
+- 2026-11-25 实施状态：`insight-price-records` 已创建于 D1 APAC，`0001_price_records.sql` 已应用；Worker 代码先以 `d1-shadow` 镜像 24 h，读取仍由 Supabase 服务。
+- 对账应覆盖行数、TTL 与抽样完整字段；无差异后再切 `d1` 主模式。切换后 D1 miss/error 回 Supabase，保留源表至少 7 天。
+- D1 额度推算和具体回退步骤见 [`d1-price-records.md`](d1-price-records.md)。
 
 ### 9.3 ACK 压缩语义
 

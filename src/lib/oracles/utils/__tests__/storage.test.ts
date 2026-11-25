@@ -1,8 +1,15 @@
 /** @jest-environment node */
 
-import { getHistoricalPricesFromDatabase, getLatestPriceSnapshotFromDatabase } from '../storage';
+import {
+  getHistoricalPricesFromDatabase,
+  getLatestPriceSnapshotFromDatabase,
+  savePriceToDatabase,
+} from '../storage';
 
 const mockGetPriceRecords = jest.fn();
+const mockSavePriceRecords = jest.fn();
+const mockSaveD1PriceRecords = jest.fn();
+const mockGetPriceRecordsD1Database = jest.fn();
 const mockHistory = jest.fn();
 const mockLoggerError = jest.fn();
 const mockSnapshotMaybeSingle = jest.fn();
@@ -23,10 +30,19 @@ for (const method of ['select', 'eq', 'gt', 'order', 'limit'] as const) {
 jest.mock('@/lib/supabase/server', () => ({
   getAdminQueries: () => ({
     getPriceRecords: (...args: unknown[]) => mockGetPriceRecords(...args),
+    savePriceRecords: (...args: unknown[]) => mockSavePriceRecords(...args),
   }),
   createServiceRoleClient: () => ({
     from: (...args: unknown[]) => mockSnapshotFrom(...args),
   }),
+}));
+jest.mock('@/lib/cloudflare/priceRecords', () => ({
+  getPriceRecordsFallbackOnMiss: async () => true,
+  getPriceRecordsMode: async () => process.env.TURSO_PRICE_RECORDS_MODE ?? 'supabase',
+  getLatestD1PriceRecord: jest.fn(),
+  getPriceRecordsD1Database: (...args: unknown[]) => mockGetPriceRecordsD1Database(...args),
+  listD1PriceRecords: jest.fn(),
+  saveD1PriceRecords: (...args: unknown[]) => mockSaveD1PriceRecords(...args),
 }));
 jest.mock('@/lib/supabase/snapshotHistory', () => ({
   loadSnapshotHistoryRange: (...args: unknown[]) => mockHistory(...args),
@@ -54,9 +70,32 @@ function makePriceRecord(timestamp: string) {
 describe('oracle storage historical archive', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSavePriceRecords.mockResolvedValue(1);
+    mockGetPriceRecordsD1Database.mockResolvedValue({});
+    mockSaveD1PriceRecords.mockResolvedValue(1);
     mockSnapshotFrom.mockReturnValue(mockSnapshotQuery);
     for (const method of ['select', 'eq', 'gt', 'order', 'limit'] as const) {
       mockSnapshotQuery[method].mockReturnValue(mockSnapshotQuery);
+    }
+  });
+
+  it('mirrors price cache writes to D1 while Supabase remains primary in d1-shadow mode', async () => {
+    const previous = process.env.TURSO_PRICE_RECORDS_MODE;
+    process.env.TURSO_PRICE_RECORDS_MODE = 'd1-shadow';
+    try {
+      await expect(
+        savePriceToDatabase({
+          provider: 'chainlink',
+          symbol: 'BTC',
+          price: 50_100,
+          timestamp: Date.now(),
+        })
+      ).resolves.toBe(true);
+      expect(mockSavePriceRecords).toHaveBeenCalledTimes(1);
+      expect(mockSaveD1PriceRecords).toHaveBeenCalledTimes(1);
+    } finally {
+      if (previous === undefined) delete process.env.TURSO_PRICE_RECORDS_MODE;
+      else process.env.TURSO_PRICE_RECORDS_MODE = previous;
     }
   });
 

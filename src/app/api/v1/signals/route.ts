@@ -9,12 +9,14 @@ import {
   V1_STANDARD_MIDDLEWARES,
 } from '@/lib/api/handler';
 import { createCachedJsonResponse } from '@/lib/api/utils';
+import {
+  getPriceRecordsD1Database,
+  getPriceRecordsFallbackOnMiss,
+  getPriceRecordsMode,
+  listD1PriceRecords,
+} from '@/lib/cloudflare/priceRecords';
 import { SafeProviderSchema, SafeSymbolSchema } from '@/lib/security/validation';
 import { createServiceRoleClient } from '@/lib/supabase/server';
-import {
-  readTursoPriceRecordsFallbackOnMiss,
-  readTursoPriceRecordsMode,
-} from '@/lib/turso/price/client';
 import { loadTursoPriceRecords } from '@/lib/turso/price/recordsQuery';
 import { get7dAgoUtc, getTodayUtc, addDay } from '@/lib/utils/date';
 import { roundTo } from '@/lib/utils/format';
@@ -56,7 +58,35 @@ export const GET = createApiHandler(
     };
 
     const loadRecords = async (): Promise<SignalRecord[]> => {
-      if (readTursoPriceRecordsMode() === 'turso') {
+      const mode = await getPriceRecordsMode();
+      const fallbackOnMiss = await getPriceRecordsFallbackOnMiss();
+      if (mode === 'd1') {
+        try {
+          const records = await listD1PriceRecords(await getPriceRecordsD1Database(), {
+            provider,
+            symbol,
+            startTime: Date.parse(fromOrDefault),
+            endTime: Date.parse(addDay(toOrDefault)) - 1,
+            limit,
+            offset,
+          });
+          if (records.length > 0 || !fallbackOnMiss) {
+            return records.map((record) => ({
+              provider: record.provider,
+              symbol: record.symbol,
+              timestamp: record.timestamp,
+              price: record.price,
+              confidence: record.confidence ?? null,
+              failure_mode: record.failure_mode ?? null,
+              signal_vector: (record.signal_vector ?? null) as Record<string, number> | null,
+              metadata: null,
+            }));
+          }
+        } catch {
+          if (!fallbackOnMiss) throw new Error('D1 price_records unavailable');
+        }
+      }
+      if (mode === 'turso') {
         const records = await loadTursoPriceRecords({
           provider,
           symbol,
@@ -65,7 +95,7 @@ export const GET = createApiHandler(
           limit,
           offset,
         });
-        if (records !== null && (records.length > 0 || !readTursoPriceRecordsFallbackOnMiss())) {
+        if (records !== null && (records.length > 0 || !fallbackOnMiss)) {
           return records.map((record) => ({
             provider: record.provider,
             symbol: record.symbol,
@@ -77,7 +107,7 @@ export const GET = createApiHandler(
             metadata: null,
           }));
         }
-        if (records === null && !readTursoPriceRecordsFallbackOnMiss()) {
+        if (records === null && !fallbackOnMiss) {
           throw new Error('Turso price_records unavailable');
         }
       }
