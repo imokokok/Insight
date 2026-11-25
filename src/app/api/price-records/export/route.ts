@@ -1,13 +1,15 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { createApiHandler } from '@/lib/api/handler';
+import {
+  getPriceRecordsD1Database,
+  getPriceRecordsFallbackOnMiss,
+  getPriceRecordsMode,
+  listD1PriceRecords,
+} from '@/lib/cloudflare/priceRecords';
 import { getBlockchainByChainId } from '@/lib/oracles/constants/chainMapping';
 import { createServiceRoleClient, createUserClient } from '@/lib/supabase/server';
 import { loadSnapshotHistoryPage } from '@/lib/supabase/snapshotHistory';
-import {
-  readTursoPriceRecordsFallbackOnMiss,
-  readTursoPriceRecordsMode,
-} from '@/lib/turso/price/client';
 import { loadTursoPriceRecords } from '@/lib/turso/price/recordsQuery';
 
 function extractBearerToken(request: NextRequest): string | null {
@@ -42,12 +44,22 @@ export const GET = createApiHandler(
     const supabase = createUserClient(accessToken);
 
     const loadRecords = async () => {
-      if (readTursoPriceRecordsMode() === 'turso') {
+      const mode = await getPriceRecordsMode();
+      const fallbackOnMiss = await getPriceRecordsFallbackOnMiss();
+      if (mode === 'd1') {
+        try {
+          const records = await listD1PriceRecords(await getPriceRecordsD1Database(), { limit });
+          if (records.length > 0 || !fallbackOnMiss) return records;
+        } catch {
+          if (!fallbackOnMiss) throw new Error('D1 price_records unavailable');
+        }
+      }
+      if (mode === 'turso') {
         const records = await loadTursoPriceRecords({ limit });
-        if (records !== null && (records.length > 0 || !readTursoPriceRecordsFallbackOnMiss())) {
+        if (records !== null && (records.length > 0 || !fallbackOnMiss)) {
           return records;
         }
-        if (records === null && !readTursoPriceRecordsFallbackOnMiss()) {
+        if (records === null && !fallbackOnMiss) {
           throw new Error('Turso price_records unavailable');
         }
       }

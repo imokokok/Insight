@@ -66,6 +66,11 @@ const result = await build({
   bundle: true,
   splitting: true,
   platform: 'node',
+  // Worker-only bindings are loaded dynamically by shared application code.
+  // Keep the native module external so these Node.js cron bundles can still
+  // build; their runtime falls back to Supabase when the Cloudflare binding is
+  // unavailable.
+  external: ['cloudflare:workers'],
   format: 'esm',
   // Keep module keys as `node_modules/...` even when dependencies are reached
   // through a symlink (per-task worktrees symlink the primary checkout's

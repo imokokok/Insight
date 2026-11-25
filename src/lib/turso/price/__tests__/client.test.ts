@@ -28,15 +28,17 @@ describe('Turso price client configuration', () => {
     expect(readTursoPriceRecordsFallbackOnMiss(undefined)).toBe(true);
   });
 
-  it('accepts the shadow and turso modes', () => {
+  it('accepts the shadow, turso, and Cloudflare D1 modes', () => {
     expect(readTursoPriceRecordsMode('shadow')).toBe('shadow');
     expect(readTursoPriceRecordsMode('turso')).toBe('turso');
+    expect(readTursoPriceRecordsMode('d1-shadow')).toBe('d1-shadow');
+    expect(readTursoPriceRecordsMode('d1')).toBe('d1');
     expect(readTursoPriceRecordsFallbackOnMiss('false')).toBe(false);
   });
 
   it.each(['shadow ', 'primary', 'off'])('rejects invalid price_records mode %s', (value) => {
     expect(() => readTursoPriceRecordsMode(value)).toThrow(
-      'TURSO_PRICE_RECORDS_MODE must be supabase, shadow, or turso'
+      'TURSO_PRICE_RECORDS_MODE must be supabase, shadow, turso, d1-shadow, or d1'
     );
   });
 
