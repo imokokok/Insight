@@ -57,6 +57,25 @@ describe('Cloudflare D1 price_records', () => {
     expect(queries[1]?.values).toContain('50100.00000000');
   });
 
+  it('matches Supabase DECIMAL(20, 8) rounding for decimal ties and exponents', async () => {
+    const { database, queries } = makeDatabase();
+    const timestamp = Date.now();
+    const records = [
+      { provider: 'band', symbol: 'INR', price: Number('0.010833905'), timestamp },
+      { provider: 'band', symbol: 'OP', price: Number('0.066804615'), timestamp },
+      { provider: 'band', symbol: 'SHIB', price: Number('0.000003465'), timestamp },
+      { provider: 'band', symbol: 'SMALL', price: 1e-7, timestamp },
+    ];
+
+    await expect(saveD1PriceRecords(database, records, timestamp)).resolves.toBe(4);
+    expect(queries.slice(1).map((query) => query.values[3])).toEqual([
+      '0.01083391',
+      '0.06680462',
+      '0.00000347',
+      '0.00000010',
+    ]);
+  });
+
   it('applies filters and validates every row returned by D1', async () => {
     const now = Date.now();
     const timestamp = now - 1000;

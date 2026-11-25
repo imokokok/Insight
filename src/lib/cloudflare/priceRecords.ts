@@ -10,6 +10,7 @@ import { FAILURE_MODE_VALUES } from '@/types/oracle/signals';
 const MAX_PRICE = 999_999_999_999.99999999;
 const MAX_QUERY_LIMIT = 10_000;
 const INSERT_BATCH_SIZE = 100;
+const PRICE_SCALE_E8 = 100_000_000n;
 
 export interface D1Result<T> {
   results?: T[];
@@ -162,6 +163,34 @@ function ttlToMilliseconds(value: string | undefined, nowMs: number): number {
   return nowMs + Number(match[1]) * multiplier[match[2]];
 }
 
+/**
+ * Round the number's canonical decimal representation like PostgreSQL
+ * DECIMAL(20, 8). Number#toFixed can round binary floating-point ties down
+ * even though Supabase receives the shortest decimal string and rounds that
+ * decimal half away from zero.
+ */
+function priceToE8(price: number): string {
+  const [significand, exponentText] = price.toString().toLowerCase().split('e');
+  const [whole, fraction = ''] = significand.split('.');
+  const exponent = Number(exponentText ?? 0);
+  const digits = `${whole}${fraction}`.replace(/^0+/, '') || '0';
+  const decimalPlaces = fraction.length - exponent;
+  let scaled = BigInt(digits);
+
+  if (decimalPlaces < 8) {
+    scaled *= 10n ** BigInt(8 - decimalPlaces);
+  } else if (decimalPlaces > 8) {
+    const divisor = 10n ** BigInt(decimalPlaces - 8);
+    const remainder = scaled % divisor;
+    scaled /= divisor;
+    if (remainder * 2n >= divisor) scaled += 1n;
+  }
+
+  const wholePart = scaled / PRICE_SCALE_E8;
+  const fractionalPart = (scaled % PRICE_SCALE_E8).toString().padStart(8, '0');
+  return `${wholePart}.${fractionalPart}`;
+}
+
 function prepareRecord(record: PriceRecordInsert, nowMs: number): PreparedRecord | null {
   if (!Number.isFinite(record.price) || record.price <= 0 || record.price > MAX_PRICE) {
     return null;
@@ -175,7 +204,7 @@ function prepareRecord(record: PriceRecordInsert, nowMs: number): PreparedRecord
     provider: record.provider,
     symbol: record.symbol,
     chain: record.chain || null,
-    price_e8: record.price.toFixed(8),
+    price_e8: priceToE8(record.price),
     timestamp_ms: timestamp,
     confidence_e4:
       record.confidence === null || record.confidence === undefined
