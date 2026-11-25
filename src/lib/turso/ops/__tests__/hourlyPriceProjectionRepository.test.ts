@@ -35,10 +35,16 @@ function hourlyRow(overrides: Partial<HourlySnapshotRow> = {}): HourlySnapshotRo
   };
 }
 
-function projectionInput(overrides: { hourlyRows?: HourlySnapshotRow[]; inputHash?: string } = {}) {
+function projectionInput(
+  overrides: {
+    hourlyRows?: HourlySnapshotRow[];
+    inputHash?: string;
+    snapshotTs?: Date;
+  } = {}
+) {
   return {
     hourlyRows: overrides.hourlyRows ?? [hourlyRow()],
-    snapshotTs: new Date('2026-11-11T02:05:00.000Z'),
+    snapshotTs: overrides.snapshotTs ?? new Date('2026-11-11T02:05:00.000Z'),
     inputHash: overrides.inputHash ?? 'hash-slot-1',
     partitionKey: 'bootstrap',
     rawDigest: 'digest-slot-1',
@@ -95,36 +101,92 @@ describe('writeProjectedTursoPriceSlot', () => {
     expect(Number(runs.rows[0].hourly_written)).toBe(1);
   });
 
-  it('re-projects the same slot idempotently and reports replay', async () => {
-    const result = await writeProjectedTursoPriceSlot(
-      client,
-      projectionInput({ hourlyRows: [hourlyRow({ price: 88_100 })] })
-    );
+  it('replays the original receipt without rewriting hourly rows', async () => {
+    const input = projectionInput({
+      inputHash: 'hash-replay',
+      snapshotTs: new Date('2026-11-11T10:05:00.000Z'),
+      hourlyRows: [hourlyRow({ snapshot_hour: '2026-11-11T10:00:00.000Z' })],
+    });
+    await writeProjectedTursoPriceSlot(client, input);
+    const result = await writeProjectedTursoPriceSlot(client, input);
     expect(result).toEqual({ hourlyWritten: 1, replayed: true });
 
     const runs = await client.execute(
-      `SELECT hourly_written FROM price_slot_projection_runs WHERE input_hash = 'hash-slot-1'`
+      `SELECT hourly_written FROM price_slot_projection_runs WHERE input_hash = 'hash-replay'`
     );
     expect(runs.rows).toHaveLength(1);
 
     const hourly = await client.execute(
       `SELECT price FROM hourly_price_snapshots
        WHERE provider = 'chainlink' AND symbol = 'BTC' AND chain_id = 1
-         AND snapshot_hour = '2026-11-11T02:00:00.000Z'`
+         AND snapshot_hour = '2026-11-11T10:00:00.000Z'`
     );
     expect(hourly.rows).toHaveLength(1);
-    expect(Number(hourly.rows[0].price)).toBeCloseTo(88_100);
+    expect(Number(hourly.rows[0].price)).toBeCloseTo(88_000.5);
+  });
+
+  it('writes only the first successful slot for each UTC hour', async () => {
+    const firstSlot = await writeProjectedTursoPriceSlot(
+      client,
+      projectionInput({
+        inputHash: 'hash-first-six',
+        snapshotTs: new Date('2026-11-11T06:05:00.000Z'),
+        hourlyRows: [hourlyRow({ snapshot_hour: '2026-11-11T06:00:00.000Z' })],
+      })
+    );
+    expect(firstSlot).toEqual({ hourlyWritten: 1, replayed: false });
+
+    const laterSlot = await writeProjectedTursoPriceSlot(
+      client,
+      projectionInput({
+        inputHash: 'hash-slot-later',
+        snapshotTs: new Date('2026-11-11T06:20:00.000Z'),
+        hourlyRows: [hourlyRow({ price: 88_100, snapshot_hour: '2026-11-11T06:00:00.000Z' })],
+      })
+    );
+    expect(laterSlot).toEqual({ hourlyWritten: 0, replayed: false });
+
+    const sameHour = await client.execute(
+      `SELECT price FROM hourly_price_snapshots
+       WHERE provider = 'chainlink' AND symbol = 'BTC' AND chain_id = 1
+         AND snapshot_hour = '2026-11-11T06:00:00.000Z'`
+    );
+    expect(Number(sameHour.rows[0].price)).toBeCloseTo(88_000.5);
+
+    const newHour = await writeProjectedTursoPriceSlot(
+      client,
+      projectionInput({
+        inputHash: 'hash-next-hour',
+        snapshotTs: new Date('2026-11-11T07:05:00.000Z'),
+        hourlyRows: [
+          hourlyRow({
+            price: 88_200,
+            snapshot_hour: '2026-11-11T07:00:00.000Z',
+          }),
+        ],
+      })
+    );
+    expect(newHour).toEqual({ hourlyWritten: 1, replayed: false });
   });
 
   it('writes multiple rows in one transaction', async () => {
     const rows = [
-      hourlyRow({ provider: 'pyth', symbol: 'ETH', snapshot_hour: '2026-11-11T02:00:00.000Z' }),
-      hourlyRow({ provider: 'pyth', symbol: 'SOL', snapshot_hour: '2026-11-11T02:00:00.000Z' }),
-      hourlyRow({ provider: 'pyth', symbol: 'BTC', chain_id: 8453 }),
+      hourlyRow({ provider: 'pyth', symbol: 'ETH', snapshot_hour: '2026-11-11T08:00:00.000Z' }),
+      hourlyRow({ provider: 'pyth', symbol: 'SOL', snapshot_hour: '2026-11-11T08:00:00.000Z' }),
+      hourlyRow({
+        provider: 'pyth',
+        symbol: 'BTC',
+        chain_id: 8453,
+        snapshot_hour: '2026-11-11T08:00:00.000Z',
+      }),
     ];
     const result = await writeProjectedTursoPriceSlot(
       client,
-      projectionInput({ hourlyRows: rows, inputHash: 'hash-multi' })
+      projectionInput({
+        hourlyRows: rows,
+        inputHash: 'hash-multi',
+        snapshotTs: new Date('2026-11-11T08:05:00.000Z'),
+      })
     );
     expect(result.hourlyWritten).toBe(3);
   });
@@ -174,7 +236,8 @@ describe('readTursoOracleHistoryBaseline', () => {
       // hour 01: even count → interpolated median (100+300)/2 = 200; NULL deviation → 0
       ['2026-11-11T01:00:00.000Z', 'winklink', 100, null],
       ['2026-11-11T01:00:00+00:00', 'chainlink', 300, 2],
-      // hour 02: excluded — failure row / non-positive price / unaligned minute
+      // hour 02: one valid Pyth row plus excluded failure/non-positive/unaligned rows
+      ['2026-11-11T02:00:00.000Z', 'pyth', 100, 0],
       ['2026-11-11T02:00:00.000Z', 'winklink', 100, 0],
       ['2026-11-11T02:00:00+00:00', 'chainlink', -5, 0],
       ['2026-11-11T02:30:00.000Z', 'winklink', 100, 0],
