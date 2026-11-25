@@ -40,8 +40,8 @@ function rpcReturning(result: `0x${string}`): RpcClientWithFallback {
 
 describe('Pyth Monad sponsored feed registry', () => {
   it('contains every reviewed sponsored feed with a unique valid ID', () => {
-    expect(PYTH_MONAD_SPONSORED_FEEDS).toHaveLength(60);
-    expect(new Set(PYTH_MONAD_SPONSORED_FEEDS.map((feed) => feed.id)).size).toBe(60);
+    expect(PYTH_MONAD_SPONSORED_FEEDS).toHaveLength(52);
+    expect(new Set(PYTH_MONAD_SPONSORED_FEEDS.map((feed) => feed.id)).size).toBe(52);
     expect(PYTH_MONAD_SPONSORED_FEEDS.every((feed) => /^[a-f0-9]{64}$/.test(feed.id))).toBe(true);
     expect(resolvePythMonadFeed('BTC')?.alias).toBe('BTC/USD');
     expect(resolvePythMonadFeed('STETH/ETH.RR')?.alias).toBe('STETH/ETH.RR');

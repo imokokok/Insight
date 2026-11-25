@@ -90,6 +90,13 @@ import {
 } from '@/lib/attestations/oracleWatchAttestation';
 import { PROVIDER_OBSERVATIONS_HASH_CANONICALIZATION } from '@/lib/attestations/providerObservationsHash';
 import {
+  PULSE_DOMAIN,
+  PULSE_PRIMARY_TYPE,
+  PULSE_SCHEMA_VERSION,
+  PULSE_TYPES,
+  PULSE_VALID_FOR_SECONDS,
+} from '@/lib/attestations/pulseAttestation';
+import {
   CURRENT_MAINLINE_PROTOCOL_PROMOTION,
   CURRENT_MAINLINE_PROTOCOL_PROMOTION_ID,
 } from '@/lib/protocol/mainlinePromotionRegistry';
@@ -144,6 +151,28 @@ export async function GET(request: NextRequest) {
   const body = {
     issuer: origin,
     mic: V2_ATTESTER_LABEL,
+    /**
+     * Advisory boundary — published at the top of this document so any
+     * verifier, SDK consumer, or agent framework sees it before trusting any
+     * key or schema. Insight is a read-only oracle risk assessment layer: it
+     * never signs or broadcasts transactions, never gates or blocks execution,
+     * never proves a price is correct. Every verdict, attestation, and risk
+     * judgment is advisory-only. Applications and agents own the decision to
+     * act on them. EIP-712 signatures prove who issued the signed fields and
+     * whether they changed; they do not prove the underlying prices were
+     * correct or that an agent obeyed the verdict.
+     */
+    advisory_boundary: {
+      insightDoesNotEnforce: true,
+      signerRoles: {
+        attester:
+          'production attestations over real settlements. Full trust weight when the key is inside its validFrom/validUntil window and not revoked.',
+        sample:
+          'SYNTHETIC demo receipts only. Never treat as evidence of a real trade, no matter how well it verifies.',
+        'trail-signer':
+          'historical verification records (e.g. Oracle Pulse trail, weekly OTS BTC anchoring). No production trust weight; verifiable integrity only.',
+      },
+    },
     /** Publication metadata changes only during an explicit protocol release.
      *  Ordinary partner/product deploys keep pointing to the same immutable
      *  release, so a verifier can distinguish code deployment from protocol
@@ -187,7 +216,24 @@ export async function GET(request: NextRequest) {
      *  its `attester` field equals one of these addresses AND it verifies
      *  against the schema below AND (when enforced) its `checkedAt` falls
      *  inside the key's [validFrom, validUntil) window and it is not revoked. */
-    public_keys: registry.keys,
+    public_keys: [
+      ...registry.keys,
+      // Trail signer — dedicated key for insight-pulse-trail's 15-minute
+      // oracle-quality pulse commits. Role "trail-signer" so verifiers can
+      // distinguish trail attestations from both production receipts and
+      // synthetic sample demos purely by signer role + address. Trail
+      // attestations are historical verification records, not production trust.
+      {
+        key_id: 'insight-pulse-trail-signer',
+        public_key: '0x25cD6643947A6C9B77708dE235F90377f82293a0',
+        algorithm: 'EIP-712/secp256k1' as const,
+        validFrom: '2026-11-22',
+        validUntil: null,
+        revoked: false,
+        role: 'trail-signer' as const,
+        note: 'Oracle Pulse trail signer — signs 15-minute EIP-712 Pulse attestations for the insight-pulse-trail GitHub repo (oracle health snapshot, weekly OTS BTC anchoring). Trail attestations carry role "trail-signer" and must never be treated as production trust evidence.',
+      },
+    ],
     revoked_keys: registry.revoked,
     attestation_enabled: attester !== null,
     /** Commitment rules shared by OracleSafetyCheck and OracleWatchCheck.
@@ -278,6 +324,20 @@ export async function GET(request: NextRequest) {
         retiredForSigning: true,
         eip712: descriptor(WATCH_DOMAIN, WATCH_TYPES as never, WATCH_PRIMARY_TYPE),
         verify: `${origin}/api/v1/oracle-watch/attestation/verify`,
+      },
+      /**
+       * Oracle Pulse — the always-on cross-oracle health snapshot for the
+       * insight-pulse-trail GitHub repo. A minimal 10-field EIP-712 envelope
+       * (smaller than Watch's 22 fields) designed for compact 15-minute trail
+       * commits + weekly OpenTimestamps BTC anchoring. Its signer is a
+       * dedicated trail-only sample key (see public_keys below).
+       */
+      OraclePulse: {
+        schemaVersion: PULSE_SCHEMA_VERSION,
+        eip712: descriptor(PULSE_DOMAIN, PULSE_TYPES as never, PULSE_PRIMARY_TYPE),
+        validForSeconds: PULSE_VALID_FOR_SECONDS,
+        trail: 'https://github.com/imokokok/insight-pulse-trail',
+        verify: `${origin}/api/v1/pulse/latest`,
       },
       /**
        * Execution Receipt — the "did the agent actually fill at the certified

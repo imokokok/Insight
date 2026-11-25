@@ -37,8 +37,17 @@ export interface KeyEntry {
    *    the sample/fact distinction is checkable from the signature's signer
    *    plus this document alone — the synthetic marker is no longer a label
    *    beside the signature (which strips away) but a property of which key
-   *    made it (which cannot strip away without breaking the signature). */
-  role?: 'attester' | 'sample';
+   *    made it (which cannot strip away without breaking the signature).
+   *  - 'trail-signer'       — Oracle Pulse trail signers. Keys that sign the
+   *    15-minute EIP-712 Pulse attestations for community oracle health trails
+   *    (see insight-pulse-trail). Trail attestations are historical
+   *    verification records anchored weekly to Bitcoin via OpenTimestamps;
+   *    they carry no production trust weight and cannot issue attestations
+   *    that verifiers would accept as binding on a trade or settlement.
+   *    Distinguished from 'sample' because sample keys are owned by Insight
+   *    itself for demo purposes, while trail-signer keys are community- or
+   *    partner-owned and independently anchored. */
+  role?: 'attester' | 'sample' | 'trail-signer';
 }
 
 export interface RevokedKey {
@@ -68,8 +77,13 @@ function normalizeKey(raw: Partial<KeyEntry> & { public_key: string }): KeyEntry
   if (!/^0x[0-9a-fA-F]{40}$/.test(raw.public_key)) {
     throw new Error('attestation public_key must be a 20-byte hex address');
   }
-  if (raw.role !== undefined && raw.role !== 'attester' && raw.role !== 'sample') {
-    throw new Error('attestation key role must be attester or sample');
+  if (
+    raw.role !== undefined &&
+    raw.role !== 'attester' &&
+    raw.role !== 'sample' &&
+    raw.role !== 'trail-signer'
+  ) {
+    throw new Error('attestation key role must be attester, sample, or trail-signer');
   }
   const validFrom = raw.validFrom ?? process.env.ATTESTATION_KEY_VALID_FROM ?? DEFAULT_VALID_FROM;
   if (Number.isNaN(Date.parse(validFrom))) {
@@ -251,6 +265,6 @@ export function trustedAttesterEntry(
     (candidate) => candidate.public_key.toLowerCase() === attester.toLowerCase()
   );
   // Missing role is the backwards-compatible production-attester default.
-  if (!entry || entry.role === 'sample') return null;
+  if (!entry || entry.role === 'sample' || entry.role === 'trail-signer') return null;
   return entry;
 }

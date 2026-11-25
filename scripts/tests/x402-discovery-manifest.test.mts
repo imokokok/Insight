@@ -46,6 +46,14 @@ test('x402 discovery derives every fixed route from its live payment scope', () 
   const manifest = buildX402DiscoveryManifest(config);
   assert.equal(manifest.x402Version, 2);
 
+  // The composed description must carry the advisory-only boundary (kept in
+  // the template as the single source of truth); guards against the builder
+  // overriding the template copy again.
+  assert.ok(
+    manifest.description.includes('insightDoesNotEnforce: true'),
+    'discovery manifest description must carry the advisory-only boundary'
+  );
+
   const preTrade = resource(manifest, '/api/v1/safety/pre-trade');
   const baseLending = resource(manifest, '/api/v1/safety/base-lending-guard');
   const basePerp = resource(manifest, '/api/v1/safety/base-perp-guard');

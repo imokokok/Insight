@@ -212,12 +212,11 @@ recovery lag, per-day projection lag, dispatcher-ledger failures, and
 `job startup timeout` counts, and needs no new tables.
 
 The `Turso Control Plane Alert` GitHub workflow is dispatched by Supabase
-`pg_cron` at minutes `10,25,40,55` (migration `0142`) and stays manually
-dispatchable. GitHub's native `schedule:` was removed: it dropped most
-high-frequency runs (8 runs in 2 days against the nominal cadence) and the
-2026-11-08 outage produced zero issues. A failing check opens one
-deduplicated GitHub Issue and comments on it while the incident remains open;
-the first healthy check comments with recovery evidence and closes it. This
-moves the alert inside the Supabase dispatcher failure domain; a truly
-independent read-only edge probe remains a separate decision (see the
-three-plane plan, §5 re-verdict pending).
+`pg_cron` hourly at minute `10` (migration `0143`) and stays manually
+dispatchable. GitHub's native `schedule:` was removed after it dropped most
+high-frequency runs. The workflow checks deep readiness and backup freshness:
+daily exports must have a successful run within 36 hours; monthly archives
+within 1,000 hours. Failures open or update deduplicated GitHub Issues and
+healthy checks close recovered incidents. This is a no-cost hourly guard inside
+the Supabase dispatcher and GitHub Actions failure domains, not an independent
+one-minute uptime monitor.

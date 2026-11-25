@@ -150,13 +150,13 @@ describe('feedSyncService seed lifecycle', () => {
 
     expect(result).toEqual({
       provider: 'pyth',
-      discovered: 64,
-      upserted: 64,
+      discovered: 37,
+      upserted: 37,
       deactivated: 0,
       errors: 0,
     });
     const rows = upsert.mock.calls[0][0] as Array<Record<string, unknown>>;
-    expect(rows).toHaveLength(64);
+    expect(rows).toHaveLength(37);
     expect(rows.find((row) => row.symbol === 'SOL/USD')).toMatchObject({
       chain_id: 0,
       address: 'PythSolanaAccount0',

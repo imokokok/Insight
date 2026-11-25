@@ -3,6 +3,11 @@
 状态: **2026-10-27 复核归档**（Gate-2 Monad x402 付款演练后的审计修正记录）。
 本文记录两件事: eip155:143 结算 facilitator 的身份证据链，以及服务端结算台账的落库路径与对账流程。
 
+配置与平台说明是迁移前的历史快照，不是当前生产配置指引。Insight 现由
+Cloudflare Workers 托管；运行时配置通过 GitHub `Production` 环境和
+[`cloudflare-deployment.md`](cloudflare-deployment.md) 中的 Worker secret
+allowlist 发布。本文的 Vercel env 类型表和线上变量读数只用于解释当时的审计证据。
+
 ## 1. Facilitator 拓扑（production）
 
 配置全部来自 Vercel production 环境变量（见 §3 的类型速查）:
@@ -57,7 +62,7 @@
 2. 将 `tx_hash` + `amount_usdc` 与链上 `X402_PAY_TO` 地址的 USDC 余额变动对账（0077 迁移注释中的既定流程；Gate-2 演练行 `0x7363e7c2…`、2026-10-27 亦可用作锚点样本）。
 3. 关注 `settlement_failed` / `business_failed` 比例异常与 `payment_rejected` 突增（facilitator 拒签往往是密钥/域名配置漂移的第一信号）。
 
-## 3. Vercel env 类型速查（审计用）
+## 3. 历史 Vercel env 类型速查（2026-10-27 审计用）
 
 | 类型        | 列表端点 `GET /v9/projects/:id/env`           | 单值端点 `GET /v9/projects/:id/env/:envId` |
 | ----------- | --------------------------------------------- | ------------------------------------------ |
@@ -70,7 +75,7 @@
 ## 4. 2026-11-06 口径核对（追加，不改写上文历史归档）
 
 - 上文 §1 的 X402_EVM_NETWORKS 五链清单是 2026-10-27 归档快照，不代表当前生产配置。2026-11-06 线上实取：POST /api/v1/oracle-config/snapshot 的 accepts 为 eip155:999（500000）、Solana mainnet（500000）、hyperliquid:mainnet（动态 quote），未见 eip155:8453。
-- 代码侧 src/lib/api/x402/config.ts 的 parseEvmNetworks 与 SUPPORTED_NETWORKS 完整支持 Base。是否接回属 Vercel production 部署侧配置：X402_EVM_NETWORKS 需含 eip155:8453，且 X402_PAY_TO 或 X402_EVM_PAY_TOS[eip155:8453] 必须有收款地址（启动 fail-fast 校验）。本次未擅自改动生产环境变量。
+- 代码侧 src/lib/api/x402/config.ts 的 parseEvmNetworks 与 SUPPORTED_NETWORKS 完整支持 Base。该次核对时是否接回属于生产部署配置问题；当前配置由 Cloudflare Worker runtime secrets/vars 提供，应按当前 Cloudflare release runbook 核验，不能据此历史快照推断现状。本次未擅自改动生产环境变量。
 - 对外口径已改为「以实时 402 accepts[] 为准」：public/.well-known/agent-card.json（v1.4.0）不再硬编码七链广告。
 - /.well-known/x402 的 resources 比 discoveryManifest.template.json 少 1 条，是 buildX402DiscoveryManifest 把 /api/v1/safety/multichain-evm-lending-guard 归入 requestBoundResources，不是丢数据。scripts/tests/x402-discovery-manifest.test.mts 有回归断言。
 - 本次修正：/api/v1/oracle-config/snapshot 的 POST 之前没有把 0.50 美元档的 amountAtomic 传给 handlePaidPreTradeRequest，导致 HyperCore 动态报价回落到 0.02 美元。已按 oracle-watch-window 的写法补上并新增路由测试。

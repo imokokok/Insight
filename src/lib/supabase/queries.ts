@@ -178,6 +178,15 @@ export interface UserProfileUpdate {
   preferences?: UserPreferences;
 }
 
+export class UserProfileStoreUnavailableError extends Error {
+  readonly code = 'USER_PROFILE_STORE_UNAVAILABLE';
+
+  constructor(cause?: unknown) {
+    super('User profile storage is temporarily unavailable', { cause });
+    this.name = 'UserProfileStoreUnavailableError';
+  }
+}
+
 export class DatabaseQueries {
   constructor(private client: SupabaseClient) {}
 
@@ -1050,13 +1059,11 @@ export class DatabaseQueries {
       .from('user_profiles')
       .select('*')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
 
     if (error) {
-      if (error.code !== 'PGRST116') {
-        logger.error('Failed to get user profile', normalizeError(error));
-      }
-      return null;
+      logger.error('Failed to get user profile', normalizeError(error));
+      throw new UserProfileStoreUnavailableError(error);
     }
 
     return data;
@@ -1075,7 +1082,7 @@ export class DatabaseQueries {
 
     if (error) {
       logger.error('Failed to upsert user profile', normalizeError(error));
-      return null;
+      throw new UserProfileStoreUnavailableError(error);
     }
 
     return upserted;

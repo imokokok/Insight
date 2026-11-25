@@ -1,6 +1,6 @@
 # Insight: Pre-Trade Safety for Trading Agents
 
-Insight tells an agent whether the price it is about to trade on is trustworthy. For one trade it returns an oracle-manipulation-aware verdict (PASS / CAUTION / DANGER / BLOCK) computed from multi-provider oracle consensus, with optional verifiable EIP-712 attestation. Paid per call in USDC via x402 v2. No signup, no API key, no subscription.
+Insight tells an agent whether the price it is about to trade on is trustworthy. For one trade it returns an oracle-manipulation-aware verdict (PASS / CAUTION / DANGER / BLOCK) computed from multi-provider oracle consensus, with optional verifiable EIP-712 attestation. Call keylessly and pay per call in USDC via x402 v2, or use an account API key billed against credits. The x402 path requires no signup, API key, or subscription.
 
 Agent-facing contacts:
 
@@ -160,6 +160,8 @@ GET https://www.oracleinsight.xyz/api/v1/safety/prediction-guard
 ```
 
 A chain-agnostic pre-signing metadata screen for one Polymarket event position (`action` is `buy_up` or `buy_down`). It screens Gamma price-contract metadata, market lifecycle, resolution timing, quoted-probability integrity, and post-hoc settlement verifiability, and returns an entry-chain × settlement-chain evidence map (for example, a Jupiter-embedded Polymarket entry is on Solana while settlement remains primarily on Polygon). It applies no cross-oracle consensus, does not judge the truth of event outcomes, and is not execution risk control. Keyless calls are x402 metered; the live 402 challenge carries the price. API-key callers use the standard v1 path.
+
+For a portable, short-lived signature over the complete read-only result, use `GET /api/v1/safety/prediction-guard/attestation` with the same query parameters and an API key. Insight returns an EIP-712 attestation valid for at most 60 seconds; verification requires the published Insight key registry. This signature proves issuance of those assessment bytes only. It does not establish event truth, authorize an order, or grant transaction authority. The endpoint returns `503` when no published attester is available.
 
 ## Payment
 

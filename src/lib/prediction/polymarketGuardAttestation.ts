@@ -1,101 +1,183 @@
+/** Portable, short-lived signature for Insight's read-only Polymarket screen.
+ * The signature binds the complete assessment payload; it grants no order or
+ * transaction authority and makes no claim about the truth of an event. */
+
 import { hashTypedData, keccak256, toBytes } from 'viem';
 
-import { getAttesterAccount } from '@/lib/attestations/attesterAccount';
+import {
+  getAttesterAccount,
+  getAttesterAddress,
+  getSampleAttesterAddress,
+} from '@/lib/attestations/attesterAccount';
+import { buildKeyRegistryConfig, trustedAttesterEntry } from '@/lib/attestations/keyRegistryConfig';
+import { canonicalJsonString } from '@/lib/utils/canonicalJson';
+import { createLogger } from '@/lib/utils/logger';
+import { nowInSeconds } from '@/lib/utils/time';
 
-export const POLYMARKET_ASSESSMENT_DOMAIN = {
-  name: 'Insight Polymarket Market Assessment',
+import { POLYMARKET_GUARD_SCHEMA_VERSION, type PolymarketGuardResult } from './polymarketGuard';
+
+const logger = createLogger('PolymarketGuardAttestation');
+
+export const POLYMARKET_GUARD_DECISION_SCHEMA = 'insight.polymarket-guard-decision.v1' as const;
+export const POLYMARKET_GUARD_ATTESTATION_SCHEMA_VERSION = 1 as const;
+export const POLYMARKET_GUARD_ATTESTATION_VALID_FOR_SECONDS = 60;
+export const POLYMARKET_GUARD_ATTESTATION_PRIMARY_TYPE = 'PolymarketGuardDecision' as const;
+export const POLYMARKET_GUARD_ATTESTATION_DOMAIN = {
+  name: 'Insight Polymarket Guard',
   version: '1',
   chainId: 1,
 } as const;
-export const POLYMARKET_ASSESSMENT_TYPES = {
-  PolymarketMarketAssessment: [
+export const POLYMARKET_GUARD_ATTESTATION_TYPES = {
+  PolymarketGuardDecision: [
     { name: 'assessmentHash', type: 'bytes32' },
-    { name: 'marketId', type: 'string' },
-    { name: 'outcome', type: 'string' },
+    { name: 'protocolId', type: 'string' },
+    { name: 'marketSlug', type: 'string' },
+    { name: 'action', type: 'string' },
     { name: 'verdict', type: 'uint8' },
     { name: 'issuedAt', type: 'uint256' },
     { name: 'validUntil', type: 'uint256' },
     { name: 'schemaVersion', type: 'uint256' },
   ],
 } as const;
-export const POLYMARKET_ASSESSMENT_ATTESTATION_SCHEMA =
-  'insight.polymarket-market-assessment-attestation.v1' as const;
-export const POLYMARKET_ASSESSMENT_VALID_FOR_SECONDS = 60;
 
-function canonical(value: unknown, depth = 0): string {
-  if (depth > 48) throw new TypeError('Assessment exceeds canonical JSON depth');
-  if (value === null || typeof value === 'string' || typeof value === 'boolean')
-    return JSON.stringify(value);
-  if (typeof value === 'number' && Number.isFinite(value)) return JSON.stringify(value);
-  if (Array.isArray(value)) return `[${value.map((item) => canonical(item, depth + 1)).join(',')}]`;
-  if (value && typeof value === 'object' && Object.getPrototypeOf(value) === Object.prototype) {
-    const object = value as Record<string, unknown>;
-    const keys = Object.keys(object).sort();
-    if (keys.some((key) => ['__proto__', 'constructor', 'prototype'].includes(key)))
-      throw new TypeError('Assessment has unsafe JSON property');
-    return `{${keys.map((key) => `${JSON.stringify(key)}:${canonical(object[key], depth + 1)}`).join(',')}}`;
-  }
-  throw new TypeError('Assessment is not canonical JSON');
+export type PolymarketGuardAttestationData = {
+  assessmentHash: `0x${string}`;
+  protocolId: 'polymarket-prediction-mainnet';
+  marketSlug: string;
+  action: 'buy_up' | 'buy_down';
+  verdict: 0 | 1 | 2;
+  issuedAt: number;
+  validUntil: number;
+  schemaVersion: typeof POLYMARKET_GUARD_ATTESTATION_SCHEMA_VERSION;
+};
+
+export type PolymarketGuardAttestation = {
+  type: typeof POLYMARKET_GUARD_ATTESTATION_PRIMARY_TYPE;
+  schemaVersion: typeof POLYMARKET_GUARD_ATTESTATION_SCHEMA_VERSION;
+  uid: `0x${string}`;
+  attester: `0x${string}`;
+  attesterLabel: 'Insight Polymarket Guard attester';
+  signedAt: string;
+  validForSeconds: typeof POLYMARKET_GUARD_ATTESTATION_VALID_FOR_SECONDS;
+  signature: `0x${string}`;
+  data: PolymarketGuardAttestationData;
+  eip712: Record<string, unknown>;
+};
+
+export type PolymarketGuardDecision = {
+  schema: typeof POLYMARKET_GUARD_DECISION_SCHEMA;
+  guard: PolymarketGuardResult;
+  decisionHash: `0x${string}`;
+  attestation: PolymarketGuardAttestation;
+};
+
+export type PolymarketGuardAttestationDependencies = {
+  signer?: Awaited<ReturnType<typeof getAttesterAccount>>;
+  now?: () => number;
+  trustAttester?: (address: string, issuedAt: number) => Promise<boolean>;
+};
+
+export function polymarketGuardAssessmentHash(guard: PolymarketGuardResult): `0x${string}` {
+  return keccak256(toBytes(canonicalJsonString(guard)));
 }
 
-/** Sign a short-lived, read-only market assessment. Signing is additive and never changes its verdict. */
-export async function attestPolymarketMarketAssessment(assessment: Record<string, unknown>) {
-  const account = await getAttesterAccount();
-  if (!account) return null;
-  const market = assessment.market as Record<string, unknown> | undefined;
-  const outcome = assessment.outcome as Record<string, unknown> | undefined;
-  if (
-    assessment.schema !== 'insight.polymarket-market-assessment.v1' ||
-    typeof market?.id !== 'string' ||
-    typeof outcome?.name !== 'string' ||
-    !['ALLOW', 'CAUTION', 'BLOCK'].includes(String(assessment.verdict))
-  )
-    throw new TypeError('Malformed Polymarket assessment for attestation');
-  const assessmentHash = keccak256(toBytes(canonical(assessment)));
-  const issuedAt = Math.floor(Date.now() / 1000);
-  const validUntil = issuedAt + POLYMARKET_ASSESSMENT_VALID_FOR_SECONDS;
-  const verdict = assessment.verdict === 'ALLOW' ? 0 : assessment.verdict === 'CAUTION' ? 1 : 2;
-  const message = {
-    assessmentHash,
-    marketId: market.id,
-    outcome: outcome.name,
-    verdict,
-    issuedAt: BigInt(issuedAt),
-    validUntil: BigInt(validUntil),
-    schemaVersion: 1n,
-  };
-  const typedData = {
-    domain: POLYMARKET_ASSESSMENT_DOMAIN,
-    types: POLYMARKET_ASSESSMENT_TYPES,
-    primaryType: 'PolymarketMarketAssessment' as const,
-    message,
-  };
-  const signature = await account.signTypedData(typedData);
+export function polymarketGuardAttestationTypedData(data: PolymarketGuardAttestationData) {
   return {
-    schema: POLYMARKET_ASSESSMENT_ATTESTATION_SCHEMA,
-    decisionHash: assessmentHash,
+    domain: POLYMARKET_GUARD_ATTESTATION_DOMAIN,
+    types: POLYMARKET_GUARD_ATTESTATION_TYPES,
+    primaryType: POLYMARKET_GUARD_ATTESTATION_PRIMARY_TYPE,
+    message: {
+      ...data,
+      issuedAt: BigInt(data.issuedAt),
+      validUntil: BigInt(data.validUntil),
+      schemaVersion: BigInt(data.schemaVersion),
+    },
+  } as const;
+}
+
+export async function attestPolymarketGuardResult(
+  guard: PolymarketGuardResult,
+  dependencies: PolymarketGuardAttestationDependencies = {}
+): Promise<PolymarketGuardDecision | null> {
+  if (
+    guard.schema !== POLYMARKET_GUARD_SCHEMA_VERSION ||
+    guard.protocolId !== 'polymarket-prediction-mainnet' ||
+    guard.scope.transactionAuthority !== 'none' ||
+    !guard.market.marketSlug ||
+    !Number.isSafeInteger(guard.timing.evaluatedAtMs)
+  ) {
+    throw new TypeError('Polymarket guard result is outside the signed read-only schema');
+  }
+
+  const signer =
+    dependencies.signer === undefined ? await getAttesterAccount() : dependencies.signer;
+  if (!signer) return null;
+
+  const issuedAt = (dependencies.now ?? nowInSeconds)();
+  const assessedAt = Math.floor(guard.timing.evaluatedAtMs / 1000);
+  const validUntil = Math.min(
+    issuedAt + POLYMARKET_GUARD_ATTESTATION_VALID_FOR_SECONDS,
+    assessedAt + POLYMARKET_GUARD_ATTESTATION_VALID_FOR_SECONDS
+  );
+  if (issuedAt < assessedAt || validUntil <= issuedAt) return null;
+
+  const trustAttester = dependencies.trustAttester ?? isPublishedPolymarketGuardAttester;
+  if (!(await trustAttester(signer.address, issuedAt))) {
+    logger.warn('Polymarket guard signer is outside the published production key registry', {
+      attester: signer.address,
+    });
+    return null;
+  }
+
+  const data: PolymarketGuardAttestationData = {
+    assessmentHash: polymarketGuardAssessmentHash(guard),
+    protocolId: guard.protocolId,
+    marketSlug: guard.market.marketSlug,
+    action: guard.action,
+    verdict: verdictCode(guard.verdict),
+    issuedAt,
+    validUntil,
+    schemaVersion: POLYMARKET_GUARD_ATTESTATION_SCHEMA_VERSION,
+  };
+  const typedData = polymarketGuardAttestationTypedData(data);
+  const signature = await signer.signTypedData(typedData);
+  return {
+    schema: POLYMARKET_GUARD_DECISION_SCHEMA,
+    guard,
+    decisionHash: data.assessmentHash,
     attestation: {
-      type: 'PolymarketMarketAssessment' as const,
-      schemaVersion: 1 as const,
+      type: POLYMARKET_GUARD_ATTESTATION_PRIMARY_TYPE,
+      schemaVersion: POLYMARKET_GUARD_ATTESTATION_SCHEMA_VERSION,
       uid: hashTypedData(typedData),
-      attester: account.address,
+      attester: signer.address.toLowerCase() as `0x${string}`,
+      attesterLabel: 'Insight Polymarket Guard attester',
       signedAt: new Date(issuedAt * 1000).toISOString(),
-      validForSeconds: POLYMARKET_ASSESSMENT_VALID_FOR_SECONDS,
-      signature,
-      data: {
-        assessmentHash,
-        marketId: market.id,
-        outcome: outcome.name,
-        verdict,
-        issuedAt,
-        validUntil,
-        schemaVersion: 1,
-      },
+      validForSeconds: POLYMARKET_GUARD_ATTESTATION_VALID_FOR_SECONDS,
+      signature: signature as `0x${string}`,
+      data,
       eip712: {
-        domain: POLYMARKET_ASSESSMENT_DOMAIN,
-        types: POLYMARKET_ASSESSMENT_TYPES,
-        primaryType: 'PolymarketMarketAssessment',
+        domain: POLYMARKET_GUARD_ATTESTATION_DOMAIN,
+        types: POLYMARKET_GUARD_ATTESTATION_TYPES,
+        primaryType: POLYMARKET_GUARD_ATTESTATION_PRIMARY_TYPE,
       },
     },
   };
+}
+
+export async function isPublishedPolymarketGuardAttester(
+  address: string,
+  issuedAt: number
+): Promise<boolean> {
+  if (!/^0x[0-9a-fA-F]{40}$/.test(address)) return false;
+  const config = buildKeyRegistryConfig(
+    await getAttesterAddress(),
+    await getSampleAttesterAddress()
+  );
+  return trustedAttesterEntry(address, issuedAt, config) !== null;
+}
+
+function verdictCode(verdict: PolymarketGuardResult['verdict']): 0 | 1 | 2 {
+  if (verdict === 'ALLOW') return 0;
+  if (verdict === 'CAUTION') return 1;
+  return 2;
 }

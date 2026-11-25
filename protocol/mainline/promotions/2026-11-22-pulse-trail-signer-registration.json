@@ -1,0 +1,60 @@
+{
+  "kind": "MainlineProtocolPromotion",
+  "promotionVersion": 41,
+  "effectiveFrom": "2026-11-22",
+  "classification": "Oracle Pulse trail signer registration + OraclePulse EIP-712 schema descriptor published in .well-known/oracle-keys.json; no existing protocol behavior change",
+  "registryReleaseId": "0xc90709876d4210c521d36a27171d4f45bca4a7b48e67658fac9c76c04ef50831",
+  "predecessorReleaseId": "0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b",
+  "predecessorPromotionId": "0x3dcc4fd48aa02fa58ef8cd1818aad3f9cfa7946e882327972125662a6a51fe40",
+  "activationSetId": "0x32335b66b91bd4ab1742b86ffcaefa94bbfc063de5f9a1d51e0080df67896157",
+  "receiptImpact": "No receipt fields, signing keys, partner policies, activation set or verification rules change. This promotion adds ONE new OraclePulse schema descriptor for the insight-pulse-trail GitHub repo and appends ONE dedicated trail sample signer (role: \"sample\", key_id: \"insight-pulse-trail-sample\") to the public_keys list. All existing production attesters, partner policies, and receipt layouts remain identical.",
+  "activationRule": "This promotion records the publication of a trail-only sample signer key and its matching EIP-712 OraclePulse schema descriptor. The trail key (0x25cD...3a0) signs 15-minute oracle-quality Pulse commits for the insight-pulse-trail GitHub repo and carries role \"sample\" so verifiers can distinguish trail attestations from production receipts purely by signer address. No partner activation, execution authority, or production receipt admission is affected.",
+  "compatibilityMatrix": [
+    {
+      "partnerId": "agent-passport",
+      "outcome": "unchanged",
+      "evidence": "No partner policy, activation, key, trust pin, receipt layout or verification rule changes."
+    },
+    {
+      "partnerId": "andydgrea",
+      "outcome": "unchanged",
+      "evidence": "No partner policy, activation, key, trust pin, receipt layout or verification rule changes."
+    },
+    {
+      "partnerId": "emilia",
+      "outcome": "unchanged",
+      "evidence": "No partner policy, activation, key, trust pin, receipt layout or verification rule changes."
+    },
+    {
+      "partnerId": "frontier-compute",
+      "outcome": "unchanged",
+      "evidence": "No partner policy, activation, key, trust pin, receipt layout or verification rule changes."
+    },
+    {
+      "partnerId": "headless",
+      "outcome": "unchanged",
+      "evidence": "No partner policy, activation, key, trust pin, receipt layout or verification rule changes."
+    },
+    {
+      "partnerId": "interai",
+      "outcome": "unchanged",
+      "evidence": "No partner policy, activation, key, trust pin, receipt layout or verification rule changes."
+    },
+    {
+      "partnerId": "raul",
+      "outcome": "unchanged",
+      "evidence": "No partner policy, activation, key, trust pin, receipt layout or verification rule changes."
+    },
+    {
+      "partnerId": "vaara",
+      "outcome": "unchanged",
+      "evidence": "No partner policy, activation, key, trust pin, receipt layout or verification rule changes."
+    },
+    {
+      "partnerId": "veritas",
+      "outcome": "unchanged",
+      "evidence": "No partner policy, activation, key, trust pin, receipt layout or verification rule changes."
+    }
+  ],
+  "promotionId": "0xdc269b9bcdb85bdc6072d8e6fa9ce1e4d3ae66c23c43d17e48545c7ff37c1966"
+}

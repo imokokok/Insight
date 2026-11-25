@@ -911,7 +911,9 @@ export async function verifyExistingFeeds(provider: string): Promise<DiscoveryRe
       return result;
     }
 
-    // Mark all as still active (source updated to verified)
+    // Keep the registry's source identity intact. Solana-native feeds use the
+    // source together with `metadata.solanaNetwork` to distinguish chain_id=0
+    // from chain-agnostic feeds, and curated seeders reconcile by source.
     result.feeds = feeds.map((feed: Record<string, unknown>) => ({
       provider: feed.provider as string,
       symbol: feed.symbol as string,
@@ -921,7 +923,7 @@ export async function verifyExistingFeeds(provider: string): Promise<DiscoveryRe
       decimals: feed.decimals as number,
       category: feed.category as string,
       is_active: true,
-      source: 'verified',
+      source: typeof feed.source === 'string' ? feed.source : 'verified',
       metadata: (feed.metadata as Record<string, unknown>) || {},
     }));
 

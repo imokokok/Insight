@@ -24,19 +24,28 @@ browser and synthetic monitoring without changing response bodies.
 
 ## Monitoring setup
 
-1. Configure an external uptime check for `/api/v1/health` every minute.
-2. Configure a dependency/readiness check for `/api/v1/health/ready` every five
-   minutes. Page only after two consecutive failures; a single stale snapshot
-   can recover on the next scheduled collection.
-3. Enable Sentry release tracking and alerts for new regressions, 5xx rate, and
+The configured no-cost guard is the existing Supabase-dispatched GitHub Actions
+workflow `turso-control-plane-alert.yml`. It checks deep readiness hourly and
+now checks that daily Turso and Supabase asset exports have a successful run
+within 36 hours, and that the monthly archive export has a successful run
+within 1,000 hours. It opens or closes deduplicated GitHub Issues. This reuses
+the existing dispatcher and does not add a service or schedule. An hourly
+probe cannot measure continuous uptime or meet the one-minute objective below;
+an independent external uptime monitor is not configured.
+
+1. If an uptime monitor is already included in an existing account, check
+   `/api/v1/health` every minute and `/api/v1/health/ready` every five minutes.
+   Page after two consecutive readiness failures; a single stale snapshot can
+   recover on the next scheduled collection.
+2. Enable Sentry release tracking and alerts for new regressions, 5xx rate, and
    frontend crash-free sessions. Keep `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_ORG`, and
    `SENTRY_PROJECT` in the deployment secret store, never in repository files.
-4. Use Cloudflare Web Analytics for Core Web Vitals. Compare p75 LCP, INP, and
+3. Use Cloudflare Web Analytics for Core Web Vitals. Compare p75 LCP, INP, and
    CLS by route after every material frontend release. The consent-gated beacon
    is enabled only when `NEXT_PUBLIC_CLOUDFLARE_WEB_ANALYTICS_TOKEN` is set.
-5. Route GitHub Actions failures for the quality gate and six product-critical
+4. Route GitHub Actions failures for the quality gate and six product-critical
    data jobs to the on-call channel.
-6. Review CSP violation logs weekly. The policy is report-only so existing
+5. Review CSP violation logs weekly. The policy is report-only so existing
    wallet, payment, documentation, and monitoring integrations keep working.
    After 14 clean days, remove only proven false positives and promote the same
    policy to `Content-Security-Policy` in a dedicated release.
@@ -44,9 +53,10 @@ browser and synthetic monitoring without changing response bodies.
 ## Backup and restore
 
 The database is the system of record. This project intentionally operates on
-Supabase Free: automatic backups and PITR are not release requirements. Use
-encrypted logical exports stored outside the repository as the recovery path,
-and never commit a database dump or connection credential to Git.
+Supabase Free: automatic backups and PITR are not release requirements. The
+current no-cost recovery copies are compressed GitHub Actions artifacts; they
+are not encrypted logical exports stored outside GitHub. Never commit a
+database dump or connection credential to Git.
 
 The 2026-09-06 production audit reported no provider-managed recovery points,
 which is expected on Free. Keep a recent logical export before every schema or
@@ -55,8 +65,10 @@ non-production database.
 
 - Target RPO: 24 hours when daily logical exports are maintained.
 - Target RTO: four hours for database restore and application validation.
-- Retain at least seven encrypted daily exports and one monthly export outside
-  Supabase and GitHub.
+- Target: retain at least seven encrypted daily exports and one monthly export
+  outside Supabase and GitHub. The current artifact-only setup does not meet
+  this target; keep this gap explicit while operating without a new storage
+  fee or an approved existing offsite destination.
 - Export a schema-only snapshot after every migration release.
 - Run a restore drill into an isolated, non-production project every month.
 

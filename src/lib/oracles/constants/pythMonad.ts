@@ -39,7 +39,7 @@ const sponsoredFeed = (
 ): PythMonadFeed => ({ alias, id, timeDifferenceSeconds: 3600, priceDeviationPercent });
 
 /**
- * The complete sponsored list (60 feeds at registry verification time), not a
+ * The complete sponsored list (52 feeds at registry verification time), not a
  * guessed subset. Keep `.RR` records: they are valid on-chain rate feeds but
  * are excluded by the generic USD-feed resolver from USD price consensus.
  */
@@ -135,11 +135,7 @@ export const PYTH_MONAD_SPONSORED_FEEDS: readonly PythMonadFeed[] = [
     '8f257aab6e7698bb92b15511915e593d6f8eae914452f781874754b03d0c612b',
     0.2
   ),
-  sponsoredFeed(
-    'SOLVBTC/USD',
-    'f253cf87dc7d5ed5aa14cba5a6e79aee8bcfaef885a0e1b807035a0bbecc36fa',
-    0.2
-  ),
+
   sponsoredFeed(
     'CBBTC/USD',
     '2817d7bfe5c64b8ea956e1a26f573ef64e72e4d7891f2d6af9bcc93f7aff9a97',
@@ -155,21 +151,13 @@ export const PYTH_MONAD_SPONSORED_FEEDS: readonly PythMonadFeed[] = [
     '0caec284d34d836ca325cf7b3256c078c597bc052fbd3c0283d52b581d68d71f',
     0.2
   ),
-  sponsoredFeed(
-    'EZETH/USD',
-    '06c217a791f5c4f988b36629af4cb88fad827b2485400a358f3b02886b54de92',
-    0.2
-  ),
+
   sponsoredFeed(
     'WEETH/EETH.RR',
     '343558e79f587e098c321218ecb34d031ba709ab3e84133126f3c98511b91f64',
     0.2
   ),
-  sponsoredFeed(
-    'RSETH/ETH.RR',
-    '56e9b5eb08e62dd4b445f29e4ec7d3b3d49617d64f2d331d36a2101d4904e3c4',
-    0.2
-  ),
+
   sponsoredFeed('XAU/USD', '765d2ba906dbc32ca17cc11f5310a89e9ee1f6420508c63861f2f8ba4ee34bb2', 0.2),
   sponsoredFeed('XAG/USD', 'f2fb02c32b055c805e7238d628e5e9dadef274376114eb1f012337cabe93871e', 0.2),
   sponsoredFeed('XRP/USD', 'ec5d399846a9209f3fe5881d70aae9268c94339ff9817e8d18ff19fa05eea1c8', 0.2),
@@ -197,21 +185,7 @@ export const PYTH_MONAD_SPONSORED_FEEDS: readonly PythMonadFeed[] = [
   ),
   sponsoredFeed('OP/USD', '385f64d993f7b77d8182ed5003d97c60aa3361f3cecfe711544d2d59165e9bdf', 0.2),
   sponsoredFeed('ARB/USD', '3fa4252848f9f0a1480be62745a4629d9eb1322aebab8a791e344b3b9c1adcf5', 0.2),
-  sponsoredFeed(
-    'EBTC/USD',
-    'be3dd0cf4a168f82e4912952b24420211ad52641b7365d49866d59e20c948288',
-    0.2
-  ),
-  sponsoredFeed(
-    'STONE/ETH.RR',
-    '7a508a94c9276cbc60d04e1a8cf839d20d835bb869a74487dfffa8f1bfd1ce42',
-    0.2
-  ),
-  sponsoredFeed(
-    'ETHX/ETH.RR',
-    '1b8eb073e2a900cdf1f6ee37ddab4869a4400499ec6e52f3e268a93f46c55429',
-    0.2
-  ),
+
   sponsoredFeed(
     'PYTH/USD',
     '0bbf28e9a841a1cc788f6a361b17ca072d0ea3098a1e5df1c3922d06719579ff',
@@ -237,15 +211,10 @@ export const PYTH_MONAD_SPONSORED_FEEDS: readonly PythMonadFeed[] = [
   sponsoredFeed('W/USD', 'eff7446475e218517566ea99e72a4abec2e1bd8498b43b7d8331e29dcb059389', 0.2),
   sponsoredFeed('AXL/USD', '60144b1d5c9e9851732ad1d9760e3485ef80be39b984f6bf60f82b28a2b7f126', 0.2),
   sponsoredFeed('ZRO/USD', '3bd860bea28bf982fa06bcf358118064bb114086cc03993bd76197eaab0b8018', 0.2),
-  sponsoredFeed('STG/USD', '008546b175392b878c5c7ff0b6327b1cb12669be012fc2935c09a16fc8f6c58f', 0.2),
+
   sponsoredFeed(
     'AUSD/USD',
     'd9912df360b5b7f21a122f15bdd5e27f62ce5e72bd316c291f7c86620e07fb2a',
-    0.2
-  ),
-  sponsoredFeed(
-    'SMON/MON.RR',
-    '7fbf66b9b4e8b0e5723fc7001b00848c7d25225982ab33f6a5d111fdbf528001',
     0.2
   ),
 ] as const;

@@ -1,36 +1,33 @@
 # Insight Base Agent Swap Guard
 
-This Agent Skill gives a Base trading agent one narrow, safe workflow: assess a
-reviewed direct swap before showing a wallet-signing request.
+Base mainnet agent-directed exact-route swap guard with Base-specific canonical
+router profiles.
 
-## Quick install
+## Tool mapping
 
-1. Add the remote server in [`mcp.json`](mcp.json) to an MCP-compatible host.
-2. Discover tools with `initialize` and `tools/list` before configuring an API
-   key or x402 wallet.
-3. Keep credentials and payment keys in the host's secret manager only.
-4. Ask the Agent to use `prepare_base_agent_swap_guard` before any Base wallet
-   prompt for a supported profile.
+| What you want to do              | Canonical MCP tool | `op` selector     | Deprecated alias     |
+| -------------------------------- | ------------------ | ----------------- | -------------------- |
+| Pre-swap safety gate             | `trade_guard`      | `check_safety`    | `check_trade_safety` |
+| Prepare an exact Base swap call  | `trade_guard`      | `prepare_swap`    | `prepare_swap`       |
+| Post-trade evidence verification | `trade_proof`      | `verify_evidence` | `verify_evidence`    |
 
-## Current scope
+## Minimal TypeScript example
 
-- Aerodrome Slipstream WETH ↔ USDC, one reviewed Base CL100 pool (two-way).
-- Aerodrome Slipstream USDC ↔ USDT, one reviewed Base CL1 stable pool (two-way).
-- PancakeSwap V3 USDC ↔ USDT, one reviewed Base 0.01% pool (two-way).
-- One direction per call via `profileId` + `direction`; exact input, direct
-  router calls only; approval and swap calls are unsigned.
-- The agent's two price assumptions are checked against independent consensus;
-  destination consensus, rather than the agent's destination assumption,
-  converts the exact DEX quote to USD.
-- Before an `ALLOW`, Insight canonical-decodes the ERC-20 approval and
-  venue-specific single-hop swap bytes and binds their semantic fields to the
-  reviewed profile.
+```typescript
+await client.callTool({
+  name: 'trade_guard',
+  arguments: {
+    op: 'prepare_swap',
+    chain_id: 8453,
+    from: 'USDC',
+    to: 'WETH',
+    amount: '1000',
+    venue: 'uniswap_v3',
+  },
+});
+```
 
-The skill returns no calldata for `CAUTION` or `BLOCK`. `ALLOW` still requires
-an independent user authorization and explicit wallet confirmation. It does
-not cover Base Account UserOperations, 0x/1inch/Kyber routes, arbitrary
-multicalls, permits, native-value swaps, MEV, token-contract safety, or fill
-guarantees.
+## Boundary
 
-For the full policy contract, response semantics, and PriorSeal handoff, read
-the repository [Base Agent Swap Guard guide](../../docs/base-agent-swap-guard.md).
+Insight canonical-decodes ERC-20 approval and exact swap calldata but does not
+modify, resubmit, or broadcast. Every response carries `meta.insightDoesNotEnforce: true`.

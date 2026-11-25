@@ -28,6 +28,8 @@
 
 import { z } from 'zod';
 
+import { PYTH_MONAD_CORE_ADDRESS } from './constants/pythMonad';
+
 export const AUSD_SYMBOL = 'AUSD' as const;
 /** Monad mainnet chain id (reused from monadLendingProtocols.ts / perplPerpMarket.ts). */
 export const AUSD_COVERAGE_CHAIN_ID = 143 as const;
@@ -124,10 +126,20 @@ export const AUSD_UNVERIFIED_DESCRIPTOR: AusdCoverageDescriptor = {
   note: 'Pyth Core Monad AUSD/USD is registered as a candidate source, but current-request coverage is unverified until the existing AUSD consensus read contains a fresh, in-quorum Pyth Core observation.',
 };
 
+/**
+ * Provenance: this contract address is the checked-in Pyth Core Monad address
+ * (PYTH_MONAD_CORE_ADDRESS in constants/pythMonad.ts), sourced from Pyth's
+ * published sponsored-feed registry. Referencing that constant here keeps a
+ * single source of truth. It is NOT, by itself, coverage: the guard only marks
+ * this source VERIFIED when the same request produced a fresh, non-outlier,
+ * quorum-eligible Pyth Core Monad:AUSD/USD observation (see
+ * pythAusdSourceFromExistingRead). A stale, non-quorum, or differently-sourced
+ * observation must fail closed to UNVERIFIED.
+ */
 export const AUSD_PYTH_MONAD_SOURCE = Object.freeze({
   provider: 'Pyth' as const,
   pair: 'AUSD/USD',
-  feedAddress: '0x2880aB155794e7179c9eE2e38200202908C17B43',
+  feedAddress: PYTH_MONAD_CORE_ADDRESS,
   feedId: 'd9912df360b5b7f21a122f15bdd5e27f62ce5e72bd316c291f7c86620e07fb2a',
   chainId: AUSD_COVERAGE_CHAIN_ID,
   heartbeatSeconds: 3_600,

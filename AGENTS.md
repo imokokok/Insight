@@ -132,7 +132,7 @@ Full rules and troubleshooting: `docs/operations/parallel-agent-worktrees.md`.
 
 ## Local Node.js version
 
-- This repository pins Node.js **22.23.2** in `.node-version` and `.nvmrc`; `engines.node` is `22.x` because Vercel only accepts a major version. All three are enforced by `scripts/check-workflow-security.ts`.
+- This repository pins Node.js **22.23.2** in `.node-version` and `.nvmrc`; `engines.node` remains `22.x` for runtime compatibility. All three are enforced by `scripts/check-workflow-security.ts`.
 - Run `nvm use` (or `fnm use`) in the repository root before install/build. With `nvm` on zsh, auto-switch on directory change is one hook away:
 
   ```zsh
@@ -146,17 +146,14 @@ Full rules and troubleshooting: `docs/operations/parallel-agent-worktrees.md`.
 
 ## Local builds
 
-- `npm run build` uses Next.js Turbopack by default (what CI and Vercel run). Sandboxed local environments that cannot create Turbopack CSS worker processes must use `npm run build:webpack` (or run builds with `env -u NODE_OPTIONS` outside the sandbox).
+- `npm run build` uses Next.js Turbopack by default. Sandboxed local environments that cannot create Turbopack CSS worker processes must use `npm run build:webpack` (or run builds with `env -u NODE_OPTIONS` outside the sandbox).
 - `npm run ci:local` runs the full suite including `next build`; in sandboxed environments substitute the webpack build for the turbopack step before running it.
 
-## Local Vercel access
+## Production hosting and credentials
 
-- The user authorized reuse of the saved Vercel credential in future tasks. Load `VERCEL_TOKEN` from the Git-ignored `.env.vercel.local` in this repository; do not ask the user to supply it again while it remains valid.
-- This private file also holds the verified `VERCEL_TEAM_ID` and `VERCEL_PROJECT_ID` when available. On the user's workstation its path is `/Users/imokokok/Documents/insight/.env.vercel.local`.
-- For Node commands, use `--env-file=.env.vercel.local`; API tools should load the credential privately and use the Authorization header. Keep the file mode at `0600`.
-- Never print the credential, put it in tracked files, expose it to browser code, or add it to application runtime variables.
-- The deployment workflow uses the repository's GitHub Actions secret named `VERCEL_TOKEN`. Keep that secret in sync when the user requests credential replacement; changing it alone must not trigger a deployment.
-- Reusing a credential does not authorize unrelated deployments or account changes. If authentication fails, report the failure and request a replacement only when needed.
+- Insight production runs on Cloudflare Workers (`insight-web`), with GitHub Actions as the only production release controller. Follow `docs/operations/cloudflare-deployment.md` and `docs/operations/release-runbook.md`.
+- Keep the Cloudflare API token in the GitHub `Production` environment. Runtime application secrets are provisioned to the Worker through the deployment workflow's reviewed allowlist in `scripts/write-cloudflare-worker-secrets.mts`; never print, commit, or expose secret values to browser code.
+- Do not use retired Vercel credentials or project settings for current Insight production operations. Historical deployment records may retain Vercel identifiers as evidence of the platform used at that time.
 
 ## GitHub CLI device authorization
 

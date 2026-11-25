@@ -2,7 +2,7 @@
   "x402Version": 2,
   "kind": "resource-server",
   "name": "Insight Decision-Input Trust API",
-  "description": "Decision-input trust for AI agents trading onchain, offered as four product functions: Oracle Evidence (inspect and record what price sources actually report), Risk Intelligence (prepaid continuous monitoring for live positions), Decision Integrity (per-action signed pre-trade verdicts across guard families), and Verify (independent, always-free offline re-verification of signed evidence).",
+  "description": "Decision-input trust for AI agents trading onchain, offered as four product functions: Oracle Evidence (inspect and record what price sources actually report), Risk Intelligence (prepaid continuous monitoring for live positions), Decision Integrity (per-action signed pre-trade verdicts across guard families), and Verify (independent, always-free offline re-verification of signed evidence). Advisory only: never signs, broadcasts, or enforces; insightDoesNotEnforce: true on every response.",
   "docs": "https://www.oracleinsight.xyz/openapi.json",
   "discovery": {
     "capabilityCatalog": "https://www.oracleinsight.xyz/.well-known/portfolio-capabilities.json",
@@ -15,7 +15,7 @@
     {
       "url": "https://www.oracleinsight.xyz/api/v1/safety/pre-trade",
       "method": "GET",
-      "description": "Decision Integrity — Pre-trade decision-input integrity check: is the price this action relies on trustworthy? Cross-provider consensus, deviation, freshness, and manipulation risk for one trade, with verifiable EIP-712 attestation support. BLOCK verdicts are complete checks and are charged.",
+      "description": "Decision Integrity — Pre-trade decision-input integrity check: is the price this action relies on trustworthy? Cross-provider consensus, deviation, freshness, and manipulation risk for one trade, with verifiable EIP-712 attestation support. BLOCK verdicts are complete checks and are charged. Advisory only: Insight does not enforce — the calling agent owns every decision (insightDoesNotEnforce: true).",
       "accepts": [
         {
           "scheme": "exact",

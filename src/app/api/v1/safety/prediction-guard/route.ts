@@ -9,7 +9,7 @@ import {
 import { CACHE_PRESETS } from '@/lib/api/utils';
 import { X402_PAYMENT_SCOPE } from '@/lib/api/x402/capabilityPayment';
 import { createPaidRouteMethod } from '@/lib/api/x402/paidRoute';
-import { attestPolymarketMarketAssessment } from '@/lib/prediction/polymarketGuardAttestation';
+import { attestPolymarketMarketAssessment } from '@/lib/prediction/polymarketMarketAssessmentAttestation';
 import {
   assessPolymarketMarket,
   PolymarketAssessmentInputSchema,

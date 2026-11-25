@@ -65,8 +65,10 @@ A protocol release is a deliberate reviewable change with all of the following:
    `protocol/mainline/promotions/` with a compatibility outcome for every
    partner. CI rejects the change if any partner is absent.
 10. Production deployment may be triggered only after the same `main` commit
-    passes both the full validation job and browser smoke tests. Direct Vercel
-    Git auto-deploy remains disabled.
+    passes the required validation and release gates. The serialized GitHub
+    Actions production workflow deploys the Cloudflare Worker, checks the
+    public release SHA, and runs browser/payment smoke tests; see the
+    [release runbook](operations/release-runbook.md).
 
 ## Compatibility rule
 

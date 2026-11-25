@@ -29,7 +29,8 @@ The application shares concurrent requests for the same symbol, caches usable
 references for 60 seconds and missing/error results for 15 seconds, and checks
 freshness on every cache hit. RPC calls have a 10-second deadline. Malformed
 responses, stale references and mismatched symbols return absent evidence.
-Caches are per process; they do not coalesce requests across Vercel instances.
+Caches are per Worker isolate; they do not coalesce requests across separate
+Worker isolates or locations.
 
 ## Production verification
 

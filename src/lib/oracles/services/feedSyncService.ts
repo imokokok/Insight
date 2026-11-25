@@ -20,6 +20,11 @@ import { CHRONICLE_MONAD_CHAIN_ID, CHRONICLE_MONAD_PRICE_FEEDS } from '../consta
 import { DIA_ASSET_MAPPING, type DIAAssetConfig } from '../constants/diaConstants';
 import { FLARE_SYMBOL_TO_FEED_ID } from '../constants/flareConstants';
 import {
+  PYTH_HYPEREVM_CHAIN_ID,
+  PYTH_HYPEREVM_CORE_ADDRESS,
+  PYTH_HYPEREVM_SPONSORED_FEEDS,
+} from '../constants/pythHyperEvm';
+import {
   PYTH_MONAD_CHAIN_ID,
   PYTH_MONAD_CORE_ADDRESS,
   PYTH_MONAD_SPONSORED_FEEDS,
@@ -54,6 +59,7 @@ import {
 import { chainlinkSolanaOnChainService } from './chainlinkSolanaOnChainService';
 import { chronicleMonadOnChainService } from './chronicleMonadOnChainService';
 import { feedRegistryService } from './feedRegistryService';
+import { pythHyperEvmOnChainService } from './pythHyperEvmOnChainService';
 import { pythMonadOnChainService } from './pythMonadOnChainService';
 import { pythSolanaOnChainService } from './pythSolanaOnChainService';
 import { redStoneMonadOnChainService } from './redstoneMonadOnChainService';
@@ -105,6 +111,7 @@ async function deactivateRetiredCuratedFeeds(args: {
     | 'chainlink-solana-rdd'
     | 'pyth-monad-sponsored-registry'
     | 'pyth-solana-sponsored-registry'
+    | 'pyth-hyperevm-sponsored-registry'
     | 'stork-monad-pushed-registry'
     | 'chronicle-monad-price-feed-registry'
     | 'redstone-monad-price-feed-registry'
@@ -555,18 +562,71 @@ class FeedSyncService {
     return result;
   }
 
-  /** Seed both native Pyth Core sponsored registries as one provider refresh. */
+  /** Resolve the three official HyperEVM feed IDs from Pyth metadata, then read Pyth Core directly. */
+  async seedPythHyperEvmSponsoredFeeds(): Promise<SyncResult> {
+    const result: SyncResult = {
+      provider: 'pyth',
+      discovered: PYTH_HYPEREVM_SPONSORED_FEEDS.length,
+      upserted: 0,
+      deactivated: 0,
+      errors: 0,
+    };
+    const readings = await pythHyperEvmOnChainService.getPrices(PYTH_HYPEREVM_SPONSORED_FEEDS);
+    const readingsByAlias = new Map(readings.map((reading) => [reading.alias, reading]));
+    const usableFeeds = PYTH_HYPEREVM_SPONSORED_FEEDS.flatMap((feed) => {
+      const reading = readingsByAlias.get(feed.alias);
+      return reading ? [{ feed, reading }] : [];
+    });
+    result.errors = result.discovered - usableFeeds.length;
+    result.upserted = await upsertFeeds(
+      usableFeeds.map(({ feed, reading }) => ({
+        provider: 'pyth',
+        symbol: feed.alias,
+        chain_id: PYTH_HYPEREVM_CHAIN_ID,
+        address: PYTH_HYPEREVM_CORE_ADDRESS,
+        name: `Pyth HyperEVM ${feed.alias}`,
+        decimals: Math.max(0, -reading.exponent),
+        category: this.inferCategory(feed.alias.split('/')[0]),
+        is_active: true,
+        source: 'pyth-hyperevm-sponsored-registry',
+        metadata: {
+          feedId: reading.feedId,
+          pythContract: PYTH_HYPEREVM_CORE_ADDRESS,
+          chainId: PYTH_HYPEREVM_CHAIN_ID,
+          timeDifferenceSeconds: feed.timeDifferenceSeconds,
+          priceDeviationPercent: feed.priceDeviationPercent,
+          quoteType: feed.quoteType,
+          freshnessPolicy: 'publish_time <= 2 * sponsored_time_difference',
+          directorySource: 'https://docs.pyth.network/pro/sponsored-feeds',
+          feedIdSource: 'https://docs.pyth.network/api-reference/hermes/price-feeds',
+          quorumStatus: 'shadow-only-pending-freshness-and-source-review',
+        },
+      }))
+    );
+    if (readings.length > 0) {
+      result.deactivated = await deactivateRetiredCuratedFeeds({
+        provider: 'pyth',
+        source: 'pyth-hyperevm-sponsored-registry',
+        chainId: PYTH_HYPEREVM_CHAIN_ID,
+        catalogSymbols: PYTH_HYPEREVM_SPONSORED_FEEDS.map((feed) => feed.alias),
+      });
+    }
+    return result;
+  }
+
+  /** Seed the reviewed Monad, Solana and HyperEVM Pyth directories. */
   async seedPythSponsoredFeeds(): Promise<SyncResult> {
-    const [monad, solana] = await Promise.all([
+    const [monad, solana, hyperevm] = await Promise.all([
       this.seedPythMonadSponsoredFeeds(),
       this.seedPythSolanaSponsoredFeeds(),
+      this.seedPythHyperEvmSponsoredFeeds(),
     ]);
     return {
       provider: 'pyth',
-      discovered: monad.discovered + solana.discovered,
-      upserted: monad.upserted + solana.upserted,
-      deactivated: monad.deactivated + solana.deactivated,
-      errors: monad.errors + solana.errors,
+      discovered: monad.discovered + solana.discovered + hyperevm.discovered,
+      upserted: monad.upserted + solana.upserted + hyperevm.upserted,
+      deactivated: monad.deactivated + solana.deactivated + hyperevm.deactivated,
+      errors: monad.errors + solana.errors + hyperevm.errors,
     };
   }
 

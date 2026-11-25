@@ -1,5 +1,10 @@
 # VRT1 端到端原型（免费路线）
 
+归档原型说明：以下签名密钥托管位置描述原型记录时的生产环境。Insight
+生产现由 Cloudflare Workers 托管；当前 attester secret 发布路径见
+`scripts/write-cloudflare-worker-secrets.mts` 与
+`docs/operations/cloudflare-deployment.md`。不要把 agent 私钥配置为 Worker secret。
+
 把 Insight 生产 `OracleSafetyCheck`（EIP-712 v2 26 字段 / v3 27 字段）映射为 VRT1 §8 agent action，
 组合双签名（内层 EIP-712/secp256k1 + 外层 BIP340 Schnorr），批量 Merkle，构造 49B OP_RETURN
 锚定载荷，并全程离线验证。
@@ -53,7 +58,7 @@ node scripts/vrt1-e2e-prototype/verify/verify-vvv-v3.mjs                # v3 rec
 `build-genesis.mjs`、`build-vvv-demo.mjs`、`build-vvv-v3-demo.mjs` 依赖**仓库外**的输入：
 
 - agent 私钥 `~/.workbuddy/veritas_deliverable/vrt1-agent-keys/`（chmod 600，不进仓库、
-  也不进 Vercel env）。外层 VRT1 签名需要它。
+  也不进 Worker secrets）。外层 VRT1 签名需要它。
 - `build-vvv-demo.mjs` 还需 VVV→USDC 的真实生产输出，通过环境变量
   `VRT1_VVV_SOURCE` 传入该文件路径（该输入属另一次交付，不可再分发，故不写死在仓库里）。
 - `build-vvv-v3-demo.mjs` 不需要那个外部输入——它从已归档的 `evidence/vvv-vrt1-record.json`
@@ -65,8 +70,8 @@ node scripts/vrt1-e2e-prototype/verify/verify-vvv-v3.mjs                # v3 rec
 **产物留在仓库里**（`evidence/registry-genesis.json`、`evidence/vvv-vrt1-record.json`），可直接校验，
 见「已归档的锚定证据」。
 
-内层 EIP-712 生产签名由 Vercel 环境的 attester key 持有，本地重建时退化为演示签名，
-这一点在 `vvv-vrt1-record.json` 的 `note` 字段里如实标注了，不是隐含的。
+原型记录时，内层 EIP-712 生产签名由 Vercel 环境的 attester key 持有；本地重建时退化为演示签名，
+这一点在 `vvv-vrt1-record.json` 的 `note` 字段里如实标注了，不是隐含的。该描述是历史事实。
 
 > 注意：这两个脚本会**覆盖**上述产物。产物是已锚定 / 已交付的事实记录，
 > 重跑前先确认你确实想替换它们。
@@ -115,7 +120,7 @@ v3 只加一个字段：`requiredSourceGroupCount`（uint256，追加在末尾�
 
 - 数据 = v2 那份**同一批真实生产 BLOCK 输出**（`unresolved:VVV@1`、sourceGroupCount=2、
   coverage INSUFFICIENT 2/3、verdict BLOCK），从 v2 record 读回，不是重新采集；
-- 内层 EIP-712 27 字段用**演示 attester key** 签（生产 attester 在 Vercel env，与 v2 一致，如实标注）；
+- 内层 EIP-712 27 字段用**演示 attester key** 签（原型记录时生产 attester 在 Vercel env，与 v2 一致，如实标注）；
 - 外层用**真实 agent key** `299a3d33…` 签——该 key 在已锚定的 genesis（block 964,407）里；
 - action_id `c0e8ea3f…`，canonical 1784 字节；
 - `params` 键为 `oracle_safety_check_v3`（**不复用 v2 的键**：键名参与 canonical 字节，
