@@ -1,4 +1,4 @@
-import { fetchPolymarketBlsSeriesEvidence } from '../bls';
+import { fetchPolymarketBlsSeriesEvidence, PolymarketBlsEvidenceInputSchema } from '../bls';
 
 const input = { seriesId: 'CUUR0000SA0', year: '2026', period: 'M10' };
 const originalRegistrationKey = process.env.BLS_API_REGISTRATION_KEY;
@@ -12,6 +12,16 @@ const response = (body: unknown, status = 200) =>
   }) as Response;
 
 describe('Polymarket BLS series evidence', () => {
+  it('accepts integer-coerced query years as canonical strings', () => {
+    expect(
+      PolymarketBlsEvidenceInputSchema.parse({
+        seriesId: 'CUUR0000SA0',
+        year: 2026,
+        period: 'M10',
+      })
+    ).toEqual({ seriesId: 'CUUR0000SA0', year: '2026', period: 'M10' });
+  });
+
   afterEach(() => {
     jest.restoreAllMocks();
     Reflect.deleteProperty(globalThis, 'fetch');

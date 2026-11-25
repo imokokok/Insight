@@ -16,7 +16,9 @@ const seriesCache = new Map<string, CachedSeries>();
 
 export const PolymarketBlsEvidenceInputSchema = z.object({
   seriesId: z.string().regex(/^[A-Z0-9_#-]{1,32}$/),
-  year: z.string().regex(/^(19|20|21)\d{2}$/),
+  // The shared query middleware converts integer-shaped values to numbers.
+  // Coerce the public year query back to its canonical string form here.
+  year: z.coerce.string().regex(/^(19|20|21)\d{2}$/),
   period: z.string().regex(/^(M(0[1-9]|1[0-3])|Q0[1-4]|A01)$/),
 });
 export type PolymarketBlsEvidenceInput = z.infer<typeof PolymarketBlsEvidenceInputSchema>;

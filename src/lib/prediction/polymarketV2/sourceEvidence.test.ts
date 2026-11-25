@@ -3,6 +3,7 @@ import { collectPolymarketMarketEvidence } from './sourceEvidence';
 
 const originalBindings = process.env.POLYMARKET_RULE_BINDINGS_JSON;
 const originalRegistrationKey = process.env.BLS_API_REGISTRATION_KEY;
+const originalFeatureEnabled = process.env.POLYMARKET_EVIDENCE_ENABLED;
 const market = {
   id: 'generic-market-501',
   version: 'v1',
@@ -27,6 +28,10 @@ const jsonResponse = (body: unknown) =>
   }) as Response;
 
 describe('Polymarket source-evidence collection', () => {
+  beforeEach(() => {
+    process.env.POLYMARKET_EVIDENCE_ENABLED = 'true';
+  });
+
   afterEach(() => {
     jest.restoreAllMocks();
     Reflect.deleteProperty(globalThis, 'fetch');
@@ -34,6 +39,19 @@ describe('Polymarket source-evidence collection', () => {
     else process.env.POLYMARKET_RULE_BINDINGS_JSON = originalBindings;
     if (originalRegistrationKey === undefined) delete process.env.BLS_API_REGISTRATION_KEY;
     else process.env.BLS_API_REGISTRATION_KEY = originalRegistrationKey;
+    if (originalFeatureEnabled === undefined) delete process.env.POLYMARKET_EVIDENCE_ENABLED;
+    else process.env.POLYMARKET_EVIDENCE_ENABLED = originalFeatureEnabled;
+  });
+
+  it('fails closed before reading bindings or upstream data while the deployment flag is off', async () => {
+    delete process.env.POLYMARKET_EVIDENCE_ENABLED;
+    const fetchMock = jest.fn();
+    Object.defineProperty(globalThis, 'fetch', { configurable: true, value: fetchMock });
+    await expect(collectPolymarketMarketEvidence({ marketId: market.id })).rejects.toMatchObject({
+      code: 'FEATURE_DISABLED',
+      status: 503,
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it('returns market and source integrity evidence without evaluating an outcome', async () => {
@@ -54,6 +72,11 @@ describe('Polymarket source-evidence collection', () => {
             id: 'employment-source',
             provider: 'bls.series',
             input: { seriesId: 'LNS00000002', year: '2026', period: 'M10' },
+          },
+          {
+            id: 'station-temperature',
+            provider: 'nws.latest-observation',
+            input: { stationId: 'KTOP', property: 'temperature' },
           },
         ],
       },
@@ -120,13 +143,35 @@ describe('Polymarket source-evidence collection', () => {
           ],
         });
       }
+      if (url.hostname === 'api.weather.gov') {
+        expect(url.pathname).toBe('/stations/KTOP/observations/latest');
+        return jsonResponse({
+          '@id': 'https://api.weather.gov/stations/KTOP/observations/2026-11-25T12:00:00+00:00',
+          type: 'Feature',
+          properties: {
+            station: 'https://api.weather.gov/stations/KTOP',
+            timestamp: '2026-11-25T12:00:00+00:00',
+            textDescription: 'Clear',
+            temperature: { value: 18.5, unitCode: 'wmoUnit:degC', qualityControl: [] },
+          },
+        });
+      }
       throw new Error(`Unexpected upstream: ${url.hostname}`);
     });
     Object.defineProperty(globalThis, 'fetch', { configurable: true, value: fetchMock });
 
     const result = await collectPolymarketMarketEvidence({ marketId: market.id });
     expect(result.schema).toBe('insight.polymarket-source-evidence.v1');
-    expect(result.observations).toHaveLength(2);
+    expect(result.observations).toHaveLength(3);
+    expect(result.observations[2]).toMatchObject({
+      provider: 'nws.latest-observation',
+      evidence: {
+        schema: 'insight.polymarket-nws-observation.v1',
+        stationId: 'KTOP',
+        property: 'temperature',
+        measurement: { value: 18.5, unitCode: 'wmoUnit:degC' },
+      },
+    });
     expect(result.checks).toEqual({
       marketActive: true,
       marketOpen: true,
@@ -139,7 +184,7 @@ describe('Polymarket source-evidence collection', () => {
     expect(result).not.toHaveProperty('comparison');
     expect(result).not.toHaveProperty('candidateOutcome');
     expect(result).not.toHaveProperty('verdict');
-    expect(fetchMock).toHaveBeenCalledTimes(4);
+    expect(fetchMock).toHaveBeenCalledTimes(5);
   });
 
   it('rejects legacy outcome-evaluation bindings instead of silently ignoring them', async () => {
