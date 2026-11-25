@@ -1,9 +1,10 @@
 # Insight `price_records` on Cloudflare D1
 
-**Status:** implementation prepared for the D1 shadow phase. The D1 binding and
-schema are part of the Worker configuration. Production cutover follows the
-24-hour shadow reconciliation below; Supabase remains the fallback until the
-short cache window has drained.
+**Status:** the Worker is deployed in `d1-shadow` mode. The first production
+check found that the scheduled snapshot collector runs in GitHub Actions on
+Node, where Cloudflare D1 bindings are unavailable. D1 had no cache rows, so
+the shadow window has not started. The authenticated Worker ingest endpoint
+below completes the path before the 24-hour reconciliation window begins.
 
 ## Scope decision
 
@@ -21,20 +22,21 @@ The latest account observations (2026-11-25) support a cautious D1 rollout:
   `price_records` insert rows, 3,841 calls to price-record read statements, and
   23 TTL-cleanup calls. The 5,104 shared blocks dirtied by inserts are buffer
   activity, not a direct disk-I/O quota measurement.
-- The earlier zero-cost plan estimated about 250 rows/hour. That is materially
-  higher than the latest statement sample, so D1 budget planning retains that
-  earlier rate as a conservative estimate until a full post-cutover day is
-  measured. At 250 rows/hour, two secondary indexes, and matching TTL deletes,
-  this is roughly 36,000 D1 row writes/day (estimate: 6,000 inserts × 3 rows
-  including index entries, plus 6,000 deletes × 3). Account usage currently
-  adds about 692 D1 writes/day across the other databases. This stays below the
-  Free 100,000 writes/day limit, with monitoring required for burst growth.
+- A live Supabase check after deployment found 257 new cache rows in 30
+  minutes. At that observed pace, D1 would receive about 12,336 inserts/day.
+  With two secondary indexes and matching TTL deletes, estimate about 74,016
+  D1 row writes/day (12,336 inserts × 3 rows including index entries, plus
+  12,336 deletes × 3). Account usage adds about 692 D1 writes/day across the
+  other databases, for roughly 74.7% of the Free 100,000 writes/day limit.
+  This leaves about 25% headroom; review actual D1 usage daily during shadow
+  and reduce cache sampling or indexes if usage approaches 80,000 writes/day.
 - Before this migration, the D1 free-tier account used 12.16 MiB of 5 GiB and 4
   of 10 databases. The new fifth database was created in APAC on 2026-11-25;
-  after schema application it measured 36.9 KB and reported 0 rows read/written
-  in its 24-hour account window. It is small relative to the 5 GiB storage and
-  10-database limits. Its 24-hour workload is also far below the 5 million
-  rows-read/day ceiling.
+  after schema application it measured 36.9 KB. The first post-deploy check
+  found 0 rows in `price_records`; 12 D1 rows-written were migration/runtime
+  activity, not cached price rows. The 5 GiB storage and 10-database limits
+  have ample headroom, and the projected row-read workload remains below the
+  5 million rows-read/day ceiling.
 
 The D1 write ceiling is a hard stop after exhaustion. Keep the two-index schema,
 the 24-hour TTL, and the D1 daily write review together. Do not move Turso's
@@ -44,14 +46,18 @@ atomicity, retention, or relational requirements do not fit this cache design.
 
 ## Data flow and failure behavior
 
-1. `d1-shadow`: Supabase receives the canonical write and D1 receives a
-   best-effort copy. Reads continue from Supabase. D1 failures are logged and
-   do not fail the price observation.
+1. `d1-shadow`: Worker requests use the D1 binding directly. The 15-minute
+   snapshot collector runs on GitHub Actions in Node, so it posts each bounded
+   batch to `POST /api/cron/price-records` using `CRON_SECRET`; that route
+   validates the full payload and writes through the D1 binding. Supabase
+   remains the canonical write, D1 is a best-effort mirror, and reads continue
+   from Supabase. D1 failures are logged and do not fail the price observation.
 2. After 24 hours of shadow writes, compare sampled provider/symbol/chain,
    timestamp, price, confidence, signal vector, verification, and TTL values.
    Compare the D1 row count with Supabase's non-expired row count. Do not cut
    over if counts or sampled fields differ.
-3. Set `TURSO_PRICE_RECORDS_MODE=d1`. Reads prefer D1 and fall back to
+3. Set `TURSO_PRICE_RECORDS_MODE=d1` in both `cloudflare.config.ts` and the
+   `snapshot-collect.yml` workflow. Reads prefer D1 and fall back to
    Supabase on a miss or D1 error. Writes go to D1; Supabase is written only if
    D1 fails. Keep `TURSO_PRICE_RECORDS_FALLBACK_ON_MISS=true` during cutover.
 4. After one further 24-hour cache TTL and a clean production review, the

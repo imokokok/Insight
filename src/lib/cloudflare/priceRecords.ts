@@ -321,6 +321,72 @@ export async function saveD1PriceRecords(
   return rows.length;
 }
 
+/**
+ * Write through the Cloudflare binding when running in a Worker. The GitHub
+ * snapshot collector runs in Node, where Worker bindings do not exist, so its
+ * configured production path sends the same bounded batch through the
+ * authenticated D1 cron endpoint.
+ */
+export async function saveD1PriceRecordsForRuntime(
+  records: PriceRecordInsert[],
+  options: { endpoint?: string; secret?: string; fetcher?: typeof fetch } = {}
+): Promise<number> {
+  const endpoint = options.endpoint ?? process.env.TURSO_PRICE_RECORDS_INGEST_URL;
+  if (!endpoint) {
+    return saveD1PriceRecords(await getPriceRecordsD1Database(), records);
+  }
+
+  const secret = options.secret ?? process.env.CRON_SECRET;
+  if (!secret) throw new Error('CRON_SECRET is required for remote D1 price_records writes');
+
+  let url: URL;
+  try {
+    url = new URL(endpoint);
+  } catch (error) {
+    throw new Error('Invalid TURSO_PRICE_RECORDS_INGEST_URL', { cause: error });
+  }
+  if (
+    url.protocol !== 'https:' ||
+    url.username ||
+    url.password ||
+    url.search ||
+    url.hash ||
+    url.pathname !== '/api/cron/price-records'
+  ) {
+    throw new Error('TURSO_PRICE_RECORDS_INGEST_URL must be the HTTPS price-records cron endpoint');
+  }
+
+  let saved = 0;
+  for (let offset = 0; offset < records.length; offset += 100) {
+    const batch = records.slice(offset, offset + 100);
+    const response = await (options.fetcher ?? fetch)(url, {
+      method: 'POST',
+      headers: {
+        authorization: `Bearer ${secret}`,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({ records: batch }),
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!response.ok) {
+      throw new Error(`Remote D1 price_records write failed with HTTP ${response.status}`);
+    }
+    const payload: unknown = await response.json();
+    if (
+      !payload ||
+      typeof payload !== 'object' ||
+      Array.isArray(payload) ||
+      !Number.isSafeInteger((payload as Record<string, unknown>).saved) ||
+      ((payload as Record<string, unknown>).saved as number) < 0 ||
+      ((payload as Record<string, unknown>).saved as number) > batch.length
+    ) {
+      throw new Error('Remote D1 price_records endpoint returned an invalid response');
+    }
+    saved += (payload as { saved: number }).saved;
+  }
+  return saved;
+}
+
 function buildWhere(
   filters: PriceRecordsFilters,
   nowMs: number
