@@ -6,14 +6,14 @@ export function UseCaseBanner() {
   return (
     <section className="risk-threshold home-view-reveal" aria-labelledby="risk-threshold-title">
       <div className="risk-threshold-scale" aria-hidden="true">
-        <span>Signal</span>
+        <span>Oracle inputs</span>
         <i />
-        <strong>Threshold</strong>
+        <strong>Assessment</strong>
         <i />
-        <span>Execution</span>
+        <span>Your policy</span>
       </div>
       <div className="risk-threshold-statement">
-        <p className="instrument-label">Evidence instrument 04 / risk threshold</p>
+        <p className="instrument-label">Example workflow / Base lending</p>
         <div>
           <span>Before</span>
           <span>not after</span>
@@ -21,14 +21,15 @@ export function UseCaseBanner() {
       </div>
       <div className="risk-threshold-copy">
         <h3 id="risk-threshold-title">
-          A small oracle deviation can become a large execution outcome.
+          Before a Base Aave V3 supply or borrow, inspect the inputs behind the decision.
         </h3>
         <p>
-          Model deviation against your protocol&apos;s thresholds and see how a changed oracle value
-          could affect a position before a risk engine has to react.
+          Insight compares collateral and debt price evidence with freshness and live protocol
+          parameters, then returns an assessment for your policy. Your application keeps signing and
+          submission under its control; an optional signed record can preserve what was checked.
         </p>
-        <Link href="/safety-check">
-          Open Position Stress Test <ArrowUpRight aria-hidden="true" />
+        <Link href="/docs/x402#guard-families">
+          Explore the Base Lending Guard <ArrowUpRight aria-hidden="true" />
         </Link>
       </div>
     </section>
