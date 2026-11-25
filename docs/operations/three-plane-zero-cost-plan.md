@@ -356,6 +356,8 @@ ACK payload 读取方审计（阈值保持 30 天；`7` 只作为假设上限）
 ### 9.2 `price_records` 24 h cache → Cloudflare D1
 
 - 2026-11-25 实施状态：`insight-price-records` 已创建于 D1 APAC，`0001_price_records.sql` 已应用；Worker 代码先以 `d1-shadow` 镜像 24 h，读取仍由 Supabase 服务。
+- 2026-11-25 生产自检发现：`snapshot-collect.yml` 在 GitHub Actions Node runner 写 Supabase，那里没有 D1 binding；首轮部署后 D1 表仍是空的，因此 24 h shadow 对账尚未开始。新增带 `CRON_SECRET` 鉴权的 Worker ingest endpoint，让 runner 将同批价格记录镜像至 D1；以首次成功收到非零批次的时间作为观察起点。
+- 当前 Supabase 实测近 30 分钟写入 257 行。按此速率，D1 两个索引及对应 TTL 删除预计约 74,016 rows-written/day，加其他库约 692/day，总量约占 Free 100,000/day 的 74.7%；shadow 期间每日核对 D1 指标，并将 80,000/day 作为需要降采样或减索引的告警线。
 - 对账应覆盖行数、TTL 与抽样完整字段；无差异后再切 `d1` 主模式。切换后 D1 miss/error 回 Supabase，保留源表至少 7 天。
 - D1 额度推算和具体回退步骤见 [`d1-price-records.md`](d1-price-records.md)。
 

@@ -4,7 +4,7 @@ import {
   getPriceRecordsD1Database,
   getPriceRecordsMode,
   listD1PriceRecords,
-  saveD1PriceRecords,
+  saveD1PriceRecordsForRuntime,
 } from '@/lib/cloudflare/priceRecords';
 import { type PriceRecordInsert, type PriceRecord } from '@/lib/supabase/queries';
 import { createServiceRoleClient, getAdminQueries } from '@/lib/supabase/server';
@@ -257,7 +257,7 @@ async function saveRecordsWithMode(records: PriceRecordInsert[]): Promise<number
   }
   if (mode === 'd1') {
     try {
-      return await saveD1PriceRecords(await getPriceRecordsD1Database(), records);
+      return await saveD1PriceRecordsForRuntime(records);
     } catch (error) {
       logger.error(
         'Cloudflare D1 price_records write failed; falling back to Supabase',
@@ -270,7 +270,7 @@ async function saveRecordsWithMode(records: PriceRecordInsert[]): Promise<number
     const supabase = getAdminQueries().savePriceRecords(records);
     const d1 = (async () => {
       try {
-        return await saveD1PriceRecords(await getPriceRecordsD1Database(), records);
+        return await saveD1PriceRecordsForRuntime(records);
       } catch (error) {
         logger.warn('Shadow price_records write to Cloudflare D1 failed', normalizeError(error));
         return 0;

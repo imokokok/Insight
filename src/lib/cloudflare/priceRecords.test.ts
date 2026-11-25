@@ -1,6 +1,7 @@
 import {
   listD1PriceRecords,
   saveD1PriceRecords,
+  saveD1PriceRecordsForRuntime,
   type D1Statement,
   type PriceRecordsD1Database,
 } from './priceRecords';
@@ -105,5 +106,55 @@ describe('Cloudflare D1 price_records', () => {
     await expect(listD1PriceRecords(database, {})).rejects.toThrow(
       'Invalid price_records row from D1'
     );
+  });
+
+  it('sends bounded batches from a Node collector through the authenticated Worker endpoint', async () => {
+    const fetchMock = jest.fn<typeof fetch>().mockImplementation(async (_input, init) => {
+      const payload = JSON.parse(String(init?.body)) as { records: unknown[] };
+      return Response.json({ saved: payload.records.length });
+    });
+    const records = Array.from({ length: 101 }, (_, index) => ({
+      provider: 'pyth',
+      symbol: `ASSET-${index}`,
+      price: index + 1,
+      timestamp: Date.now(),
+    }));
+
+    try {
+      await expect(
+        saveD1PriceRecordsForRuntime(records, {
+          endpoint: 'https://oracleinsight.xyz/api/cron/price-records',
+          secret: 'test-cron-secret',
+          fetcher: fetchMock,
+        })
+      ).resolves.toBe(101);
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(fetchMock.mock.calls[0]?.[1]?.headers).toMatchObject({
+        authorization: 'Bearer test-cron-secret',
+        'content-type': 'application/json',
+      });
+      expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body)).records).toHaveLength(100);
+      expect(JSON.parse(String(fetchMock.mock.calls[1]?.[1]?.body)).records).toHaveLength(1);
+    } finally {
+      fetchMock.mockReset();
+    }
+  });
+
+  it('rejects non-HTTPS or off-path remote D1 endpoints', async () => {
+    const previousUrl = process.env.TURSO_PRICE_RECORDS_INGEST_URL;
+    process.env.TURSO_PRICE_RECORDS_INGEST_URL = 'http://example.com/collect';
+    try {
+      await expect(
+        saveD1PriceRecordsForRuntime([], {
+          endpoint: 'http://example.com/collect',
+          secret: 'test-cron-secret',
+        })
+      ).rejects.toThrow(
+        'TURSO_PRICE_RECORDS_INGEST_URL must be the HTTPS price-records cron endpoint'
+      );
+    } finally {
+      if (previousUrl === undefined) delete process.env.TURSO_PRICE_RECORDS_INGEST_URL;
+      else process.env.TURSO_PRICE_RECORDS_INGEST_URL = previousUrl;
+    }
   });
 });

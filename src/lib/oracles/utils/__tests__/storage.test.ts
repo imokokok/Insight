@@ -42,7 +42,7 @@ jest.mock('@/lib/cloudflare/priceRecords', () => ({
   getLatestD1PriceRecord: jest.fn(),
   getPriceRecordsD1Database: (...args: unknown[]) => mockGetPriceRecordsD1Database(...args),
   listD1PriceRecords: jest.fn(),
-  saveD1PriceRecords: (...args: unknown[]) => mockSaveD1PriceRecords(...args),
+  saveD1PriceRecordsForRuntime: (...args: unknown[]) => mockSaveD1PriceRecords(...args),
 }));
 jest.mock('@/lib/supabase/snapshotHistory', () => ({
   loadSnapshotHistoryRange: (...args: unknown[]) => mockHistory(...args),
