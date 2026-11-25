@@ -47,8 +47,7 @@ const X402_PAY_PER_CALL_FACTS = [
   {
     value: '$0.002–$0.040',
     label: 'Per MCP call',
-    detail:
-      'Op-priced Trade Guard plus product prices; the live 402 accepts[] is authoritative because rails differ by route and request',
+    detail: 'Trade Guard is priced by operation; product calls use their listed rate',
   },
   {
     value: '0',
@@ -72,6 +71,7 @@ const PRODUCT_PRICES = [
     name: 'Trade Guard',
     price: '$0.002–$0.040',
     unit: 'per call, op-priced',
+    summary: 'Read-only checks and trade-safety checks have different rates.',
     detail:
       'Read-only ops cost 2–4 credits ($0.002–$0.004). The trade-safety ops (check_safety, prepare_swap, prepare_perp_order) cost 40 credits ($0.040), which is both the per-call price and the product ceiling; the 16 deprecated alias spellings are callable at the same price until 2027-01-06. price_analytics batch mode is billed per asset at 2 credits each: MCP accepts at most 10 assets, so the op caps at 20 credits ($0.020). A 20-item cap applies only to get_oracle_prices_batch.queries and the REST /api/v1/prices/batch route, not to MCP price_analytics.',
     credits: '2–40 credits (40 = per trade-safety op, also the ceiling)',
@@ -80,6 +80,7 @@ const PRODUCT_PRICES = [
     name: 'Trade Proof',
     price: '$0.040',
     unit: 'per call',
+    summary: 'Signed trade records, execution receipts, and live evidence reads.',
     detail:
       'Signed evidence: begin the trade record, issue the execution receipt, or verify evidence offline. verify_evidence is free for the three offline kinds (execution_pair, base_agent_swap, solana_swap); live reads are 40 credits / $0.040.',
     credits: '40 credits',
@@ -88,6 +89,7 @@ const PRODUCT_PRICES = [
     name: 'Oracle Watch',
     price: '$0.500',
     unit: 'per 24h window',
+    summary: 'A monitoring window includes scheduled signal polls and reassessment.',
     detail:
       'Up to 48 signal polls per window, one full reassessment every 30 minutes, escalating to a full scan when the signal jumps. Polls inside a paid window are free.',
     credits: '500 credits',
@@ -96,6 +98,7 @@ const PRODUCT_PRICES = [
     name: 'Position Lifecycle',
     price: '$0.550',
     unit: 'per position',
+    summary: 'One position window with its bundled guard checks and receipt.',
     detail:
       'One window plus four guard checks and one execution receipt for a single position; in-bundle guards and receipts are not charged again.',
     credits: '550 credits',
@@ -134,11 +137,14 @@ export default function PricingPage() {
         />
 
         <EvidenceProcessRail
-          label="Capacity decision"
+          label="Trial to continued use"
           items={[
-            { label: 'Estimate demand', detail: 'Calls · class · cadence' },
-            { label: 'Choose capacity', detail: 'Monthly · annual · prepaid' },
-            { label: 'Expand safely', detail: 'One wallet · no feature gates' },
+            { label: 'Start free', detail: 'Verify email · get 400 one-time credits' },
+            { label: 'Use Insight', detail: 'API · MCP · Guard SDK share one wallet' },
+            {
+              label: 'Keep going',
+              detail: 'HTTP 402 → monthly plan or prepaid pack → retry',
+            },
           ]}
         />
 
@@ -190,11 +196,9 @@ export default function PricingPage() {
                 Four product tools, metered by the work they do.
               </h2>
               <p className="mt-4 max-w-2xl text-lg leading-relaxed text-slate-600">
-                Trade Guard dispatches across metering classes, so it is priced by operation rather
-                than a single flat rate. The other three products carry one product price. Every
-                price below is also available through the credit wallet and x402. The catalog
-                advertises 4 product tools; 16 deprecated alias names stay callable at their product
-                price via canonicalization until 2027-01-06 but are no longer listed.
+                Trade Guard is priced by operation rather than a single flat rate. The other three
+                tools have one product price. Listed prices are available through the credit wallet
+                or x402.
               </p>
             </div>
           </div>
@@ -214,8 +218,14 @@ export default function PricingPage() {
                   {product.price}
                 </p>
                 <p className="mt-1 text-xs text-slate-600">{product.unit}</p>
-                <p className="mt-2 text-xs leading-relaxed text-slate-500">{product.detail}</p>
+                <p className="mt-2 text-xs leading-relaxed text-slate-500">{product.summary}</p>
                 <p className="mt-2 font-mono text-[11px] text-blue-700">{product.credits}</p>
+                <details className="pricing-rate-details mt-4 border-t border-slate-900/10 pt-3">
+                  <summary className="cursor-pointer text-xs font-semibold text-slate-600 hover:text-blue-700">
+                    Rate details
+                  </summary>
+                  <p className="mt-2 text-xs leading-relaxed text-slate-500">{product.detail}</p>
+                </details>
               </div>
             ))}
           </div>
@@ -232,30 +242,48 @@ export default function PricingPage() {
         </div>
       </section>
 
-      <section className="pricing-plan-section py-14 sm:py-20">
+      <section
+        id="x402-pay-per-call"
+        className="pricing-plan-section py-14 sm:py-20"
+        aria-labelledby="x402-pay-per-call-title"
+      >
         <div className="editorial-frame mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
           <div className="grid gap-4 border-b border-slate-900/15 pb-5 lg:grid-cols-[0.8fr_1.7fr]">
-            <p className="editorial-index">03 — Pay per call, no account</p>
+            <p className="editorial-index">03 — For agents · pay per call</p>
             <div>
-              <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-                One endpoint for autonomous agents: hit it, pay, get the verdict.
+              <h2
+                id="x402-pay-per-call-title"
+                className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl"
+              >
+                For agents: pay per call, with no account or subscription.
               </h2>
               <p className="mt-4 max-w-2xl text-lg leading-relaxed text-slate-600">
-                <code className="font-mono text-base">GET /api/v1/safety/pre-trade</code> speaks the
-                x402 and optional MPP protocols. A request without credentials receives an HTTP 402
-                quote; the agent pays the quoted USDC price on one of the rails in that
-                challenge&apos;s <code className="font-mono text-base">accepts[]</code> — currently
-                HyperEVM (eip155:999), Base (eip155:8453) and Solana mainnet for generic MCP calls,
-                while chain-bound guard routes quote their own chain — and retries with a signed
-                payment to receive the full result. The REST pre-trade safety check is $0.02 (C3).
-                On the MCP surface, the <code className="font-mono text-base">trade_guard</code>{' '}
-                trade-safety ops (<code className="font-mono text-base">check_safety</code>,{' '}
-                <code className="font-mono text-base">prepare_swap</code>,{' '}
-                <code className="font-mono text-base">prepare_perp_order</code>) are $0.040 each;
-                read-only Trade Guard ops start at $0.002, and the 16 deprecated alias spellings are
-                charged the same as their canonical op. Humans and teams with ongoing volume should
-                use the credit plans above instead.
+                An agent gets a route-specific quote, pays for each request, and retries for its
+                result. No API key or monthly commitment is needed. Frequent workloads can use the
+                shared credit wallet instead.
               </p>
+              <details className="pricing-rate-details mt-4 max-w-3xl border-y border-slate-900/10 py-3">
+                <summary className="cursor-pointer text-sm font-semibold text-slate-700 hover:text-blue-700">
+                  Route, protocol, and rate details
+                </summary>
+                <p className="mt-3 text-sm leading-relaxed text-slate-500">
+                  <code className="font-mono text-base">GET /api/v1/safety/pre-trade</code> speaks
+                  the x402 and optional MPP protocols. A request without credentials receives an
+                  HTTP 402 quote; the agent pays the quoted USDC price on one of the rails in that
+                  challenge&apos;s <code className="font-mono text-base">accepts[]</code> —
+                  currently HyperEVM (eip155:999), Base (eip155:8453) and Solana mainnet for generic
+                  MCP calls, while chain-bound guard routes quote their own chain — and retries with
+                  a signed payment to receive the full result. The REST pre-trade safety check is
+                  $0.02 (C3). On the MCP surface, the{' '}
+                  <code className="font-mono text-base">trade_guard</code> trade-safety ops (
+                  <code className="font-mono text-base">check_safety</code>,{' '}
+                  <code className="font-mono text-base">prepare_swap</code>,{' '}
+                  <code className="font-mono text-base">prepare_perp_order</code>) are $0.040 each;
+                  read-only Trade Guard ops start at $0.002, and the 16 deprecated alias spellings
+                  are charged the same as their canonical op. Humans and teams with ongoing volume
+                  should use the credit plans above instead.
+                </p>
+              </details>
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link
                   href="/docs/x402"

@@ -21,34 +21,61 @@ import { type NavStructure } from './types';
 // dedicated "Home" tab would be a redundant second route to the same page.
 export const navigationConfig: NavStructure = [
   {
-    href: '/price-insight?stage=observe',
-    label: 'Oracle Evidence',
-    icon: Search,
-  },
-  {
     href: '/decision-integrity',
     label: 'Decision Integrity',
     icon: ShieldCheck,
   },
   {
-    id: 'risk-intelligence',
-    label: 'Risk Intelligence',
+    id: 'oracle-evidence',
+    label: 'Oracle Evidence',
+    icon: Search,
+    href: '/price-insight?stage=observe',
+    megaMenu: true,
+    items: [
+      {
+        href: '/price-insight?stage=observe',
+        label: 'Observe',
+        icon: Eye,
+        description: 'Inspect oracle sources, coverage, freshness, and observed prices',
+      },
+      {
+        href: '/price-insight?stage=compare',
+        label: 'Compare',
+        icon: Search,
+        description: 'Compare provider agreement, divergence, and source context',
+      },
+      {
+        href: '/reputation',
+        label: 'Oracle Directory',
+        icon: Award,
+        description: 'Explore provider coverage and historical performance context',
+      },
+      {
+        href: '/reports',
+        label: 'Daily Reports',
+        icon: FileText,
+        description: 'Review historical deviations, rankings, and risk highlights',
+      },
+      {
+        href: '/verify',
+        label: 'Verify a receipt',
+        icon: BadgeCheck,
+        description: 'Independently inspect supported signed evidence',
+      },
+    ],
+  },
+  {
+    id: 'risk-tools',
+    label: 'Risk Tools',
     icon: BarChart3,
+    href: '/risk-intelligence',
     megaMenu: true,
     items: [
       {
         href: '/risk-intelligence',
-        label: 'Risk Intelligence Overview',
+        label: 'Risk Tools Overview',
         icon: Eye,
-        description:
-          'Choose the right oracle-risk instrument for source comparison, position stress, and ongoing monitoring',
-      },
-      {
-        href: '/price-insight?stage=compare',
-        label: 'Compare & Assess',
-        icon: Search,
-        description:
-          'Compare oracle prices across providers and chains with divergence, freshness, and source context',
+        description: 'Choose a focused assessment for a position or asset-risk question',
       },
       {
         href: '/safety-check',
@@ -62,7 +89,7 @@ export const navigationConfig: NavStructure = [
         label: 'Polymarket Positions',
         icon: Wallet,
         description:
-          'View public open positions by wallet address. No wallet connection or trading permission required.',
+          'Additional read-only market-position context; no wallet connection or trading permission required.',
       },
       {
         href: '/peg-risk',
@@ -70,20 +97,6 @@ export const navigationConfig: NavStructure = [
         icon: Gauge,
         description:
           'Assess stablecoins, wrapped assets and LSTs across source deviation and protocol impact',
-      },
-      {
-        href: '/reputation',
-        label: 'Oracle Directory',
-        icon: Award,
-        description:
-          'Explore oracle providers, their unique capabilities, and historical performance tracking',
-      },
-      {
-        href: '/reports',
-        label: 'Daily Reports',
-        icon: FileText,
-        description:
-          'Daily oracle performance summaries with price deviations, rankings, and risk highlights',
       },
     ],
   },
@@ -128,11 +141,6 @@ export const navigationConfig: NavStructure = [
         description: 'Read API, SDK, receipt verification, and integration references',
       },
     ],
-  },
-  {
-    href: '/verify',
-    label: 'Verify',
-    icon: BadgeCheck,
   },
   {
     href: '/pricing',

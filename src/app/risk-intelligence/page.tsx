@@ -1,24 +1,15 @@
 import Link from 'next/link';
 
-import {
-  ArrowRight,
-  BarChart3,
-  CircleGauge,
-  FileText,
-  Gauge,
-  Search,
-  ShieldCheck,
-  Wallet,
-} from 'lucide-react';
+import { ArrowRight, CircleGauge, Gauge, ShieldCheck, Wallet } from 'lucide-react';
 
 import { EditorialWorkspaceHeader, EvidenceProcessRail } from '@/components/editorial';
 
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Risk Intelligence — Oracle Context & Position Stress | Insight',
+  title: 'Risk Tools — Focused Oracle Risk Assessments | Insight',
   description:
-    'Explore Insight risk tools for cross-oracle comparison, position stress testing, peg risk, provider context, and daily evidence reports.',
+    'Choose a focused position or asset-risk assessment grounded in inspectable oracle evidence.',
   keywords: [
     'oracle risk intelligence',
     'position stress',
@@ -27,20 +18,13 @@ export const metadata: Metadata = {
     'DeFi risk',
   ],
   openGraph: {
-    title: 'Risk Intelligence — Oracle Context & Position Stress | Insight',
-    description: 'Choose the right risk instrument for the oracle question in front of you.',
+    title: 'Risk Tools — Focused Oracle Risk Assessments | Insight',
+    description: 'Choose a focused position or asset-risk assessment.',
     type: 'website',
   },
 };
 
 const tools = [
-  {
-    href: '/price-insight?stage=compare',
-    icon: Search,
-    title: 'Compare & Assess',
-    body: 'Inspect disagreement, freshness, and source-level context across oracle providers and chains.',
-    label: 'Source comparison',
-  },
   {
     href: '/safety-check',
     icon: ShieldCheck,
@@ -53,7 +37,7 @@ const tools = [
     icon: Wallet,
     title: 'Polymarket Positions',
     body: 'Review public open positions and reported values for an account address, with no wallet connection or trading permissions.',
-    label: 'Read-only account view',
+    label: 'Additional · Read-only account view',
   },
   {
     href: '/peg-risk',
@@ -61,20 +45,6 @@ const tools = [
     title: 'Peg Risk',
     body: 'Assess stablecoins, wrapped assets, and LSTs through source deviation and protocol impact.',
     label: 'Asset-specific',
-  },
-  {
-    href: '/reputation',
-    icon: BarChart3,
-    title: 'Oracle Directory',
-    body: 'Explore provider coverage, characteristics, and historical performance context.',
-    label: 'Provider context',
-  },
-  {
-    href: '/reports',
-    icon: FileText,
-    title: 'Daily Reports',
-    body: 'Review recurring price deviations, rankings, and risk highlights over time.',
-    label: 'Historical context',
   },
 ] as const;
 
@@ -85,16 +55,16 @@ export default function RiskIntelligencePage() {
         <EditorialWorkspaceHeader
           index="02"
           stage="Assess"
-          eyebrow="Risk intelligence · Choose the instrument that matches the question"
-          title="Risk needs context before it needs a score."
-          description="Insight separates source comparison, position stress, asset-specific peg risk, provider context, and historical reporting so each conclusion is grounded in the evidence it actually needs."
-          evidence={['Source context', 'Exposure context', 'Historical context']}
+          eyebrow="Risk tools · Focused assessments grounded in oracle evidence"
+          title="Choose the assessment that fits your risk question."
+          description="Use position stress or peg-risk assessments for a specific exposure. For source freshness and disagreement, start with Oracle Evidence; for an action-level decision, use Decision Integrity."
+          evidence={['Position stress', 'Peg risk', 'Read-only market context']}
           action={
             <Link
-              href="/price-insight?stage=compare"
+              href="/decision-integrity"
               className="inline-flex items-center gap-2 border border-slate-950 bg-slate-950 px-4 py-2 text-sm font-medium text-white transition-colors hover:border-blue-700 hover:bg-blue-700"
             >
-              Compare oracle evidence
+              Assess an action
               <ArrowRight className="h-4 w-4" />
             </Link>
           }
@@ -102,9 +72,9 @@ export default function RiskIntelligencePage() {
         <EvidenceProcessRail
           label="Risk investigation"
           items={[
-            { label: 'Observe', detail: 'Source record · coverage' },
-            { label: 'Compare', detail: 'Divergence · freshness' },
-            { label: 'Contextualize', detail: 'Position · asset · provider' },
+            { label: 'Choose', detail: 'Position · asset' },
+            { label: 'Assess', detail: 'Supported profile' },
+            { label: 'Inspect', detail: 'Oracle evidence' },
             { label: 'Decide', detail: 'Use your own policy' },
           ]}
           activeIndex={2}
@@ -117,12 +87,12 @@ export default function RiskIntelligencePage() {
             <p className="editorial-index">01 — Risk instruments</p>
             <div>
               <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-                Start with the question you need to answer.
+                Focused tools for position and asset risk.
               </h2>
               <p className="mt-4 max-w-3xl text-lg leading-relaxed text-slate-600">
-                These tools are deliberately distinct. A general source comparison should not be
-                presented as a personal liquidation calculation, and a position stress result should
-                not be mistaken for a universal oracle verdict.
+                Source browsing and historical provider context live under Oracle Evidence. These
+                tools answer narrower position and asset questions using the coverage each profile
+                supports.
               </p>
             </div>
           </div>

@@ -1,12 +1,7 @@
 'use client';
 
-import { Check, Coins, Globe, Lock, Zap } from 'lucide-react';
+import { Check, Globe, Lock, Zap } from 'lucide-react';
 
-import {
-  METERING_CLASS_DESCRIPTION,
-  METERING_CLASS_ORDER,
-  formatCreditCost,
-} from '@/lib/billing/metering';
 import { CREDIT_PACKS, PLANS } from '@/lib/billing/plans';
 
 /**
@@ -25,15 +20,6 @@ import { CREDIT_PACKS, PLANS } from '@/lib/billing/plans';
  * The authoritative per-call pricing lives in src/lib/billing/metering.ts;
  * plan definitions (Starter / Usage Pack / Enterprise) live in src/lib/billing/plans.ts.
  */
-
-// --- Metering classes surfaced as the pricing ladder -------------------------
-// Derived from metering.ts (single source of truth) — never hardcode a cost here.
-
-const METERING_CLASSES = METERING_CLASS_ORDER.map((cls) => ({
-  cls,
-  cost: formatCreditCost(cls, 'long'),
-  desc: METERING_CLASS_DESCRIPTION[cls],
-}));
 
 // --- Access surface data -----------------------------------------------------
 
@@ -129,7 +115,7 @@ export function DataAccessTierMatrix({ className = '' }: { className?: string })
       <div className="editorial-frame mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
         {/* Section header */}
         <div className="mb-12 grid gap-4 border-b border-slate-900/15 pb-5 lg:grid-cols-[0.8fr_1.7fr]">
-          <p className="editorial-index">03 — Inspect access</p>
+          <p className="editorial-index">04 — Inspect access</p>
           <div>
             <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight mb-4">
               One platform, no feature gates
@@ -221,34 +207,6 @@ export function DataAccessTierMatrix({ className = '' }: { className?: string })
               </div>
             </div>
           ))}
-        </div>
-
-        {/* Metering classes legend */}
-        <div className="pricing-metering-legend mt-12 max-w-3xl overflow-hidden border-y border-slate-900/15 bg-white/50">
-          <div className="px-5 py-4 border-b border-slate-100 bg-slate-50/70">
-            <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-              <Coins className="w-4 h-4 text-amber-500" />
-              Per-call credit pricing (API / MCP)
-            </div>
-          </div>
-          <div className="divide-y divide-slate-100">
-            {METERING_CLASSES.map((mc) => (
-              <div key={mc.cls} className="flex items-center justify-between px-5 py-3">
-                <div className="flex items-center gap-3">
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 text-xs font-bold">
-                    {mc.cls}
-                  </span>
-                  <span className="text-sm text-slate-700">{mc.desc}</span>
-                </div>
-                <span className="text-sm font-medium text-slate-500">{mc.cost}</span>
-              </div>
-            ))}
-          </div>
-          <p className="px-5 py-3 text-xs text-slate-400 border-t border-slate-100">
-            Credits come from your wallet — a monthly allowance with Starter or a Usage Pack plan,
-            or prepaid top-up packs. When the balance can&apos;t cover the next call, it returns
-            HTTP 402 with a top-up link. Enterprise is unlimited.
-          </p>
         </div>
 
         {/* Footnote */}
