@@ -17,12 +17,14 @@ const runtimeSecretNames = [
   'ATTESTATION_REVOKED_KEYS_CONFIG',
   'ATTESTATION_SAMPLE_SIGNER_PRIVATE_KEY',
   'ATTESTATION_SIGNER_PRIVATE_KEY',
+  'BEA_API_USER_ID',
   'BLS_API_REGISTRATION_KEY',
   'COVERAGE_SIGNER_PRIVATE_KEY',
   'CRON_SECRET',
   'CSRF_SECRET',
   'ERC8004_REGISTRAR_PRIVATE_KEY',
   'EVM_PRIVATE_KEY',
+  'FRED_API_KEY',
   'GOPLUS_API_KEY',
   'GOPLUS_APP_KEY',
   'GOPLUS_APP_SECRET',
@@ -38,10 +40,12 @@ const runtimeSecretNames = [
   'NOWPAYMENTS_API_KEY',
   'NOWPAYMENTS_IPN_SECRET',
   'NOWPAYMENTS_TEST_MODE',
+  'OPENFDA_API_KEY',
   'OPS_OWNER_USER_IDS',
   'POLYMARKET_EVIDENCE_ENABLED',
   'POLYMARKET_RULE_BINDINGS_JSON',
   'ROBINHOOD_RPC_URL',
+  'SEC_EDGAR_USER_AGENT',
   'SOLANA_PRIVATE_KEY',
   'SUPABASE_DB_PASSWORD',
   'SUPABASE_SERVICE_ROLE_KEY',
@@ -129,6 +133,19 @@ function readSecretMap(): Record<string, string> {
     );
     if (usesBls && !result.BLS_API_REGISTRATION_KEY) {
       throw new Error('BLS_API_REGISTRATION_KEY is required for configured BLS source bindings.');
+    }
+    const usesProvider = (provider: string) =>
+      parsedBindings.data.some((binding) =>
+        binding.observations.some((observation) => observation.provider === provider)
+      );
+    if (usesProvider('sec.submissions') && !result.SEC_EDGAR_USER_AGENT) {
+      throw new Error('SEC_EDGAR_USER_AGENT is required for configured SEC source bindings.');
+    }
+    if (usesProvider('bea.nipa') && !result.BEA_API_USER_ID) {
+      throw new Error('BEA_API_USER_ID is required for configured BEA source bindings.');
+    }
+    if (usesProvider('fred.series') && !result.FRED_API_KEY) {
+      throw new Error('FRED_API_KEY is required for configured FRED source bindings.');
     }
   }
 

@@ -23,7 +23,7 @@ export default function TermsPage() {
         >
           <div>
             <p className="editorial-index">17 — Governance</p>
-            <p className="mt-5 text-sm text-slate-500">Last updated: November 24, 2026</p>
+            <p className="mt-5 text-sm text-slate-500">Last updated: November 26, 2026</p>
           </div>
           <div>
             <h1 className="text-4xl font-semibold tracking-[-0.045em] text-slate-950 sm:text-5xl lg:text-6xl">
@@ -91,6 +91,19 @@ export default function TermsPage() {
                 we strive for accuracy, we cannot guarantee that all data is accurate, complete, or
                 current. The data provided through the Platform is for informational purposes only
                 and should not be considered as financial or investment advice.
+              </p>
+              <p className="text-slate-700 leading-relaxed mt-3">
+                If you use a feature that retrieves FRED data, you also agree to be bound by the{' '}
+                <a
+                  href="https://fred.stlouisfed.org/docs/api/terms_of_use.html"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-blue-600 hover:text-blue-700 font-medium"
+                >
+                  FRED API Terms of Use
+                </a>
+                . FRED observations remain subject to the source&apos;s availability, revisions, and
+                usage limits.
               </p>
             </section>
 

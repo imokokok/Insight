@@ -6,7 +6,7 @@ Polymarket support in Insight provides **market metadata integrity and source ev
 
 The existing `/api/v1/safety/prediction-guard` path is a separate, reviewed contract-integrity check for its supported short-horizon Up/Down markets. Its checks cover market lifecycle and quote/evidence integrity. Its `PASS`/`CAUTION`/`BLOCK` states describe those checks only; they do not describe which market outcome will occur or authorize an order.
 
-The generalized source-evidence route is deployed but disabled by default. Production must explicitly set `POLYMARKET_EVIDENCE_ENABLED=true` and provide a server-side `POLYMARKET_RULE_BINDINGS_JSON` entry reviewed for the exact market rules. Enabling BLS bindings also requires the server-side `BLS_API_REGISTRATION_KEY`; NWS-only bindings do not. The production release check rejects enabled deployments without their required binding or BLS key. No market binding is enabled by default. A binding is an operator review record; the service does not infer one from a market category or resolution text.
+The generalized source-evidence route is deployed but disabled by default. Production must explicitly set `POLYMARKET_EVIDENCE_ENABLED=true` and provide a server-side `POLYMARKET_RULE_BINDINGS_JSON` entry reviewed for the exact market rules. Each configured provider requires its server-side credential where applicable: BLS registration key, SEC contact-bearing User-Agent, BEA API user ID, or FRED API key. FDA's key is optional. The production release check rejects enabled deployments without credentials required by configured bindings. No market binding is enabled by default. A binding is an operator review record; the service does not infer one from a market category or resolution text.
 
 ## Capabilities and limits
 
@@ -18,8 +18,12 @@ The generalized source-evidence route is deployed but disabled by default. Produ
 | BLS 12-month calculation         | Registered BLS v2 monthly calculation; captures the current and same-month prior-year index values and independently recomputes the one-decimal change  | Source evidence and consistency check. The result is not compared with a market threshold. Missing months or mismatches fail closed.                            |
 | NWS station observation          | Latest published measurement for a reviewed station and explicit measurement field, including source observation URL, timestamp, unit and quality flags | Source observation only. The NWS API can delay observations during quality checks; station providers and data quality vary. No threshold or result is inferred. |
 | AviationWeather METAR            | Up to 100 raw METAR/SPECI reports for one reviewed station and UTC query window                                                                         | Timestamped raw reports only; the snapshot may not cover a still-open observation window. No temperature parsing or outcome inference is performed.             |
+| SEC EDGAR submissions            | Up to five recent filing metadata rows for one exact CIK, from the official SEC submissions API                                                         | Filing metadata only; no cross-company search or filing/outcome interpretation.                                                                                 |
+| BEA NIPA                         | Up to 20 rows from one exact table, frequency and year                                                                                                  | Source table values only; larger responses are marked partial and require human review.                                                                         |
+| FRED observations                | Up to 25 observations for one exact series and a date window capped at ten years                                                                        | Series values and periods only; no thresholds or market result are calculated.                                                                                  |
+| openFDA Drugs@FDA                | One exact NDA/BLA/ANDA application and up to 20 submission metadata rows                                                                                | Application metadata only; no medical, approval-likelihood or market conclusion is produced.                                                                    |
 | PriorSeal binding                | Schema validation and canonical commitment to the market snapshot, source records, and integrity checks                                                 | Later changes to the committed record are detectable. The commitment does not authenticate BLS or Polymarket itself.                                            |
-| Other event data                 | No source adapters yet                                                                                                                                  | Sports, elections, weather, court decisions, and crypto-price event evidence require separate source adapters and verification before collection is supported.  |
+| Other event data                 | No adapters for sports, elections, court decisions or crypto-price event evidence                                                                       | These categories need separate source mappings and verification before collection is supported.                                                                 |
 
 Eligibility is determined by whether an operator can name a precise public source record for a specific market rule and review that mapping. Market category alone does not establish eligibility. Insight records the approved source mapping and current Gamma rule digest; it does not interpret natural-language resolution rules or derive which side they imply.
 
@@ -64,9 +68,43 @@ The source-evidence binding may use `nws.latest-observation` with a reviewed sta
 ]
 ```
 
-Supported providers are `bls.series`, `bls.percent-change`, `nws.latest-observation`, and `aviationweather.metar`. The BLS percent-change provider accepts monthly series and `months: 12`; it captures the source values and checks BLS's calculation against an independent exact-decimal recomputation. NWS supports a fixed allowlist of station measurement fields. AviationWeather supports one reviewed four-character station and bounded UTC query window whose exact URL must match the market's declared resolution source. These providers preserve source values and provenance without comparing readings with market thresholds. Missing required observations fail closed.
+Supported providers are `bls.series`, `bls.percent-change`, `nws.latest-observation`, `aviationweather.metar`, `sec.submissions`, `bea.nipa`, `fred.series`, and `openfda.application`. The BLS percent-change provider accepts monthly series and `months: 12`; it captures the source values and checks BLS's calculation against an independent exact-decimal recomputation. NWS supports a fixed allowlist of station measurement fields. SEC accepts one CIK and at most five recent filings; BEA accepts one NIPA table/frequency/year and returns at most 20 rows; FRED accepts one series, a date range of at most ten years, and at most 25 observations; openFDA accepts one exact application identifier. Each new public-source request has a four-second timeout and bounded response body (SEC 256 KB, BEA 96 KB, FRED/openFDA 64 KB). At most eight observations are allowed per binding; at most two source adapters run concurrently; identical inputs are fetched once per request; and no source is polled or cached between requests. BEA truncation is explicit and carries a human-review warning. These providers preserve public source records without comparing values with market thresholds. Empty required observations fail closed; a bounded partial BEA table remains visibly marked partial and requires human review. FRED evidence includes its API terms URL, and Insight's [Terms of Service](/terms) state that users of FRED-backed features agree to the [FRED API Terms of Use](https://fred.stlouisfed.org/docs/api/terms_of_use.html).
 
-In production, `POLYMARKET_EVIDENCE_ENABLED`, `BLS_API_REGISTRATION_KEY` and `POLYMARKET_RULE_BINDINGS_JSON` are passed to the Worker through the production deployment allowlist. `POLYMARKET_EVIDENCE_ENABLED` is off unless explicitly set to `true`. The BLS key is needed for BLS requests in production; NWS and AviationWeather requests do not use it. `ATTESTATION_SIGNER_PRIVATE_KEY` signs completed records. Keep the feature disabled until a reviewer has checked the current Gamma rules digest, source record, unit, location/station and timing semantics. A configured binding becoming stale causes collection to stop.
+The public-source binding inputs are deliberately narrow:
+
+```json
+[
+  {
+    "id": "sec-filings",
+    "provider": "sec.submissions",
+    "input": { "cik": "320193", "recordCount": 5 }
+  },
+  {
+    "id": "gdp-table",
+    "provider": "bea.nipa",
+    "input": { "tableName": "T10101", "frequency": "Q", "year": "2026" }
+  },
+  {
+    "id": "cpi-series",
+    "provider": "fred.series",
+    "input": {
+      "seriesId": "CPIAUCSL",
+      "observationStart": "2026-01-01",
+      "observationEnd": "2026-12-31",
+      "limit": 12
+    }
+  },
+  {
+    "id": "drug-application",
+    "provider": "openfda.application",
+    "input": { "applicationNumber": "NDA021234" }
+  }
+]
+```
+
+These are individual binding objects inside the reviewed market binding's `observations` array. Each of these four providers can appear at most once per market. The market's current `resolutionSource` must use the corresponding official SEC, BEA, St. Louis Fed or FDA domain; a domain match does not replace the human review of the source-to-rule relationship.
+
+In production, provider credentials and `POLYMARKET_RULE_BINDINGS_JSON` are passed to the Worker through the reviewed production deployment allowlist. `POLYMARKET_EVIDENCE_ENABLED` is off unless explicitly set to `true`. `SEC_EDGAR_USER_AGENT` must identify the application and a contact email; `BEA_API_USER_ID` and `FRED_API_KEY` are required only when a binding uses those providers; `OPENFDA_API_KEY` is optional. Credentials are never included in saved evidence URLs or summaries. `ATTESTATION_SIGNER_PRIVATE_KEY` signs completed records. Keep the feature disabled until a reviewer has checked the current Gamma rules digest, source record, units, identifiers and timing semantics. A configured binding becoming stale causes collection to stop.
 
 Before returning a complete record, Insight checks that the market is active and open, its rule-bearing Gamma fields still match the reviewed digest, and the declared resolution source is an HTTPS URL. It fetches all configured observations, then rereads the market and checks the digest again. The API returns `{ evidence, attestation }`: the exact evidence record plus a five-minute EIP-712 signature from the Insight attester. If `ATTESTATION_SIGNER_PRIVATE_KEY` is unavailable, the route returns HTTP 503 and no unsigned record. The evidence has no threshold, operator, `all`/`any` logic, side mapping, outcome result, probability score or trade action.
 
@@ -90,8 +128,10 @@ Further verticals such as sports, election results, court decisions and crypto p
 
 New providers add source evidence only. They do not add thresholds, outcome comparisons, recommendations, execution authority or automated market conclusions.
 
-## Dallas AviationWeather pilot
+## AviationWeather METAR snapshots
 
-The Dallas 11/26 weather event has eleven temperature-band contracts. Each contract must have its own reviewed market binding and current Gamma rules digest; all eleven can use the `aviationweather.metar` adapter when their rule page declares the same fixed AviationWeather query. The binding pins station `KDAL`, the query end `2026-11-27T09:00:00.000Z` and the reviewed 30-hour window. Insight checks the market's exact HTTPS query URL before fetching and stores a bounded snapshot of raw METAR/SPECI reports with query and retrieval timestamps. It does not decode temperatures or compare them with any of the eleven contract thresholds.
+The source registry also supports `aviationweather.metar` for markets whose current Gamma resolution-source URL is the exact fixed AviationWeather Data API METAR query. Each binding pins the four-character station, UTC query date, and bounded hours window. Insight checks those values against the market's declared HTTPS URL before fetching; callers cannot select a host or arbitrary endpoint. It stores bounded raw reports with the original query and retrieval time and does not parse temperatures or infer an outcome.
 
-The snapshot can be partial until the query window has elapsed, and the response always carries a human-review warning. The adapter caps responses at 24,000 bytes and 100 reports, with an eight-second timeout. AviationWeather's API retains up to 30 days of METAR data and asks callers to limit query scope and frequency. See [AviationWeather Data API](https://www.connect.aviationweather.gov/data/api/) and [METAR guidance](https://aviationweather.gov/help/data/).
+A snapshot can be partial while the requested market observation window is still in progress. The record includes a human-review warning and does not claim complete window coverage. AviationWeather's API exposes METAR data, keeps up to 30 days of weather data, and asks callers to limit query scope and frequency; the adapter caps its response at 24,000 bytes, 100 reports, and 8 seconds, leaving room for the signed evidence envelope within PriorSeal's 64 KiB archive cap. See [AviationWeather Data API](https://www.connect.aviationweather.gov/data/api/) and [AviationWeather METAR guidance](https://aviationweather.gov/help/data/).
+
+The Dallas 11/26 weather pilot has eleven temperature-band contracts. Each contract requires its own reviewed binding and current Gamma rules digest. The reviewed KDAL query window can provide the same raw METAR/SPECI snapshot to those bindings; the adapter does not decode temperatures or compare them with contract thresholds.

@@ -1,8 +1,11 @@
+import { ReadableStream } from 'node:stream/web';
+
 import { normalizePolymarketMarket } from './market';
 import { collectPolymarketMarketEvidence } from './sourceEvidence';
 
 const originalBindings = process.env.POLYMARKET_RULE_BINDINGS_JSON;
 const originalRegistrationKey = process.env.BLS_API_REGISTRATION_KEY;
+const originalSecUserAgent = process.env.SEC_EDGAR_USER_AGENT;
 const originalFeatureEnabled = process.env.POLYMARKET_EVIDENCE_ENABLED;
 const market = {
   id: 'generic-market-501',
@@ -20,12 +23,26 @@ const market = {
 };
 const rulesDigest = normalizePolymarketMarket(market)?.rulesDigest;
 const jsonResponse = (body: unknown) =>
-  ({
-    ok: true,
-    status: 200,
-    headers: { get: () => null },
-    text: async () => JSON.stringify(body),
-  }) as Response;
+  (() => {
+    const text = JSON.stringify(body);
+    return {
+      ok: true,
+      status: 200,
+      headers: {
+        get: (name: string) =>
+          name.toLowerCase() === 'content-length'
+            ? String(new TextEncoder().encode(text).byteLength)
+            : null,
+      },
+      body: new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(new TextEncoder().encode(text));
+          controller.close();
+        },
+      }),
+      text: async () => text,
+    } as Response;
+  })();
 
 describe('Polymarket source-evidence collection', () => {
   beforeEach(() => {
@@ -39,6 +56,8 @@ describe('Polymarket source-evidence collection', () => {
     else process.env.POLYMARKET_RULE_BINDINGS_JSON = originalBindings;
     if (originalRegistrationKey === undefined) delete process.env.BLS_API_REGISTRATION_KEY;
     else process.env.BLS_API_REGISTRATION_KEY = originalRegistrationKey;
+    if (originalSecUserAgent === undefined) delete process.env.SEC_EDGAR_USER_AGENT;
+    else process.env.SEC_EDGAR_USER_AGENT = originalSecUserAgent;
     if (originalFeatureEnabled === undefined) delete process.env.POLYMARKET_EVIDENCE_ENABLED;
     else process.env.POLYMARKET_EVIDENCE_ENABLED = originalFeatureEnabled;
   });
@@ -187,20 +206,74 @@ describe('Polymarket source-evidence collection', () => {
     expect(fetchMock).toHaveBeenCalledTimes(5);
   });
 
-  it('collects only the Dallas METAR query pinned by the reviewed market source', async () => {
-    const date = '2026-11-27T09:00:00.000Z';
-    const resolutionSource = `https://aviationweather.gov/api/data/metar?ids=KDAL&format=raw&date=${encodeURIComponent(date)}&hours=30`;
-    const dallasMarket = {
+  it('collects only the reviewed SEC issuer record and marks its metadata for human review', async () => {
+    const secMarket = {
       ...market,
-      id: 'dallas-weather-501',
-      slug: 'dallas-weather-501',
-      resolutionSource,
+      id: 'sec-market-501',
+      slug: 'sec-market-501',
+      resolutionSource: 'https://www.sec.gov/Archives/edgar/data/320193/example.htm',
     };
-    const dallasRulesDigest = normalizePolymarketMarket(dallasMarket)?.rulesDigest;
+    const secRulesDigest = normalizePolymarketMarket(secMarket)?.rulesDigest;
+    process.env.SEC_EDGAR_USER_AGENT = 'Insight tests (contact@example.org)';
     process.env.POLYMARKET_RULE_BINDINGS_JSON = JSON.stringify([
       {
-        marketId: dallasMarket.id,
-        rulesDigest: dallasRulesDigest,
+        marketId: secMarket.id,
+        rulesDigest: secRulesDigest,
+        reviewedAt: '2026-11-25T00:00:00.000Z',
+        reviewer: 'source-review',
+        observations: [
+          {
+            id: 'issuer-filings',
+            provider: 'sec.submissions',
+            input: { cik: '320193', recordCount: 2 },
+          },
+        ],
+      },
+    ]);
+    const fetchMock = jest.fn(async (input: RequestInfo | URL) => {
+      const url = new URL(String(input));
+      if (url.hostname === 'gamma-api.polymarket.com') return jsonResponse([secMarket]);
+      if (url.hostname === 'data.sec.gov')
+        return jsonResponse({
+          cik: '0000320193',
+          name: 'Example Corp',
+          filings: {
+            recent: {
+              form: ['8-K', '10-Q'],
+              filingDate: ['2026-11-20', '2026-11-01'],
+              accessionNumber: ['0000320193-26-000001', '0000320193-26-000002'],
+              primaryDocument: ['a.htm', 'b.htm'],
+            },
+          },
+        });
+      throw new Error('Unexpected upstream request');
+    });
+    Object.defineProperty(globalThis, 'fetch', { configurable: true, value: fetchMock });
+    const result = await collectPolymarketMarketEvidence({ marketId: secMarket.id });
+    expect(
+      fetchMock.mock.calls.filter(([input]) => new URL(String(input)).hostname === 'data.sec.gov')
+    ).toHaveLength(1);
+    expect(result.observations[0].provider).toBe('sec.submissions');
+    expect(result.observations[0].evidence).toMatchObject({ cik: '0000320193' });
+    expect(
+      (result.observations[0].evidence as { filings: Array<{ form: string }> }).filings[0].form
+    ).toBe('8-K');
+    expect(result.requiresHumanReview).toBe(true);
+    expect(result.reviewWarnings).toContain(
+      'Public record is source metadata only; human review required.'
+    );
+    expect(result).not.toHaveProperty('outcome');
+  });
+
+  it('collects exact AviationWeather evidence only for the market-declared source URL', async () => {
+    const date = '2026-11-27T09:00:00.000Z';
+    const resolutionSource = `https://aviationweather.gov/api/data/metar?ids=KDAL&format=raw&date=${encodeURIComponent(date)}&hours=30`;
+    const aviationMarket = { ...market, resolutionSource };
+    const aviationRulesDigest = normalizePolymarketMarket(aviationMarket)?.rulesDigest;
+    process.env.POLYMARKET_RULE_BINDINGS_JSON = JSON.stringify([
+      {
+        marketId: aviationMarket.id,
+        rulesDigest: aviationRulesDigest,
         reviewedAt: '2026-11-25T00:00:00.000Z',
         reviewer: 'rules-review',
         observations: [
@@ -214,7 +287,7 @@ describe('Polymarket source-evidence collection', () => {
     ]);
     const fetchMock = jest.fn(async (input: RequestInfo | URL) => {
       const url = new URL(String(input));
-      if (url.hostname === 'gamma-api.polymarket.com') return jsonResponse([dallasMarket]);
+      if (url.hostname === 'gamma-api.polymarket.com') return jsonResponse([aviationMarket]);
       if (url.hostname === 'aviationweather.gov') {
         expect(url.toString()).toBe(resolutionSource);
         return {
@@ -229,7 +302,7 @@ describe('Polymarket source-evidence collection', () => {
     });
     Object.defineProperty(globalThis, 'fetch', { configurable: true, value: fetchMock });
 
-    const result = await collectPolymarketMarketEvidence({ marketId: dallasMarket.id });
+    const result = await collectPolymarketMarketEvidence({ marketId: aviationMarket.id });
     expect(result.observations).toEqual([
       expect.objectContaining({
         provider: 'aviationweather.metar',
