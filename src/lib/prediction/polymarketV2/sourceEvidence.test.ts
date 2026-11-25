@@ -187,6 +187,100 @@ describe('Polymarket source-evidence collection', () => {
     expect(fetchMock).toHaveBeenCalledTimes(5);
   });
 
+  it('collects only the Dallas METAR query pinned by the reviewed market source', async () => {
+    const date = '2026-11-27T09:00:00.000Z';
+    const resolutionSource = `https://aviationweather.gov/api/data/metar?ids=KDAL&format=raw&date=${encodeURIComponent(date)}&hours=30`;
+    const dallasMarket = {
+      ...market,
+      id: 'dallas-weather-501',
+      slug: 'dallas-weather-501',
+      resolutionSource,
+    };
+    const dallasRulesDigest = normalizePolymarketMarket(dallasMarket)?.rulesDigest;
+    process.env.POLYMARKET_RULE_BINDINGS_JSON = JSON.stringify([
+      {
+        marketId: dallasMarket.id,
+        rulesDigest: dallasRulesDigest,
+        reviewedAt: '2026-11-25T00:00:00.000Z',
+        reviewer: 'rules-review',
+        observations: [
+          {
+            id: 'dallas-metar-window',
+            provider: 'aviationweather.metar',
+            input: { stationId: 'KDAL', date, hours: 30 },
+          },
+        ],
+      },
+    ]);
+    const fetchMock = jest.fn(async (input: RequestInfo | URL) => {
+      const url = new URL(String(input));
+      if (url.hostname === 'gamma-api.polymarket.com') return jsonResponse([dallasMarket]);
+      if (url.hostname === 'aviationweather.gov') {
+        expect(url.toString()).toBe(resolutionSource);
+        return {
+          ok: true,
+          status: 200,
+          headers: { get: () => null },
+          body: null,
+          text: async () => 'METAR KDAL 260053Z 14008KT 10SM CLR 12/02 A3011 RMK AO2',
+        } as Response;
+      }
+      throw new Error(`Unexpected upstream: ${url.hostname}`);
+    });
+    Object.defineProperty(globalThis, 'fetch', { configurable: true, value: fetchMock });
+
+    const result = await collectPolymarketMarketEvidence({ marketId: dallasMarket.id });
+    expect(result.observations).toEqual([
+      expect.objectContaining({
+        provider: 'aviationweather.metar',
+        evidence: expect.objectContaining({
+          stationId: 'KDAL',
+          date,
+          hours: 30,
+          reports: [expect.stringContaining('METAR KDAL')],
+        }),
+      }),
+    ]);
+    expect(result.requiresHumanReview).toBe(true);
+    expect(result.reviewWarnings[0]).toContain('incomplete source window');
+    expect(result.scope.outcomeEvaluation).toBe('not_performed');
+  });
+
+  it('rejects an AviationWeather source query that differs from the reviewed binding', async () => {
+    const dallasMarket = {
+      ...market,
+      id: 'dallas-weather-502',
+      slug: 'dallas-weather-502',
+      resolutionSource:
+        'https://aviationweather.gov/api/data/metar?ids=KDAL&format=raw&date=2026-11-27T09%3A00%3A00.000Z&hours=30',
+    };
+    const dallasRulesDigest = normalizePolymarketMarket(dallasMarket)?.rulesDigest;
+    process.env.POLYMARKET_RULE_BINDINGS_JSON = JSON.stringify([
+      {
+        marketId: dallasMarket.id,
+        rulesDigest: dallasRulesDigest,
+        reviewedAt: '2026-11-25T00:00:00.000Z',
+        reviewer: 'rules-review',
+        observations: [
+          {
+            id: 'dallas-metar-window',
+            provider: 'aviationweather.metar',
+            input: { stationId: 'KDAL', date: '2026-11-27T09:00:00.000Z', hours: 29 },
+          },
+        ],
+      },
+    ]);
+    const fetchMock = jest.fn(async () => jsonResponse([dallasMarket]));
+    Object.defineProperty(globalThis, 'fetch', { configurable: true, value: fetchMock });
+    await expect(
+      collectPolymarketMarketEvidence({ marketId: dallasMarket.id })
+    ).rejects.toMatchObject({
+      code: 'MARKET_UNSUPPORTED',
+      status: 422,
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
   it('rejects legacy outcome-evaluation bindings instead of silently ignoring them', async () => {
     process.env.POLYMARKET_RULE_BINDINGS_JSON = JSON.stringify([
       {
