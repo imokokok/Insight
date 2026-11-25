@@ -4,30 +4,41 @@ import { type NavGroup } from '../types';
 const groups = navigationConfig.filter((item): item is NavGroup => 'items' in item);
 
 describe('navigationConfig', () => {
-  it('keeps the established oracle-evidence entry first and makes decision integrity directly visible', () => {
+  it('puts the product workflow first and keeps Pricing directly visible', () => {
     const directItems = navigationConfig.filter((item) => !('items' in item));
 
     expect(directItems.slice(0, 2).map((item) => item.href)).toEqual([
-      '/price-insight?stage=observe',
       '/decision-integrity',
+      '/pricing',
     ]);
   });
 
-  it('keeps position stress as a precise risk tool instead of the generic product entry', () => {
-    const riskGroup = groups.find((group) => group.id === 'risk-intelligence');
+  it('groups focused assessments under Risk Tools', () => {
+    const riskGroup = groups.find((group) => group.id === 'risk-tools');
 
     expect(riskGroup).toBeDefined();
     expect(riskGroup?.items).toEqual(
       expect.arrayContaining([
+        expect.objectContaining({ href: '/risk-intelligence', label: 'Risk Tools Overview' }),
         expect.objectContaining({ href: '/safety-check', label: 'Position Stress Test' }),
         expect.objectContaining({
-          href: '/price-insight?stage=compare',
-          label: 'Compare & Assess',
+          href: '/polymarket',
+          label: 'Polymarket Positions',
         }),
+        expect.objectContaining({ href: '/peg-risk', label: 'Peg Risk' }),
       ])
     );
-    expect(groups.map((group) => group.id)).not.toEqual(
-      expect.arrayContaining(['safety', 'analysis'])
+  });
+
+  it('keeps Observe, Compare, and receipt verification in the Oracle Evidence journey', () => {
+    const oracleEvidenceGroup = groups.find((group) => group.id === 'oracle-evidence');
+
+    expect(oracleEvidenceGroup?.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ href: '/price-insight?stage=observe', label: 'Observe' }),
+        expect.objectContaining({ href: '/price-insight?stage=compare', label: 'Compare' }),
+        expect.objectContaining({ href: '/verify', label: 'Verify a receipt' }),
+      ])
     );
   });
 

@@ -91,7 +91,7 @@ describe('Footer', () => {
       ['Decision Integrity', '/decision-integrity'],
       ['Oracle Evidence', '/price-insight?stage=observe'],
       ['Compare & Assess', '/price-insight?stage=compare'],
-      ['Risk Intelligence', '/risk-intelligence'],
+      ['Risk Tools', '/risk-intelligence'],
       ['Oracle Directory', '/reputation'],
       ['Daily Reports', '/reports'],
       ['API', '/api'],
