@@ -7,8 +7,10 @@
 // Write shape mirrors the Supabase RPC contract (adaptiveSnapshotPersistence.
 // projectTursoPriceSlot): idempotent hourly upsert keyed on
 // (provider, symbol, chain_id, snapshot_hour) plus one delivery-ledger row per
-// (slot_ms, input_hash). Re-projecting the same immutable payload is a no-op
-// that reports replayed=true.
+// (slot_ms, input_hash). The first successful slot in each UTC hour supplies
+// that hour's business snapshot; later slots still receive delivery receipts
+// but do not rewrite the same hourly keys. Re-projecting an immutable payload
+// is a no-op that reports replayed=true.
 import type { HourlySnapshotRow } from '@/lib/supabase/adaptiveSnapshotPersistence';
 import {
   evaluateCaptureContinuity,
@@ -130,12 +132,31 @@ export async function writeProjectedTursoPriceSlot(
 
   const projectedAt = new Date().toISOString();
   const existing = await client.execute({
-    sql: `SELECT 1 FROM price_slot_projection_runs WHERE slot_ms = ? AND input_hash = ?`,
+    sql: `SELECT hourly_written FROM price_slot_projection_runs WHERE slot_ms = ? AND input_hash = ?`,
     args: [snapshotMs, input.inputHash],
   });
   const replayed = existing.rows.length > 0;
+  let hourlyRowsToWrite: readonly HourlySnapshotRow[] = [];
 
-  const statements: InStatement[] = chunkHourlyRows(input.hourlyRows).flatMap((chunk) =>
+  if (!replayed && input.hourlyRows.length > 0) {
+    const hourStartMs = Math.floor(snapshotMs / 3_600_000) * 3_600_000;
+    const earlierHourlyProjection = await client.execute({
+      sql: `SELECT 1 FROM price_slot_projection_runs
+        WHERE slot_ms >= ? AND slot_ms < ? AND hourly_written > 0 LIMIT 1`,
+      args: [hourStartMs, hourStartMs + 3_600_000],
+    });
+    if (earlierHourlyProjection.rows.length === 0) {
+      hourlyRowsToWrite = input.hourlyRows;
+    }
+  }
+
+  // Preserve the original receipt count on retries. Later slots in the same
+  // hour are acknowledged with zero hourly rows written.
+  const hourlyWritten = replayed
+    ? Number((existing.rows[0] as Record<string, unknown>).hourly_written)
+    : hourlyRowsToWrite.length;
+
+  const statements: InStatement[] = chunkHourlyRows(hourlyRowsToWrite).flatMap((chunk) =>
     chunk.map((row) => ({
       sql: HOURLY_UPSERT_SQL,
       args: bindHourlyRow(row, projectedAt),
@@ -157,13 +178,13 @@ export async function writeProjectedTursoPriceSlot(
       input.inputHash,
       input.rawDigest,
       input.partitionKey,
-      input.hourlyRows.length,
+      hourlyWritten,
       projectedAt,
     ],
   });
 
   await client.batch(statements, 'write');
-  return { hourlyWritten: input.hourlyRows.length, replayed };
+  return { hourlyWritten, replayed };
 }
 
 export interface TursoOracleHistoryBaselineRow {
