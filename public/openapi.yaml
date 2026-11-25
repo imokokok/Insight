@@ -243,6 +243,8 @@ tags:
     description: Snapshots, exports, and daily reports
   - name: Execution Evidence
     description: Issue, retrieve, and independently verify signed execution receipts
+  - name: Prediction Markets
+    description: Read-only market discovery and independently verifiable source evidence
 
 security: []
 
@@ -5178,6 +5180,94 @@ paths:
           { description: Signed complete screening decision and short-lived EIP-712 attestation. }
         '400': { $ref: '#/components/responses/ValidationError' }
         '503': { description: Published Insight attester is not available. }
+
+  /polymarket/data/bls:
+    get:
+      operationId: getPolymarketBlsSeriesEvidence
+      tags: [Prediction Markets]
+      summary: Retrieve an official BLS series observation
+      description: >-
+        Read-only retrieval from the U.S. Bureau of Labor Statistics public
+        data API. Returns the requested series observation with source URL,
+        retrieval time, and disclosure. This endpoint does not evaluate a
+        market outcome or forecast economic data.
+      security:
+        - apiKey: []
+      parameters:
+        - { name: seriesId, in: query, required: true, schema: { type: string, maxLength: 32 } }
+        - {
+            name: year,
+            in: query,
+            required: true,
+            schema: { type: string, pattern: '^(19|20|21)\d{2}$' },
+          }
+        - { name: period, in: query, required: true, schema: { type: string, example: M01 } }
+      responses:
+        '200': { description: Official BLS series observation and source metadata. }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '502':
+          { description: BLS public data service is unavailable or returned an invalid response. }
+
+  /polymarket/evidence:
+    post:
+      operationId: collectPolymarketSourceEvidence
+      tags: [Prediction Markets]
+      summary: Collect and sign source evidence for a Polymarket market
+      description: >-
+        Read-only collection of the market's rule identity and explicitly
+        selected source observations. Returns a short-lived Insight
+        attestation when a published signer is configured. The evidence is
+        not an outcome forecast, trade recommendation, or execution authority.
+      security:
+        - apiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [marketId]
+              properties:
+                marketId: { type: string, minLength: 1, maxLength: 100 }
+      responses:
+        '200': { description: Collected source evidence and signed attestation. }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '502': { description: A required upstream source is unavailable or returned invalid data. }
+        '503': { description: Published Insight signer is not available. }
+
+  /polymarket/markets:
+    get:
+      operationId: discoverPolymarketMarkets
+      tags: [Prediction Markets]
+      summary: Discover active Polymarket markets
+      description: Read-only discovery. Search by query or tag; this endpoint does not forecast outcomes or submit orders.
+      security:
+        - apiKey: []
+      parameters:
+        - { name: query, in: query, required: false, schema: { type: string, maxLength: 120 } }
+        - {
+            name: tagId,
+            in: query,
+            required: false,
+            schema: { type: string, pattern: '^\d{1,20}$' },
+          }
+        - {
+            name: afterCursor,
+            in: query,
+            required: false,
+            schema: { type: string, maxLength: 2048 },
+          }
+        - {
+            name: limit,
+            in: query,
+            required: false,
+            schema: { type: integer, minimum: 1, maximum: 50, default: 20 },
+          }
+      responses:
+        '200': { description: Normalized active-market metadata and pagination information. }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '502': { description: Polymarket market discovery service is unavailable. }
+
   /safety/tokenized-stock-guard:
     get:
       operationId: assessTokenizedStockGuard
