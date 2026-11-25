@@ -104,15 +104,10 @@ describe('RedStoneMonadOnChainService', () => {
     );
     await expect(stale.getPrice(btc!)).rejects.toThrow('stale or future-dated');
 
+    const futureTimestamp = BigInt(Math.floor(Date.now() / 1000) + 60 * 60);
     const future = new RedStoneMonadOnChainService(
       rpcReturning(
-        roundResponse(
-          1n,
-          100_000_000n,
-          BigInt(Math.floor(Date.now() / 1000) + 301),
-          BigInt(Math.floor(Date.now() / 1000) + 301),
-          1n
-        ),
+        roundResponse(1n, 100_000_000n, futureTimestamp, futureTimestamp, 1n),
         decimalsResponse(8n)
       )
     );
