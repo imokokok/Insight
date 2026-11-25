@@ -35,6 +35,8 @@ export interface GammaMarket {
   active?: boolean | null;
   outcomes?: string | null; // JSON-encoded string array
   outcomePrices?: string | null; // JSON-encoded string array
+  /** Gamma's ordered CLOB asset IDs; v1 markets expose token IDs and v2 markets position IDs. */
+  clobTokenIds?: string | null; // JSON-encoded string array
 }
 
 export interface ParsedPriceContract {

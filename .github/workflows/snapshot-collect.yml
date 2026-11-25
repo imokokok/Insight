@@ -172,29 +172,20 @@ jobs:
       # signed packs). Kraken is the only rights-cleared collection venue; the
       # library fails closed and every step above tolerates an upstream outage.
       #
-      # Hourly gate: the series this collector covers currently yields zero
-      # output, so 3 of 4 dispatches per hour are pure Supabase IO. Run it only
-      # on the top-of-hour slot. The slot must come from the dispatch ledger;
-      # without it the gate fails loudly instead of using the runner clock.
-      - name: Settlement hourly gate
+      # Run on each scheduler-provided 15-minute slot. The collector's market
+      # discovery, candle writes, and evidence-pack writes are idempotent; the
+      # shorter interval reduces the chance of missing fast-resolving markets.
+      - name: Validate settlement slot
         id: settlement_gate
         run: |
-          minute=""
           slot="${{ inputs.scheduled_for }}"
-          if [ -n "$slot" ]; then
-            minute=$(date -u -d "$slot" +%M 2>/dev/null || echo "")
-          fi
-          if [ -z "$minute" ]; then
+          if [ -z "$slot" ]; then
             echo "::error title=Missing scheduled_for::Cannot resolve the settlement slot without CRON_SCHEDULED_FOR."
             exit 1
           fi
-          if [ "$((10#$minute))" -lt 15 ]; then
-            echo "run=true" >> "$GITHUB_OUTPUT"
-            echo "settlement slot: top-of-hour (minute=$minute), running"
-          else
-            echo "run=false" >> "$GITHUB_OUTPUT"
-            echo "settlement slot: non-top-of-hour (minute=$minute), skipping"
-          fi
+          date -u -d "$slot" +%s >/dev/null
+          echo "run=true" >> "$GITHUB_OUTPUT"
+          echo "settlement slot: scheduler-provided 15-minute interval"
 
       - name: Collect settlement evidence
         if: steps.settlement_gate.outputs.run == 'true'

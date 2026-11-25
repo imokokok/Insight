@@ -679,7 +679,7 @@ export const BAZAAR_PREDICTION_GUARD_DISCOVERY_EXTENSION = declareDiscoveryExten
   },
   output: {
     example: {
-      schema: 'insight.polymarket-guard.v1',
+      schema: 'insight.polymarket-guard.v2',
       verdict: 'CAUTION',
       protocolId: 'polymarket-prediction-mainnet',
       action: 'buy_up',
@@ -1449,7 +1449,7 @@ export async function buildX402HttpServer(
     [X402_PREDICTION_GUARD_ROUTE]: routeConfigFor(
       cfg,
       BAZAAR_PREDICTION_GUARD_DISCOVERY_EXTENSION,
-      'Prediction Guard: a read-only screening gate for one reviewed Polymarket or Kalshi market entry. Cross-oracle consensus is deliberately not applied to event markets; the guard verifies venue metadata, lifecycle and timing, quoted-probability integrity, settlement rules and venue-specific evidence limits. Kalshi settlement is official-API-declared and not independently recomputable. It never signs, submits, or authorizes an order.'
+      'Prediction Guard: a read-only screening gate for one reviewed Polymarket or Kalshi market entry. Polymarket assessments use a fresh CLOB top-of-book quote for the selected outcome and fail closed when the quote is unavailable or stale. Cross-oracle consensus is deliberately not applied to event markets; settlement evidence limits are disclosed. Kalshi settlement is official-API-declared and not independently recomputable. It never signs, submits, or authorizes an order.'
     ),
     [X402_TOKENIZED_STOCK_GUARD_ROUTE]: routeConfigFor(
       cfg,
