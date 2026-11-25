@@ -1,12 +1,15 @@
+import {
+  getLatestD1PriceRecord,
+  getPriceRecordsFallbackOnMiss,
+  getPriceRecordsD1Database,
+  getPriceRecordsMode,
+  listD1PriceRecords,
+  saveD1PriceRecords,
+} from '@/lib/cloudflare/priceRecords';
 import { type PriceRecordInsert, type PriceRecord } from '@/lib/supabase/queries';
 import { createServiceRoleClient, getAdminQueries } from '@/lib/supabase/server';
 import { loadSnapshotHistoryRange } from '@/lib/supabase/snapshotHistory';
-import {
-  getTursoPriceClient,
-  readTursoPriceRecordsFallbackOnMiss,
-  readTursoPriceRecordsMode,
-  readTursoPriceWriteMode,
-} from '@/lib/turso/price/client';
+import { getTursoPriceClient, readTursoPriceWriteMode } from '@/lib/turso/price/client';
 import { loadTursoLatestPrice } from '@/lib/turso/price/historyRepository';
 import {
   deleteExpiredTursoPriceRecords,
@@ -248,9 +251,33 @@ async function saveRecordsToTurso(records: PriceRecordInsert[]): Promise<number>
  * cache write must never be lost just because the new store is unavailable.
  */
 async function saveRecordsWithMode(records: PriceRecordInsert[]): Promise<number> {
-  const mode = readTursoPriceRecordsMode();
+  const mode = await getPriceRecordsMode();
   if (mode === 'supabase') {
     return getAdminQueries().savePriceRecords(records);
+  }
+  if (mode === 'd1') {
+    try {
+      return await saveD1PriceRecords(await getPriceRecordsD1Database(), records);
+    } catch (error) {
+      logger.error(
+        'Cloudflare D1 price_records write failed; falling back to Supabase',
+        normalizeError(error)
+      );
+      return getAdminQueries().savePriceRecords(records);
+    }
+  }
+  if (mode === 'd1-shadow') {
+    const supabase = getAdminQueries().savePriceRecords(records);
+    const d1 = (async () => {
+      try {
+        return await saveD1PriceRecords(await getPriceRecordsD1Database(), records);
+      } catch (error) {
+        logger.warn('Shadow price_records write to Cloudflare D1 failed', normalizeError(error));
+        return 0;
+      }
+    })();
+    const [saved] = await Promise.all([supabase, d1]);
+    return saved;
   }
   if (mode === 'shadow') {
     const supabase = getAdminQueries().savePriceRecords(records);
@@ -304,8 +331,23 @@ export async function getPriceFromDatabase(
     return null;
   }
 
-  const mode = readTursoPriceRecordsMode();
-  const fallbackOnMiss = readTursoPriceRecordsFallbackOnMiss();
+  const mode = await getPriceRecordsMode();
+  const fallbackOnMiss = await getPriceRecordsFallbackOnMiss();
+
+  if (mode === 'd1') {
+    try {
+      const record = await getLatestD1PriceRecord(await getPriceRecordsD1Database(), {
+        provider,
+        symbol,
+        chain,
+      });
+      if (record) return recordToPriceData(record);
+      if (!fallbackOnMiss) return null;
+    } catch (error) {
+      logger.error('Cloudflare D1 price_records read failed', normalizeError(error));
+      if (!fallbackOnMiss) return null;
+    }
+  }
 
   if (mode === 'turso') {
     try {
@@ -350,7 +392,8 @@ export async function getHistoricalPricesFromDatabase(
     const startTime = now - period * 60 * 60 * 1000;
 
     const loadRecords = async () => {
-      if (readTursoPriceRecordsMode() !== 'turso') {
+      const mode = await getPriceRecordsMode();
+      if (mode !== 'turso' && mode !== 'd1') {
         return getAdminQueries().getPriceRecords({
           provider,
           symbol,
@@ -361,20 +404,32 @@ export async function getHistoricalPricesFromDatabase(
         });
       }
       try {
-        const client = getTursoPriceClient();
-        await ensureTursoPriceSchema(client);
-        const records = await listTursoPriceRecords(client, {
-          provider,
-          symbol,
-          chain: chain ?? undefined,
-          startTime,
-          endTime: now,
-          limit: period * 4,
-        });
-        if (records.length > 0 || !readTursoPriceRecordsFallbackOnMiss()) return records;
+        const records =
+          mode === 'd1'
+            ? await listD1PriceRecords(await getPriceRecordsD1Database(), {
+                provider,
+                symbol,
+                chain: chain ?? undefined,
+                startTime,
+                endTime: now,
+                limit: period * 4,
+              })
+            : await (async () => {
+                const client = getTursoPriceClient();
+                await ensureTursoPriceSchema(client);
+                return listTursoPriceRecords(client, {
+                  provider,
+                  symbol,
+                  chain: chain ?? undefined,
+                  startTime,
+                  endTime: now,
+                  limit: period * 4,
+                });
+              })();
+        if (records.length > 0 || !(await getPriceRecordsFallbackOnMiss())) return records;
       } catch (error) {
         logger.error('Turso price_records history read failed', normalizeError(error));
-        if (!readTursoPriceRecordsFallbackOnMiss()) return null;
+        if (!(await getPriceRecordsFallbackOnMiss())) return null;
       }
       // Only the first 24 hours after cutover can differ between the stores.
       return getAdminQueries().getPriceRecords({

@@ -20,7 +20,7 @@ export interface TursoFeedRegistryPolicy {
   maxAgeMs: number;
 }
 
-export type TursoPriceRecordsMode = 'supabase' | 'shadow' | 'turso';
+export type TursoPriceRecordsMode = 'supabase' | 'shadow' | 'turso' | 'd1-shadow' | 'd1';
 
 export interface TursoPricePayloadCompactionPolicy {
   /** ACKed slot payloads older than this are replaced with a compact summary. */
@@ -89,14 +89,18 @@ export function readTursoPriceRetentionPolicy(
  * high-write Supabase table with Postgres indexes (including two GIN indexes),
  * so it can be moved to Turso independently of the raw price stream.
  * `supabase` keeps today's behaviour; `shadow` writes both and reads Supabase;
- * `turso` writes Turso and reads it first, falling back to Supabase on failure.
+ * `turso` writes Turso and reads it first; `d1-shadow` mirrors Supabase writes
+ * to D1 while still reading Supabase; `d1` makes D1 primary with a Supabase
+ * fallback during cache cutover.
  */
 export function readTursoPriceRecordsMode(
-  value: string | undefined = process.env.TURSO_PRICE_RECORDS_MODE
+  value: string | undefined = process.env['TURSO_PRICE_RECORDS_MODE']
 ): TursoPriceRecordsMode {
   if (value === undefined || value === '' || value === 'supabase') return 'supabase';
-  if (value === 'shadow' || value === 'turso') return value;
-  throw new Error('TURSO_PRICE_RECORDS_MODE must be supabase, shadow, or turso');
+  if (value === 'shadow' || value === 'turso' || value === 'd1-shadow' || value === 'd1') {
+    return value;
+  }
+  throw new Error('TURSO_PRICE_RECORDS_MODE must be supabase, shadow, turso, d1-shadow, or d1');
 }
 
 /**
@@ -105,7 +109,7 @@ export function readTursoPriceRecordsMode(
  * fall back to Supabase; after one TTL the flag can be turned off.
  */
 export function readTursoPriceRecordsFallbackOnMiss(
-  value: string | undefined = process.env.TURSO_PRICE_RECORDS_FALLBACK_ON_MISS
+  value: string | undefined = process.env['TURSO_PRICE_RECORDS_FALLBACK_ON_MISS']
 ): boolean {
   if (value === undefined || value === '' || value === 'true') return true;
   if (value === 'false') return false;
