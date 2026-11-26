@@ -90,7 +90,7 @@ jobs:
     env:
       CRON_SECRET: ${{ secrets.CRON_SECRET }}
       # This job runs in Node, so D1 writes use the authenticated Worker route.
-      TURSO_PRICE_RECORDS_MODE: d1-shadow
+      TURSO_PRICE_RECORDS_MODE: d1
       TURSO_PRICE_RECORDS_FALLBACK_ON_MISS: 'true'
       TURSO_PRICE_RECORDS_INGEST_URL: https://oracleinsight.xyz/api/cron/price-records
     steps:
