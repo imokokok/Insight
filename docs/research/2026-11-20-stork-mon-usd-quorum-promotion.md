@@ -72,3 +72,11 @@ coverage gate 通过；是否 ALLOW/CAUTION 仍由其余规则（manip cost、�
 - `npx jest --runInBand src/lib/oracles/__tests__/storkMonad.test.ts` — 8/8 通过
 - `npx jest --runInBand` 关联套件（feedSync / consensusPrice / v2Flow / oracleWatchService）— 76/76 通过
 - `npx tsc --noEmit -p tsconfig.json` — 通过
+
+## Maintainer sign-off (2026-11-27, Asia/Shanghai)
+
+The project owner approved promoting only MON/USD to the strict quorum after
+reviewing the documented source-overlap uncertainty. This is an explicit risk
+acceptance for the one-feed change; it does not claim that venue-level overlap
+has been independently disproven. The remaining 37 Stork Monad feeds stay in
+shadow-only mode, and all other pre-trade gates remain in force.

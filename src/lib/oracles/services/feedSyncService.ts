@@ -674,7 +674,7 @@ class FeedSyncService {
         quoteType: feed.alias.endsWith('.RR') ? 'reference-rate' : 'price',
         freshnessPolicy: 'getTemporalNumericValueV1 safe read and timestamp <= maxStalenessSeconds',
         quorumStatus: STRICT_QUORUM_PROMOTION_CANDIDATES.has(feed.alias)
-          ? 'promotion-candidate-pending-source-overlap-signoff'
+          ? 'strict-quorum-risk-accepted'
           : 'shadow-only-pending-source-overlap-review',
       },
     }));
