@@ -7,10 +7,22 @@ import {
   resetMarketReferenceCacheForTests,
 } from '@/lib/marketReference/client';
 import { createServiceRoleClient } from '@/lib/supabase/server';
+import { getTursoOpsClient } from '@/lib/turso/ops/client';
+import {
+  readTursoLatestMarketReference,
+  readTursoMarketRefMode,
+} from '@/lib/turso/ops/marketReferenceRepository';
+import { ensureTursoOpsSchema } from '@/lib/turso/ops/schema';
 
 jest.mock('@/lib/supabase/server', () => ({
   createServiceRoleClient: jest.fn(),
 }));
+jest.mock('@/lib/turso/ops/client', () => ({ getTursoOpsClient: jest.fn() }));
+jest.mock('@/lib/turso/ops/marketReferenceRepository', () => ({
+  readTursoLatestMarketReference: jest.fn(),
+  readTursoMarketRefMode: jest.fn(() => 'supabase'),
+}));
+jest.mock('@/lib/turso/ops/schema', () => ({ ensureTursoOpsSchema: jest.fn() }));
 
 jest.mock('@/lib/dataRights/evidenceRights', () => ({
   customerEligibleMarketReferenceVenues: jest.fn(() => ['coinbase']),
@@ -22,6 +34,10 @@ const mockedCreateServiceRoleClient = createServiceRoleClient as jest.MockedFunc
 const mockedCustomerEligibleVenues = customerEligibleMarketReferenceVenues as jest.MockedFunction<
   typeof customerEligibleMarketReferenceVenues
 >;
+const mockedTursoMode = jest.mocked(readTursoMarketRefMode);
+const mockedTursoClient = jest.mocked(getTursoOpsClient);
+const mockedTursoRead = jest.mocked(readTursoLatestMarketReference);
+const mockedEnsureTursoSchema = jest.mocked(ensureTursoOpsSchema);
 
 type Result = { data: unknown; error: unknown };
 
@@ -53,6 +69,8 @@ describe('marketReference client', () => {
     resetMarketReferenceCacheForTests();
     jest.clearAllMocks();
     mockedCustomerEligibleVenues.mockReturnValue(['coinbase']);
+    mockedTursoMode.mockReturnValue('supabase');
+    mockedEnsureTursoSchema.mockResolvedValue(undefined);
   });
 
   it('does not query a legacy database rollup when no vendor source has reviewed rights', async () => {
@@ -80,6 +98,26 @@ describe('marketReference client', () => {
     expect(ref!.refPrice).toBe(3000);
     expect(ref!.exchangeCount).toBe(2);
     expect(ref!.medianBidAskSpreadPct).toBe(0.02);
+  });
+
+  it('reads the rights-gated rollup from Turso when the collector is Turso-primary', async () => {
+    mockedTursoMode.mockReturnValue('turso');
+    mockedTursoClient.mockReturnValue({} as never);
+    mockedTursoRead.mockResolvedValue({
+      symbol: 'ETH',
+      ref_hour: new Date().toISOString(),
+      ref_price: 3000,
+      exchange_count: 2,
+      cross_exchange_spread_pct: 0.05,
+      median_bid_ask_spread_pct: 0.02,
+      median_volume: 1000,
+    });
+
+    const ref = await getMarketReference('ETH');
+    expect(ref).toMatchObject({ symbol: 'ETH', refPrice: 3000, exchangeCount: 2 });
+    expect(mockedEnsureTursoSchema).toHaveBeenCalledWith({});
+    expect(mockedTursoRead).toHaveBeenCalledWith({}, 'ETH');
+    expect(mockedCreateServiceRoleClient).not.toHaveBeenCalled();
   });
 
   it('fail-closes a stale rollup row (>= MAX_REF_AGE_HOURS old) as absent', async () => {

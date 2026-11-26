@@ -4,6 +4,7 @@ import type { MarketReferenceRow } from '@/lib/marketReference/collector';
 import {
   readHourlyAggregates,
   readLatestSuccessfulRows,
+  readTursoLatestMarketReference,
   readTursoMarketRefMode,
   trimTursoMarketReferenceRows,
   upsertTursoMarketReferenceRows,
@@ -276,5 +277,81 @@ describe('readHourlyAggregates', () => {
       new Date('2026-11-10T13:00:00.000Z')
     );
     expect(aggregates[0].ref_price).toBeCloseTo((101 + 103) / 2);
+  });
+});
+
+describe('readTursoLatestMarketReference', () => {
+  beforeEach(async () => {
+    await client.execute('DELETE FROM market_reference_snapshots');
+  });
+
+  it('matches the rights-gated latest-hour rollup and excludes unlicensed rows', async () => {
+    const now = new Date('2026-11-26T12:34:00.000Z');
+    await upsertTursoMarketReferenceRows(client, [
+      row({
+        snapshot_ts: '2026-11-26T12:05:00.000Z',
+        exchange: 'kraken',
+        ref_price: 100,
+        bid_ask_spread_pct: 0.1,
+        volume: 100,
+        rights_scope: 'vendor-licensed',
+      }),
+      row({
+        snapshot_ts: '2026-11-26T12:20:00.000Z',
+        exchange: 'kraken',
+        ref_price: 102,
+        bid_ask_spread_pct: 0.3,
+        volume: 200,
+        rights_scope: 'vendor-licensed',
+      }),
+      row({
+        snapshot_ts: '2026-11-26T12:12:00.000Z',
+        exchange: 'dexscreener',
+        ref_price: 110,
+        bid_ask_spread_pct: null,
+        volume: 300,
+        rights_scope: 'vendor-licensed',
+      }),
+      row({
+        snapshot_ts: '2026-11-26T12:14:00.000Z',
+        exchange: 'geckoterminal',
+        ref_price: 90,
+        bid_ask_spread_pct: 0.4,
+        volume: 400,
+        rights_scope: 'vendor-licensed',
+      }),
+      row({
+        snapshot_ts: '2026-11-26T12:30:00.000Z',
+        exchange: 'unlicensed',
+        rights_scope: 'research-quarantined',
+        ref_price: 1,
+      }),
+      row({ snapshot_ts: '2026-11-26T11:50:00.000Z', exchange: 'old-hour', ref_price: 500 }),
+    ]);
+
+    const result = await readTursoLatestMarketReference(client, 'btc', now);
+    expect(result).toMatchObject({
+      symbol: 'BTC',
+      ref_hour: '2026-11-26T12:00:00.000Z',
+      ref_price: 101,
+      exchange_count: 3,
+      median_volume: 300,
+    });
+    expect(result?.median_bid_ask_spread_pct).toBeCloseTo(0.3, 6);
+    expect(result?.cross_exchange_spread_pct).toBeCloseTo(((110 - 90) / 110) * 100, 6);
+  });
+
+  it('returns null when the only observations are outside the SQL bounds or not licensed', async () => {
+    await upsertTursoMarketReferenceRows(client, [
+      row({ snapshot_ts: '2026-11-26T12:10:00.000Z', rights_scope: 'research-quarantined' }),
+      row({
+        snapshot_ts: '2026-11-26T09:59:00.000Z',
+        exchange: 'old',
+        rights_scope: 'vendor-licensed',
+      }),
+    ]);
+    expect(
+      await readTursoLatestMarketReference(client, 'BTC', new Date('2026-11-26T12:34:00.000Z'))
+    ).toBeNull();
   });
 });
