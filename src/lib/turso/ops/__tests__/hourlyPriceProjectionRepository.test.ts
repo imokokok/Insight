@@ -4,6 +4,8 @@ import type { HourlySnapshotRow } from '@/lib/supabase/adaptiveSnapshotPersisten
 import { expectedRecentSlotMs } from '@/lib/supabase/captureContinuity';
 import {
   readTursoOracleHistoryBaseline,
+  loadTursoHourlyHistoryPage,
+  readTursoHourlyHistoryReadCutoverMs,
   readTursoPriceProjectionMode,
   readTursoPriceSlotContinuity,
   upsertTursoHourlySnapshots,
@@ -75,6 +77,50 @@ describe('readTursoPriceProjectionMode', () => {
     expect(readTursoPriceProjectionMode('turso')).toBe('turso');
     expect(() => readTursoPriceProjectionMode('shadow')).toThrow(
       'TURSO_PRICE_PROJECTION_MODE must be supabase or turso'
+    );
+  });
+});
+
+describe('Turso hourly history reads', () => {
+  it('accepts only canonical UTC ISO cutovers', () => {
+    expect(readTursoHourlyHistoryReadCutoverMs(undefined)).toBeUndefined();
+    expect(readTursoHourlyHistoryReadCutoverMs('invalid')).toBeUndefined();
+    expect(readTursoHourlyHistoryReadCutoverMs('2026-11-10T00:00:00Z')).toBeUndefined();
+    expect(readTursoHourlyHistoryReadCutoverMs('2026-11-10T00:00:00.000Z')).toBe(
+      Date.parse('2026-11-10T00:00:00.000Z')
+    );
+  });
+
+  it('reads stable, filtered pages and normalizes SQLite booleans', async () => {
+    await client.execute({
+      sql: `INSERT INTO hourly_price_snapshots (
+        provider, symbol, chain_id, price, is_success, snapshot_hour, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      args: [
+        'history-cutover-test',
+        'ETH',
+        1,
+        2_000,
+        1,
+        '2026-11-10T00:00:00.000Z',
+        '2026-11-10T00:00:01.000Z',
+      ],
+    });
+    const rows = await loadTursoHourlyHistoryPage(
+      client,
+      Date.parse('2026-11-10T00:00:00.000Z'),
+      Date.parse('2026-11-11T00:00:00.000Z'),
+      ['id', 'snapshot_hour', 'provider', 'symbol', 'chain_id', 'price', 'is_success'],
+      { providers: ['history-cutover-test'], ascending: true }
+    );
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toEqual(
+      expect.objectContaining({
+        snapshot_hour: '2026-11-10T00:00:00.000Z',
+        is_success: true,
+        chain_id: 1,
+        price: 2_000,
+      })
     );
   });
 });

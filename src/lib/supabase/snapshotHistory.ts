@@ -1,5 +1,13 @@
 import { z } from 'zod';
 
+import { getTursoOpsClient } from '@/lib/turso/ops/client';
+import {
+  loadTursoHourlyHistoryPage,
+  readTursoHourlyHistoryReadCutoverMs,
+  readTursoPriceProjectionMode,
+  type TursoHourlyHistoryField,
+} from '@/lib/turso/ops/hourlyPriceProjectionRepository';
+import { ensureTursoOpsSchema } from '@/lib/turso/ops/schema';
 import {
   getTursoPriceClient,
   readTursoPriceReadCutoverMs,
@@ -132,6 +140,23 @@ async function loadTursoRows(
   )) as unknown as Snapshot[];
 }
 
+async function loadTursoHourlyRows(
+  fromMs: number,
+  beforeMs: number,
+  selected: readonly Column[],
+  options: PageOptions
+): Promise<Snapshot[]> {
+  const client = getTursoOpsClient();
+  await ensureTursoOpsSchema(client);
+  return (await loadTursoHourlyHistoryPage(
+    client,
+    fromMs,
+    beforeMs,
+    selected as readonly TursoHourlyHistoryField[],
+    options
+  )) as unknown as Snapshot[];
+}
+
 type FetchRows = (offset: number, limit: number) => Promise<Snapshot[]>;
 
 /**
@@ -208,7 +233,47 @@ export async function loadSnapshotHistoryPage<C extends Column>(
 ): Promise<Pick<Snapshot, C>[]> {
   const page = validatePage(kind, from, before, columns, options);
   let rows: Snapshot[];
-  if (kind === 'hourly' || readTursoPriceWriteMode() !== 'primary') {
+  if (kind === 'hourly') {
+    const cutoverMs = readTursoHourlyHistoryReadCutoverMs();
+    if (readTursoPriceProjectionMode() !== 'turso' || cutoverMs === undefined) {
+      rows = await loadSupabaseRows(client, kind, from, before, page.selected, options);
+    } else {
+      const legacyEnd = Math.min(page.end, cutoverMs);
+      const tursoStart = Math.max(page.start, cutoverMs);
+      const legacy: FetchRows | undefined =
+        page.start < cutoverMs
+          ? (offset, limit) =>
+              loadSupabaseRows(
+                client,
+                kind,
+                from,
+                new Date(legacyEnd).toISOString(),
+                page.selected,
+                {
+                  ...options,
+                  offset,
+                  limit,
+                  inclusiveBefore: page.end < cutoverMs ? options.inclusiveBefore : false,
+                }
+              )
+          : undefined;
+      const turso: FetchRows | undefined =
+        page.end > cutoverMs || (options.inclusiveBefore && page.end === cutoverMs)
+          ? (offset, limit) =>
+              loadTursoHourlyRows(tursoStart, page.end, page.selected, {
+                ...options,
+                offset,
+                limit,
+              })
+          : undefined;
+      const sources = options.ascending ? [legacy, turso] : [turso, legacy];
+      rows = await pageAcrossSources(
+        sources.filter((source): source is FetchRows => source !== undefined),
+        page.offset,
+        page.limit
+      );
+    }
+  } else if (readTursoPriceWriteMode() !== 'primary') {
     rows = await loadSupabaseRows(client, kind, from, before, page.selected, options);
   } else {
     const cutoverMs = readTursoPriceReadCutoverMs();

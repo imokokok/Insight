@@ -277,6 +277,137 @@ export interface TursoHourlyUpsertRow {
   error_message: string | null;
 }
 
+export const TURSO_HOURLY_HISTORY_FIELDS = [
+  'id',
+  'snapshot_hour',
+  'provider',
+  'symbol',
+  'chain_id',
+  'price',
+  'consensus_price',
+  'deviation_pct',
+  'latency_ms',
+  'data_age_seconds',
+  'confidence',
+  'is_success',
+  'error_message',
+  'created_at',
+] as const;
+
+export type TursoHourlyHistoryField = (typeof TURSO_HOURLY_HISTORY_FIELDS)[number];
+
+export interface TursoHourlyHistoryPageOptions {
+  providers?: string[];
+  symbol?: string;
+  chainId?: number;
+  successOnly?: boolean;
+  ascending?: boolean;
+  limit?: number;
+  offset?: number;
+  inclusiveBefore?: boolean;
+}
+
+/**
+ * Supabase archives hourly history through the last complete archived day;
+ * missing or malformed configuration keeps reads on Supabase.
+ */
+export function readTursoHourlyHistoryReadCutoverMs(
+  value: string | undefined = process.env.TURSO_HOURLY_HISTORY_READ_CUTOVER_AT
+): number | undefined {
+  if (!value) return undefined;
+  const parsed = Date.parse(value);
+  if (
+    !Number.isSafeInteger(parsed) ||
+    parsed < 0 ||
+    !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(value) ||
+    new Date(parsed).toISOString() !== value
+  ) {
+    return undefined;
+  }
+  return parsed;
+}
+
+function historyInteger(value: unknown, field: string): number {
+  const number = Number(value);
+  if (!Number.isSafeInteger(number) || number < 0) throw new Error(`Invalid Turso ${field}`);
+  return number;
+}
+
+/**
+ * Read the bounded Turso hourly projection page using the same ordering and
+ * filters as get_snapshot_history_page. The caller splits at the recorded
+ * projection cutover so Supabase remains the source for older archive pages.
+ */
+export async function loadTursoHourlyHistoryPage(
+  client: Client,
+  fromMs: number,
+  beforeMs: number,
+  selected: readonly TursoHourlyHistoryField[],
+  options: TursoHourlyHistoryPageOptions = {}
+): Promise<Record<TursoHourlyHistoryField, unknown>[]> {
+  const limit = options.limit ?? 1000;
+  const offset = options.offset ?? 0;
+  if (
+    !Number.isSafeInteger(fromMs) ||
+    fromMs < 0 ||
+    !Number.isSafeInteger(beforeMs) ||
+    beforeMs < fromMs ||
+    !Number.isSafeInteger(limit) ||
+    limit < 1 ||
+    limit > 10001 ||
+    !Number.isSafeInteger(offset) ||
+    offset < 0 ||
+    selected.length === 0 ||
+    selected.some((field) => !TURSO_HOURLY_HISTORY_FIELDS.includes(field))
+  ) {
+    throw new Error('Invalid Turso hourly history page');
+  }
+
+  const where = ['snapshot_hour >= ?'];
+  const args: (string | number)[] = [new Date(fromMs).toISOString()];
+  where.push(options.inclusiveBefore ? 'snapshot_hour <= ?' : 'snapshot_hour < ?');
+  args.push(new Date(beforeMs).toISOString());
+  if (options.providers) {
+    if (options.providers.length === 0) return [];
+    where.push(`provider IN (${options.providers.map(() => '?').join(', ')})`);
+    args.push(...options.providers);
+  }
+  if (options.symbol !== undefined) {
+    where.push('symbol = ?');
+    args.push(options.symbol);
+  }
+  if (options.chainId !== undefined) {
+    if (!Number.isSafeInteger(options.chainId) || options.chainId < 0) {
+      throw new Error('Invalid Turso hourly history chain id');
+    }
+    where.push('chain_id = ?');
+    args.push(options.chainId);
+  }
+  if (options.successOnly) where.push('is_success = 1 AND price > 0');
+
+  const uniqueFields = [...new Set<TursoHourlyHistoryField>(selected)];
+  const order = options.ascending ? 'ASC' : 'DESC';
+  const selectFields = uniqueFields.map((field) =>
+    field === 'is_success' ? 'is_success = 1 AS is_success' : field
+  );
+  const result = await client.execute({
+    sql: `SELECT ${selectFields.join(', ')}
+          FROM hourly_price_snapshots
+          WHERE ${where.join(' AND ')}
+          ORDER BY snapshot_hour ${order}, id ${order}
+          LIMIT ? OFFSET ?`,
+    args: [...args, limit, offset],
+  });
+
+  return result.rows.map((row) => {
+    const value = { ...row } as Record<string, unknown>;
+    value.id = historyInteger(value.id, 'hourly history id');
+    value.chain_id = historyInteger(value.chain_id, 'hourly history chain id');
+    value.is_success = Number(value.is_success) === 1 || value.is_success === true;
+    return value as Record<TursoHourlyHistoryField, unknown>;
+  });
+}
+
 /**
  * JS port of the upsert_hourly_price_snapshots RPC (migrations 0099/0113):
  * dedupe the batch to one row per (snapshot_hour, provider, symbol, chain_id)
