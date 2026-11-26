@@ -32,7 +32,7 @@ export default defineConfig({
         id: 'c23c2775-998b-48a5-b428-7b53e25a3d24',
         name: 'insight-price-records',
       }),
-      TURSO_PRICE_RECORDS_MODE: bindings.text('d1-shadow'),
+      TURSO_PRICE_RECORDS_MODE: bindings.text('d1'),
       TURSO_PRICE_RECORDS_FALLBACK_ON_MISS: bindings.text('true'),
       INSIGHT_RUNTIME: bindings.text('cloudflare'),
       INSIGHT_RELEASE_SHA: bindings.text(process.env.GITHUB_SHA ?? 'local'),
