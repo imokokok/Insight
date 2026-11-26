@@ -1,104 +1,121 @@
 # Insight `price_records` on Cloudflare D1
 
-**Status:** the Worker is deployed in `d1-shadow` mode. The first production
-check found that the scheduled snapshot collector runs in GitHub Actions on
-Node, where Cloudflare D1 bindings are unavailable. D1 had no cache rows, so
-the shadow window has not started. The authenticated Worker ingest endpoint
-below completes the path before the 24-hour reconciliation window begins.
+**Status (verified 2026-11-26 05:12 UTC / 13:12 Beijing):** D1 is the primary
+store for the short-lived `price_records` cache. The production Worker and
+scheduled collector use `TURSO_PRICE_RECORDS_MODE=d1`, with
+`TURSO_PRICE_RECORDS_FALLBACK_ON_MISS=true`. Supabase remains the fallback and
+rollback store; its table is intentionally retained. This is a scoped cache
+migration, not a migration of the canonical historical price data.
 
-## Scope decision
+## Cutover evidence
 
-Only the short-lived `price_records` cache moves. It is not the canonical price
-history: successful 15-minute observations and long-range history remain in
-Supabase/Turso's existing archive workflow. The cache expires after 24 hours
-and can be rebuilt by new price observations.
+- Production deployment is commit `fd1e5acfcd8c8378939b5789169b991bfc3268d9`
+  (PR #721). The Node-based GitHub Actions collector sends bounded batches to
+  the authenticated Worker endpoint because it cannot use a Worker D1 binding
+  directly.
+- The pre-cutover shadow period was about 10 hours, shorter than the originally
+  planned 24 hours. The 18:00 UTC batch had a 257-row persisted-field
+  reconciliation; subsequent checks covered batch counts and the fallback
+  paths. Do not describe this rollout as having completed a full 24-hour
+  shadow.
+- The first scheduled post-cutover hourly batch, GitHub Actions run
+  `45758694215` at 05:00 UTC, succeeded with D1 mode and miss fallback enabled.
+  It logged `observations=562`, `selected=442`, and `saved=243`. D1 contained
+  243 rows for that minute; Supabase had no new rows for the same minute.
+- At the same audit, D1 held about 2,984 rows and no expired rows. These checks
+  establish that live writes reached D1; they do not prove that every possible
+  provider or symbol has been reconciled over a complete day.
 
-The latest account observations (2026-11-25) support a cautious D1 rollout:
+## Scope and data flow
 
-- Supabase `pg_database_size()` returned 403,139,731 bytes, about 81% of the
-  Free 500 MB database quota. `pg_total_relation_size('price_records')` returned
-  16,130,048 bytes; moving it frees about 4% of the measured database size.
-- `pg_stat_statements` had a 26.2-hour collection window. It recorded 64
-  `price_records` insert rows, 3,841 calls to price-record read statements, and
-  23 TTL-cleanup calls. The 5,104 shared blocks dirtied by inserts are buffer
-  activity, not a direct disk-I/O quota measurement.
-- Supabase `created_at` counts showed 257 cache rows at each of the eight
-  latest hourly checkpoints (with 270–271 at some earlier checkpoints). The
-  15-minute collector still runs between those checkpoints, but the 15:45 UTC
-  production run logged `selected=0` and skipped the rich-cache write. Budget
-  D1 for about 6,168 inserts/day at 257 rows/hour. With two secondary indexes
-  and matching TTL deletes, estimate about 37,008 D1 row writes/day (6,168
-  inserts × 3 rows including index entries, plus 6,168 deletes × 3). Account
-  usage adds about 692 D1 writes/day across the other databases, for roughly
-  37.7% of the Free 100,000 writes/day limit and about 62% headroom. Review
-  actual D1 usage daily during shadow and reduce cache sampling or indexes if
-  usage approaches 80,000 writes/day.
-- Before this migration, the D1 free-tier account used 12.16 MiB of 5 GiB and 4
-  of 10 databases. The new fifth database was created in APAC on 2026-11-25;
-  after schema application it measured 36.9 KB. The first post-deploy check
-  found 0 rows in `price_records`; the first post-fix manual run was between
-  hourly cache checkpoints and therefore correctly wrote no cache rows. The
-  D1 shadow clock starts only after the next successful nonzero hourly batch.
-  The 5 GiB storage and 10-database limits have ample headroom, and the
-  projected row-read workload remains below the 5 million rows-read/day
-  ceiling.
-
-The D1 write ceiling is a hard stop after exhaustion. Keep the two-index schema,
-the 24-hour TTL, and the D1 daily write review together. Do not move Turso's
-high-frequency raw snapshots, lease/control rows, settlement evidence, or
-Supabase's long-lived archives and transactional tables to D1: their write,
-atomicity, retention, or relational requirements do not fit this cache design.
-
-## Data flow and failure behavior
-
-1. `d1-shadow`: Worker requests use the D1 binding directly. The 15-minute
-   snapshot collector runs on GitHub Actions in Node, so it posts each bounded
-   batch to `POST /api/cron/price-records` using `CRON_SECRET`; that route
-   validates the full payload and writes through the D1 binding. Supabase
-   remains the canonical write, D1 is a best-effort mirror, and reads continue
-   from Supabase. D1 failures are logged and do not fail the price observation.
-2. After 24 hours of shadow writes, compare sampled provider/symbol/chain,
-   timestamp, price, confidence, signal vector, verification, and TTL values.
-   Compare the D1 row count with Supabase's non-expired row count. Do not cut
-   over if counts or sampled fields differ.
-3. Set `TURSO_PRICE_RECORDS_MODE=d1` in both `cloudflare.config.ts` and the
-   `snapshot-collect.yml` workflow. Reads prefer D1 and fall back to
-   Supabase on a miss or D1 error. Writes go to D1; Supabase is written only if
-   D1 fails. Keep `TURSO_PRICE_RECORDS_FALLBACK_ON_MISS=true` during cutover.
-4. After one further 24-hour cache TTL and a clean production review, the
-   fallback may remain enabled; it costs a Supabase query only when D1 misses
-   and is useful for rollback. Changing it to `false` is an operational
-   decision and is not required to complete the data move.
-
-No historical bulk backfill is used. `price_records` is a 24-hour cache, the
-shadow phase warms D1 from live writes, and Supabase remains authoritative until
-reconciliation passes. This avoids a bulk D1 write burst and a moving-snapshot
+Only the 24-hour `price_records` cache moved. Long-lived price history,
+15-minute observations, archives, and other durable evidence remain in their
+existing Supabase/Turso workflows. There is no historical bulk backfill; live
+observations warm the cache and avoid a large write burst or a moving-snapshot
 race.
 
-Rollback is `TURSO_PRICE_RECORDS_MODE=supabase`. During shadow, Supabase remains
-fully current. After D1 cutover, the fallback writes any D1-failed batch to
-Supabase; switching back restores Supabase reads immediately. Keep the
-Supabase table and indexes for at least seven days after cutover so rollback
-remains available.
+1. GitHub Actions posts validated bounded batches to
+   `POST /api/cron/price-records` with `CRON_SECRET`; the Worker writes them to
+   D1. In D1 mode, successful writes go to D1. If a D1 write fails, the batch
+   falls back to Supabase and the failure is logged.
+2. Reads try D1 first. A D1 miss or read error falls back to Supabase while
+   `TURSO_PRICE_RECORDS_FALLBACK_ON_MISS=true`.
+3. Historical queries continue to use the established durable snapshot and
+   archive paths. D1 is a cache here, not the source of long-range history.
 
-## Schema and operations
+Keep the fallback enabled through normal operation. It protects reads during
+cache warm-up and provides a safety path if D1 has a transient failure. To roll
+back reads and writes, set `TURSO_PRICE_RECORDS_MODE=supabase` in both
+`cloudflare.config.ts` and `.github/workflows/snapshot-collect.yml`, then deploy
+the Worker and workflow together. Keep the Supabase table and indexes. No
+fallback flag change or table deletion is part of this migration.
+
+## Capacity snapshot
+
+The following account readings were collected at approximately 05:12 UTC on
+2026-11-26. Quotas can change; check the provider dashboards before making
+capacity decisions.
+
+| Service                | Observed use                                                                                                                                | Interpretation                                                                                                                                                                                                                                     |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cloudflare D1, account | About 168,566 rows read and 11,948 rows written in the prior 24 hours; about 14.4 MB stored across 5 of 10 databases                        | Roughly 3.4% of the 5 million daily read limit, 12% of the 100,000 daily write limit, and under 1% of the 5 GB aggregate storage limit. The new database itself was about 1.6 MB.                                                                  |
+| Supabase Postgres      | About 384 MB database size; `price_records` about 4,567 unexpired rows and 15 MB total relation size                                        | At a 500 MB Free database limit this is about 77%, with about 116 MB nominal headroom. The cache table is only a small part of total use; archives and snapshots are larger.                                                                       |
+| Turso Starter          | About 685 MB / 5 GB storage; 35.6 million / 500 million monthly rows read; 7.9 million / 10 million monthly rows written; overages disabled | Reads and storage have headroom. Writes are at 79% of the monthly allowance and are the remaining capacity watch item. The allowance was due to reset 2026-12-01 08:00 Beijing time. Moving this cache did not remove Turso's other write streams. |
+
+The Supabase `price_records` rows are still within their 24-hour TTL just after
+cutover, so their presence is expected. Cleanup and PostgreSQL space reuse are
+not instantaneous; ordinary vacuum makes dead space reusable inside the
+database, but does not necessarily shrink the reported database file size.
+Do not run `VACUUM FULL` as a routine capacity step because it takes an
+exclusive lock. The Supabase table remains useful as fallback regardless of
+whether its current size has fallen.
+
+The D1 Free plan's published limits are 5 million rows read/day, 100,000 rows
+written/day, 5 GB aggregate storage, and 10 databases. See [D1 pricing and
+limits](https://developers.cloudflare.com/d1/platform/pricing/) and [D1
+limits](https://developers.cloudflare.com/d1/platform/limits/). D1 is a hard
+quota boundary on Free: if daily limits are exhausted, affected queries fail.
+The provider's [D1 metrics guidance](https://developers.cloudflare.com/d1/observability/metrics-analytics/)
+describes the usage metrics to review.
+
+## Schema and query-cost decision
 
 The `insight-price-records` D1 database ID is
-`c23c2775-998b-48a5-b428-7b53e25a3d24` and its primary location is APAC. The
-`0001_price_records.sql` migration is already applied. The schema preserves exact eight-decimal
-price text, JSON evidence fields, millisecond timestamps, and nullable chain
-semantics. The indexes cover current-price lookup and timestamp-ordered export;
-TTL cleanup scans the bounded 24-hour cache to avoid paying for a third index
-on every insert and delete.
+`c23c2775-998b-48a5-b428-7b53e25a3d24`, located in APAC/HKG. The
+`0001_price_records.sql` migration is applied. Price values remain exact
+eight-decimal text, evidence fields remain JSON, timestamps are milliseconds,
+and nullable chain semantics are preserved.
 
-Verify the selected D1 database with:
+Keep the two current indexes: `price_records_latest_idx` supports the hot
+current-price lookup, and `price_records_timestamp_idx` supports
+timestamp-ordered access. Do not add a TTL index at current scale. The cleanup
+full-scans a small, bounded cache: roughly 742 rows per cleanup × 20 cleanups
+per day is about 14,850 rows read/day, or 0.3% of the D1 daily read quota. A
+third index would add writes to inserts and deletes to save a negligible scan
+budget. Revisit only if measured cache size or cleanup cost grows materially.
+
+The migration file and schema are in `migrations/0001_price_records.sql`.
+Verify the selected remote database with:
 
 ```sh
 npx wrangler d1 execute insight-price-records --remote \
   --command "SELECT COUNT(*) AS rows, MIN(ttl_ms) AS oldest_ttl_ms, MAX(ttl_ms) AS newest_ttl_ms FROM price_records"
 ```
 
-Verify D1 writes and reads using Cloudflare's D1 Insights for the full 24-hour
-shadow and cutover windows. Recheck the actual Turso monthly write percentage
-and Supabase database size after one week. Do not remove the Supabase source
-table as part of this move.
+## Operations and review triggers
+
+- Review D1 daily read/write metrics during the first week and after changes to
+  cache volume or cleanup cadence. Investigate if daily writes exceed 80,000,
+  reads exceed 4 million, or the table grows beyond its expected 24-hour
+  working set. These are investigation thresholds, not provider quotas.
+- Review Turso monthly writes before the reset while usage remains near 80% and
+  overages are disabled. Attribute the write-heavy statements before changing
+  retention or moving any durable tables; this D1 cache migration does not
+  address Turso's remaining workload.
+- Recheck Supabase database size after TTL cleanup and routine vacuum have had
+  time to run. The `price_records` table is not the primary contributor to the
+  current database size, so large savings should not be expected from this
+  move alone.
+- Keep the Supabase table and indexes for fallback. Do not move raw snapshots,
+  lease/control rows, settlement evidence, long-lived archives, or other
+  transactional data into this D1 cache design.
