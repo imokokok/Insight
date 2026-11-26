@@ -173,6 +173,115 @@ export interface MarketReferenceHourlyAggregate {
   cross_exchange_spread_pct: number;
 }
 
+export interface TursoLatestMarketReference {
+  symbol: string;
+  ref_hour: string;
+  ref_price: number;
+  exchange_count: number;
+  cross_exchange_spread_pct: number;
+  median_bid_ask_spread_pct: number | null;
+  median_volume: number | null;
+}
+
+function median(values: readonly number[]): number | null {
+  if (values.length === 0) return null;
+  const sorted = [...values].sort((a, b) => a - b);
+  const middle = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 0 ? (sorted[middle - 1] + sorted[middle]) / 2 : sorted[middle];
+}
+
+/**
+ * Port of get_latest_market_reference (migration 0090). The rights predicate
+ * is intentionally enforced in SQL as a second gate, even though the caller
+ * also checks the reviewed rights registry before making this query.
+ */
+export async function readTursoLatestMarketReference(
+  client: Client,
+  symbol: string,
+  now: Date = new Date()
+): Promise<TursoLatestMarketReference | null> {
+  const nowMs = now.getTime();
+  if (!Number.isFinite(nowMs)) throw new Error('Invalid market-reference clock');
+  const currentHourMs = Math.floor(nowMs / 3_600_000) * 3_600_000;
+  // Match migration 0090's bounded three-hour search window exactly.
+  const lowerMs = Math.floor((nowMs - 3 * 3_600_000) / 3_600_000) * 3_600_000 + 3_600_000;
+  const result = await client.execute({
+    sql: `SELECT snapshot_ts, exchange, ref_price, bid_ask_spread_pct, volume
+          FROM market_reference_snapshots
+          WHERE symbol = ? AND is_success = 1 AND ref_price > 0
+            AND rights_scope = 'vendor-licensed'
+            AND snapshot_ts >= ? AND snapshot_ts < ?
+          ORDER BY snapshot_ts DESC`,
+    args: [
+      symbol.toUpperCase(),
+      new Date(lowerMs).toISOString(),
+      new Date(currentHourMs + 3_600_000).toISOString(),
+    ],
+  });
+
+  const parsedRows = result.rows.flatMap((row) => {
+    const snapshotMs = Date.parse(String(row.snapshot_ts));
+    const price = Number(row.ref_price);
+    const exchange = String(row.exchange).trim();
+    if (
+      !Number.isFinite(snapshotMs) ||
+      snapshotMs < lowerMs ||
+      snapshotMs >= currentHourMs + 3_600_000 ||
+      !Number.isFinite(price) ||
+      price <= 0 ||
+      !exchange
+    ) {
+      return [];
+    }
+    const bucketMs = Math.floor(snapshotMs / 3_600_000) * 3_600_000;
+    return [{ bucketMs, exchange, price, bidAsk: row.bid_ask_spread_pct, volume: row.volume }];
+  });
+  if (parsedRows.length === 0) return null;
+
+  const latestHourMs = Math.max(...parsedRows.map((row) => row.bucketMs));
+  const byExchange = new Map<string, { prices: number[]; bidAsk: number[]; volume: number[] }>();
+  for (const row of parsedRows) {
+    if (row.bucketMs !== latestHourMs) continue;
+    const group = byExchange.get(row.exchange) ?? { prices: [], bidAsk: [], volume: [] };
+    group.prices.push(row.price);
+    const bidAsk = Number(row.bidAsk);
+    if (row.bidAsk !== null && row.bidAsk !== undefined && Number.isFinite(bidAsk) && bidAsk >= 0) {
+      group.bidAsk.push(bidAsk);
+    }
+    const volume = Number(row.volume);
+    if (row.volume !== null && row.volume !== undefined && Number.isFinite(volume) && volume >= 0) {
+      group.volume.push(volume);
+    }
+    byExchange.set(row.exchange, group);
+  }
+
+  const prices: number[] = [];
+  const bidAsk: number[] = [];
+  const volume: number[] = [];
+  for (const group of byExchange.values()) {
+    const price = median(group.prices);
+    if (price !== null) prices.push(price);
+    const spread = median(group.bidAsk);
+    if (spread !== null) bidAsk.push(spread);
+    const tradedVolume = median(group.volume);
+    if (tradedVolume !== null) volume.push(tradedVolume);
+  }
+  const refPrice = median(prices);
+  if (refPrice === null || prices.length === 0) return null;
+  const minPrice = Math.min(...prices);
+  const maxPrice = Math.max(...prices);
+
+  return {
+    symbol: symbol.toUpperCase(),
+    ref_hour: new Date(latestHourMs).toISOString(),
+    ref_price: refPrice,
+    exchange_count: prices.length,
+    cross_exchange_spread_pct: maxPrice > 0 ? ((maxPrice - minPrice) / maxPrice) * 100 : 0,
+    median_bid_ask_spread_pct: median(bidAsk),
+    median_volume: median(volume),
+  };
+}
+
 /**
  * Hourly aggregates, replacing the Supabase `market_reference_hourly` view
  * (which uses percentile_cont(0.5), unavailable in SQLite). Grouping happens

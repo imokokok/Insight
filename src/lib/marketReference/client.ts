@@ -14,6 +14,12 @@ import { z } from 'zod';
 
 import { customerEligibleMarketReferenceVenues } from '@/lib/dataRights/evidenceRights';
 import { createServiceRoleClient } from '@/lib/supabase/server';
+import { getTursoOpsClient } from '@/lib/turso/ops/client';
+import {
+  readTursoLatestMarketReference,
+  readTursoMarketRefMode,
+} from '@/lib/turso/ops/marketReferenceRepository';
+import { ensureTursoOpsSchema } from '@/lib/turso/ops/schema';
 import { TTLCache } from '@/lib/utils/cache';
 import { roundTo } from '@/lib/utils/format';
 import { createLogger } from '@/lib/utils/logger';
@@ -95,6 +101,23 @@ export async function getMarketReference(symbol: string): Promise<MarketReferenc
 
 async function loadMarketReference(key: string): Promise<MarketReference | null> {
   try {
+    if (readTursoMarketRefMode() === 'turso') {
+      const turso = getTursoOpsClient();
+      await ensureTursoOpsSchema(turso);
+      const row = await readTursoLatestMarketReference(turso, key);
+      if (!row) return null;
+      const ref: MarketReference = {
+        symbol: key,
+        refHour: row.ref_hour,
+        refPrice: row.ref_price,
+        exchangeCount: row.exchange_count,
+        crossExchangeSpreadPct: row.cross_exchange_spread_pct,
+        medianBidAskSpreadPct: row.median_bid_ask_spread_pct,
+        medianVolume: row.median_volume,
+      };
+      return isFresh(ref) ? ref : null;
+    }
+
     const supabase = createServiceRoleClient();
     const { data, error } = await supabase
       .rpc('get_latest_market_reference', { p_symbol: key })
