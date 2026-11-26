@@ -49,16 +49,36 @@ jobs:
           PGPASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
         run: |
           BACKUP_DATE=$(date -u +%Y%m%d)
+          BACKUP_FILE="/backup/supabase-assets-${BACKUP_DATE}.sql"
           mkdir -p backup
-          docker run --rm \
-            -e PGPASSWORD -e PGSSLMODE=require \
-            -v "$PWD/backup:/backup" \
-            postgres:17-alpine \
-            pg_dump \
-              "postgresql://${SUPABASE_DB_USER}@${SUPABASE_DB_HOST}:5432/postgres" \
-              --no-owner --no-privileges \
-              ${SUPABASE_ASSET_TABLES} \
-              --file "/backup/supabase-assets-${BACKUP_DATE}.sql"
+          dump_succeeded=false
+          for attempt in 1 2 3 4 5; do
+            rm -f "backup/supabase-assets-${BACKUP_DATE}.sql"
+            if docker run --rm \
+              -e PGPASSWORD -e PGSSLMODE=require -e PGCONNECT_TIMEOUT=15 \
+              -v "$PWD/backup:/backup" \
+              postgres:17-alpine \
+              pg_dump \
+                "postgresql://${SUPABASE_DB_USER}@${SUPABASE_DB_HOST}:5432/postgres" \
+                --no-owner --no-privileges \
+                ${SUPABASE_ASSET_TABLES} \
+                --file "$BACKUP_FILE"; then
+              dump_succeeded=true
+              break
+            fi
+
+            if [ "$attempt" -lt 5 ]; then
+              delay_seconds=$((attempt * 15))
+              echo "Supabase asset dump attempt ${attempt}/5 failed; retrying in ${delay_seconds}s."
+              sleep "$delay_seconds"
+            fi
+          done
+
+          if [ "$dump_succeeded" != true ]; then
+            echo "Supabase asset dump failed after 5 attempts." >&2
+            exit 1
+          fi
+
           gzip -f "backup/supabase-assets-${BACKUP_DATE}.sql"
           test -s "backup/supabase-assets-${BACKUP_DATE}.sql.gz"
           ls -la backup/
