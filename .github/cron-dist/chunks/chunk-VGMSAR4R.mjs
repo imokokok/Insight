@@ -1,5 +1,5 @@
 import { createRequire as __createRequire } from 'node:module'; import { fileURLToPath as __fileURLToPath } from 'node:url'; import { dirname as __pathDirname } from 'node:path'; const require = __createRequire(import.meta.url); const __filename = __fileURLToPath(import.meta.url); const __dirname = __pathDirname(__filename);
-var TURSO_OPS_SCHEMA_VERSION=8,MARKET_REFERENCE_SNAPSHOTS_DDL=[`CREATE TABLE IF NOT EXISTS market_reference_snapshots (
+var TURSO_OPS_SCHEMA_VERSION=9,MARKET_REFERENCE_SNAPSHOTS_DDL=[`CREATE TABLE IF NOT EXISTS market_reference_snapshots (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     snapshot_ts TEXT NOT NULL,
     symbol TEXT NOT NULL,
@@ -25,8 +25,7 @@ var TURSO_OPS_SCHEMA_VERSION=8,MARKET_REFERENCE_SNAPSHOTS_DDL=[`CREATE TABLE IF 
      ON market_reference_snapshots (symbol, snapshot_ts DESC)`,`CREATE INDEX IF NOT EXISTS market_reference_ts_idx
      ON market_reference_snapshots (snapshot_ts DESC)`,`CREATE INDEX IF NOT EXISTS market_reference_success_symbol_ts_idx
      ON market_reference_snapshots (symbol, snapshot_ts DESC)
-     WHERE is_success = 1`,`CREATE INDEX IF NOT EXISTS market_reference_retention_idx
-     ON market_reference_snapshots (snapshot_ts)`],HOURLY_PRICE_SNAPSHOTS_DDL=[`CREATE TABLE IF NOT EXISTS hourly_price_snapshots (
+     WHERE is_success = 1`],HOURLY_PRICE_SNAPSHOTS_DDL=[`CREATE TABLE IF NOT EXISTS hourly_price_snapshots (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     provider TEXT NOT NULL,
     symbol TEXT NOT NULL,
@@ -45,8 +44,7 @@ var TURSO_OPS_SCHEMA_VERSION=8,MARKET_REFERENCE_SNAPSHOTS_DDL=[`CREATE TABLE IF 
       UNIQUE (provider, symbol, chain_id, snapshot_hour)
   )`,`CREATE INDEX IF NOT EXISTS hourly_price_snapshots_symbol_hour_idx
      ON hourly_price_snapshots (symbol, snapshot_hour DESC)`,`CREATE INDEX IF NOT EXISTS hourly_price_snapshots_hour_idx
-     ON hourly_price_snapshots (snapshot_hour DESC)`,`CREATE INDEX IF NOT EXISTS hourly_price_snapshots_retention_idx
-     ON hourly_price_snapshots (snapshot_hour)`],PRICE_SLOT_PROJECTION_RUNS_DDL=[`CREATE TABLE IF NOT EXISTS price_slot_projection_runs (
+     ON hourly_price_snapshots (snapshot_hour DESC)`],PRICE_SLOT_PROJECTION_RUNS_DDL=[`CREATE TABLE IF NOT EXISTS price_slot_projection_runs (
     slot_ms INTEGER NOT NULL,
     input_hash TEXT NOT NULL,
     raw_digest TEXT NOT NULL,
@@ -74,8 +72,7 @@ var TURSO_OPS_SCHEMA_VERSION=8,MARKET_REFERENCE_SNAPSHOTS_DDL=[`CREATE TABLE IF 
     CONSTRAINT manip_cost_pool_snapshots_unique
       UNIQUE (snapshot_ts, pool_key)
   )`,`CREATE INDEX IF NOT EXISTS manip_cost_pool_snapshots_ts_idx
-     ON manip_cost_pool_snapshots (snapshot_ts DESC)`,`CREATE INDEX IF NOT EXISTS manip_cost_pool_snapshots_retention_idx
-     ON manip_cost_pool_snapshots (snapshot_ts)`],COVERAGE_SLO_DDL=[`CREATE TABLE IF NOT EXISTS coverage_slo_targets (
+     ON manip_cost_pool_snapshots (snapshot_ts DESC)`],COVERAGE_SLO_DDL=[`CREATE TABLE IF NOT EXISTS coverage_slo_targets (
     id TEXT PRIMARY KEY,
     asset TEXT NOT NULL,
     chain_id INTEGER NOT NULL,
@@ -203,7 +200,7 @@ var TURSO_OPS_SCHEMA_VERSION=8,MARKET_REFERENCE_SNAPSHOTS_DDL=[`CREATE TABLE IF 
     created_at TEXT,
     updated_at TEXT,
     CONSTRAINT oracle_reputation_provider_unique UNIQUE (provider)
-  )`],ALL_DDL=[...OPS_SCHEMA_META_DDL,...MARKET_REFERENCE_SNAPSHOTS_DDL,...HOURLY_PRICE_SNAPSHOTS_DDL,...PRICE_SLOT_PROJECTION_RUNS_DDL,...MANIP_COST_POOL_SNAPSHOTS_DDL,...COVERAGE_SLO_DDL,...FEED_HEALTH_SNAPSHOTS_DDL,...DEX_MARKET_DDL,...REPUTATION_HISTORY_DDL,...ORACLE_REPUTATION_DDL,...DAILY_REPORTS_DDL];function tursoOpsMigrations(){return ALL_DDL}async function isTursoOpsSchemaCurrent(client){try{let result=await client.execute("SELECT value FROM ops_schema_meta WHERE key = 'schema_version'");return Number(result.rows[0]?.value)===8}catch{return!1}}async function ensureCoverageTargetsEnrolledAt(client){let info=await client.execute("PRAGMA table_info(coverage_slo_targets)");if(info.rows.length===0)return;info.rows.some(row=>String(row.name)==="enrolled_at")||await client.execute(`ALTER TABLE coverage_slo_targets
+  )`],ALL_DDL=[...OPS_SCHEMA_META_DDL,...MARKET_REFERENCE_SNAPSHOTS_DDL,...HOURLY_PRICE_SNAPSHOTS_DDL,...PRICE_SLOT_PROJECTION_RUNS_DDL,...MANIP_COST_POOL_SNAPSHOTS_DDL,...COVERAGE_SLO_DDL,...FEED_HEALTH_SNAPSHOTS_DDL,...DEX_MARKET_DDL,...REPUTATION_HISTORY_DDL,...ORACLE_REPUTATION_DDL,...DAILY_REPORTS_DDL,"DROP INDEX IF EXISTS market_reference_retention_idx","DROP INDEX IF EXISTS hourly_price_snapshots_retention_idx","DROP INDEX IF EXISTS manip_cost_pool_snapshots_retention_idx"];function tursoOpsMigrations(){return ALL_DDL}async function isTursoOpsSchemaCurrent(client){try{let result=await client.execute("SELECT value FROM ops_schema_meta WHERE key = 'schema_version'");return Number(result.rows[0]?.value)===9}catch{return!1}}async function ensureCoverageTargetsEnrolledAt(client){let info=await client.execute("PRAGMA table_info(coverage_slo_targets)");if(info.rows.length===0)return;info.rows.some(row=>String(row.name)==="enrolled_at")||await client.execute(`ALTER TABLE coverage_slo_targets
        ADD COLUMN enrolled_at TEXT NOT NULL DEFAULT ''`)}async function ensureTursoOpsSchema(client){await ensureCoverageTargetsEnrolledAt(client);let current=!1;try{current=await isTursoOpsSchemaCurrent(client)}catch{current=!1}if(!current){for(let ddl of ALL_DDL)await client.execute(ddl);await client.execute(`INSERT INTO ops_schema_meta (key, value)
-     VALUES ('schema_version', '8')
+     VALUES ('schema_version', '9')
      ON CONFLICT(key) DO UPDATE SET value = excluded.value`)}}export{TURSO_OPS_SCHEMA_VERSION,tursoOpsMigrations,isTursoOpsSchemaCurrent,ensureTursoOpsSchema};

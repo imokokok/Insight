@@ -244,6 +244,85 @@ jobs:
           echo "Cleanup health=${healthy}: ${summary}"
           if [ "$healthy" != 'true' ]; then exit 1; fi
 
+      - name: Check pg_cron startup timeout bursts
+        id: cron_timeouts
+        if: always()
+        continue-on-error: true
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          set -u
+          healthy=false
+          summary='pg_cron startup timeout report did not complete.'
+          body=''
+          response_file="$(mktemp)"
+          if [ -n "${SUPABASE_URL:-}" ] && [ -n "${SUPABASE_SERVICE_ROLE_KEY:-}" ]; then
+            status="$(curl --silent --show-error --max-time 20 \
+              --header "apikey: ${SUPABASE_SERVICE_ROLE_KEY}" \
+              --header "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}" \
+              --header 'Content-Type: application/json' \
+              --data '{}' \
+              --output "$response_file" --write-out '%{http_code}' \
+              "${SUPABASE_URL%/}/rest/v1/rpc/cron_startup_timeout_report" || true)"
+            if [ "$status" = '200' ]; then
+              parsed="$(python3 - "$response_file" <<'PY'
+          import json
+          import sys
+
+          with open(sys.argv[1], encoding='utf-8') as response_file:
+              payload = json.load(response_file)
+          if isinstance(payload, list) and len(payload) == 1:
+              payload = payload[0]
+          if not isinstance(payload, dict):
+              raise SystemExit('cron startup timeout RPC returned an invalid payload')
+          healthy = payload.get('healthy') is True
+          summary = json.dumps(payload, sort_keys=True)
+          window_24h = payload.get('window_24h') or {}
+          window_60m = payload.get('window_60m') or {}
+          jobs = ', '.join(window_24h.get('affected_jobs') or []) or 'none'
+          body = (
+              'pg_cron worker startup timeouts exceeded the alert threshold. '
+              f"Last 60m: {window_60m.get('count', 'unknown')} "
+              f"(threshold < {window_60m.get('alert_threshold', 'unknown')}); "
+              f"last 24h: {window_24h.get('count', 'unknown')} "
+              f"(threshold < {window_24h.get('alert_threshold', 'unknown')}); "
+              f"affected jobs: {jobs}; first/last: "
+              f"{window_24h.get('first_at', 'unknown')} / {window_24h.get('last_at', 'unknown')}. "
+              'The failures indicate pg_cron worker startup starvation; review '
+              'max_worker_processes headroom and scheduled job starts.'
+          )
+          print('true' if healthy else 'false')
+          print(summary)
+          print(body)
+          PY
+          )" || parsed=''
+              if [ -n "$parsed" ]; then
+                healthy="$(printf '%s\n' "$parsed" | sed -n '1p')"
+                summary="$(printf '%s\n' "$parsed" | sed -n '2p')"
+                body="$(printf '%s\n' "$parsed" | sed -n '3p')"
+              else
+                summary='pg_cron startup timeout RPC returned invalid JSON.'
+              fi
+            else
+              summary="pg_cron startup timeout RPC returned HTTP ${status:-transport-error}."
+            fi
+          else
+            summary='SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY is missing.'
+          fi
+
+          echo "healthy=${healthy}" >> "$GITHUB_OUTPUT"
+          {
+            echo 'summary<<EOF'
+            echo "$summary"
+            echo EOF
+            echo 'body<<EOF'
+            echo "$body"
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
+          echo "pg_cron startup timeout health=${healthy}: ${summary}"
+          if [ "$healthy" != 'true' ]; then exit 1; fi
+
       - name: Open or resolve the incident issue
         if: always()
         env:
@@ -323,12 +402,44 @@ jobs:
             gh issue comment "$issue_number" --repo "$GITHUB_REPOSITORY" --body "$CLEANUP_BODY"
           fi
 
+      - name: Open or resolve the pg_cron startup timeout incident
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CRON_TIMEOUTS_HEALTHY: ${{ steps.cron_timeouts.outputs.healthy }}
+          CRON_TIMEOUTS_SUMMARY: ${{ steps.cron_timeouts.outputs.summary }}
+          CRON_TIMEOUTS_BODY: ${{ steps.cron_timeouts.outputs.body }}
+        run: |
+          set -euo pipefail
+          title='[Insight Data Operations] pg_cron startup timeout burst'
+          issue_number="$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "in:title $title" --json number --jq '.[0].number // empty')"
+          if [ "$CRON_TIMEOUTS_HEALTHY" = true ]; then
+            if [ -n "$issue_number" ]; then
+              recovery_body="$(printf 'pg_cron startup timeout counts returned below thresholds at %s. Closing this incident.\n\n%s' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$CRON_TIMEOUTS_SUMMARY")"
+              gh issue comment "$issue_number" --repo "$GITHUB_REPOSITORY" --body "$recovery_body"
+              gh issue close "$issue_number" --repo "$GITHUB_REPOSITORY"
+            fi
+            exit 0
+          fi
+          if [ -z "$CRON_TIMEOUTS_BODY" ]; then
+            CRON_TIMEOUTS_BODY="pg_cron startup timeout report did not complete. Review workflow run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          fi
+          if [ -z "$issue_number" ]; then
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body "$CRON_TIMEOUTS_BODY"
+          else
+            gh issue comment "$issue_number" --repo "$GITHUB_REPOSITORY" --body "$CRON_TIMEOUTS_BODY"
+          fi
+
       - name: Fail the run when backups are stale
         if: steps.backups.outputs.healthy == 'false'
         run: exit 1
 
       - name: Fail the run when cleanup health is degraded
         if: steps.cleanup.outputs.healthy != 'true'
+        run: exit 1
+
+      - name: Fail the run when pg_cron startup timeouts exceed thresholds
+        if: steps.cron_timeouts.outputs.healthy != 'true'
         run: exit 1
 
       # Supabase owns the clock and inserts the dispatch row before GitHub
