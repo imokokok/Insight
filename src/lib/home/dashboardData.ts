@@ -99,7 +99,20 @@ async function fetchDashboardPrice(
   }
 
   try {
-    const price = await fetchPriceWithDatabase(provider, symbol, chain, true);
+    const price = await fetchPriceWithDatabase(
+      provider,
+      symbol,
+      chain,
+      true,
+      false,
+      undefined,
+      undefined,
+      {
+        // The dashboard can label a collector snapshot as a degraded fallback;
+        // paid pre-trade and other live API callers retain their strict defaults.
+        allowSnapshotFallback: true,
+      }
+    );
     const result: DashboardPriceItem = { provider, symbol, price, error: null };
     dashboardPriceCircuit.set(key, { retryAfter: 0, lastSuccess: result });
     return result;

@@ -272,6 +272,56 @@ describe('databaseOperations', () => {
       );
     });
 
+    it('allows an explicit dashboard caller to use a Chainlink snapshot after a live failure', async () => {
+      const chainlink: OracleProvider = 'chainlink';
+      const snapshot = createMockPriceData({ provider: chainlink, source: 'price_snapshots' });
+      mockGetLatestPriceSnapshotFromDatabase.mockResolvedValue(snapshot);
+
+      await expect(
+        fetchPriceWithDatabase(
+          chainlink,
+          mockSymbol,
+          mockChain,
+          true,
+          false,
+          undefined,
+          undefined,
+          {
+            allowSnapshotFallback: true,
+          }
+        )
+      ).resolves.toEqual(snapshot);
+
+      expect(mockGetPriceFromDatabase).not.toHaveBeenCalled();
+      expect(mockGetLatestPriceSnapshotFromDatabase).toHaveBeenCalledWith(
+        chainlink,
+        mockSymbol,
+        mockChain
+      );
+    });
+
+    it('keeps Chainlink snapshot fallback disabled for callers without the explicit option', async () => {
+      const chainlink: OracleProvider = 'chainlink';
+
+      await expect(
+        fetchPriceWithDatabase(chainlink, mockSymbol, mockChain, true)
+      ).rejects.toBeInstanceOf(PriceFetchError);
+
+      expect(mockGetLatestPriceSnapshotFromDatabase).not.toHaveBeenCalled();
+    });
+
+    it('does not read snapshots for strict Supra Monad prices, even with dashboard fallback enabled', async () => {
+      const monad = 'monad' as Blockchain;
+
+      await expect(
+        fetchPriceWithDatabase('supra', 'SUI', monad, true, false, undefined, undefined, {
+          allowSnapshotFallback: true,
+        })
+      ).rejects.toBeInstanceOf(PriceFetchError);
+
+      expect(mockGetLatestPriceSnapshotFromDatabase).not.toHaveBeenCalled();
+    });
+
     it('does not read snapshots when a stale record can be live-refreshed', async () => {
       const staleTimestamp = Date.now() - 60 * 60 * 1000;
       mockGetPriceFromDatabase.mockResolvedValue(
