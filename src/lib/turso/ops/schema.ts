@@ -15,7 +15,7 @@
 // and tests use the node client against file::memory: databases.
 import type { Client } from '@libsql/client';
 
-export const TURSO_OPS_SCHEMA_VERSION = 8;
+export const TURSO_OPS_SCHEMA_VERSION = 9;
 
 const MARKET_REFERENCE_SNAPSHOTS_DDL = [
   `CREATE TABLE IF NOT EXISTS market_reference_snapshots (
@@ -48,10 +48,6 @@ const MARKET_REFERENCE_SNAPSHOTS_DDL = [
   `CREATE INDEX IF NOT EXISTS market_reference_success_symbol_ts_idx
      ON market_reference_snapshots (symbol, snapshot_ts DESC)
      WHERE is_success = 1`,
-  // Retention support (90-day window per migration 0138) without a nightly
-  // Postgres cron: the collector trims past-window rows on each run.
-  `CREATE INDEX IF NOT EXISTS market_reference_retention_idx
-     ON market_reference_snapshots (snapshot_ts)`,
 ];
 
 // Projection target for the Turso price-slot outbox (egress retirement v2).
@@ -82,9 +78,6 @@ const HOURLY_PRICE_SNAPSHOTS_DDL = [
      ON hourly_price_snapshots (symbol, snapshot_hour DESC)`,
   `CREATE INDEX IF NOT EXISTS hourly_price_snapshots_hour_idx
      ON hourly_price_snapshots (snapshot_hour DESC)`,
-  // 120-day retention window (matches Supabase hourly retention).
-  `CREATE INDEX IF NOT EXISTS hourly_price_snapshots_retention_idx
-     ON hourly_price_snapshots (snapshot_hour)`,
 ];
 
 // Delivery ledger for projected slots (audit + replay detection). One row per
@@ -130,9 +123,6 @@ const MANIP_COST_POOL_SNAPSHOTS_DDL = [
   )`,
   `CREATE INDEX IF NOT EXISTS manip_cost_pool_snapshots_ts_idx
      ON manip_cost_pool_snapshots (snapshot_ts DESC)`,
-  // 365-day retention support (collector trims past-window rows per run).
-  `CREATE INDEX IF NOT EXISTS manip_cost_pool_snapshots_retention_idx
-     ON manip_cost_pool_snapshots (snapshot_ts)`,
 ];
 
 // Coverage-SLO domain (egress retirement v4). Mirrors Supabase
@@ -335,6 +325,12 @@ const ALL_DDL: string[] = [
   ...REPUTATION_HISTORY_DDL,
   ...ORACLE_REPUTATION_DDL,
   ...DAILY_REPORTS_DDL,
+  // Version 9 removes retention indexes duplicated by the existing timestamp
+  // indexes. SQLite can scan a B-tree in either direction, so the retained
+  // DESC indexes still support the ascending cutoff scans used by cleanup.
+  'DROP INDEX IF EXISTS market_reference_retention_idx',
+  'DROP INDEX IF EXISTS hourly_price_snapshots_retention_idx',
+  'DROP INDEX IF EXISTS manip_cost_pool_snapshots_retention_idx',
 ];
 
 export function tursoOpsMigrations(): readonly string[] {
