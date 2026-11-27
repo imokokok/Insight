@@ -1,0 +1,12 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.imokokok/insight",
+  "description": "Pre-trade risk verdicts (PASS/CAUTION/DANGER/BLOCK) for onchain trades. Paid per call via x402.",
+  "version": "1.0.0",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://www.oracleinsight.xyz/api/mcp"
+    }
+  ]
+}
