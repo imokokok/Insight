@@ -146,8 +146,8 @@ Full rules and troubleshooting: `docs/operations/parallel-agent-worktrees.md`.
 
 ## Local builds
 
-- `npm run build` uses Next.js Turbopack by default. Sandboxed local environments that cannot create Turbopack CSS worker processes must use `npm run build:webpack` (or run builds with `env -u NODE_OPTIONS` outside the sandbox).
-- `npm run ci:local` runs the full suite including `next build`; in sandboxed environments substitute the webpack build for the turbopack step before running it.
+- Insight production runs on Cloudflare Workers through Vinext. To validate the production build, use `npm run build:vinext`, as documented in `docs/operations/cloudflare-deployment.md`; `npm run deploy:vinext -- --dry-run` does not publish a deployment.
+- `npm run build` and `npm run ci:local` use the separate Next.js/Turbopack build path. If sandbox restrictions prevent Turbopack workers, run the build outside the sandbox with `env -u NODE_OPTIONS npm run build`. Do not substitute `npm run build:webpack` for Cloudflare build verification: its Next.js bundle cannot resolve the `cloudflare:workers` runtime import.
 
 ## Production hosting and credentials
 
