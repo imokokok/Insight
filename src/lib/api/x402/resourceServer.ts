@@ -1003,7 +1003,7 @@ function acceptsFor(cfg: X402Config, amountOverride?: string) {
 function routeConfigFor(
   cfg: X402Config,
   extension = BAZAAR_DISCOVERY_EXTENSION,
-  description = 'Pre-trade risk verdict: an oracle-integrity verdict (PASS/CAUTION/DANGER/BLOCK) for one trade, with verifiable EIP-712 attestation support. Advisory only — the calling agent owns every decision. BLOCK verdicts are complete checks and are charged.',
+  description = 'Pre-trade risk verdict: an oracle-integrity verdict (PASS/CAUTION/DANGER/BLOCK) for one trade, with verifiable EIP-712 attestation support. Advisory only — the calling agent owns every decision. BLOCK verdicts are complete checks and are charged. Use when an agent should verify oracle/price data integrity BEFORE executing a swap, borrow, or liquidation.',
   amountOverride?: string
 ) {
   return {
