@@ -74,6 +74,53 @@ export const BAZAAR_SERVICE_METADATA = {
 type SvmPaymentRequirements = Parameters<ExactSvmScheme['enhancePaymentRequirements']>[0];
 type SvmSupportedKind = Parameters<ExactSvmScheme['enhancePaymentRequirements']>[1];
 
+/**
+ * Trust extension embedded in every 402 quote (REST GET/POST and MCP).
+ *
+ * The 402 quote is the only surface a first-time caller sees before paying, and
+ * it currently answers "what does it cost" but not "why should I trust this".
+ * This extension carries the three things a paying agent needs to continue
+ * after its first probe payment, all pointing at existing infrastructure:
+ *   1. `docs` — authentication rails and the discovery manifest (inputSchema
+ *      source of truth; kept there rather than duplicated per-route).
+ *   2. `attestation` — paid responses carry a signed EIP-712 attestation; the
+ *      unauthenticated (Tier 0) verify endpoint lets any third party confirm
+ *      the signature and attester identity without paying again.
+ *   3. `boundaries` — the advisory-only contract, stated where the price is.
+ *
+ * Route-independent by design: no per-route wiring, no settlement changes, no
+ * new endpoints. Unregistered extension keys pass through the x402 core's
+ * `enrichExtensions` verbatim, so no SDK registration is needed and the Bazaar
+ * validator (which only inspects the `bazaar` key) is unaffected.
+ */
+export const TRUST_EXTENSION_INFO = {
+  info: {
+    docs: {
+      auth: 'https://www.oracleinsight.xyz/auth.md',
+      discoveryManifest: 'https://www.oracleinsight.xyz/.well-known/x402.json',
+    },
+    attestation: {
+      summary:
+        'Paid responses carry a signed EIP-712 attestation object under `attestation` that binds the verdict to its inputs. Insight is advisory only: it never signs, broadcasts, or enforces (insightDoesNotEnforce: true on every response).',
+      verify: {
+        method: 'POST',
+        url: 'https://www.oracleinsight.xyz/api/v1/safety/attestation/verify',
+        authenticated: false,
+        body: 'Paste the attestation object from the paid response; the endpoint routes by its schemaVersion and re-derives the domain server-side.',
+      },
+      attesterIdentity: {
+        method: 'GET',
+        url: 'https://www.oracleinsight.xyz/api/v1/safety/attestation/verify',
+        note: 'Returns the attester identity and supported schema versions without authentication.',
+      },
+    },
+    free: {
+      note: 'Attestation verification and service health are free and require no payment; an unpaid request only receives this 402 quote and is never charged.',
+      healthUrl: 'https://www.oracleinsight.xyz/api/v1/health',
+    },
+  },
+};
+
 interface FacilitatorBlockhashHint {
   recentBlockhash: string;
   lastValidBlockHeight: string;
@@ -964,7 +1011,7 @@ function routeConfigFor(
     mimeType: 'application/json',
     accepts: acceptsFor(cfg, amountOverride),
     ...BAZAAR_SERVICE_METADATA,
-    extensions: extension,
+    extensions: { ...extension, trust: TRUST_EXTENSION_INFO },
     x402Version: 2,
   };
 }
@@ -979,6 +1026,7 @@ function routeConfigWithoutDiscovery(
     description,
     mimeType: 'application/json',
     accepts: acceptsFor(cfg, amountOverride),
+    extensions: { trust: TRUST_EXTENSION_INFO },
     x402Version: 2,
   };
 }
@@ -1149,7 +1197,10 @@ function mcpRouteConfigFor(cfg: X402Config, amountAtomic: string, discoveryToolN
     mimeType: 'application/json',
     accepts: acceptsFor(cfg, amountAtomic),
     ...BAZAAR_SERVICE_METADATA,
-    extensions: bazaarMcpDiscoveryExtensionFor(discoveryToolName ?? MCP_INDEXER_QUOTE_TOOL),
+    extensions: {
+      ...bazaarMcpDiscoveryExtensionFor(discoveryToolName ?? MCP_INDEXER_QUOTE_TOOL),
+      trust: TRUST_EXTENSION_INFO,
+    },
     x402Version: 2,
   };
 }
