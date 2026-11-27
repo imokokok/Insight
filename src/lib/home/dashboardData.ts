@@ -62,10 +62,7 @@ export function createEmptyDashboardData(): ServerDashboardData {
 
 // Bound concurrent upstream oracle fetches during SSR so the dashboard does
 // not pile onto the shared DB request queue or upstream oracle rate limits.
-// Keep simultaneous live reads modest: production snapshots showed intermittent
-// provider route-deadline failures during high fan-out. Four concurrent reads
-// retain parallelism while reducing burst pressure on shared upstream RPCs.
-const DASHBOARD_FETCH_CONCURRENCY = 4;
+const DASHBOARD_FETCH_CONCURRENCY = 8;
 // A failed provider should not be retried for every homepage cache refresh.
 // This is intentionally scoped to the public dashboard: paid pre-trade checks
 // retain their stricter live-data behavior. Successful/stale database data is
