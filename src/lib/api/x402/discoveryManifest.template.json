@@ -15,7 +15,7 @@
     {
       "url": "https://www.oracleinsight.xyz/api/v1/safety/pre-trade",
       "method": "GET",
-      "description": "Decision Integrity — Pre-trade decision-input integrity check: is the price this action relies on trustworthy? Cross-provider consensus, deviation, freshness, and manipulation risk for one trade, with verifiable EIP-712 attestation support. BLOCK verdicts are complete checks and are charged. Advisory only: Insight does not enforce — the calling agent owns every decision (insightDoesNotEnforce: true).",
+      "description": "Decision Integrity — Pre-trade risk verdict: is the price this action relies on trustworthy? Cross-provider consensus, deviation, freshness, and manipulation risk for one trade, with verifiable EIP-712 attestation support. BLOCK verdicts are complete checks and are charged. Advisory only: Insight does not enforce — the calling agent owns every decision (insightDoesNotEnforce: true).",
       "accepts": [
         {
           "scheme": "exact",

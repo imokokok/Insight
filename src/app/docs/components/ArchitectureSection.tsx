@@ -99,7 +99,7 @@ const cronJobs = [
   {
     name: 'safety-outcome',
     schedule: '2 hours',
-    purpose: 'Backfill outcome labels for pre-trade safety checks',
+    purpose: 'Backfill outcome labels for pre-trade risk verdicts',
   },
   {
     name: 'protocol-metrics (tvl)',

@@ -28,7 +28,7 @@ function mppOffer(config: OpenApiPaymentConfig): JsonObject {
     method: 'evm',
     amount: config.amountAtomic,
     currency: usdcForNetwork(config.network),
-    description: `$${config.priceUsd.toFixed(2)} USDC per successful pre-trade safety check`,
+    description: `$${config.priceUsd.toFixed(2)} USDC per successful pre-trade risk verdict`,
   };
 }
 

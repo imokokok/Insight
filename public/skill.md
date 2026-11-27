@@ -1,4 +1,4 @@
-# Insight: Pre-Trade Safety for Trading Agents
+# Insight: Pre-Trade Risk Verdicts for Trading Agents
 
 Insight tells an agent whether the price it is about to trade on is trustworthy. For one trade it returns an oracle-manipulation-aware verdict (PASS / CAUTION / DANGER / BLOCK) computed from multi-provider oracle consensus, with optional verifiable EIP-712 attestation. Call keylessly and pay per call in USDC via x402 v2, or use an account API key billed against credits. The x402 path requires no signup, API key, or subscription.
 

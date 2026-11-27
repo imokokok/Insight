@@ -2958,9 +2958,9 @@ paths:
     get:
       operationId: preTradeSafetyCheck
       tags: [Safety]
-      summary: Pre-trade oracle safety check 🔒
+      summary: Pre-trade risk verdict (oracle integrity) 🔒
       description: |
-        Pre-trade oracle safety checkpoint for AI agents. Call this BEFORE executing any on-chain
+        Pre-trade risk verdict for AI agents. Call this BEFORE executing any on-chain
         swap/borrow/lend/liquidation/repay to verify oracle data integrity. Aggregates cross-oracle
         consensus prices, per-provider deviation, data freshness, stablecoin peg status, and
         reputation into a single verdict: `PASS` / `CAUTION` / `DANGER` / `BLOCK`. Agents MUST NOT

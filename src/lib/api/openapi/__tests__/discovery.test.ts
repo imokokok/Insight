@@ -49,7 +49,7 @@ describe('OpenAPI payment discovery', () => {
         method: 'evm',
         amount: '20000',
         currency: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
-        description: '$0.02 USDC per successful pre-trade safety check',
+        description: '$0.02 USDC per successful pre-trade risk verdict',
       },
     ]);
     expect(rest.protocols).toEqual([
