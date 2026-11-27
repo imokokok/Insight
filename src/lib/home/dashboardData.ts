@@ -37,17 +37,6 @@ export interface DashboardPriceItem {
   error: string | null;
 }
 
-interface DashboardPriceQuery {
-  provider: OracleProvider;
-  symbol: string;
-  chain: Blockchain;
-}
-
-interface IndexedDashboardPriceQuery {
-  query: DashboardPriceQuery;
-  index: number;
-}
-
 export interface ServerDashboardData {
   prices: DashboardPriceItem[];
   fetchedAt: number;
@@ -73,7 +62,7 @@ export function createEmptyDashboardData(): ServerDashboardData {
 
 // Bound concurrent upstream oracle fetches during SSR so the dashboard does
 // not pile onto the shared DB request queue or upstream oracle rate limits.
-const DASHBOARD_CHAIN_CONCURRENCY = 4;
+const DASHBOARD_FETCH_CONCURRENCY = 8;
 // A failed provider should not be retried for every homepage cache refresh.
 // This is intentionally scoped to the public dashboard: paid pre-trade checks
 // retain their stricter live-data behavior. Successful/stale database data is
@@ -223,7 +212,7 @@ export async function fetchDashboardInitialData(): Promise<ServerDashboardData> 
     }),
   ]);
 
-  const queries: DashboardPriceQuery[] = [];
+  const queries: Array<{ provider: OracleProvider; symbol: string; chain: Blockchain }> = [];
   const allowStaticFallback = feedRegistry.errored || feedRegistry.feeds.size === 0;
   for (const symbol of DASHBOARD_ASSETS) {
     for (const provider of mainOracles) {
@@ -234,24 +223,11 @@ export async function fetchDashboardInitialData(): Promise<ServerDashboardData> 
     }
   }
 
-  const queriesByChain = new Map<Blockchain, IndexedDashboardPriceQuery[]>();
-  queries.forEach((query, index) => {
-    const chainQueries = queriesByChain.get(query.chain) ?? [];
-    chainQueries.push({ query, index });
-    queriesByChain.set(query.chain, chainQueries);
-  });
-
-  const results: DashboardPriceItem[] = new Array(queries.length);
-  await mapWithConcurrency(
-    Array.from(queriesByChain.values()),
-    DASHBOARD_CHAIN_CONCURRENCY,
-    async (chainQueries) => {
-      // Oracle providers on the same chain share an RPC domain. Serialize only
-      // within that chain; other chain groups continue in parallel.
-      for (const { query, index } of chainQueries) {
-        results[index] = await fetchDashboardPrice(query.provider, query.symbol, query.chain);
-      }
-    }
+  const results = await mapWithConcurrency(
+    queries,
+    DASHBOARD_FETCH_CONCURRENCY,
+    async (query): Promise<DashboardPriceItem> =>
+      fetchDashboardPrice(query.provider, query.symbol, query.chain)
   );
 
   return {
