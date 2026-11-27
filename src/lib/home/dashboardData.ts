@@ -37,6 +37,17 @@ export interface DashboardPriceItem {
   error: string | null;
 }
 
+interface DashboardPriceQuery {
+  provider: OracleProvider;
+  symbol: string;
+  chain: Blockchain;
+}
+
+interface IndexedDashboardPriceQuery {
+  query: DashboardPriceQuery;
+  index: number;
+}
+
 export interface ServerDashboardData {
   prices: DashboardPriceItem[];
   fetchedAt: number;
@@ -60,9 +71,10 @@ export function createEmptyDashboardData(): ServerDashboardData {
   };
 }
 
-// Bound concurrent upstream oracle fetches during SSR so the dashboard does
-// not pile onto the shared DB request queue or upstream oracle rate limits.
-const DASHBOARD_FETCH_CONCURRENCY = 8;
+// Keep one in-flight request per provider so a dashboard refresh does not burst
+// four symbols at once into the same upstream source. Providers still run in
+// parallel, with a maximum of five active groups.
+const DASHBOARD_PROVIDER_CONCURRENCY = 5;
 // A failed provider should not be retried for every homepage cache refresh.
 // This is intentionally scoped to the public dashboard: paid pre-trade checks
 // retain their stricter live-data behavior. Successful/stale database data is
@@ -212,7 +224,7 @@ export async function fetchDashboardInitialData(): Promise<ServerDashboardData> 
     }),
   ]);
 
-  const queries: Array<{ provider: OracleProvider; symbol: string; chain: Blockchain }> = [];
+  const queries: DashboardPriceQuery[] = [];
   const allowStaticFallback = feedRegistry.errored || feedRegistry.feeds.size === 0;
   for (const symbol of DASHBOARD_ASSETS) {
     for (const provider of mainOracles) {
@@ -223,11 +235,23 @@ export async function fetchDashboardInitialData(): Promise<ServerDashboardData> 
     }
   }
 
-  const results = await mapWithConcurrency(
-    queries,
-    DASHBOARD_FETCH_CONCURRENCY,
-    async (query): Promise<DashboardPriceItem> =>
-      fetchDashboardPrice(query.provider, query.symbol, query.chain)
+  const queriesByProvider = new Map<OracleProvider, IndexedDashboardPriceQuery[]>();
+  queries.forEach((query, index) => {
+    const providerQueries = queriesByProvider.get(query.provider) ?? [];
+    providerQueries.push({ query, index });
+    queriesByProvider.set(query.provider, providerQueries);
+  });
+
+  const results: DashboardPriceItem[] = new Array(queries.length);
+  await mapWithConcurrency(
+    Array.from(queriesByProvider.values()),
+    DASHBOARD_PROVIDER_CONCURRENCY,
+    async (providerQueries) => {
+      // Preserve dashboard ordering while preventing same-provider fan-out.
+      for (const { query, index } of providerQueries) {
+        results[index] = await fetchDashboardPrice(query.provider, query.symbol, query.chain);
+      }
+    }
   );
 
   return {
