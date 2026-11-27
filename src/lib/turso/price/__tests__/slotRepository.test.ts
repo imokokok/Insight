@@ -6,7 +6,7 @@ import {
   publishTursoFeedRegistry,
   readTursoFeedRegistry,
 } from '../controlPlaneRepository';
-import { ensureTursoPriceSchema } from '../schema';
+import { DEFAULT_TURSO_PRICE_POLICIES, ensureTursoPriceSchema } from '../schema';
 import {
   acknowledgeTursoPriceSlot,
   captureTursoPriceSlot,
@@ -92,6 +92,82 @@ describe('Turso price-slot repository', () => {
       );
       expect(leases.rows).toHaveLength(1);
       expect(registry.rows).toHaveLength(1);
+    } finally {
+      legacy.close();
+    }
+  });
+
+  it('migrates existing Turso policies to the reduced adaptive sampling profile', async () => {
+    const legacy = createClient({ url: 'file::memory:' });
+    try {
+      await legacy.batch([
+        `CREATE TABLE _insight_schema_migrations (
+          version INTEGER PRIMARY KEY,
+          applied_at_ms INTEGER NOT NULL
+        )`,
+        `CREATE TABLE persistence_policies (
+          policy_key TEXT PRIMARY KEY,
+          resolution TEXT NOT NULL,
+          price_change_bps INTEGER NOT NULL,
+          deviation_change_bps INTEGER NOT NULL,
+          data_age_change_seconds INTEGER NOT NULL,
+          confidence_change_e4 INTEGER NOT NULL,
+          updated_at_ms INTEGER NOT NULL
+        )`,
+        'INSERT INTO _insight_schema_migrations(version,applied_at_ms) VALUES(8, 1)',
+        ...DEFAULT_TURSO_PRICE_POLICIES.map((policy) => ({
+          sql: `INSERT INTO persistence_policies(
+            policy_key,resolution,price_change_bps,deviation_change_bps,
+            data_age_change_seconds,confidence_change_e4,updated_at_ms
+          ) VALUES(?,?,?,?,?,?,?)`,
+          args: [
+            policy.policyKey,
+            policy.policyKey === '__default__' ? 'adaptive' : 'full',
+            25,
+            10,
+            300,
+            500,
+            1,
+          ],
+        })),
+      ]);
+
+      await ensureTursoPriceSchema(legacy, 2);
+
+      const [policies, version] = await Promise.all([
+        legacy.execute(
+          `SELECT policy_key,resolution,price_change_bps,deviation_change_bps
+           FROM persistence_policies ORDER BY policy_key`
+        ),
+        legacy.execute('SELECT max(version) AS version FROM _insight_schema_migrations'),
+      ]);
+      const rows = new Map(policies.rows.map((row) => [row.policy_key, row]));
+      expect(rows.get('ADA')).toMatchObject({
+        resolution: 'adaptive',
+        price_change_bps: 25,
+        deviation_change_bps: 10,
+      });
+      expect(rows.get('CBBTC')).toMatchObject({
+        resolution: 'adaptive',
+        price_change_bps: 5,
+        deviation_change_bps: 5,
+      });
+      expect(rows.get('BTC')).toMatchObject({
+        resolution: 'full',
+        price_change_bps: 25,
+        deviation_change_bps: 10,
+      });
+      expect(Number(version.rows[0]?.version)).toBe(9);
+
+      const fresh = await client.execute(
+        `SELECT resolution,count(*) AS count FROM persistence_policies GROUP BY resolution`
+      );
+      expect(fresh.rows).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ resolution: 'adaptive', count: 12 }),
+          expect.objectContaining({ resolution: 'full', count: 6 }),
+        ])
+      );
     } finally {
       legacy.close();
     }
