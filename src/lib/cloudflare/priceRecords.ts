@@ -30,6 +30,22 @@ export interface PriceRecordsD1Database {
   batch<T = unknown>(statements: D1Statement[]): Promise<Array<D1Result<T>>>;
 }
 
+/** Delete expired cache rows and require D1's affected-row count for auditability. */
+export async function pruneExpiredD1PriceRecords(
+  database: PriceRecordsD1Database,
+  nowMs = Date.now()
+): Promise<number> {
+  const result = await database
+    .prepare('DELETE FROM price_records WHERE ttl_ms < ?')
+    .bind(nowMs)
+    .run();
+  const deletedRows = result.meta?.changes;
+  if (typeof deletedRows !== 'number' || !Number.isSafeInteger(deletedRows) || deletedRows < 0) {
+    throw new Error('D1 did not report a valid expired-row deletion count');
+  }
+  return deletedRows;
+}
+
 export interface PriceRecordsFilters {
   provider?: string;
   symbol?: string;

@@ -3,7 +3,11 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { verifyCronSecret } from '@/lib/api/cronAuth';
-import { getPriceRecordsD1Database, saveD1PriceRecords } from '@/lib/cloudflare/priceRecords';
+import {
+  getPriceRecordsD1Database,
+  pruneExpiredD1PriceRecords,
+  saveD1PriceRecords,
+} from '@/lib/cloudflare/priceRecords';
 import type { PriceRecordInsert } from '@/lib/supabase/queries';
 import { FAILURE_MODE_VALUES } from '@/types/oracle/signals';
 
@@ -59,9 +63,10 @@ const priceRecordSchema = z
   })
   .strict();
 
-const requestSchema = z
-  .object({ records: z.array(priceRecordSchema).min(1).max(MAX_BATCH_SIZE) })
-  .strict();
+const requestSchema = z.union([
+  z.object({ operation: z.literal('cleanup-expired') }).strict(),
+  z.object({ records: z.array(priceRecordSchema).min(1).max(MAX_BATCH_SIZE) }).strict(),
+]);
 
 export async function POST(request: Request): Promise<NextResponse> {
   const authResponse = verifyCronSecret(request);
@@ -96,10 +101,16 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
 
   try {
-    const saved = await saveD1PriceRecords(
-      await getPriceRecordsD1Database(),
-      parsed.data.records as PriceRecordInsert[]
-    );
+    const database = await getPriceRecordsD1Database();
+    if ('operation' in parsed.data) {
+      const deletedRows = await pruneExpiredD1PriceRecords(database);
+      return NextResponse.json(
+        { deleted_rows: deletedRows },
+        { headers: { 'Cache-Control': 'no-store, max-age=0' } }
+      );
+    }
+
+    const saved = await saveD1PriceRecords(database, parsed.data.records as PriceRecordInsert[]);
     return NextResponse.json({ saved }, { headers: { 'Cache-Control': 'no-store, max-age=0' } });
   } catch {
     return NextResponse.json({ error: 'Price-record storage unavailable' }, { status: 503 });
