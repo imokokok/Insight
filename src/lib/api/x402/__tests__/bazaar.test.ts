@@ -15,6 +15,7 @@ import {
   BAZAAR_SERVICE_METADATA,
   BAZAAR_SOLANA_PERP_GUARD_DISCOVERY_EXTENSION,
   BAZAAR_SWAP_INTENT_DISCOVERY_EXTENSION,
+  TRUST_EXTENSION_INFO,
 } from '../resourceServer';
 
 /**
@@ -238,5 +239,46 @@ describe('bazaar discovery extension', () => {
         'policy',
       ])
     );
+  });
+});
+
+describe('trust extension (402 quote self-description)', () => {
+  // The trust extension is the post-payment conversion surface: a first-time
+  // caller's only answers to "what does the response contain, how do I verify
+  // it, and how do I integrate". These pins keep the pointers valid when
+  // routes move — a drifted URL here is invisible in production.
+  it('points docs at the live auth guide and the discovery manifest', () => {
+    expect(TRUST_EXTENSION_INFO.info.docs.auth).toBe('https://www.oracleinsight.xyz/auth.md');
+    expect(TRUST_EXTENSION_INFO.info.docs.discoveryManifest).toBe(
+      'https://www.oracleinsight.xyz/.well-known/x402.json'
+    );
+  });
+
+  it('pins attestation verification to the unauthenticated Tier 0 verify route', () => {
+    const { verify, attesterIdentity } = TRUST_EXTENSION_INFO.info.attestation;
+    expect(verify).toMatchObject({
+      method: 'POST',
+      url: 'https://www.oracleinsight.xyz/api/v1/safety/attestation/verify',
+      authenticated: false,
+    });
+    expect(attesterIdentity).toMatchObject({
+      method: 'GET',
+      url: 'https://www.oracleinsight.xyz/api/v1/safety/attestation/verify',
+    });
+  });
+
+  it('states the advisory-only boundary and the free verification policy', () => {
+    expect(TRUST_EXTENSION_INFO.info.attestation.summary).toContain('insightDoesNotEnforce');
+    expect(TRUST_EXTENSION_INFO.info.attestation.summary).toContain(
+      'never signs, broadcasts, or enforces'
+    );
+    expect(TRUST_EXTENSION_INFO.info.free.note).toContain('free');
+    expect(TRUST_EXTENSION_INFO.info.free.healthUrl).toBe(
+      'https://www.oracleinsight.xyz/api/v1/health'
+    );
+  });
+
+  it('carries no per-route schema duplication (inputSchema lives only in the manifest)', () => {
+    expect(TRUST_EXTENSION_INFO.info).not.toHaveProperty('inputSchema');
   });
 });
