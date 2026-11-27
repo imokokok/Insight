@@ -71,10 +71,10 @@ export function createEmptyDashboardData(): ServerDashboardData {
   };
 }
 
-// Keep one in-flight request per provider so a dashboard refresh does not burst
-// four symbols at once into the same upstream source. Providers still run in
-// parallel, with a maximum of five active groups.
-const DASHBOARD_PROVIDER_CONCURRENCY = 5;
+// Limit pressure on shared chain RPCs while allowing independent chains to run
+// at the same time. At most two symbols per chain and four chains are active.
+const DASHBOARD_CHAIN_GROUP_CONCURRENCY = 4;
+const DASHBOARD_PER_CHAIN_CONCURRENCY = 2;
 // A failed provider should not be retried for every homepage cache refresh.
 // This is intentionally scoped to the public dashboard: paid pre-trade checks
 // retain their stricter live-data behavior. Successful/stale database data is
@@ -235,22 +235,26 @@ export async function fetchDashboardInitialData(): Promise<ServerDashboardData> 
     }
   }
 
-  const queriesByProvider = new Map<OracleProvider, IndexedDashboardPriceQuery[]>();
+  const queriesByChain = new Map<Blockchain, IndexedDashboardPriceQuery[]>();
   queries.forEach((query, index) => {
-    const providerQueries = queriesByProvider.get(query.provider) ?? [];
-    providerQueries.push({ query, index });
-    queriesByProvider.set(query.provider, providerQueries);
+    const chainQueries = queriesByChain.get(query.chain) ?? [];
+    chainQueries.push({ query, index });
+    queriesByChain.set(query.chain, chainQueries);
   });
 
   const results: DashboardPriceItem[] = new Array(queries.length);
   await mapWithConcurrency(
-    Array.from(queriesByProvider.values()),
-    DASHBOARD_PROVIDER_CONCURRENCY,
-    async (providerQueries) => {
-      // Preserve dashboard ordering while preventing same-provider fan-out.
-      for (const { query, index } of providerQueries) {
-        results[index] = await fetchDashboardPrice(query.provider, query.symbol, query.chain);
-      }
+    Array.from(queriesByChain.values()),
+    DASHBOARD_CHAIN_GROUP_CONCURRENCY,
+    async (chainQueries) => {
+      // Preserve result order while bounding calls through the same RPC domain.
+      await mapWithConcurrency(
+        chainQueries,
+        DASHBOARD_PER_CHAIN_CONCURRENCY,
+        async ({ query, index }) => {
+          results[index] = await fetchDashboardPrice(query.provider, query.symbol, query.chain);
+        }
+      );
     }
   );
 
