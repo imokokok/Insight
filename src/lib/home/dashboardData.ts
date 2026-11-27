@@ -3,11 +3,23 @@ import { unstable_cache } from 'next/cache';
 import { getPriceOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
 import { DASHBOARD_ASSETS } from '@/lib/home/dashboardConstants';
 import { fetchPriceWithDatabase } from '@/lib/oracles/base/databaseOperations';
+import { getDefaultFactory } from '@/lib/oracles/factory';
 import { reputationService, type OracleReputation } from '@/lib/oracles/services/reputationService';
-import { getActiveProviders, getAllActiveSymbols } from '@/lib/oracles/utils/dynamicFeedResolver';
+import {
+  getActiveProviders,
+  getAllActiveFeedsByProviderWithStatus,
+} from '@/lib/oracles/utils/dynamicFeedResolver';
+import { resolveOracleFeedBlockchain } from '@/lib/oracles/utils/feedChain';
+import { extractBaseSymbol, isUsdDenominatedFeedSymbol } from '@/lib/oracles/utils/oracleDataUtils';
+import type { OracleFeed } from '@/lib/supabase/queries';
 import { mapWithConcurrency } from '@/lib/utils/concurrency';
 import { createLogger } from '@/lib/utils/logger';
-import { OracleProvider, ORACLE_PROVIDER_VALUES, type PriceData } from '@/types/oracle';
+import {
+  OracleProvider,
+  ORACLE_PROVIDER_VALUES,
+  type Blockchain,
+  type PriceData,
+} from '@/types/oracle';
 
 const logger = createLogger('dashboard-data');
 
@@ -48,10 +60,8 @@ export function createEmptyDashboardData(): ServerDashboardData {
   };
 }
 
-// Bound concurrent upstream oracle fetches during SSR. Without this, 20
-// parallel `fetchPriceWithDatabase` calls (4 assets × 5 oracles) fan out
-// simultaneously, piling up on the shared DB request queue and on upstream
-// oracle rate limits. Matches the batch API route's concurrency approach.
+// Bound concurrent upstream oracle fetches during SSR so the dashboard does
+// not pile onto the shared DB request queue or upstream oracle rate limits.
 const DASHBOARD_FETCH_CONCURRENCY = 8;
 // A failed provider should not be retried for every homepage cache refresh.
 // This is intentionally scoped to the public dashboard: paid pre-trade checks
@@ -66,15 +76,16 @@ interface DashboardPriceCircuitEntry {
 
 const dashboardPriceCircuit = new Map<string, DashboardPriceCircuitEntry>();
 
-function dashboardPriceKey(provider: OracleProvider, symbol: string): string {
-  return `${provider}:${symbol}`;
+function dashboardPriceKey(provider: OracleProvider, symbol: string, chain: Blockchain): string {
+  return `${provider}:${symbol}:${chain}`;
 }
 
 async function fetchDashboardPrice(
   provider: OracleProvider,
-  symbol: string
+  symbol: string,
+  chain: Blockchain
 ): Promise<DashboardPriceItem> {
-  const key = dashboardPriceKey(provider, symbol);
+  const key = dashboardPriceKey(provider, symbol, chain);
   const circuit = dashboardPriceCircuit.get(key);
   if (circuit && circuit.retryAfter > Date.now()) {
     return (
@@ -88,7 +99,7 @@ async function fetchDashboardPrice(
   }
 
   try {
-    const price = await fetchPriceWithDatabase(provider, symbol, undefined, true);
+    const price = await fetchPriceWithDatabase(provider, symbol, chain, true);
     const result: DashboardPriceItem = { provider, symbol, price, error: null };
     dashboardPriceCircuit.set(key, { retryAfter: 0, lastSuccess: result });
     return result;
@@ -108,6 +119,60 @@ async function fetchDashboardPrice(
       }
     );
   }
+}
+
+/**
+ * Choose a chain on which this provider can actually serve the dashboard
+ * symbol. Prefer a matching active registry feed on the provider's default
+ * chain; otherwise use the first matching registered chain that the client
+ * supports. Only use the client's curated support list when the active-feed
+ * registry itself is empty or unavailable; a healthy, nonempty registry is
+ * authoritative for the dashboard's supported provider/symbol pairs.
+ */
+function resolveDashboardChain(
+  provider: OracleProvider,
+  symbol: string,
+  feeds: OracleFeed[],
+  allowStaticFallback: boolean
+): Blockchain | null {
+  const client = getDefaultFactory().getClient(provider);
+  const defaultChain = client.getDefaultChain();
+  const supportedChains = [...new Set(client.getSupportedChainsForSymbol(symbol))];
+  const registeredChains = new Set<Blockchain>();
+  let hasMatchingRegisteredFeed = false;
+
+  for (const feed of feeds) {
+    if (
+      extractBaseSymbol(feed.symbol).toUpperCase() !== symbol ||
+      !isUsdDenominatedFeedSymbol(feed.symbol)
+    ) {
+      continue;
+    }
+
+    hasMatchingRegisteredFeed = true;
+    // Source-bound Solana rows carry metadata that resolves chain_id=0 to
+    // Solana. Other chain-agnostic rows can use any chain supported by the
+    // provider, preferring its default.
+    const resolvedChain = resolveOracleFeedBlockchain(feed);
+    if (resolvedChain) {
+      registeredChains.add(resolvedChain);
+    } else if (feed.chain_id === 0 && supportedChains.length > 0) {
+      for (const chain of supportedChains) registeredChains.add(chain);
+    } else if (feed.chain_id === 0) {
+      registeredChains.add(defaultChain);
+    }
+  }
+
+  if (!hasMatchingRegisteredFeed && !allowStaticFallback) return null;
+
+  const candidateChains = hasMatchingRegisteredFeed
+    ? supportedChains.length > 0
+      ? supportedChains.filter((chain) => registeredChains.has(chain))
+      : [...registeredChains]
+    : supportedChains;
+
+  if (candidateChains.length === 0) return null;
+  return candidateChains.includes(defaultChain) ? defaultChain : candidateChains[0];
 }
 
 /**
@@ -136,8 +201,8 @@ export async function fetchDashboardInitialData(): Promise<ServerDashboardData> 
   // Resolve the active symbol/provider sets once per SSR. These hit the
   // 5-minute aggregate cache in dynamicFeedResolver, so in the common
   // case they return immediately without a DB round-trip.
-  const [activeSymbols, mainOracles, reputations] = await Promise.all([
-    getAllActiveSymbols([]),
+  const [feedRegistry, mainOracles, reputations] = await Promise.all([
+    getAllActiveFeedsByProviderWithStatus(),
     resolveMainOracles(),
     reputationService.getReputations().catch((error) => {
       logger.warn('Server reputation prefetch failed', {
@@ -147,22 +212,22 @@ export async function fetchDashboardInitialData(): Promise<ServerDashboardData> 
     }),
   ]);
 
-  const activeSymbolSet = new Set(activeSymbols.map((s) => s.toUpperCase()));
-
-  const queries: Array<{ provider: OracleProvider; symbol: string }> = [];
+  const queries: Array<{ provider: OracleProvider; symbol: string; chain: Blockchain }> = [];
+  const allowStaticFallback = feedRegistry.errored || feedRegistry.feeds.size === 0;
   for (const symbol of DASHBOARD_ASSETS) {
-    // Skip assets that the DB reports as having no active feed anywhere;
-    // fetching them would only produce "unsupported symbol" errors.
-    if (activeSymbolSet.size > 0 && !activeSymbolSet.has(symbol)) continue;
     for (const provider of mainOracles) {
-      queries.push({ provider, symbol });
+      const feeds = feedRegistry.feeds.get(provider) ?? [];
+      const chain = resolveDashboardChain(provider, symbol, feeds, allowStaticFallback);
+      if (!chain) continue;
+      queries.push({ provider, symbol, chain });
     }
   }
 
   const results = await mapWithConcurrency(
     queries,
     DASHBOARD_FETCH_CONCURRENCY,
-    async (query): Promise<DashboardPriceItem> => fetchDashboardPrice(query.provider, query.symbol)
+    async (query): Promise<DashboardPriceItem> =>
+      fetchDashboardPrice(query.provider, query.symbol, query.chain)
   );
 
   return {
