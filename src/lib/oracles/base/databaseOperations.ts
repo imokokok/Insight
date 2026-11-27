@@ -297,7 +297,7 @@ export async function fetchPriceWithDatabase(
   forceRefresh: boolean = false,
   signal?: AbortSignal,
   exactFeedSymbol?: string,
-  storageOptions: { persist?: boolean } = {}
+  storageOptions: { persist?: boolean; allowSnapshotFallback?: boolean } = {}
 ): Promise<PriceData> {
   // Oracle services expect the base asset symbol (e.g. "BTC"), while some UI
   // and API callers pass the full pair (e.g. "btc/usd"). Normalize once: derive
@@ -436,8 +436,16 @@ export async function fetchPriceWithDatabase(
       // hourly; the lean snapshot stream remains 15-minute. Consult it only
       // now (never on the normal request path) so outage fallback freshness is
       // retained without adding a read to successful live requests.
+      // Some adapters (notably Chainlink and API3) intentionally do not write
+      // rich price_records because those rows cannot round-trip their evidence.
+      // A caller such as the public dashboard may still opt into the separate,
+      // source-labelled snapshot stream as an outage fallback. Paid/decision
+      // callers keep the existing provider persistence gate by default.
+      const canUseSnapshotFallback =
+        !requiresStrictDirectFreshness(provider, targetChain) &&
+        (supportsPricePersistence(provider) || storageOptions.allowSnapshotFallback === true);
       const latestSnapshot =
-        !forceRefresh && useDatabase && shouldUseDatabase() && supportsPricePersistence(provider)
+        !forceRefresh && useDatabase && shouldUseDatabase() && canUseSnapshotFallback
           ? await getLatestPriceSnapshotFromDatabase(provider, fetchSymbol, targetChain)
           : null;
       const fallbackPrice = selectNewestFallbackPrice(staleDbPrice, latestSnapshot);
