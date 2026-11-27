@@ -8,10 +8,11 @@ import type { Client, InStatement } from '@libsql/client';
 // `price_records`, the 24-hour cache that can be moved independently of the
 // raw stream. Version 8 adds `feed_cadence_baselines`, the collector-side
 // mirror of oracle_feeds.observed_data_age_p90_s computed from the raw
-// stream (egress retirement: the Supabase RPC path is restricted).
+// stream (egress retirement: the Supabase RPC path is restricted). Version 9
+// applies the reduced adaptive persistence policy to secondary assets.
 // Keep this local to Turso so a degraded Supabase control plane
 // cannot stop raw capture.
-export const TURSO_PRICE_SCHEMA_VERSION = 8;
+export const TURSO_PRICE_SCHEMA_VERSION = 9;
 
 export const DEFAULT_TURSO_PRICE_POLICIES = [
   {
@@ -22,29 +23,27 @@ export const DEFAULT_TURSO_PRICE_POLICIES = [
     dataAgeChangeSeconds: 300,
     confidenceChangeE4: 500,
   },
-  ...[
-    'BTC',
-    'ETH',
-    'SOL',
-    'BNB',
-    'XRP',
-    'ADA',
-    'DOGE',
-    'LINK',
-    'USDC',
-    'USDT',
-    'DAI',
-    'WBTC',
-    'CBBTC',
-    'TBTC',
-    'STETH',
-    'WSTETH',
-    'CBETH',
-  ].map((policyKey) => ({
+  ...['BTC', 'ETH', 'SOL', 'DAI', 'USDC', 'USDT'].map((policyKey) => ({
     policyKey,
     resolution: 'full' as const,
     priceChangeBps: 25,
     deviationChangeBps: 10,
+    dataAgeChangeSeconds: 300,
+    confidenceChangeE4: 500,
+  })),
+  ...['ADA', 'BNB', 'DOGE', 'LINK', 'XRP'].map((policyKey) => ({
+    policyKey,
+    resolution: 'adaptive' as const,
+    priceChangeBps: 25,
+    deviationChangeBps: 10,
+    dataAgeChangeSeconds: 300,
+    confidenceChangeE4: 500,
+  })),
+  ...['CBBTC', 'CBETH', 'STETH', 'TBTC', 'WBTC', 'WSTETH'].map((policyKey) => ({
+    policyKey,
+    resolution: 'adaptive' as const,
+    priceChangeBps: 5,
+    deviationChangeBps: 5,
     dataAgeChangeSeconds: 300,
     confidenceChangeE4: 500,
   })),
@@ -383,6 +382,34 @@ const migrationStatements: Readonly<Record<number, readonly InStatement[]>> = {
       PRIMARY KEY (provider, symbol, chain_id)
     )`,
     'CREATE INDEX IF NOT EXISTS feed_cadence_baselines_symbol_idx ON feed_cadence_baselines(symbol)',
+  ],
+  9: [
+    `CREATE TABLE IF NOT EXISTS persistence_policies (
+      policy_key TEXT PRIMARY KEY,
+      resolution TEXT NOT NULL CHECK (resolution IN ('full', 'adaptive')),
+      price_change_bps INTEGER NOT NULL CHECK (price_change_bps BETWEEN 1 AND 100000),
+      deviation_change_bps INTEGER NOT NULL CHECK (deviation_change_bps BETWEEN 1 AND 100000),
+      data_age_change_seconds INTEGER NOT NULL CHECK (data_age_change_seconds BETWEEN 1 AND 2147483647),
+      confidence_change_e4 INTEGER NOT NULL CHECK (confidence_change_e4 BETWEEN 1 AND 10000),
+      updated_at_ms INTEGER NOT NULL
+    )`,
+    `UPDATE persistence_policies
+     SET resolution='adaptive',
+         price_change_bps=CASE
+           WHEN policy_key IN ('CBBTC','CBETH','STETH','TBTC','WBTC','WSTETH') THEN 5
+           ELSE 25
+         END,
+         deviation_change_bps=CASE
+           WHEN policy_key IN ('CBBTC','CBETH','STETH','TBTC','WBTC','WSTETH') THEN 5
+           ELSE 10
+         END,
+         data_age_change_seconds=300,
+         confidence_change_e4=500,
+         updated_at_ms=CAST(strftime('%s','now') AS INTEGER) * 1000
+     WHERE policy_key IN (
+       'ADA','BNB','CBBTC','CBETH','DOGE','LINK',
+       'STETH','TBTC','WBTC','WSTETH','XRP'
+     )`,
   ],
 };
 
