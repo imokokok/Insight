@@ -55,7 +55,7 @@ const METERING_ROWS = METERING_CLASS_ORDER.map((cls) => ({
   desc: METERING_CLASS_DESCRIPTION[cls],
 }));
 
-/** The metering class behind a pre-trade safety check, used for translations. */
+/** The metering class behind a pre-trade risk verdict, used for translations. */
 const AGENT_GATE_CLASS = 'C3' as const;
 
 const API_C3_PRICE_RANGE = callPriceRange(AGENT_GATE_CLASS);

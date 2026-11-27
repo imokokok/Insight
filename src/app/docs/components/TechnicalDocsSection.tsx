@@ -77,7 +77,7 @@ const docs: DocCard[] = [
     icon: <Bot className="w-6 h-6" />,
     title: 'AI / MCP Server',
     description:
-      'Connect Claude, Cursor, and other MCP clients to oracle prices, risk summaries, pre-trade safety checks, Oracle Watch monitoring, liquidation stress tests, and more.',
+      'Connect Claude, Cursor, and other MCP clients to oracle prices, risk summaries, pre-trade risk verdicts, Oracle Watch monitoring, liquidation stress tests, and more.',
     href: '/ai',
     tags: ['AI Agents', '4 Product Tools', 'MCP', 'Execution Preflight'],
     accent: 'blue',

@@ -273,7 +273,7 @@ export default function PricingPage() {
                   challenge&apos;s <code className="font-mono text-base">accepts[]</code> —
                   currently HyperEVM (eip155:999), Base (eip155:8453) and Solana mainnet for generic
                   MCP calls, while chain-bound guard routes quote their own chain — and retries with
-                  a signed payment to receive the full result. The REST pre-trade safety check is
+                  a signed payment to receive the full result. The REST pre-trade risk verdict is
                   $0.02 (C3). On the MCP surface, the{' '}
                   <code className="font-mono text-base">trade_guard</code> trade-safety ops (
                   <code className="font-mono text-base">check_safety</code>,{' '}

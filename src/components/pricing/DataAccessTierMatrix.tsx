@@ -79,7 +79,7 @@ const accessRows: AccessRow[] = [
     api: true,
   },
   {
-    label: 'Pre-trade safety checks, oracle-watch & attested receipts',
+    label: 'Pre-trade risk verdicts, oracle-watch & attested receipts',
     web: false,
     api: true,
   },

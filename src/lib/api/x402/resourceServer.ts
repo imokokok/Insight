@@ -67,7 +67,7 @@ let cachedKey = '';
  */
 export const BAZAAR_SERVICE_METADATA = {
   serviceName: 'Insight Oracle',
-  tags: ['oracle-safety', 'defi', 'pre-trade', 'x402', 'agent', 'base'],
+  tags: ['oracle-safety', 'risk-verdict', 'defi', 'pre-trade', 'x402', 'agent', 'base'],
   iconUrl: 'https://www.oracleinsight.xyz/logos/insight-glacier-cut.svg',
 };
 
@@ -1003,7 +1003,7 @@ function acceptsFor(cfg: X402Config, amountOverride?: string) {
 function routeConfigFor(
   cfg: X402Config,
   extension = BAZAAR_DISCOVERY_EXTENSION,
-  description = 'Pre-trade safety check: oracle-immune-system verdict for one trade, with verifiable EIP-712 attestation support. BLOCK verdicts are complete checks and are charged.',
+  description = 'Pre-trade risk verdict: an oracle-integrity verdict (PASS/CAUTION/DANGER/BLOCK) for one trade, with verifiable EIP-712 attestation support. Advisory only — the calling agent owns every decision. BLOCK verdicts are complete checks and are charged.',
   amountOverride?: string
 ) {
   return {

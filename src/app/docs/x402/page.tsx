@@ -11,14 +11,14 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Pay-per-Call Quickstart: x402 and MPP — Insight',
   description:
-    'Call the Insight pre-trade safety check with no account or API key: pay in USDC on configured EVM or Solana networks via x402, or the configured EVM network via optional MPP.',
+    'Call the Insight pre-trade risk verdict with no account or API key: pay in USDC on configured EVM or Solana networks via x402, or the configured EVM network via optional MPP.',
   keywords: [
     'x402 quickstart',
     'MPP quickstart',
     'pay per call API',
     'USDC EVM micropayments',
     'AI agent payments',
-    'pre-trade safety check',
+    'pre-trade risk verdict',
   ],
 };
 
@@ -81,7 +81,7 @@ const QUERY_PARAMS = [
 const METERING_CLASSES = [
   { cls: 'C1', atomic: '2000', usd: '$0.002', detail: 'Lightweight reads (most catalog tools)' },
   { cls: 'C2', atomic: '4000', usd: '$0.004', detail: 'Standard analysis tools' },
-  { cls: 'C3', atomic: '20000', usd: '$0.02', detail: 'Pre-trade safety check' },
+  { cls: 'C3', atomic: '20000', usd: '$0.02', detail: 'Pre-trade risk verdict' },
   { cls: 'C4', atomic: '40000', usd: '$0.04', detail: 'Heaviest composite tools' },
 ];
 

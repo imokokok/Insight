@@ -430,7 +430,7 @@ export function AiPageContent() {
               </h2>
               <p className="max-w-2xl text-lg text-slate-600">
                 Any MCP-compatible client works. The agent auto-discovers Insight&apos;s tools —
-                including the pre-trade safety check — and can start gating trades immediately.
+                including the pre-trade risk verdict — and can start gating trades immediately.
               </p>
             </div>
           </div>

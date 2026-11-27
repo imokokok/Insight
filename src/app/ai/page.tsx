@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     'MCP server',
     'Model Context Protocol',
     'oracle manipulation detection',
-    'pre-trade safety check',
+    'pre-trade risk verdict',
     'oracle watch',
     'DeFi AI agent',
     'Cursor MCP',
