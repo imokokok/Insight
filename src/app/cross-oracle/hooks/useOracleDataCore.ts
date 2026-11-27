@@ -451,7 +451,10 @@ export function useOracleDataCore(
   );
 
   const fetchPriceDataRef = useRef(fetchPriceData);
-  fetchPriceDataRef.current = fetchPriceData;
+
+  useEffect(() => {
+    fetchPriceDataRef.current = fetchPriceData;
+  }, [fetchPriceData]);
 
   useEffect(() => {
     isMountedRef.current = true;
