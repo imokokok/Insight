@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { z } from 'zod';
 
 import { calculateConsensusPrice } from '@/lib/analytics/consensusPrice';
-import { parseApiEnvelope, requireApiData } from '@/lib/api/client/responseValidation';
+import { parseApiEnvelope } from '@/lib/api/client/responseValidation';
 import { oracleColors } from '@/lib/constants';
 import { DASHBOARD_ASSETS } from '@/lib/home/dashboardConstants';
 import type { DashboardPriceItem, ServerDashboardData } from '@/lib/home/dashboardData';
@@ -61,12 +61,61 @@ const ServerDashboardDataSchema: z.ZodType<ServerDashboardData> = z.object({
   reputations: z.array(OracleReputationSchema),
 });
 
+type DashboardRefreshDiagnostic =
+  | { kind: 'http'; status: number }
+  | { kind: 'invalid_json' }
+  | { kind: 'invalid_envelope' }
+  | { kind: 'api_failure' }
+  | { kind: 'invalid_data'; paths: string[] };
+
+class DashboardRefreshFailure extends Error {
+  constructor(readonly diagnostic: DashboardRefreshDiagnostic) {
+    super('Dashboard refresh failed');
+    this.name = 'DashboardRefreshFailure';
+  }
+}
+
 async function fetchDashboardSnapshot(signal?: AbortSignal): Promise<ServerDashboardData> {
   const response = await fetch('/api/home/dashboard', { signal });
-  if (!response.ok) throw new Error('Failed to fetch dashboard data');
-  const payload = parseApiEnvelope(await response.json(), 'Dashboard response');
-  if (!payload.success) throw new Error('Dashboard response reported failure');
-  return requireApiData(payload, ServerDashboardDataSchema, 'Dashboard response');
+  if (!response.ok) {
+    throw new DashboardRefreshFailure({ kind: 'http', status: response.status });
+  }
+
+  let responseBody: unknown;
+  try {
+    responseBody = await response.json();
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') throw error;
+    throw new DashboardRefreshFailure({ kind: 'invalid_json' });
+  }
+
+  let payload;
+  try {
+    payload = parseApiEnvelope(responseBody, 'Dashboard response');
+  } catch {
+    throw new DashboardRefreshFailure({ kind: 'invalid_envelope' });
+  }
+  if (!payload.success) throw new DashboardRefreshFailure({ kind: 'api_failure' });
+
+  const parsed = ServerDashboardDataSchema.safeParse(payload.data);
+  if (!parsed.success) {
+    const paths = [
+      ...new Set(
+        parsed.error.issues.map((issue) => {
+          const path = issue.path
+            .map((part) => {
+              if (typeof part === 'number') return '[]';
+              if (typeof part === 'string' && /^[A-Za-z0-9_-]{1,64}$/.test(part)) return part;
+              return '?';
+            })
+            .join('.');
+          return path || '<root>';
+        })
+      ),
+    ].slice(0, 12);
+    throw new DashboardRefreshFailure({ kind: 'invalid_data', paths });
+  }
+  return parsed.data;
 }
 
 function computeAssetData(
@@ -121,6 +170,7 @@ function HomeLiveDashboardContent({ initialData }: { initialData: ServerDashboar
   const [isLoading, setIsLoading] = useState(initialData.prices.length === 0);
   const [dataIssue, setDataIssue] = useState<string | null>(null);
   const lastFetchedAt = useRef(initialData.fetchedAt);
+  const lastFailureKey = useRef<string | null>(null);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => setNow(Date.now()));
@@ -142,6 +192,7 @@ function HomeLiveDashboardContent({ initialData }: { initialData: ServerDashboar
       try {
         const nextData = await fetchDashboardSnapshot(controller.signal);
         if (!active) return;
+        lastFailureKey.current = null;
         lastFetchedAt.current = nextData.fetchedAt;
         setDashboardData(nextData);
         setDataIssue(
@@ -151,6 +202,19 @@ function HomeLiveDashboardContent({ initialData }: { initialData: ServerDashboar
         );
       } catch (error) {
         if (!(error instanceof DOMException && error.name === 'AbortError')) {
+          const diagnostic: DashboardRefreshDiagnostic | { kind: 'network' | 'unexpected' } =
+            error instanceof DashboardRefreshFailure
+              ? error.diagnostic
+              : error instanceof TypeError
+                ? { kind: 'network' }
+                : { kind: 'unexpected' };
+          const failureKey = JSON.stringify(diagnostic);
+          if (lastFailureKey.current !== failureKey) {
+            // Keep production diagnostics limited to status and schema paths:
+            // never log response bodies, prices, provider error text, or headers.
+            console.warn('[home-dashboard] refresh failed', diagnostic);
+            lastFailureKey.current = failureKey;
+          }
           // Keep the last complete snapshot visible during transient failures, but
           // never let an empty dashboard masquerade as a provider-health verdict.
           setDataIssue(
