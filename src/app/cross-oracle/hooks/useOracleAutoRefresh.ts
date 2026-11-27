@@ -27,8 +27,11 @@ export function useOracleAutoRefresh({
 
   const isRefreshingRef = useRef(false);
   const onRefreshRef = useRef(onRefresh);
-  onRefreshRef.current = onRefresh;
   const internalMountedRef = useRef(true);
+
+  useEffect(() => {
+    onRefreshRef.current = onRefresh;
+  }, [onRefresh]);
 
   const mountedRef = isMountedRef ?? internalMountedRef;
 
