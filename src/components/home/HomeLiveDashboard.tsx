@@ -118,13 +118,10 @@ async function fetchDashboardSnapshot(signal?: AbortSignal): Promise<ServerDashb
   return parsed.data;
 }
 
-function computeAssetData(
-  results: DashboardPriceItem[],
-  symbol: string,
-  totalProviders: number
-): AssetConsensusData {
-  const validPrices = results
-    .filter((result) => result.symbol === symbol && result.price !== null && result.price.price > 0)
+function computeAssetData(results: DashboardPriceItem[], symbol: string): AssetConsensusData {
+  const symbolResults = results.filter((result) => result.symbol === symbol);
+  const validPrices = symbolResults
+    .filter((result) => result.price !== null && result.price.price > 0)
     .map((result) => ({
       provider: result.provider as OracleProvider,
       price: result.price!.price,
@@ -137,7 +134,7 @@ function computeAssetData(
       consensusPrice: 0,
       priceRange: { min: 0, max: 0, spreadPercent: 0 },
       providerCount: 0,
-      totalProviders,
+      totalProviders: symbolResults.length,
       lastUpdatedAt: 0,
       sources: [],
     };
@@ -155,7 +152,7 @@ function computeAssetData(
     consensusPrice: consensus.price,
     priceRange: { min: minPrice, max: maxPrice, spreadPercent: roundTo(spreadPercent, 4) },
     providerCount: validPrices.length,
-    totalProviders,
+    totalProviders: symbolResults.length,
     lastUpdatedAt: Math.max(...validPrices.map((price) => price.timestamp)),
     sources: validPrices.map((price) => ({
       ...price,
@@ -250,8 +247,8 @@ function HomeLiveDashboardContent({ initialData }: { initialData: ServerDashboar
   const results = currentData.prices;
   const mainOracles = currentData.mainOracles;
   const assetData = useMemo(
-    () => DASHBOARD_ASSETS.map((symbol) => computeAssetData(results, symbol, mainOracles.length)),
-    [results, mainOracles.length]
+    () => DASHBOARD_ASSETS.map((symbol) => computeAssetData(results, symbol)),
+    [results]
   );
   const activeProviders = useMemo(
     () =>
