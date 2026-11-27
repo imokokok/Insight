@@ -101,10 +101,10 @@ jobs:
           echo "::error::Turso/Supabase deep readiness failed (HTTP ${status:-transport-error}): $summary"
           exit 1
 
-      # Reuse the existing Supabase-dispatched hourly watchdog. This adds no
-      # new schedule or service and catches a missed/failed export even when
-      # GitHub's native schedule is delayed or skipped.
-      - name: Check database backup freshness
+      # Reuse the existing Supabase-dispatched hourly watchdog. This catches
+      # missed backups and the daily D1 retention run even if GitHub's schedule
+      # is delayed or skipped.
+      - name: Check database backup and maintenance freshness
         id: backups
         if: always()
         env:
@@ -152,11 +152,12 @@ jobs:
               printf '%s: latest success %s (%sh old).\n' \
                 "$label" "$latest" "$age_hours" >> "$summary_file"
             fi
-          done <<'BACKUPS'
+          done <<'MAINTENANCE'
           Turso ops|turso-ops-backup.yml|36
           Supabase assets|supabase-assets-backup.yml|36
           Supabase archives|supabase-archives-backup.yml|1000
-          BACKUPS
+          D1 price cache cleanup|d1-price-records-retention.yml|36
+          MAINTENANCE
 
           echo "healthy=$healthy" >> "$GITHUB_OUTPUT"
           {
@@ -167,15 +168,81 @@ jobs:
           if [ "$healthy" = false ]; then
             {
               echo 'body<<EOF'
-              echo "A scheduled database backup is missing or stale as of $(date -u +'%Y-%m-%dT%H:%M:%SZ')."
+              echo "A scheduled database backup or retention run is missing or stale as of $(date -u +'%Y-%m-%dT%H:%M:%SZ')."
               cat "$body_file"
               echo EOF
             } >> "$GITHUB_OUTPUT"
-            echo "::error::One or more database backups are stale."
+            echo "::error::One or more database backup or retention runs are stale."
           else
-            echo "Database backups are within their freshness limits."
+            echo "Database backups and retention runs are within their freshness limits."
             cat "$summary_file"
           fi
+
+      - name: Check Supabase cleanup health and overdue-row backlog
+        id: cleanup
+        if: always()
+        continue-on-error: true
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          set -u
+          healthy=false
+          summary='Cleanup health RPC did not complete.'
+          response_file="$(mktemp)"
+          if [ -n "${SUPABASE_URL:-}" ] && [ -n "${SUPABASE_SERVICE_ROLE_KEY:-}" ]; then
+            status="$(curl --silent --show-error --max-time 20 \
+              --header "apikey: ${SUPABASE_SERVICE_ROLE_KEY}" \
+              --header "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}" \
+              --header 'Content-Type: application/json' \
+              --data '{}' \
+              --output "$response_file" --write-out '%{http_code}' \
+              "${SUPABASE_URL%/}/rest/v1/rpc/cleanup_health_report" || true)"
+            if [ "$status" = '200' ]; then
+              parsed="$(python3 - "$response_file" <<'PY'
+          import json
+          import sys
+
+          with open(sys.argv[1], encoding='utf-8') as response_file:
+              payload = json.load(response_file)
+          if isinstance(payload, list) and len(payload) == 1:
+              payload = payload[0]
+          if not isinstance(payload, dict):
+              raise SystemExit('cleanup health RPC returned an invalid payload')
+          healthy = payload.get('healthy') is True
+          summary = json.dumps(
+              {key: payload.get(key) for key in ('jobs', 'retention', 'backlog')},
+              sort_keys=True,
+          )
+          print('true' if healthy else 'false')
+          print(summary)
+          PY
+          )" || parsed=''
+              if [ -n "$parsed" ]; then
+                healthy="${parsed%%$'\n'*}"
+                summary="${parsed#*$'\n'}"
+              else
+                summary='Cleanup health RPC returned invalid JSON.'
+              fi
+            else
+              summary="Cleanup health RPC returned HTTP ${status:-transport-error}."
+            fi
+          else
+            summary='SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY is missing.'
+          fi
+
+          echo "healthy=${healthy}" >> "$GITHUB_OUTPUT"
+          {
+            echo 'summary<<EOF'
+            echo "$summary"
+            echo EOF
+            echo 'body<<EOF'
+            echo "Cleanup health check failed at $(date -u +'%Y-%m-%dT%H:%M:%SZ')."
+            echo "$summary"
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
+          echo "Cleanup health=${healthy}: ${summary}"
+          if [ "$healthy" != 'true' ]; then exit 1; fi
 
       - name: Open or resolve the incident issue
         if: always()
@@ -209,18 +276,18 @@ jobs:
           BACKUP_BODY: ${{ steps.backups.outputs.body }}
         run: |
           set -euo pipefail
-          title='[Insight Backup] scheduled exports missing or stale'
+          title='[Insight Data Operations] backup or cleanup stale'
           issue_number="$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "in:title $title" --json number --jq '.[0].number // empty')"
           if [ "$BACKUPS_HEALTHY" = true ]; then
             if [ -n "$issue_number" ]; then
-              recovery_body="$(printf 'All scheduled database backups recovered at %s. Closing this incident.\n\n%s' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$BACKUP_SUMMARY")"
+              recovery_body="$(printf 'Scheduled database backups and retention runs recovered at %s. Closing this incident.\n\n%s' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$BACKUP_SUMMARY")"
               gh issue comment "$issue_number" --repo "$GITHUB_REPOSITORY" --body "$recovery_body"
               gh issue close "$issue_number" --repo "$GITHUB_REPOSITORY"
             fi
             exit 0
           fi
           if [ -z "$BACKUP_BODY" ]; then
-            BACKUP_BODY="Backup freshness probe did not complete. Review workflow run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            BACKUP_BODY="Backup or retention freshness probe did not complete. Review workflow run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
           fi
           if [ -z "$issue_number" ]; then
             gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body "$BACKUP_BODY"
@@ -228,8 +295,40 @@ jobs:
             gh issue comment "$issue_number" --repo "$GITHUB_REPOSITORY" --body "$BACKUP_BODY"
           fi
 
+      - name: Open or resolve the cleanup incident issue
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CLEANUP_HEALTHY: ${{ steps.cleanup.outputs.healthy }}
+          CLEANUP_SUMMARY: ${{ steps.cleanup.outputs.summary }}
+          CLEANUP_BODY: ${{ steps.cleanup.outputs.body }}
+        run: |
+          set -euo pipefail
+          title='[Insight Data Operations] cleanup stale or failing'
+          issue_number="$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "in:title $title" --json number --jq '.[0].number // empty')"
+          if [ "$CLEANUP_HEALTHY" = true ]; then
+            if [ -n "$issue_number" ]; then
+              recovery_body="$(printf 'Supabase cleanup health recovered at %s. Closing this incident.\n\n%s' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$CLEANUP_SUMMARY")"
+              gh issue comment "$issue_number" --repo "$GITHUB_REPOSITORY" --body "$recovery_body"
+              gh issue close "$issue_number" --repo "$GITHUB_REPOSITORY"
+            fi
+            exit 0
+          fi
+          if [ -z "$CLEANUP_BODY" ]; then
+            CLEANUP_BODY="Cleanup health probe did not complete. Review workflow run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          fi
+          if [ -z "$issue_number" ]; then
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body "$CLEANUP_BODY"
+          else
+            gh issue comment "$issue_number" --repo "$GITHUB_REPOSITORY" --body "$CLEANUP_BODY"
+          fi
+
       - name: Fail the run when backups are stale
         if: steps.backups.outputs.healthy == 'false'
+        run: exit 1
+
+      - name: Fail the run when cleanup health is degraded
+        if: steps.cleanup.outputs.healthy != 'true'
         run: exit 1
 
       # Supabase owns the clock and inserts the dispatch row before GitHub

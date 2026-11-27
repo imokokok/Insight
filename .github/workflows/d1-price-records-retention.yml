@@ -1,0 +1,65 @@
+name: D1 Price Records Retention
+
+on:
+  schedule:
+    # Run off the collection and Supabase retention schedules (20:41 Beijing).
+    - cron: '41 12 * * *'
+  workflow_dispatch: {}
+
+concurrency:
+  group: d1-price-records-retention
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  prune:
+    runs-on: ubuntu-24.04
+    environment: Production
+    timeout-minutes: 3
+    steps:
+      - name: Verify required secret
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "${CRON_SECRET:-}" ]; then
+            echo '::error::CRON_SECRET is required for authenticated D1 retention.'
+            exit 1
+          fi
+
+      - name: Delete expired D1 cache rows and report the count
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          RETENTION_URL: https://www.oracleinsight.xyz/api/cron/price-records
+        run: |
+          set -euo pipefail
+          response_file="$(mktemp)"
+          status="$(curl --silent --show-error --max-time 20 \
+            --header "Authorization: Bearer ${CRON_SECRET}" \
+            --header 'Content-Type: application/json' \
+            --data '{"operation":"cleanup-expired"}' \
+            --output "$response_file" --write-out '%{http_code}' "$RETENTION_URL" || true)"
+          if [ "$status" != '200' ]; then
+            echo "::error::D1 retention endpoint returned HTTP ${status:-transport-error}."
+            cat "$response_file"
+            exit 1
+          fi
+          deleted_rows="$(python3 - "$response_file" <<'PY'
+          import json
+          import sys
+
+          with open(sys.argv[1], encoding='utf-8') as response_file:
+              payload = json.load(response_file)
+          deleted = payload.get('deleted_rows') if isinstance(payload, dict) else None
+          if not isinstance(deleted, int) or isinstance(deleted, bool) or deleted < 0:
+              raise SystemExit('D1 retention response did not include a valid deleted_rows count')
+          print(deleted)
+          PY
+          )"
+          echo "deleted_rows=${deleted_rows}" >> "$GITHUB_OUTPUT"
+          {
+            echo '### D1 price cache retention'
+            echo
+            echo "Deleted ${deleted_rows} expired rows at $(date -u +'%Y-%m-%dT%H:%M:%SZ')."
+          } >> "$GITHUB_STEP_SUMMARY"
