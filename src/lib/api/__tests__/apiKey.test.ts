@@ -20,6 +20,7 @@ describe('validateApiKey expiration cache boundary', () => {
     mockFrom.mockReturnValue({
       select: jest.fn().mockReturnThis(),
       eq: jest.fn().mockReturnThis(),
+      abortSignal: jest.fn().mockReturnThis(),
       maybeSingle: mockSingle,
       update: jest.fn().mockReturnValue({
         eq: jest.fn().mockResolvedValue({ error: null }),
