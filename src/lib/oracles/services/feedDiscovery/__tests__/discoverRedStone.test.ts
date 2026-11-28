@@ -84,12 +84,50 @@ describe('discoverRedStoneFeeds', () => {
   });
 
   it('records an error when the API responds non-OK', async () => {
-    mockFetch.mockResolvedValueOnce(createMockResponse({}, false, 500, 'Internal Server Error'));
+    mockFetch
+      .mockResolvedValueOnce(createMockResponse({}, false, 500, 'Internal Server Error'))
+      .mockResolvedValueOnce(createMockResponse({}, false, 500, 'Internal Server Error'))
+      .mockResolvedValueOnce(createMockResponse({}, false, 500, 'Internal Server Error'));
 
     const result = await discoverRedStoneFeeds();
 
     expect(result.discovered).toBe(0);
     expect(result.errors.length).toBeGreaterThan(0);
+    expect(mockFetch).toHaveBeenCalledTimes(3);
+  });
+
+  it('retries transient transport failures and preserves the gateway response', async () => {
+    mockFetch
+      .mockRejectedValueOnce(new TypeError('fetch failed'))
+      .mockResolvedValueOnce(createMockResponse({ ETH: { symbol: 'ETH', value: 3500 } }));
+
+    const result = await discoverRedStoneFeeds();
+
+    expect(result.discovered).toBe(1);
+    expect(result.errors).toHaveLength(0);
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+  });
+
+  it('includes the underlying transport code after bounded retries fail', async () => {
+    const socketError = Object.assign(new Error('socket hang up'), { code: 'ECONNRESET' });
+    const fetchError = new TypeError('fetch failed', { cause: socketError });
+    mockFetch.mockRejectedValue(fetchError);
+
+    const result = await discoverRedStoneFeeds();
+
+    expect(result.discovered).toBe(0);
+    expect(result.errors).toHaveLength(1);
+    expect(result.errors[0]).toContain('ECONNRESET');
+    expect(mockFetch).toHaveBeenCalledTimes(3);
+  });
+
+  it('does not retry deterministic client errors', async () => {
+    mockFetch.mockResolvedValueOnce(createMockResponse({}, false, 403, 'Forbidden'));
+
+    const result = await discoverRedStoneFeeds();
+
+    expect(result.errors).toEqual(['RedStone gateway returned HTTP 403']);
+    expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 
   it('self-verifies each feed from the discovered price (preverified + discoveredValue)', async () => {

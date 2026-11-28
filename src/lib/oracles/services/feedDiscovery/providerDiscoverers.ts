@@ -361,18 +361,65 @@ export async function discoverDIAFeeds(): Promise<DiscoveryResult> {
 
 // ─── RedStone ─────────────────────────────────────────────────────
 
+const REDSTONE_DISCOVERY_URL =
+  'https://oracle-gateway-1.a.redstone.finance/data-packages/latest/redstone-primary-prod';
+const REDSTONE_DISCOVERY_MAX_ATTEMPTS = 3;
+
+function describeDiscoveryRequestError(error: unknown): string {
+  if (!(error instanceof Error)) return String(error);
+
+  const cause = (error as Error & { cause?: unknown }).cause;
+  if (cause instanceof Error) {
+    const causeCode =
+      typeof (cause as Error & { code?: unknown }).code === 'string'
+        ? ` (${(cause as Error & { code: string }).code})`
+        : '';
+    return `${error.name}: ${error.message}; cause=${cause.name}${causeCode}: ${cause.message}`;
+  }
+
+  return `${error.name}: ${error.message}`;
+}
+
+async function fetchRedStoneDiscoveryResponse(): Promise<Response> {
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= REDSTONE_DISCOVERY_MAX_ATTEMPTS; attempt += 1) {
+    let response: Response;
+    try {
+      response = await fetch(REDSTONE_DISCOVERY_URL, {
+        signal: AbortSignal.timeout(30000),
+      });
+    } catch (error) {
+      lastError = error;
+      if (attempt < REDSTONE_DISCOVERY_MAX_ATTEMPTS) {
+        await new Promise((resolve) => setTimeout(resolve, 250 * 2 ** (attempt - 1)));
+      }
+      continue;
+    }
+
+    if (response.ok) return response;
+
+    lastError = new Error(`RedStone gateway returned HTTP ${response.status}`);
+    // Client errors are deterministic (for example, an invalid service id),
+    // while rate limits and server errors may clear on a short retry.
+    if (response.status !== 429 && response.status < 500) throw lastError;
+
+    if (attempt < REDSTONE_DISCOVERY_MAX_ATTEMPTS) {
+      await new Promise((resolve) => setTimeout(resolve, 250 * 2 ** (attempt - 1)));
+    }
+  }
+
+  throw new Error(
+    `RedStone discovery request failed after ${REDSTONE_DISCOVERY_MAX_ATTEMPTS} attempts: ${describeDiscoveryRequestError(lastError)}`,
+    { cause: lastError }
+  );
+}
+
 export async function discoverRedStoneFeeds(): Promise<DiscoveryResult> {
   const result: DiscoveryResult = { provider: 'redstone', discovered: 0, feeds: [], errors: [] };
 
   try {
-    const response = await fetch(
-      'https://oracle-gateway-1.a.redstone.finance/data-packages/latest/redstone-primary-prod',
-      { signal: AbortSignal.timeout(30000) }
-    );
-
-    if (!response.ok) {
-      throw new Error(`RedStone API returned ${response.status}`);
-    }
+    const response = await fetchRedStoneDiscoveryResponse();
 
     const rawData = (await response.json()) as unknown;
     type GatewayPackage = {
