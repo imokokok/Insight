@@ -1,11 +1,16 @@
+import { fetchRedStoneFeedCatalogue } from '@/lib/oracles/services/redstoneGateway';
+
 import { discoverRedStoneFeeds } from '../providerDiscoverers';
 
-global.fetch = jest.fn();
+jest.mock('@/lib/oracles/services/redstoneGateway', () => ({
+  fetchRedStoneFeedCatalogue: jest.fn(),
+  REDSTONE_DATA_SERVICE_ID: 'redstone-primary-prod',
+}));
 
-const mockFetch = fetch as jest.MockedFunction<typeof fetch>;
+const mockFetchCatalogue = jest.mocked(fetchRedStoneFeedCatalogue);
 
 jest.mock('@/lib/utils/logger', () => ({
-  normalizeError: (e: unknown) => (e instanceof Error ? e : new Error(String(e))),
+  normalizeError: (error: unknown) => (error instanceof Error ? error : new Error(String(error))),
   createLogger: () => ({
     info: jest.fn(),
     warn: jest.fn(),
@@ -14,206 +19,47 @@ jest.mock('@/lib/utils/logger', () => ({
   }),
 }));
 
-const createMockResponse = (data: unknown, ok = true, status = 200, statusText = 'OK'): Response =>
-  ({
-    ok,
-    status,
-    statusText,
-    json: jest.fn().mockResolvedValue(data),
-    text: jest.fn().mockResolvedValue(JSON.stringify(data)),
-    headers: new Headers(),
-    redirected: false,
-    type: 'basic',
-    url: '',
-    clone: jest.fn(),
-    body: null,
-    bodyUsed: false,
-    arrayBuffer: jest.fn(),
-    blob: jest.fn(),
-    formData: jest.fn(),
-  }) as unknown as Response;
-
 describe('discoverRedStoneFeeds', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockFetch.mockReset();
   });
 
-  it('ingests feeds when the API returns an object (symbol -> feed), the real RedStone shape', async () => {
-    // RedStone's full-feed (no `symbols=`) prices endpoint returns an OBJECT,
-    // not an array. This used to be silently dropped (discovery was a no-op).
-    mockFetch.mockResolvedValueOnce(
-      createMockResponse({
-        BTC: { symbol: 'BTC', value: 63000 },
-        ETH: { symbol: 'ETH', value: 3500 },
-        SOL: { symbol: 'SOL', value: 150 },
-      })
-    );
+  it('discovers only fresh, signer-verified USD feeds from the authenticated catalogue', async () => {
+    mockFetchCatalogue.mockResolvedValue([
+      { dataFeedId: 'BTC', value: 67_000, timestampMilliseconds: Date.now() },
+      { dataFeedId: 'ETH', value: 3_500, timestampMilliseconds: Date.now() },
+      { dataFeedId: 'ETH/USD', value: 3_500, timestampMilliseconds: Date.now() },
+      { dataFeedId: 'WBTC/BTC', value: 0.999, timestampMilliseconds: Date.now() },
+      { dataFeedId: 'USDC/BRL', value: 5.2, timestampMilliseconds: Date.now() },
+    ]);
 
     const result = await discoverRedStoneFeeds();
 
-    expect(result.discovered).toBe(3);
+    expect(mockFetchCatalogue).toHaveBeenCalledTimes(1);
     expect(result.errors).toHaveLength(0);
-    expect(result.feeds.map((f) => f.symbol).sort()).toEqual(['BTC', 'ETH', 'SOL']);
-    expect(result.feeds.every((f) => f.chain_id === 0)).toBe(true);
-    expect(result.feeds.every((f) => f.source === 'redstone-api')).toBe(true);
-  });
-
-  it('still works when the API returns an array (defensive/legacy shape)', async () => {
-    mockFetch.mockResolvedValueOnce(
-      createMockResponse([
-        { symbol: 'ARB', value: 1 },
-        { symbol: 'OP', value: 2 },
-      ])
+    expect(result.discovered).toBe(3);
+    expect(result.feeds.map((feed) => feed.symbol).sort()).toEqual(['BTC', 'ETH', 'ETH/USD']);
+    expect(result.feeds.every((feed) => feed.chain_id === 0)).toBe(true);
+    expect(result.feeds.every((feed) => feed.source === 'redstone-authenticated-gateway')).toBe(
+      true
     );
-
-    const result = await discoverRedStoneFeeds();
-
-    expect(result.discovered).toBe(2);
-    expect(result.feeds.map((f) => f.symbol).sort()).toEqual(['ARB', 'OP']);
+    expect(result.feeds[0].metadata).toMatchObject({
+      preverified: true,
+      dataServiceId: 'redstone-primary-prod',
+    });
   });
 
-  it('returns zero feeds (not a crash) when the API returns an empty object', async () => {
-    mockFetch.mockResolvedValueOnce(createMockResponse({}));
+  it('returns an error and no candidate feeds when authenticated discovery fails', async () => {
+    mockFetchCatalogue.mockRejectedValue(
+      new Error('REDSTONE_GATEWAY_ADMIN_API_KEY is required for the authenticated RedStone gateway')
+    );
 
     const result = await discoverRedStoneFeeds();
 
     expect(result.discovered).toBe(0);
     expect(result.feeds).toHaveLength(0);
-    expect(result.errors).toHaveLength(0);
-  });
-
-  it('records an error when the API responds non-OK', async () => {
-    mockFetch
-      .mockResolvedValueOnce(createMockResponse({}, false, 500, 'Internal Server Error'))
-      .mockResolvedValueOnce(createMockResponse({}, false, 500, 'Internal Server Error'))
-      .mockResolvedValueOnce(createMockResponse({}, false, 500, 'Internal Server Error'))
-      .mockResolvedValueOnce(createMockResponse({}, false, 500, 'Internal Server Error'))
-      .mockResolvedValueOnce(createMockResponse({}, false, 500, 'Internal Server Error'))
-      .mockResolvedValueOnce(createMockResponse({}, false, 500, 'Internal Server Error'));
-
-    const result = await discoverRedStoneFeeds();
-
-    expect(result.discovered).toBe(0);
-    expect(result.errors.length).toBeGreaterThan(0);
-    expect(mockFetch).toHaveBeenCalledTimes(6);
-  });
-
-  it('retries transient transport failures and preserves the gateway response', async () => {
-    mockFetch
-      .mockRejectedValueOnce(new TypeError('fetch failed'))
-      .mockResolvedValueOnce(createMockResponse({ ETH: { symbol: 'ETH', value: 3500 } }));
-
-    const result = await discoverRedStoneFeeds();
-
-    expect(result.discovered).toBe(1);
-    expect(result.errors).toHaveLength(0);
-    expect(mockFetch).toHaveBeenCalledTimes(2);
-  });
-
-  it('includes the underlying transport code after bounded retries fail', async () => {
-    const socketError = Object.assign(new Error('socket hang up'), { code: 'ECONNRESET' });
-    const fetchError = new TypeError('fetch failed', { cause: socketError });
-    mockFetch.mockRejectedValue(fetchError);
-
-    const result = await discoverRedStoneFeeds();
-
-    expect(result.discovered).toBe(0);
-    expect(result.errors).toHaveLength(1);
-    expect(result.errors[0]).toContain('ECONNRESET');
-    expect(mockFetch).toHaveBeenCalledTimes(6);
-  });
-
-  it('does not retry deterministic client errors before trying the fallback source', async () => {
-    mockFetch
-      .mockResolvedValueOnce(createMockResponse({}, false, 403, 'Forbidden'))
-      .mockResolvedValueOnce(createMockResponse({}, false, 403, 'Forbidden'));
-
-    const result = await discoverRedStoneFeeds();
-
-    expect(result.errors[0]).toContain('RedStone DDL gateway returned HTTP 403');
-    expect(result.errors[0]).toContain('RedStone HTTP prices API returned HTTP 403');
-    expect(mockFetch).toHaveBeenCalledTimes(2);
-  });
-
-  it('falls back to one bounded batch prices request when the DDL hostname cannot resolve', async () => {
-    mockFetch
-      .mockRejectedValueOnce(new TypeError('fetch failed'))
-      .mockRejectedValueOnce(new TypeError('fetch failed'))
-      .mockRejectedValueOnce(new TypeError('fetch failed'))
-      .mockResolvedValueOnce(
-        createMockResponse({
-          ETH: { symbol: 'ETH', value: 3500, timestamp: 1700000000000 },
-        })
-      );
-
-    const result = await discoverRedStoneFeeds();
-
-    expect(result.discovered).toBe(1);
-    expect(result.errors).toHaveLength(0);
-    expect(result.feeds[0]).toMatchObject({
-      symbol: 'ETH',
-      metadata: { preverified: true, dataServiceId: 'redstone' },
-    });
-    expect(mockFetch).toHaveBeenCalledTimes(4);
-    expect(mockFetch).toHaveBeenNthCalledWith(
-      4,
-      'https://api.redstone.finance/prices/?provider=redstone&limit=5000',
-      expect.objectContaining({ signal: expect.any(AbortSignal) })
-    );
-  });
-
-  it('self-verifies each feed from the discovered price (preverified + discoveredValue)', async () => {
-    // The `provider=redstone` catalog returns each symbol WITH its live value,
-    // so discovery must mark feeds preverified (skipping the 1000+ rate-limited
-    // re-probes during verification) instead of re-fetching them.
-    mockFetch.mockResolvedValueOnce(
-      createMockResponse({
-        BTC: { symbol: 'BTC', value: 63000, timestamp: 1700000000000 },
-        ETH: { symbol: 'ETH', value: 3500, timestamp: 1700000000000 },
-      })
-    );
-
-    const result = await discoverRedStoneFeeds();
-
-    expect(result.discovered).toBe(2);
-    const btc = result.feeds.find((f) => f.symbol === 'BTC');
-    expect(btc?.metadata).toMatchObject({ preverified: true, discoveredValue: 63000 });
-    expect(btc?.source).toBe('redstone-api');
-  });
-
-  it('drops feeds whose discovered value is missing/non-finite/non-positive', async () => {
-    // A feed with no usable price must NOT be preverified (it would fail at
-    // runtime anyway). Discovery should skip it rather than upsert a dead feed.
-    mockFetch.mockResolvedValueOnce(
-      createMockResponse({
-        OK: { symbol: 'OK', value: 1, timestamp: 1700000000000 },
-        ZERO: { symbol: 'ZERO', value: 0, timestamp: 1700000000000 },
-        NEG: { symbol: 'NEG', value: -5, timestamp: 1700000000000 },
-        NAN: { symbol: 'NAN', value: NaN, timestamp: 1700000000000 },
-      })
-    );
-
-    const result = await discoverRedStoneFeeds();
-
-    expect(result.discovered).toBe(1);
-    expect(result.feeds.map((f) => f.symbol)).toEqual(['OK']);
-    expect(result.feeds[0].metadata).toMatchObject({ preverified: true });
-  });
-
-  it('drops non-USD cross-rates from the USD price registry', async () => {
-    mockFetch.mockResolvedValueOnce(
-      createMockResponse({
-        ETH: { symbol: 'ETH', value: 3500 },
-        ETH_USD: { symbol: 'ETH/USD', value: 3500 },
-        ETH_USDC: { symbol: 'ETH/USDC', value: 3499 },
-        WBTC_BTC: { symbol: 'WBTC/BTC', value: 0.999 },
-        USDC_BRL: { symbol: 'USDC/BRL', value: 5.2 },
-      })
-    );
-
-    const result = await discoverRedStoneFeeds();
-
-    expect(result.feeds.map((f) => f.symbol).sort()).toEqual(['ETH', 'ETH/USD', 'ETH/USDC']);
+    expect(result.errors).toEqual([
+      'REDSTONE_GATEWAY_ADMIN_API_KEY is required for the authenticated RedStone gateway',
+    ]);
   });
 });

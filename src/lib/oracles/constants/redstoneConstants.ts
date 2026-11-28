@@ -1,8 +1,6 @@
 import { redstoneSymbols } from '@/lib/oracles/constants/supportedSymbols';
 import { resolveFeed } from '@/lib/oracles/utils/dynamicFeedResolver';
 
-export const REDSTONE_API_BASE = 'https://api.redstone.finance';
-
 export const SPREAD_PERCENTAGES: Record<string, number> = {
   BTC: 0.02,
   ETH: 0.03,

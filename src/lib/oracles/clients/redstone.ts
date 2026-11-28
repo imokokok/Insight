@@ -2,7 +2,6 @@ import { OracleProviderError } from '@/lib/errors';
 import { BaseOracleClient, OracleCache } from '@/lib/oracles/base';
 import {
   SPREAD_PERCENTAGES,
-  REDSTONE_API_BASE,
   isRedStoneSymbolSupportedAsync,
 } from '@/lib/oracles/constants/redstoneConstants';
 import {
@@ -12,6 +11,10 @@ import {
 } from '@/lib/oracles/constants/redstoneMonad';
 import { redstoneSymbols } from '@/lib/oracles/constants/supportedSymbols';
 import { resolveOracleAgeSeconds } from '@/lib/oracles/oracleAge';
+import {
+  fetchRedStoneFeedSnapshot,
+  REDSTONE_AUTHENTICATED_GATEWAY_URL,
+} from '@/lib/oracles/services/redstoneGateway';
 import { redStoneMonadOnChainService } from '@/lib/oracles/services/redstoneMonadOnChainService';
 import { isSymbolActiveInCacheSync } from '@/lib/oracles/utils/dynamicFeedResolver';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
@@ -55,21 +58,12 @@ const REDSTONE_API_CHAINS: readonly Blockchain[] = [
 
 const REDSTONE_MONAD_RELIABILITY = 0.9;
 
-// Per-request hard timeout. The fetch call in fetchRealPrice has no native
-// timeout (the external `signal` is undefined when called from the snapshot
-// collector). Without this, a hung RedStone API connection is never cancelled
-// — withOracleRetry's withTimeout rejects the promise after 15s but the
-// underlying socket stays open, and the raw AbortError's "abort" message
-// causes shouldRetry to give up instead of retrying. This per-request
-// AbortController ensures the fetch is properly cancelled and the error is
-// classified as TIMEOUT_ERROR (which is retryable).
-const REDSTONE_REQUEST_TIMEOUT_MS = 10000;
-
 function buildRedStonePriceUrl(symbol: string): string {
-  const url = new URL('/prices/', REDSTONE_API_BASE);
-  url.searchParams.set('symbol', symbol);
-  url.searchParams.set('provider', 'redstone');
-  url.searchParams.set('limit', '1');
+  const url = new URL(
+    '/v2/data-packages/latest-by-data-feeds/redstone-primary-prod',
+    REDSTONE_AUTHENTICATED_GATEWAY_URL
+  );
+  url.searchParams.set('dataFeedIds', symbol);
   return url.toString();
 }
 
@@ -119,24 +113,65 @@ export class RedStoneClient extends BaseOracleClient {
 
   private classifyError(error: unknown): string {
     if (error instanceof Error) {
-      if (error.message.includes('HTTP 429') || error.message.includes('rate limit')) {
+      if (error instanceof AggregateError) {
+        if (error.errors.some((nested) => this.isRateLimitError(nested))) {
+          return 'RATE_LIMIT_ERROR';
+        }
+        const nestedCodes = error.errors.map((nested) => this.classifyError(nested));
+        if (nestedCodes.includes('TIMEOUT_ERROR')) return 'TIMEOUT_ERROR';
+        if (nestedCodes.includes('NETWORK_ERROR')) return 'NETWORK_ERROR';
+        if (nestedCodes.includes('PARSE_ERROR')) return 'PARSE_ERROR';
+      }
+      const status =
+        (error as Error & { status?: number; response?: { status?: number } }).status ??
+        (error as Error & { response?: { status?: number } }).response?.status;
+      if (
+        status === 429 ||
+        error.message.includes('HTTP 429') ||
+        error.message.includes('rate limit')
+      ) {
         return 'RATE_LIMIT_ERROR';
       }
-      if (error.message.includes('timeout') || error.message.includes('ETIMEDOUT')) {
+      if (
+        status === 504 ||
+        error.message.toLowerCase().includes('timeout') ||
+        error.message.includes('ETIMEDOUT') ||
+        error.message.includes('ECONNABORTED')
+      ) {
         return 'TIMEOUT_ERROR';
       }
       if (
         error.message.includes('network') ||
         error.message.includes('ECONNREFUSED') ||
-        error.message.includes('ENOTFOUND')
+        error.message.includes('ECONNRESET') ||
+        error.message.includes('ENOTFOUND') ||
+        error.message.includes('EAI_AGAIN') ||
+        error.message.toLowerCase().includes('fetch failed') ||
+        error.message.toLowerCase().includes('network')
       ) {
         return 'NETWORK_ERROR';
       }
       if (error.message.includes('parse') || error.message.includes('JSON')) {
         return 'PARSE_ERROR';
       }
+      const cause = (error as Error & { cause?: unknown }).cause;
+      if (cause !== undefined && cause !== error) return this.classifyError(cause);
     }
     return 'FETCH_ERROR';
+  }
+
+  private isRateLimitError(error: unknown): boolean {
+    if (!(error instanceof Error)) return false;
+    const status =
+      (error as Error & { status?: number; response?: { status?: number } }).status ??
+      (error as Error & { response?: { status?: number } }).response?.status;
+    return (
+      status === 429 ||
+      error.message.includes('HTTP 429') ||
+      error.message.toLowerCase().includes('rate limit') ||
+      (error instanceof AggregateError &&
+        error.errors.some((nested) => this.isRateLimitError(nested)))
+    );
   }
 
   private async fetchRealPrice(symbol: string, signal?: AbortSignal): Promise<PriceData | null> {
@@ -152,104 +187,34 @@ export class RedStoneClient extends BaseOracleClient {
       const result = await withOracleRetry(
         async () => {
           attemptCount++;
-
-          // Per-request AbortController with hard timeout. Ensures the fetch
-          // is actually cancelled on timeout (not just the promise rejected)
-          // and that the error is classified as TIMEOUT_ERROR so shouldRetry
-          // retries it. A raw AbortError's message contains "abort" which
-          // shouldRetry explicitly does NOT retry, so we intercept it here.
-          const controller = new AbortController();
-          let timedOut = false;
-          const timeoutId = setTimeout(() => {
-            timedOut = true;
-            controller.abort();
-          }, REDSTONE_REQUEST_TIMEOUT_MS);
-
-          // Propagate external abort (e.g. caller cancellation) to the
-          // internal controller so the fetch is cancelled immediately.
-          if (signal) {
-            if (signal.aborted) {
-              clearTimeout(timeoutId);
-              controller.abort();
-            } else {
-              signal.addEventListener('abort', () => controller.abort(), { once: true });
-            }
+          if (signal?.aborted) {
+            throw new OracleProviderError(
+              'RedStone request cancelled',
+              'redstone',
+              'CANCELLED',
+              { symbol, attemptCount },
+              signal.reason instanceof Error ? signal.reason : undefined
+            );
           }
 
           try {
-            // RedStone's price API is case-sensitive: mixed-case symbols such as
-            // `etrUSD_FUNDAMENTAL` / `CELO/EUR` return HTTP 500 when uppercased.
-            // The canonical casing is supplied by the caller (the DB-feed symbol
-            // from discovery / fetchPriceWithDatabase's matched feed), so we pass
-            // it through verbatim. encodeURIComponent keeps pair-style symbols
-            // (e.g. `CELO/EUR`) safe in the query string.
-            //
-            // We query the documented single-latest-price endpoint with
-            // `provider=redstone` (full), not `redstone-rapid` or the unbounded
-            // default result set. The explicit `limit=1` keeps the response
-            // bounded and matches RedStone's HTTP API contract.
-            // Discovery pulls the full `provider=redstone` catalog (~1000+ feeds)
-            // and self-verifies from the prices it already returns, so the runtime
-            // fetch must use the SAME provider — otherwise the ~42% of symbols
-            // that have no `redstone-rapid` feed (RWA / `_FUNDAMENTAL` / many
-            // alt-coins) would 500 at snapshot time even though discovery proved
-            // they serve a valid price. `redstone` (full) serves the entire
-            // catalog; timestamps in the discovery payload were current.
-            const response = await fetch(buildRedStonePriceUrl(symbol), {
-              method: 'GET',
-              headers: {
-                Accept: 'application/json',
+            // The official SDK verifies each package signature against the
+            // current redstone-primary-prod signer set and requires three
+            // unique signers before exposing the median price.
+            const snapshot = await fetchRedStoneFeedSnapshot(symbol);
+            if (!snapshot) return null;
+
+            return this.parsePriceResponse(
+              {
+                symbol: snapshot.dataFeedId,
+                value: snapshot.value,
+                timestamp: snapshot.timestampMilliseconds,
+                provider: 'redstone-primary-prod',
               },
-              signal: controller.signal,
-            });
-
-            if (!response.ok) {
-              const errorCode = this.classifyErrorFromStatus(response.status);
-              throw new OracleProviderError(
-                `HTTP ${response.status}: ${response.statusText}`,
-                'redstone',
-                errorCode,
-                { symbol, attemptCount }
-              );
-            }
-
-            let data: RedStonePriceResponse[];
-            try {
-              data = await response.json();
-            } catch {
-              throw new OracleProviderError(
-                'Failed to parse API response as JSON',
-                'redstone',
-                'PARSE_ERROR',
-                {
-                  symbol,
-                  attemptCount,
-                }
-              );
-            }
-
-            if (!Array.isArray(data) || data.length === 0) {
-              return null;
-            }
-
-            const priceData = data[0];
-            return this.parsePriceResponse(priceData, symbol);
+              symbol
+            );
           } catch (error) {
-            if (error instanceof OracleProviderError) {
-              throw error;
-            }
-            // If our per-request timeout fired, classify as TIMEOUT_ERROR
-            // (retryable) instead of letting the raw AbortError propagate —
-            // its "abort" message would cause shouldRetry to give up.
-            if (timedOut) {
-              throw new OracleProviderError(
-                `Request timeout after ${REDSTONE_REQUEST_TIMEOUT_MS}ms: ${symbol}`,
-                'redstone',
-                'TIMEOUT_ERROR',
-                { symbol, attemptCount },
-                error instanceof Error ? error : undefined
-              );
-            }
+            if (error instanceof OracleProviderError) throw error;
             const errorCode = this.classifyError(error);
             throw new OracleProviderError(
               `Failed to fetch price: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -258,8 +223,6 @@ export class RedStoneClient extends BaseOracleClient {
               { symbol, attemptCount },
               error instanceof Error ? error : undefined
             );
-          } finally {
-            clearTimeout(timeoutId);
           }
         },
         'fetchRealPrice',
@@ -283,19 +246,6 @@ export class RedStoneClient extends BaseOracleClient {
         { symbol, attemptCount },
         error instanceof Error ? error : undefined
       );
-    }
-  }
-
-  private classifyErrorFromStatus(status: number): string {
-    switch (status) {
-      case 429:
-        return 'RATE_LIMIT_ERROR';
-      case 504:
-        return 'TIMEOUT_ERROR';
-      case 503:
-        return 'NETWORK_ERROR';
-      default:
-        return 'FETCH_ERROR';
     }
   }
 
@@ -486,7 +436,7 @@ export class RedStoneClient extends BaseOracleClient {
             verification: buildApiVerification(
               buildRedStonePriceUrl(symbol),
               'getPrice',
-              'RedStone API'
+              'RedStone authenticated gateway; signer-verified'
             ),
           },
           'getPrice'
@@ -494,7 +444,7 @@ export class RedStoneClient extends BaseOracleClient {
       }
 
       throw this.createError(
-        `No price data available for ${symbol} from RedStone API`,
+        `No fresh signer-verified price data available for ${symbol} from RedStone gateway`,
         'FETCH_ERROR'
       );
     } catch (error) {
