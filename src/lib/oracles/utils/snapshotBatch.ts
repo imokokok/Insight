@@ -1,6 +1,6 @@
 import { type Blockchain, type PriceData } from '@/types/oracle';
 
-/** A collector-only request. The registry has already authenticated the feed. */
+/** A server batch request. The caller must authenticate the feed against its active registry. */
 export interface SnapshotBatchPriceRequest {
   id: string;
   symbol: string;
