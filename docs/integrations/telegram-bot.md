@@ -11,7 +11,7 @@ The current controlled pilot exposes one Polymarket assessment. A user receives 
 1. The user runs `/link` in their private chat. The bot service requests a random, one-time challenge from `POST /api/telegram/link/start` using `TELEGRAM_INTEGRATION_SECRET`.
 2. The user signs in to Insight on `https://www.oracleinsight.xyz/telegram-link` and explicitly confirms the link. Challenges expire after 15 minutes and are stored only as SHA-256 hashes.
 3. Insight atomically binds one Telegram account to one authenticated Insight account. The mapping and challenges are service-role-only. The bot can report status and balance without receiving an Insight API key.
-4. `/account` shows the linked credit balance and assessment cost. `/unlink` removes the association. Linking does not create wallet authority.
+4. `/account` shows the linked credit balance and current assessment cost. Every linked assessment first displays a fresh price and available (unfrozen) balance; the bot requests the assessment only after the user explicitly confirms. The confirmation expresses intent for up to seven days; if the BTC market window or price changes, the bot shows a replacement quote and requires confirmation again. `/usage` shows the user's ten most recent Telegram assessments, `/privacy` opens the privacy notice, and `/help`, `/menu`, and `/cancel` guide the interaction. `/unlink` removes the association. Linking does not create wallet authority.
 
 Linked users use the Insight credits in their account directly; they do not need to create or expose an API key. A service-only, atomic database function debits the account wallet after a trusted assessment is produced. Each assessment has the stable key `telegram:<hashed-telegram-id>:<telegram-update-id>` so webhook retries cannot debit twice.
 
@@ -22,6 +22,7 @@ Set the same high-entropy `TELEGRAM_INTEGRATION_SECRET` in the Insight deploymen
 - `POST /api/telegram/link/start` — issue a short-lived challenge for a verified Telegram user ID.
 - `POST /api/telegram/link/remove` — unlink that Telegram user ID.
 - `POST /api/telegram/account` — return linked state, wallet balance, readiness, and current assessment price; never return an API key or user ID.
+- `POST /api/telegram/usage` — return up to ten recent Telegram assessment charges for the linked account; never return user IDs, API keys, or unrelated ledger entries.
 - `POST /api/telegram/assessment` — assess one strictly validated Polymarket request, sign it, then charge the user's wallet idempotently.
 
 `POST /api/telegram/link/claim` instead requires a normal authenticated Insight user session and an explicit confirmation from the account-link page.
@@ -32,7 +33,7 @@ Apply migrations `0151_telegram_account_linking.sql` and `0152_telegram_wallet_b
 
 The Polymarket signed guard is priced using Insight's published endpoint price. The API performs the credit precheck before assessment work and commits the debit only after it has a signed decision. Insufficient balance returns a charge reason and no assessment. Upstream failure, timeout, or missing attester returns no assessment and makes no debit. The Telegram callback path supplies Telegram's update ID so a retry uses the same ledger idempotency key.
 
-The unlinked first sample uses the bot's own configured Insight API key and a Durable Object lifetime cap of one successful sample per private Telegram account. A failed assessment or failed Telegram delivery releases the pending trial reservation so the user can retry. After the sample, the bot requires account linking to continue.
+The unlinked first sample uses the bot's configured Insight API key, a lifetime cap of one successful sample per private Telegram account, and a global ceiling of 200 credits per UTC calendar month enforced atomically by a shared Durable Object. At the current 20-credit price, this allows at most ten sponsored samples per month; dynamic price changes lower or raise the number of available samples while never exceeding the credit ceiling. Sponsorship is restricted to the configured private beta allowlist and is disabled for wildcard/public access. The ceiling fails closed if Insight cannot provide current pricing or the shared budget is unavailable. A failed assessment or failed Telegram delivery releases the pending trial reservation so the user can retry. After the sample, the bot requires account linking to continue.
 
 ## Four scenario gates
 

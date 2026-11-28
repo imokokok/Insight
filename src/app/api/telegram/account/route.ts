@@ -38,19 +38,36 @@ export async function POST(request: Request) {
   }
   if (!link?.user_id) {
     return NextResponse.json(
-      { success: true, linked: false },
+      {
+        success: true,
+        linked: false,
+        assessmentCostCredits: getEndpointCreditCost('/api/v1/safety/prediction-guard/attestation'),
+      },
       { headers: { 'Cache-Control': 'no-store' } }
     );
   }
 
   const wallet = await getWalletBalance(link.user_id);
+  if (
+    !wallet ||
+    !Number.isSafeInteger(wallet.balance) ||
+    wallet.balance < 0 ||
+    !Number.isSafeInteger(wallet.frozen) ||
+    wallet.frozen < 0 ||
+    wallet.frozen > wallet.balance
+  ) {
+    return NextResponse.json(
+      { success: false, message: 'Account balance temporarily unavailable' },
+      { status: 503, headers: { 'Cache-Control': 'no-store' } }
+    );
+  }
   return NextResponse.json(
     {
       success: true,
       linked: true,
       ready: true,
-      balance: wallet?.balance ?? 0,
-      frozen: wallet?.frozen ?? 0,
+      balance: wallet.balance,
+      frozen: wallet.frozen,
       assessmentCostCredits: getEndpointCreditCost('/api/v1/safety/prediction-guard/attestation'),
     },
     { headers: { 'Cache-Control': 'no-store' } }
