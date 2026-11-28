@@ -48,6 +48,7 @@ const PYTH_VERIFY_CONCURRENCY = 4;
  */
 async function invalidateAndRefreshTursoFeedRegistry(): Promise<void> {
   invalidateAllFeedsCache();
+  if (process.env.DEFER_TURSO_FEED_REGISTRY_REFRESH === 'true') return;
   if (readTursoPriceWriteMode() !== 'primary') return;
   try {
     const registry = await getAdminQueries().getOracleFeedsWithStatus('');
@@ -60,9 +61,8 @@ async function invalidateAndRefreshTursoFeedRegistry(): Promise<void> {
       versionHash: snapshot.versionHash,
     });
   } catch (error) {
-    // The Supabase mutation remains authoritative and successful. Surface a
-    // mirror lag in logs; the next collector performs the same bounded repair.
     logger.error('Failed to refresh Turso feed registry mirror', normalizeError(error));
+    throw error;
   }
 }
 
@@ -432,6 +432,7 @@ export async function runFeedSync(mode: string, provider: string): Promise<FeedS
           };
         }
         const discovery = await feedDiscoveryService.discoverAll(provider);
+        const discoveryFailed = discovery.some((result) => result.errors.length > 0);
         const discoveredFeeds = discovery[0]?.feeds || [];
 
         // Verify each discovered feed by actually fetching a price.
@@ -452,7 +453,7 @@ export async function runFeedSync(mode: string, provider: string): Promise<FeedS
         // providers like Chainlink (Ethereum-only discovery) don't wipe feeds
         // for other chains seeded separately.
         let discoverPruned = 0;
-        if (discoveredFeeds.length > 0) {
+        if (discoveredFeeds.length > 0 && !discoveryFailed) {
           try {
             const queries = getAdminQueries();
             const existingFeeds = await queries.getOracleFeeds(provider);
@@ -559,9 +560,14 @@ export async function runFeedSync(mode: string, provider: string): Promise<FeedS
           },
         ];
         return {
-          status: 200,
-          body: { success: true, mode: 'discover', provider, results: summary },
+          status: discoveryFailed ? 502 : 200,
+          body: { success: !discoveryFailed, mode: 'discover', provider, results: summary },
         };
+      }
+
+      case 'refresh-registry': {
+        await invalidateAndRefreshTursoFeedRegistry();
+        return { status: 200, body: { success: true, mode: 'refresh-registry' } };
       }
 
       case 'registry': {
