@@ -11,6 +11,12 @@ import {
 } from '@/lib/oracles/utils/dynamicFeedResolver';
 import { resolveOracleFeedBlockchain } from '@/lib/oracles/utils/feedChain';
 import { extractBaseSymbol, isUsdDenominatedFeedSymbol } from '@/lib/oracles/utils/oracleDataUtils';
+import type {
+  SnapshotBatchPriceClient,
+  SnapshotBatchPriceRequest,
+  SnapshotBatchPriceResult,
+} from '@/lib/oracles/utils/snapshotBatch';
+import { getLatestPriceSnapshotFromDatabase } from '@/lib/oracles/utils/storage';
 import type { OracleFeed } from '@/lib/supabase/queries';
 import { mapWithConcurrency } from '@/lib/utils/concurrency';
 import { createLogger } from '@/lib/utils/logger';
@@ -74,10 +80,43 @@ interface DashboardPriceCircuitEntry {
   lastSuccess?: DashboardPriceItem;
 }
 
+interface DashboardPriceQuery {
+  provider: OracleProvider;
+  symbol: string;
+  chain: Blockchain;
+  feedAddress?: `0x${string}`;
+}
+
+interface IndexedDashboardPriceQuery {
+  index: number;
+  query: DashboardPriceQuery;
+}
+
+type DashboardFetchTask =
+  | { kind: 'single'; entry: IndexedDashboardPriceQuery }
+  | { kind: 'chainlink-batch'; entries: IndexedDashboardPriceQuery[] };
+
 const dashboardPriceCircuit = new Map<string, DashboardPriceCircuitEntry>();
 
 function dashboardPriceKey(provider: OracleProvider, symbol: string, chain: Blockchain): string {
   return `${provider}:${symbol}:${chain}`;
+}
+
+function getDashboardCircuitResponse(
+  provider: OracleProvider,
+  symbol: string,
+  chain: Blockchain
+): DashboardPriceItem | null {
+  const circuit = dashboardPriceCircuit.get(dashboardPriceKey(provider, symbol, chain));
+  if (!circuit || circuit.retryAfter <= Date.now()) return null;
+  return (
+    circuit.lastSuccess ?? {
+      provider,
+      symbol,
+      price: null,
+      error: 'Provider temporarily unavailable; retry deferred',
+    }
+  );
 }
 
 async function fetchDashboardPrice(
@@ -87,16 +126,8 @@ async function fetchDashboardPrice(
 ): Promise<DashboardPriceItem> {
   const key = dashboardPriceKey(provider, symbol, chain);
   const circuit = dashboardPriceCircuit.get(key);
-  if (circuit && circuit.retryAfter > Date.now()) {
-    return (
-      circuit.lastSuccess ?? {
-        provider,
-        symbol,
-        price: null,
-        error: 'Provider temporarily unavailable; retry deferred',
-      }
-    );
-  }
+  const circuitResponse = getDashboardCircuitResponse(provider, symbol, chain);
+  if (circuitResponse) return circuitResponse;
 
   try {
     const price = await fetchPriceWithDatabase(
@@ -135,6 +166,128 @@ async function fetchDashboardPrice(
       }
     );
   }
+}
+
+function isSnapshotBatchPriceClient(client: unknown): client is SnapshotBatchPriceClient {
+  return (
+    typeof client === 'object' &&
+    client !== null &&
+    'getSnapshotPricesBatch' in client &&
+    typeof client.getSnapshotPricesBatch === 'function'
+  );
+}
+
+async function fetchDashboardChainlinkBatch(
+  entries: IndexedDashboardPriceQuery[]
+): Promise<Array<{ index: number; result: DashboardPriceItem }>> {
+  const results = new Map<number, DashboardPriceItem>();
+  const pending = entries.filter(({ index, query }) => {
+    const circuitResponse = getDashboardCircuitResponse(query.provider, query.symbol, query.chain);
+    if (!circuitResponse) return true;
+    results.set(index, circuitResponse);
+    return false;
+  });
+
+  if (pending.length === 0) {
+    return entries.map(({ index }) => ({ index, result: results.get(index)! }));
+  }
+
+  const client = getDefaultFactory().getClient(OracleProvider.CHAINLINK);
+  if (!isSnapshotBatchPriceClient(client)) {
+    return Promise.all(
+      pending.map(async ({ index, query }) => ({
+        index,
+        result: await fetchDashboardPrice(query.provider, query.symbol, query.chain),
+      }))
+    ).then((fetched) => {
+      for (const item of fetched) results.set(item.index, item.result);
+      return entries.map(({ index }) => ({ index, result: results.get(index)! }));
+    });
+  }
+
+  const requests: SnapshotBatchPriceRequest[] = pending.map(({ index, query }) => ({
+    id: `dashboard-${index}`,
+    symbol: query.symbol,
+    chain: query.chain,
+    feedAddress: query.feedAddress,
+  }));
+
+  let batch: SnapshotBatchPriceResult[];
+  try {
+    // The dashboard's active-feed registry authenticates each address before
+    // this call. Reusing the existing Multicall path keeps same-chain reads to
+    // one outer RPC request instead of retrying each feed independently.
+    batch = await client.getSnapshotPricesBatch(requests);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown batch failure';
+    batch = requests.map((request) => ({
+      id: request.id,
+      price: null,
+      error: new Error(message),
+    }));
+  }
+
+  const batchById = new Map(batch.map((item) => [item.id, item]));
+  await Promise.all(
+    pending.map(async ({ index, query }) => {
+      const key = dashboardPriceKey(query.provider, query.symbol, query.chain);
+      const circuit = dashboardPriceCircuit.get(key);
+      const outcome = batchById.get(`dashboard-${index}`);
+      if (outcome?.price && !outcome.error) {
+        const result: DashboardPriceItem = {
+          provider: query.provider,
+          symbol: query.symbol,
+          price: outcome.price,
+          error: null,
+        };
+        dashboardPriceCircuit.set(key, { retryAfter: 0, lastSuccess: result });
+        results.set(index, result);
+        return;
+      }
+
+      const message = outcome?.error?.message ?? 'Missing Chainlink batch result';
+      logger.warn(`Dashboard Chainlink batch failed for ${query.symbol}: ${message}`);
+      const fallback = await getLatestPriceSnapshotFromDatabase(
+        query.provider,
+        query.symbol,
+        query.chain
+      );
+      if (fallback) {
+        const result: DashboardPriceItem = {
+          provider: query.provider,
+          symbol: query.symbol,
+          price: fallback,
+          error: null,
+        };
+        dashboardPriceCircuit.set(key, {
+          retryAfter: Date.now() + DASHBOARD_FAILURE_COOLDOWN_MS,
+          lastSuccess: result,
+        });
+        results.set(index, result);
+        logger.warn('Dashboard is serving the latest Chainlink snapshot after a batch failure', {
+          symbol: query.symbol,
+          chain: query.chain,
+        });
+        return;
+      }
+
+      dashboardPriceCircuit.set(key, {
+        retryAfter: Date.now() + DASHBOARD_FAILURE_COOLDOWN_MS,
+        lastSuccess: circuit?.lastSuccess,
+      });
+      results.set(
+        index,
+        circuit?.lastSuccess ?? {
+          provider: query.provider,
+          symbol: query.symbol,
+          price: null,
+          error: message,
+        }
+      );
+    })
+  );
+
+  return entries.map(({ index }) => ({ index, result: results.get(index)! }));
 }
 
 /**
@@ -191,6 +344,62 @@ function resolveDashboardChain(
   return candidateChains.includes(defaultChain) ? defaultChain : candidateChains[0];
 }
 
+function resolveChainlinkFeedAddress(
+  symbol: string,
+  chain: Blockchain,
+  feeds: OracleFeed[]
+): `0x${string}` | undefined {
+  const matchingFeeds = feeds.filter(
+    (feed) =>
+      extractBaseSymbol(feed.symbol).toUpperCase() === symbol &&
+      isUsdDenominatedFeedSymbol(feed.symbol) &&
+      resolveOracleFeedBlockchain(feed) === chain
+  );
+  const selected =
+    matchingFeeds.find((feed) => feed.symbol.toUpperCase() === symbol) ??
+    matchingFeeds.find((feed) => feed.symbol !== feed.symbol.toUpperCase()) ??
+    matchingFeeds[0];
+  if (!selected || !/^0x[0-9a-f]{40}$/i.test(selected.address)) return undefined;
+  return selected.address as `0x${string}`;
+}
+
+async function fetchDashboardPrices(queries: DashboardPriceQuery[]): Promise<DashboardPriceItem[]> {
+  const indexed = queries.map((query, index) => ({ index, query }));
+  const tasks: DashboardFetchTask[] = [];
+  const chainlinkGroups = new Map<Blockchain, IndexedDashboardPriceQuery[]>();
+
+  for (const entry of indexed) {
+    if (entry.query.provider === OracleProvider.CHAINLINK && entry.query.feedAddress) {
+      const group = chainlinkGroups.get(entry.query.chain) ?? [];
+      group.push(entry);
+      chainlinkGroups.set(entry.query.chain, group);
+    } else {
+      tasks.push({ kind: 'single', entry });
+    }
+  }
+  for (const entries of chainlinkGroups.values()) {
+    tasks.push({ kind: 'chainlink-batch', entries });
+  }
+
+  const taskResults = await mapWithConcurrency(tasks, DASHBOARD_FETCH_CONCURRENCY, async (task) => {
+    if (task.kind === 'chainlink-batch') return fetchDashboardChainlinkBatch(task.entries);
+    return [
+      {
+        index: task.entry.index,
+        result: await fetchDashboardPrice(
+          task.entry.query.provider,
+          task.entry.query.symbol,
+          task.entry.query.chain
+        ),
+      },
+    ];
+  });
+
+  const results = new Array<DashboardPriceItem>(queries.length);
+  for (const item of taskResults.flat()) results[item.index] = item.result;
+  return results;
+}
+
 /**
  * Resolve the dashboard's "main oracles" list dynamically:
  * 1. Start from the market-cap-sorted provider config (so the order is
@@ -228,23 +437,26 @@ export async function fetchDashboardInitialData(): Promise<ServerDashboardData> 
     }),
   ]);
 
-  const queries: Array<{ provider: OracleProvider; symbol: string; chain: Blockchain }> = [];
+  const queries: DashboardPriceQuery[] = [];
   const allowStaticFallback = feedRegistry.errored || feedRegistry.feeds.size === 0;
   for (const symbol of DASHBOARD_ASSETS) {
     for (const provider of mainOracles) {
       const feeds = feedRegistry.feeds.get(provider) ?? [];
       const chain = resolveDashboardChain(provider, symbol, feeds, allowStaticFallback);
       if (!chain) continue;
-      queries.push({ provider, symbol, chain });
+      queries.push({
+        provider,
+        symbol,
+        chain,
+        feedAddress:
+          provider === OracleProvider.CHAINLINK && !allowStaticFallback
+            ? resolveChainlinkFeedAddress(symbol, chain, feeds)
+            : undefined,
+      });
     }
   }
 
-  const results = await mapWithConcurrency(
-    queries,
-    DASHBOARD_FETCH_CONCURRENCY,
-    async (query): Promise<DashboardPriceItem> =>
-      fetchDashboardPrice(query.provider, query.symbol, query.chain)
-  );
+  const results = await fetchDashboardPrices(queries);
 
   return {
     prices: results,
