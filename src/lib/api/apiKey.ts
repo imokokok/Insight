@@ -83,6 +83,11 @@ async function prepareApiKeyForStorage(name: string): Promise<GeneratedApiKey> {
 const API_KEY_CACHE_TTL_MS = 30 * 1000; // 30 seconds
 const apiKeyCache = new Map<string, { result: ApiKeyValidationResult | null; expiresAt: number }>();
 
+// Authentication runs before route-specific deadlines, so bound the Supabase
+// lookup separately. A stalled PostgREST request must become a retryable 503
+// instead of holding the Worker open until its platform timeout.
+const API_KEY_LOOKUP_TIMEOUT_MS = 8_000;
+
 function getCachedApiKey(keyHash: string): ApiKeyValidationResult | null | undefined {
   const entry = apiKeyCache.get(keyHash);
   if (!entry) return undefined; // cache miss
@@ -142,6 +147,7 @@ export async function validateApiKey(plainKey: string): Promise<ApiKeyValidation
       .from('api_keys')
       .select('id, user_id, plan, rate_limit, is_active, expires_at')
       .eq('key_hash', keyHash)
+      .abortSignal(AbortSignal.timeout(API_KEY_LOOKUP_TIMEOUT_MS))
       .maybeSingle();
 
     if (error) {
