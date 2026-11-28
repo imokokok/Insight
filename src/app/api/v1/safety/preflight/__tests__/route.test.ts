@@ -100,12 +100,19 @@ beforeEach(() => {
 });
 
 describe('execution-preflight route', () => {
-  it('rejects HEAD without entering the x402 payment dispatch', () => {
-    const response = HEAD();
+  it('answers HEAD with the same status/headers as the GET quote and no body', async () => {
+    mockHandleX402.mockResolvedValue(
+      new Response('quote body', {
+        status: 402,
+        headers: { 'payment-required': 'quote', 'content-type': 'application/json' },
+      })
+    );
+    const response = await HEAD(makeRequest(), routeContext());
 
-    expect(response.status).toBe(405);
-    expect(response.headers.get('allow')).toBe('GET, OPTIONS');
-    expect(mockHandleX402).not.toHaveBeenCalled();
+    expect(response.status).toBe(402);
+    expect(response.headers.get('payment-required')).toBe('quote');
+    expect(await response.text()).not.toContain('quote body');
+    expect(mockHandleX402).toHaveBeenCalledTimes(1);
   });
 
   it('runs validated keyless x402 requests through the preflight callback and returns its decision', async () => {

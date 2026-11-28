@@ -157,13 +157,26 @@ beforeEach(() => {
 });
 
 describe('pre-trade route MPP dispatch', () => {
-  it('rejects HEAD without entering either payment rail', () => {
-    const response = HEAD();
+  it('answers HEAD with the same status/headers as the GET quote and no body', async () => {
+    mockHandleX402.mockResolvedValue(
+      new Response('quote body', {
+        status: 402,
+        headers: { 'payment-required': 'quote', 'content-type': 'application/json' },
+      })
+    );
+    const request = makeRequest();
+    const response = await HEAD(request, routeContext());
 
-    expect(response.status).toBe(405);
-    expect(response.headers.get('allow')).toBe('GET, OPTIONS');
-    expect(mockHandleMpp).not.toHaveBeenCalled();
-    expect(mockHandleX402).not.toHaveBeenCalled();
+    expect(response.status).toBe(402);
+    expect(response.headers.get('payment-required')).toBe('quote');
+    expect(await response.text()).not.toContain('quote body');
+    expect(mockIssueMppQuote).toHaveBeenCalledWith(
+      request,
+      X402_CONFIG,
+      MPP_CONFIG.secretKey,
+      expect.any(Function)
+    );
+    expect(mockHandleX402).toHaveBeenCalledTimes(1);
   });
 
   it('dispatches MPP credentials through MPP and executes the validated business callback', async () => {
