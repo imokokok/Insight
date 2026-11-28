@@ -276,21 +276,42 @@ jobs:
               payload = payload[0]
           if not isinstance(payload, dict):
               raise SystemExit('cron startup timeout RPC returned an invalid payload')
-          healthy = payload.get('healthy') is True
-          summary = json.dumps(payload, sort_keys=True)
           window_24h = payload.get('window_24h') or {}
           window_60m = payload.get('window_60m') or {}
+          count_60m = window_60m.get('count')
+          threshold_60m = window_60m.get('alert_threshold')
+          count_24h = window_24h.get('count')
+          threshold_24h = window_24h.get(
+              'historical_burst_threshold', window_24h.get('alert_threshold')
+          )
+          if type(count_60m) is not int or type(threshold_60m) is not int or threshold_60m < 1:
+              raise SystemExit('cron startup timeout RPC omitted valid 60-minute health counts')
+          if type(count_24h) is not int or type(threshold_24h) is not int or threshold_24h < 1:
+              raise SystemExit('cron startup timeout RPC omitted valid 24-hour history counts')
+          reported_healthy = payload.get('healthy')
+          healthy = count_60m < threshold_60m
+          payload['reported_healthy'] = reported_healthy
+          payload['healthy'] = healthy
+          payload['health_window'] = '60 minutes'
+          window_24h['historical_burst_threshold'] = threshold_24h
+          window_24h['historical_burst_detected'] = count_24h >= threshold_24h
+          payload['window_24h'] = window_24h
+          summary = json.dumps(payload, sort_keys=True)
           jobs = ', '.join(window_24h.get('affected_jobs') or []) or 'none'
+          current_state = 'healthy' if healthy else 'degraded'
+          historical_burst = window_24h['historical_burst_detected']
           body = (
-              'pg_cron worker startup timeouts exceeded the alert threshold. '
+              f"Current pg_cron health is {current_state} over "
+              f"{payload.get('health_window', 'the recent window')}. "
               f"Last 60m: {window_60m.get('count', 'unknown')} "
-              f"(threshold < {window_60m.get('alert_threshold', 'unknown')}); "
-              f"last 24h: {window_24h.get('count', 'unknown')} "
-              f"(threshold < {window_24h.get('alert_threshold', 'unknown')}); "
-              f"affected jobs: {jobs}; first/last: "
+              f"(degraded at {window_60m.get('alert_threshold', 'unknown')} or more); "
+              f"last 24h: {window_24h.get('count', 'unknown')} startup timeouts "
+              f"(historical burst: {'yes' if historical_burst else 'no'}; "
+              f"threshold {window_24h.get('historical_burst_threshold', 'unknown')}). "
+              f"Affected jobs in the 24h window: {jobs}; first/last: "
               f"{window_24h.get('first_at', 'unknown')} / {window_24h.get('last_at', 'unknown')}. "
-              'The failures indicate pg_cron worker startup starvation; review '
-              'max_worker_processes headroom and scheduled job starts.'
+              'The 24-hour count is retained as incident context and does not keep '
+              'current health degraded after the recent window recovers.'
           )
           print('true' if healthy else 'false')
           print(summary)

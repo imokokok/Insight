@@ -43,3 +43,12 @@ degradation as the best-supported explanation, not a proven upstream trigger.
 No postmaster setting or schedule was changed on this evidence alone. If the
 pattern recurs, collect the project CPU, I/O, and connection graphs for the
 same UTC interval alongside the logs before changing cron concurrency.
+
+## Health reporting follow-up
+
+The hourly control-plane workflow now derives current health from the rolling
+60-minute count (degraded at three or more failures), instead of trusting the
+RPC's legacy `healthy` flag, which also includes 24-hour volume. The report still
+retains the 24-hour count, affected job names, and burst threshold for diagnosis.
+A burst that has cleared the recent window no longer keeps the health check red;
+this consumer-side change requires no database migration.
