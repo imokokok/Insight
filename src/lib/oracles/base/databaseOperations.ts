@@ -297,7 +297,11 @@ export async function fetchPriceWithDatabase(
   forceRefresh: boolean = false,
   signal?: AbortSignal,
   exactFeedSymbol?: string,
-  storageOptions: { persist?: boolean; allowSnapshotFallback?: boolean } = {}
+  storageOptions: {
+    persist?: boolean;
+    allowSnapshotFallback?: boolean;
+    recordFeedHealth?: boolean;
+  } = {}
 ): Promise<PriceData> {
   // Oracle services expect the base asset symbol (e.g. "BTC"), while some UI
   // and API callers pass the full pair (e.g. "btc/usd"). Normalize once: derive
@@ -308,6 +312,7 @@ export async function fetchPriceWithDatabase(
   // would be rejected as unsupported and its feed-health update would silently
   // no-op.
   const baseSymbol = extractBaseSymbol(symbol).toUpperCase();
+  const shouldRecordFeedHealth = storageOptions.recordFeedHealth !== false;
 
   try {
     const client = await getOracleClient(provider);
@@ -429,7 +434,9 @@ export async function fetchPriceWithDatabase(
             }
           });
       }
-      if (!forceRefresh) await recordFeedHealthResult(provider, baseSymbol, chain, true);
+      if (!forceRefresh && shouldRecordFeedHealth) {
+        await recordFeedHealthResult(provider, baseSymbol, chain, true);
+      }
       return livePrice;
     } catch (liveError) {
       // Live refresh failed. A price_records row is rich but normally only
@@ -455,7 +462,9 @@ export async function fetchPriceWithDatabase(
       // fail under live traffic are still tracked (matching the outer catcher's
       // behavior for the no-fallback path).
       if (fallbackPrice && !requiresStrictDirectFreshness(provider, targetChain)) {
-        await recordFeedHealthResult(provider, baseSymbol, chain, false);
+        if (shouldRecordFeedHealth) {
+          await recordFeedHealthResult(provider, baseSymbol, chain, false);
+        }
         logger.warn('Live price refresh failed; serving latest durable fallback', {
           provider,
           symbol: baseSymbol,
@@ -476,7 +485,7 @@ export async function fetchPriceWithDatabase(
     // batchUpdateFeedHealth() for the same batch — recording here too would
     // double-increment consecutive_failures, causing feeds to hit the
     // deactivation threshold (3) in only 2 cycles instead of 3.
-    if (!(error instanceof UnsupportedSymbolError) && !forceRefresh) {
+    if (!(error instanceof UnsupportedSymbolError) && !forceRefresh && shouldRecordFeedHealth) {
       await recordFeedHealthResult(provider, baseSymbol, chain, false);
     }
     if (
