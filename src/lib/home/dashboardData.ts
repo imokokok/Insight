@@ -110,7 +110,10 @@ async function fetchDashboardPrice(
       {
         // The dashboard can label a collector snapshot as a degraded fallback;
         // paid pre-trade and other live API callers retain their strict defaults.
+        // The 15-minute collector owns feed health, so homepage reads skip a
+        // Supabase write for each individual price within this Worker call.
         allowSnapshotFallback: true,
+        recordFeedHealth: false,
       }
     );
     const result: DashboardPriceItem = { provider, symbol, price, error: null };

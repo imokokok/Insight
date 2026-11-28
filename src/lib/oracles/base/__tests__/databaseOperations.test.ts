@@ -20,6 +20,7 @@ const mockGetLatestPriceSnapshotFromDatabase = jest.fn();
 const mockGetHistoricalPricesFromDatabase = jest.fn();
 const mockSavePriceToDatabase = jest.fn();
 const mockGetActiveFeedsMap = jest.fn();
+const mockUpdateFeedHealth = jest.fn();
 
 jest.mock('../../utils/dynamicFeedResolver', () => ({
   getActiveFeedsMap: (...args: unknown[]) => mockGetActiveFeedsMap(...args),
@@ -59,6 +60,12 @@ jest.mock('@/lib/oracles/factory', () => ({
   })),
 }));
 
+jest.mock('@/lib/supabase/server', () => ({
+  getAdminQueries: () => ({
+    updateFeedHealth: (...args: unknown[]) => mockUpdateFeedHealth(...args),
+  }),
+}));
+
 // eslint-disable-next-line max-lines-per-function
 describe('databaseOperations', () => {
   const mockProvider: OracleProvider = 'dia';
@@ -91,6 +98,7 @@ describe('databaseOperations', () => {
     mockSavePriceToDatabase.mockReset().mockResolvedValue(true);
     mockGetLatestPriceSnapshotFromDatabase.mockReset().mockResolvedValue(null);
     mockGetActiveFeedsMap.mockReset().mockResolvedValue(new Map());
+    mockUpdateFeedHealth.mockReset().mockResolvedValue(undefined);
     mockGetClient.mockReset().mockReturnValue({
       getPrice: mockClientGetPrice,
       getHistoricalPrices: mockClientGetHistoricalPrices,
@@ -124,6 +132,98 @@ describe('databaseOperations', () => {
       );
 
       expect(mockSavePriceToDatabase).toHaveBeenCalledWith(livePrice);
+    });
+
+    it('records feed health by default for a matching live feed', async () => {
+      const livePrice = createMockPriceData();
+      const activeFeed = {
+        id: 1,
+        provider: mockProvider,
+        symbol: 'BTC/USD',
+        base_symbol: 'BTC',
+        quote_symbol: 'USD',
+        chain_id: 1,
+        chain_name: 'ethereum',
+        feed_address: '0x0000000000000000000000000000000000000001',
+        price_decimals: 8,
+        heartbeat_seconds: null,
+        deviation_threshold_bps: null,
+        is_active: true,
+      };
+      mockGetActiveFeedsMap.mockResolvedValue(new Map([['BTC/USD-1', activeFeed]]));
+      mockClientGetPrice.mockResolvedValue(livePrice);
+
+      await fetchPriceWithDatabase(mockProvider, mockSymbol, mockChain, true);
+
+      expect(mockUpdateFeedHealth).toHaveBeenCalledWith(mockProvider, 'BTC/USD', 1, true);
+    });
+
+    it('can skip per-request feed-health writes while keeping live price reads enabled', async () => {
+      const livePrice = createMockPriceData();
+      const activeFeed = {
+        id: 1,
+        provider: mockProvider,
+        symbol: 'BTC/USD',
+        base_symbol: 'BTC',
+        quote_symbol: 'USD',
+        chain_id: 1,
+        chain_name: 'ethereum',
+        feed_address: '0x0000000000000000000000000000000000000001',
+        price_decimals: 8,
+        heartbeat_seconds: null,
+        deviation_threshold_bps: null,
+        is_active: true,
+      };
+      mockGetActiveFeedsMap.mockResolvedValue(new Map([['BTC/USD-1', activeFeed]]));
+      mockClientGetPrice.mockResolvedValue(livePrice);
+
+      await expect(
+        fetchPriceWithDatabase(
+          mockProvider,
+          mockSymbol,
+          mockChain,
+          true,
+          false,
+          undefined,
+          undefined,
+          { recordFeedHealth: false }
+        )
+      ).resolves.toEqual(livePrice);
+
+      expect(mockUpdateFeedHealth).not.toHaveBeenCalled();
+    });
+
+    it('can skip feed-health writes when both live reads and snapshot fallback fail', async () => {
+      const activeFeed = {
+        id: 1,
+        provider: mockProvider,
+        symbol: 'BTC/USD',
+        base_symbol: 'BTC',
+        quote_symbol: 'USD',
+        chain_id: 1,
+        chain_name: 'ethereum',
+        feed_address: '0x0000000000000000000000000000000000000001',
+        price_decimals: 8,
+        heartbeat_seconds: null,
+        deviation_threshold_bps: null,
+        is_active: true,
+      };
+      mockGetActiveFeedsMap.mockResolvedValue(new Map([['BTC/USD-1', activeFeed]]));
+
+      await expect(
+        fetchPriceWithDatabase(
+          mockProvider,
+          mockSymbol,
+          mockChain,
+          true,
+          false,
+          undefined,
+          undefined,
+          { allowSnapshotFallback: true, recordFeedHealth: false }
+        )
+      ).rejects.toBeInstanceOf(PriceFetchError);
+
+      expect(mockUpdateFeedHealth).not.toHaveBeenCalled();
     });
 
     it('uses the client default chain when the caller omits a chain', async () => {
