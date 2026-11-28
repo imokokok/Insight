@@ -84,12 +84,83 @@ describe('discoverRedStoneFeeds', () => {
   });
 
   it('records an error when the API responds non-OK', async () => {
-    mockFetch.mockResolvedValueOnce(createMockResponse({}, false, 500, 'Internal Server Error'));
+    mockFetch
+      .mockResolvedValueOnce(createMockResponse({}, false, 500, 'Internal Server Error'))
+      .mockResolvedValueOnce(createMockResponse({}, false, 500, 'Internal Server Error'))
+      .mockResolvedValueOnce(createMockResponse({}, false, 500, 'Internal Server Error'))
+      .mockResolvedValueOnce(createMockResponse({}, false, 500, 'Internal Server Error'))
+      .mockResolvedValueOnce(createMockResponse({}, false, 500, 'Internal Server Error'))
+      .mockResolvedValueOnce(createMockResponse({}, false, 500, 'Internal Server Error'));
 
     const result = await discoverRedStoneFeeds();
 
     expect(result.discovered).toBe(0);
     expect(result.errors.length).toBeGreaterThan(0);
+    expect(mockFetch).toHaveBeenCalledTimes(6);
+  });
+
+  it('retries transient transport failures and preserves the gateway response', async () => {
+    mockFetch
+      .mockRejectedValueOnce(new TypeError('fetch failed'))
+      .mockResolvedValueOnce(createMockResponse({ ETH: { symbol: 'ETH', value: 3500 } }));
+
+    const result = await discoverRedStoneFeeds();
+
+    expect(result.discovered).toBe(1);
+    expect(result.errors).toHaveLength(0);
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+  });
+
+  it('includes the underlying transport code after bounded retries fail', async () => {
+    const socketError = Object.assign(new Error('socket hang up'), { code: 'ECONNRESET' });
+    const fetchError = new TypeError('fetch failed', { cause: socketError });
+    mockFetch.mockRejectedValue(fetchError);
+
+    const result = await discoverRedStoneFeeds();
+
+    expect(result.discovered).toBe(0);
+    expect(result.errors).toHaveLength(1);
+    expect(result.errors[0]).toContain('ECONNRESET');
+    expect(mockFetch).toHaveBeenCalledTimes(6);
+  });
+
+  it('does not retry deterministic client errors before trying the fallback source', async () => {
+    mockFetch
+      .mockResolvedValueOnce(createMockResponse({}, false, 403, 'Forbidden'))
+      .mockResolvedValueOnce(createMockResponse({}, false, 403, 'Forbidden'));
+
+    const result = await discoverRedStoneFeeds();
+
+    expect(result.errors[0]).toContain('RedStone DDL gateway returned HTTP 403');
+    expect(result.errors[0]).toContain('RedStone HTTP prices API returned HTTP 403');
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+  });
+
+  it('falls back to one bounded batch prices request when the DDL hostname cannot resolve', async () => {
+    mockFetch
+      .mockRejectedValueOnce(new TypeError('fetch failed'))
+      .mockRejectedValueOnce(new TypeError('fetch failed'))
+      .mockRejectedValueOnce(new TypeError('fetch failed'))
+      .mockResolvedValueOnce(
+        createMockResponse({
+          ETH: { symbol: 'ETH', value: 3500, timestamp: 1700000000000 },
+        })
+      );
+
+    const result = await discoverRedStoneFeeds();
+
+    expect(result.discovered).toBe(1);
+    expect(result.errors).toHaveLength(0);
+    expect(result.feeds[0]).toMatchObject({
+      symbol: 'ETH',
+      metadata: { preverified: true, dataServiceId: 'redstone' },
+    });
+    expect(mockFetch).toHaveBeenCalledTimes(4);
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      4,
+      'https://api.redstone.finance/prices/?provider=redstone&limit=5000',
+      expect.objectContaining({ signal: expect.any(AbortSignal) })
+    );
   });
 
   it('self-verifies each feed from the discovered price (preverified + discoveredValue)', async () => {

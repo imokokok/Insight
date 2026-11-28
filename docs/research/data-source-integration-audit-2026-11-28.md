@@ -105,3 +105,25 @@ Market-reference 的 Supabase 表中，CEX 最近记录停在 2026-10-16，Solan
 - [Pull Oracle 文档](https://docs.supra.com/oracles/data-feeds/pull-oracle)：证明需由 Pull 合约验证后取值。
 - [REST API 文档](https://docs.supra.com/oracles/apis-real-time-and-historical-data/rest-api)：历史行情需要 API key，pair 使用交易对名称，响应包含 OHLC 的 `data` 字段。
 - [Data Feeds Index](https://docs.supra.com/oracles/data-feeds/data-feeds-index)：目录给出当前交易对名称和 pair ID；历史请求不应再借用 SDK 内部旧 index 表。
+
+## 2026-11-28 后续复核：发现同步与镜像刷新
+
+在前述盘点后继续检查生产运行记录，发现 `feed-discovery.yml` 并行矩阵存在一个此前未识别的可靠性问题：2026-11-23 的一次 RedStone discovery job 表面成功，但日志显示读取 active-feed registry 分页时数量从 2,152 变为 2,153，随后 Turso authoritative mirror refresh 失败；该请求仍返回 HTTP 200，provider 汇总也没有把错误提升为工作流失败。并行 provider job 同时修改不同 feed 时，每个 job 又都读取并重建整份镜像，导致读取期间目录变化。
+
+本次修复将镜像刷新从每个并行 provider job 移到 workflow 的单一 finalizer，待矩阵结束后执行一次 `refresh-registry`；finalizer 对刷新失败明确失败。对 discovery 返回错误的 provider，不再以部分目录执行 absent-feed pruning；discovery 有错误时返回 502/`success:false`，使 CI 可见失败。这样保留其它 provider 的成功写入，同时避免部分目录导致误停用或静默镜像落后。
+
+RedStone runtime 请求此前使用无尾斜杠、无 `limit` 的 `/prices` URL。现按 RedStone 官方 HTTP API 示例改为 `/prices/?symbol=…&provider=redstone&limit=1`，限制响应为最新单条记录；新增配对符号 URL 回归测试。此前生产样本 `USDC/BRL` 曾返回 502，但当前执行环境无法完成 RedStone 主机的有效直连或代理探测，因此这次代码修正尚不能单独证明上游报价已恢复。合并部署后仍须观察一次真实 RedStone chain 0 报价请求。
+
+最新只读生产统计仍为 2,157 条 active 价格 feed（另有 124 条 `twap-token` 辅助行），当前 `consecutive_failures > 0` 为 0；48 条 active feed 无 `last_success_at`：Pyth 24、RedStone chain 0 为 18、Stork chain 143 为 1、Supra chain 143 为 5。RedStone chain 0 的 25 条 active feed 中，18 条从未有成功观测、7 条最后成功早于 30 天；RedStone chain 143 最近成功时间为 2026-11-28 07:30 UTC。`last_success_at` 是同步健康观测，不等同于逐 feed 实时报价验证，特别是 curated registry feed 不一定在 discovery 时逐条单价探测。
+
+Supra 历史接口仍受部署凭据阻塞：检查 GitHub repository secrets 与 `Production` environment 的 secret 名称时，都没有 `SUPRA_DORA_HISTORY_API_KEY`。普通 DORA REST 价格目前按安全策略排除 quorum；需先实现并验证 Pull 合约证明，不能因 REST API 能返回数值就恢复投票资格。
+
+修复验证：RedStone 定向套件 81/81 通过；feed discovery pruning/失败传播定向套件 6/6 通过；`npm run build:cron` 成功重建 16 个 cron bundle（11.9 MiB）；`git diff --check` 通过。以上均为本地验证，生产 discovery finalizer 和 RedStone runtime 尚待合并部署后复验。
+
+## 2026-11-28 线上 RedStone 重试复核
+
+PR #760 的 merge SHA `20eff8d50117fa211d7b477d7fc78ede29832a00` 已部署到 GitHub Actions。全 provider discovery 中 12/13 provider jobs 成功，RedStone discovery 在读取 `oracle-gateway-1.a.redstone.finance/data-packages/latest/redstone-primary-prod` 时发生 Node `TypeError: fetch failed`；registry finalizer 成功。对 RedStone 单独重试后仍出现相同 fetch failure，第二次 registry finalizer 也成功。失败响应没有触发 feed pruning。
+
+本机按项目网络规则先直连、再通过本地代理复查 RedStone DDL gateway 与 `api.redstone.finance/prices/`，均在 TLS 建连阶段失败（HTTP 状态为 000）。GitHub repository secrets 与 Production environment secret 名称均无 `REDSTONE_API_KEY` 或 RedStone gateway API key。RedStone 官方 SDK 当前生产 authenticated gateway 目录指向 `https://oracle-gateway.a.redstone.finance`；生产 authenticated gateway 凭据需要由 RedStone 提供，不能将该 URL 无凭据地假定为可替换的公开目录服务。单条价格 HTTP API 的官方请求格式见 [RedStone HTTP API](https://github.com/redstone-finance/redstone-api/blob/main/docs/HTTP_API.md)，生产 authenticated gateway 列表见 [RedStone SDK data-services-urls.ts](https://github.com/redstone-finance/redstone-oracles-monorepo/blob/main/packages/sdk/src/data-services-urls.ts)。
+
+新增 RedStone discovery 最多 3 次短间隔重试：对网络异常、超时、HTTP 429 和 5xx 重试；对 4xx 立即失败。最终错误消息保留底层 cause 和系统错误码，便于区分 DNS、TLS 与连接重置。该韧性改动可吸收瞬时错误，但不能修复当前 runner 与 RedStone DDL 的持续网络不可达，也不会用无签名或推测数据填充行情。线上恢复仍需在重试版部署后验证；若持续失败，需要恢复 RedStone 官方 gateway/API 可达性或由供应商提供可用的认证 gateway 与凭据。

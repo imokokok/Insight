@@ -209,7 +209,7 @@ describe('RedStoneClient', () => {
       symbol: 'BTC',
       value: 68000.5,
       timestamp: Date.now(),
-      provider: 'redstone-rapid',
+      provider: 'redstone',
       change24h: 500,
       change24hPercent: 0.74,
     };
@@ -230,7 +230,7 @@ describe('RedStoneClient', () => {
       expect(result.confidenceInterval?.bid).toBeLessThan(result.price);
       expect(result.confidenceInterval?.ask).toBeGreaterThan(result.price);
       expect(mockFetch).toHaveBeenCalledWith(
-        `${REDSTONE_API_BASE}/prices?symbol=BTC&provider=redstone`,
+        `${REDSTONE_API_BASE}/prices/?symbol=BTC&provider=redstone&limit=1`,
         expect.objectContaining({
           method: 'GET',
           headers: { Accept: 'application/json' },
@@ -246,16 +246,29 @@ describe('RedStoneClient', () => {
       expect(result.chain).toBe(Blockchain.ARBITRUM);
     });
 
-    it('preserves the exact requested symbol case (RedStone rapid is case-sensitive)', async () => {
+    it('preserves the exact requested symbol case', async () => {
       mockFetch.mockResolvedValueOnce(createMockResponse([mockPriceData]));
 
       const result = await client.getPrice('btc');
 
-      // RedStone's redstone-rapid endpoint rejects uppercased/mismatched casing,
-      // so the client must forward the symbol verbatim rather than uppercasing it.
+      // RedStone rejects uppercased/mismatched casing for some symbols, so the
+      // client must forward the symbol verbatim rather than uppercasing it.
       expect(result.symbol).toBe('btc');
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining('symbol=btc'),
+        expect.any(Object)
+      );
+    });
+
+    it('uses the documented bounded latest-price endpoint for pair symbols', async () => {
+      mockFetch.mockResolvedValueOnce(
+        createMockResponse([{ ...mockPriceData, symbol: 'USDC/BRL' }])
+      );
+
+      await client.getPrice('USDC/BRL');
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `${REDSTONE_API_BASE}/prices/?symbol=USDC%2FBRL&provider=redstone&limit=1`,
         expect.any(Object)
       );
     });
