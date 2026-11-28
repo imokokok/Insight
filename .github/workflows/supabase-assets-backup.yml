@@ -48,6 +48,7 @@ jobs:
         env:
           PGPASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
         run: |
+          set -euo pipefail
           BACKUP_DATE=$(date -u +%Y%m%d)
           BACKUP_FILE="/backup/supabase-assets-${BACKUP_DATE}.sql"
           mkdir -p backup
@@ -80,13 +81,23 @@ jobs:
           fi
 
           gzip -f "backup/supabase-assets-${BACKUP_DATE}.sql"
-          test -s "backup/supabase-assets-${BACKUP_DATE}.sql.gz"
+          BACKUP_FILE="supabase-assets-${BACKUP_DATE}.sql.gz"
+          test -s "backup/${BACKUP_FILE}"
+          gzip -t "backup/${BACKUP_FILE}"
+          gzip -cd "backup/${BACKUP_FILE}" | grep -Fqx -- '-- PostgreSQL database dump complete'
+          (
+            cd backup
+            sha256sum --binary "$BACKUP_FILE" > SHA256SUMS
+            sha256sum --check --strict SHA256SUMS
+          )
           ls -la backup/
 
       - name: Upload backup artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: supabase-assets-backup
-          path: backup/supabase-assets-*.sql.gz
+          path: |
+            backup/supabase-assets-*.sql.gz
+            backup/SHA256SUMS
           if-no-files-found: error
           retention-days: 21

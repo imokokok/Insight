@@ -27,8 +27,10 @@ jobs:
         env:
           PGPASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
         run: |
+          set -euo pipefail
           BACKUP_DATE=$(date -u +%Y%m%d)
           mkdir -p backup
+          BACKUP_FILE="snapshot-archives-${BACKUP_DATE}.dump"
           docker run --rm \
             -e PGPASSWORD -e PGSSLMODE=require \
             -v "$PWD/backup:/backup" \
@@ -38,14 +40,25 @@ jobs:
               --no-owner --no-privileges \
               --table=snapshot_archives \
               --format=custom \
-              --file "/backup/snapshot-archives-${BACKUP_DATE}.dump"
-          test -s "backup/snapshot-archives-${BACKUP_DATE}.dump"
+              --file "/backup/${BACKUP_FILE}"
+          test -s "backup/${BACKUP_FILE}"
+          docker run --rm \
+            -v "$PWD/backup:/backup:ro" \
+            postgres:17-alpine \
+            pg_restore --list "/backup/${BACKUP_FILE}" >/dev/null
+          (
+            cd backup
+            sha256sum --binary "$BACKUP_FILE" > SHA256SUMS
+            sha256sum --check --strict SHA256SUMS
+          )
           ls -la backup/
 
       - name: Upload backup artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: snapshot-archives-backup
-          path: backup/snapshot-archives-*.dump
+          path: |
+            backup/snapshot-archives-*.dump
+            backup/SHA256SUMS
           if-no-files-found: error
           retention-days: 180

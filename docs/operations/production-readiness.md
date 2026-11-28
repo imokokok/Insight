@@ -55,8 +55,11 @@ an independent external uptime monitor is not configured.
 The database is the system of record. This project intentionally operates on
 Supabase Free: automatic backups and PITR are not release requirements. The
 current no-cost recovery copies are compressed GitHub Actions artifacts; they
-are not encrypted logical exports stored outside GitHub. Never commit a
-database dump or connection credential to Git.
+are not encrypted logical exports stored outside GitHub. The existing backup
+workflows validate compressed data before upload and include a `SHA256SUMS`
+manifest. After downloading an artifact, verify it from its containing
+directory with `sha256sum --check --strict SHA256SUMS` before attempting a
+restore. Never commit a database dump or connection credential to Git.
 
 The 2026-09-06 production audit reported no provider-managed recovery points,
 which is expected on Free. Keep a recent logical export before every schema or
@@ -65,25 +68,29 @@ non-production database.
 
 - Target RPO: 24 hours when daily logical exports are maintained.
 - Target RTO: four hours for database restore and application validation.
-- Target: retain at least seven encrypted daily exports and one monthly export
-  outside Supabase and GitHub. The current artifact-only setup does not meet
-  this target; keep this gap explicit while operating without a new storage
-  fee or an approved existing offsite destination.
+- The approved operating constraint is no new storage service and no backup
+  spend. The encrypted offsite-export target is therefore out of scope while
+  no already-approved destination exists; the GitHub artifact copies remain
+  the only in-scope recovery copies, and their retention/access limitations must
+  stay explicit. Do not provision a new destination as routine maintenance.
 - Export a schema-only snapshot after every migration release.
-- Run a restore drill into an isolated, non-production project every month.
+- Run a restore drill in an isolated local Supabase/Postgres environment every
+  month. Use an already-existing non-production project only when one is
+  available; do not create a remote project solely for the drill.
 
 Restore drill:
 
 1. Record the backup timestamp, current migration number, and expected row
    counts for `price_snapshots`, `credit_wallet`, `credit_ledger`, and
    `subscriptions`.
-2. Restore into a new non-production Supabase project. Never overwrite the live
-   project during a drill.
+2. Verify the downloaded artifact checksum, then restore into the existing
+   local Supabase/Postgres environment. Never overwrite the live project or
+   create a new remote project solely for a drill.
 3. Apply only migrations newer than the restored backup.
 4. Run `npm run validate`, then verify liveness, readiness, login, public price
    data, one read-only API-key request, and credit balance reconciliation.
 5. Compare row counts and the newest snapshot timestamp. Document duration and
-   any manual step; delete the isolated project only after evidence is saved.
+   any manual step; stop the local services after saving the evidence.
 
 ## Database security gate
 
