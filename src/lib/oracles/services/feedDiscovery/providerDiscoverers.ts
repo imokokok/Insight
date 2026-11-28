@@ -361,8 +361,21 @@ export async function discoverDIAFeeds(): Promise<DiscoveryResult> {
 
 // ─── RedStone ─────────────────────────────────────────────────────
 
-const REDSTONE_DISCOVERY_URL =
-  'https://oracle-gateway-1.a.redstone.finance/data-packages/latest/redstone-primary-prod';
+const REDSTONE_DISCOVERY_SOURCES = [
+  {
+    url: 'https://oracle-gateway-1.a.redstone.finance/data-packages/latest/redstone-primary-prod',
+    dataServiceId: 'redstone-primary-prod',
+    name: 'RedStone DDL gateway',
+  },
+  {
+    // The RedStone API exposes the current full feed set in one bounded batch.
+    // Keep this as a fallback because the legacy public DDL hostname may not
+    // resolve in every region; do not fan out into one request per symbol.
+    url: 'https://api.redstone.finance/prices/?provider=redstone&limit=5000',
+    dataServiceId: 'redstone',
+    name: 'RedStone HTTP prices API',
+  },
+] as const;
 const REDSTONE_DISCOVERY_MAX_ATTEMPTS = 3;
 
 function describeDiscoveryRequestError(error: unknown): string {
@@ -380,13 +393,15 @@ function describeDiscoveryRequestError(error: unknown): string {
   return `${error.name}: ${error.message}`;
 }
 
-async function fetchRedStoneDiscoveryResponse(): Promise<Response> {
+async function fetchRedStoneSource(
+  source: (typeof REDSTONE_DISCOVERY_SOURCES)[number]
+): Promise<Response> {
   let lastError: unknown;
 
   for (let attempt = 1; attempt <= REDSTONE_DISCOVERY_MAX_ATTEMPTS; attempt += 1) {
     let response: Response;
     try {
-      response = await fetch(REDSTONE_DISCOVERY_URL, {
+      response = await fetch(source.url, {
         signal: AbortSignal.timeout(30000),
       });
     } catch (error) {
@@ -399,7 +414,7 @@ async function fetchRedStoneDiscoveryResponse(): Promise<Response> {
 
     if (response.ok) return response;
 
-    lastError = new Error(`RedStone gateway returned HTTP ${response.status}`);
+    lastError = new Error(`${source.name} returned HTTP ${response.status}`);
     // Client errors are deterministic (for example, an invalid service id),
     // while rate limits and server errors may clear on a short retry.
     if (response.status !== 429 && response.status < 500) throw lastError;
@@ -410,16 +425,37 @@ async function fetchRedStoneDiscoveryResponse(): Promise<Response> {
   }
 
   throw new Error(
-    `RedStone discovery request failed after ${REDSTONE_DISCOVERY_MAX_ATTEMPTS} attempts: ${describeDiscoveryRequestError(lastError)}`,
+    `${source.name} request failed after ${REDSTONE_DISCOVERY_MAX_ATTEMPTS} attempts: ${describeDiscoveryRequestError(lastError)}`,
     { cause: lastError }
   );
+}
+
+async function fetchRedStoneDiscoveryResponse(): Promise<{
+  response: Response;
+  dataServiceId: string;
+}> {
+  const failures: string[] = [];
+
+  for (const source of REDSTONE_DISCOVERY_SOURCES) {
+    try {
+      const response = await fetchRedStoneSource(source);
+      if (source !== REDSTONE_DISCOVERY_SOURCES[0]) {
+        logger.warn('RedStone DDL unavailable; discovery used the HTTP prices API fallback');
+      }
+      return { response, dataServiceId: source.dataServiceId };
+    } catch (error) {
+      failures.push(`${source.name}: ${describeDiscoveryRequestError(error)}`);
+    }
+  }
+
+  throw new Error(`All RedStone discovery sources failed: ${failures.join(' | ')}`);
 }
 
 export async function discoverRedStoneFeeds(): Promise<DiscoveryResult> {
   const result: DiscoveryResult = { provider: 'redstone', discovered: 0, feeds: [], errors: [] };
 
   try {
-    const response = await fetchRedStoneDiscoveryResponse();
+    const { response, dataServiceId } = await fetchRedStoneDiscoveryResponse();
 
     const rawData = (await response.json()) as unknown;
     type GatewayPackage = {
@@ -506,7 +542,7 @@ export async function discoverRedStoneFeeds(): Promise<DiscoveryResult> {
           preverified: true,
           discoveredValue,
           discoveredTimestamp: item.timestampMilliseconds,
-          dataServiceId: 'redstone-primary-prod',
+          dataServiceId,
         },
       });
     }
