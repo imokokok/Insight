@@ -15,7 +15,7 @@
 //   npm run wt -- resume <slug> [--base <ref>]
 //   npm run wt -- dev
 //   npm run wt -- e2e -- --project=chromium
-//   npm run wt -- ship <slug> --message "feat: ..." [--session <id>]
+//   npm run wt -- ship <slug> --message "feat: ..." [--session <id>] [--allow-rewrite]
 //
 // Worktrees live outside the repository (default ~/Documents/insight-worktrees) so
 // type-checkers and bundlers in the primary checkout never scan another task's
@@ -43,6 +43,7 @@ import { createServer } from 'node:net';
 import { homedir } from 'node:os';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { pushBranch } from './worktreePush.mjs';
 
 const TYPES = ['feat', 'fix', 'chore', 'docs', 'test', 'perf', 'ops', 'refactor'];
 const VALUE_OPTIONS = [
@@ -1341,7 +1342,7 @@ async function shipWorktree() {
     assertDependencyIsolation(worktreePath, `ship ${slug}`);
     assertDependencyCompatibility(worktreePath, slug, `ship ${slug}`);
     commitWorktree(worktreePath, message);
-    pushBranch(worktreePath, branch);
+    pushBranch(worktreePath, branch, { allowRewrite: flag('allow-rewrite') });
     const pull = ensurePullRequest(branch, message);
     hazards = detectMergeHazards(worktreePath, branch, slug);
     if (hazards.length === 0) enableAutoMerge(pull);
@@ -1485,14 +1486,6 @@ function commitWorktree(worktreePath, message) {
   }
   run('git', ['add', '-A'], { cwd: worktreePath });
   run('git', ['commit', '-m', message], { cwd: worktreePath });
-}
-
-function pushBranch(worktreePath, branch) {
-  const result = spawnSync('git', ['push', '-u', 'origin', `HEAD:${branch}`], {
-    cwd: worktreePath,
-    stdio: 'inherit',
-  });
-  if (result.status !== 0) throw new Error(`push failed for ${branch}`);
 }
 
 function ensurePullRequest(branch, message) {
