@@ -159,6 +159,7 @@ jobs:
           SOLANA_PRIVATE_KEY: ${{ secrets.SOLANA_PRIVATE_KEY }}
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPRA_DORA_HISTORY_API_KEY: ${{ secrets.SUPRA_DORA_HISTORY_API_KEY }}
           TRONGRID_API_KEY: ${{ secrets.TRONGRID_API_KEY }}
           TRON_FULLNODE_RPC: ${{ secrets.TRON_FULLNODE_RPC }}
           TRON_RPC_URL: ${{ secrets.TRON_RPC_URL }}
