@@ -127,3 +127,20 @@ PR #760 的 merge SHA `20eff8d50117fa211d7b477d7fc78ede29832a00` 已部署到 Gi
 本机按项目网络规则先直连、再通过本地代理复查 RedStone DDL gateway 与 `api.redstone.finance/prices/`，均在 TLS 建连阶段失败（HTTP 状态为 000）。GitHub repository secrets 与 Production environment secret 名称均无 `REDSTONE_API_KEY` 或 RedStone gateway API key。RedStone 官方 SDK 当前生产 authenticated gateway 目录指向 `https://oracle-gateway.a.redstone.finance`；生产 authenticated gateway 凭据需要由 RedStone 提供，不能将该 URL 无凭据地假定为可替换的公开目录服务。单条价格 HTTP API 的官方请求格式见 [RedStone HTTP API](https://github.com/redstone-finance/redstone-api/blob/main/docs/HTTP_API.md)，生产 authenticated gateway 列表见 [RedStone SDK data-services-urls.ts](https://github.com/redstone-finance/redstone-oracles-monorepo/blob/main/packages/sdk/src/data-services-urls.ts)。
 
 新增 RedStone discovery 最多 3 次短间隔重试：对网络异常、超时、HTTP 429 和 5xx 重试；对 4xx 立即失败。最终错误消息保留底层 cause 和系统错误码，便于区分 DNS、TLS 与连接重置。该韧性改动可吸收瞬时错误，但不能修复当前 runner 与 RedStone DDL 的持续网络不可达，也不会用无签名或推测数据填充行情。线上恢复仍需在重试版部署后验证；若持续失败，需要恢复 RedStone 官方 gateway/API 可达性或由供应商提供可用的认证 gateway 与凭据。
+
+## 2026-11-28 最终生产复验与外部依赖
+
+PR #762 已合并到 `main`（SHA `3cf3094e2cbd123fb4fb1a09bb476d456ef49b3f`），部署后触发 RedStone 单 provider discovery。旧 DDL host 在最多 3 次尝试后明确返回 `ENOTFOUND oracle-gateway-1.a.redstone.finance`；按实现再对 RedStone HTTP API 批量目录端点最多 3 次尝试后也返回 `ENOTFOUND api.redstone.finance`。该 workflow 的其余 12 个 provider job 成功，`Publish feed registry mirror` finalizer 成功；RedStone 错误时未执行 absent-feed pruning。
+
+同一时间点 Supabase 只读复核：RedStone chain 0 有 25 条 active feed，其中 18 条从未成功、7 条最近成功时间超过 30 天，最新成功时间为 2026-10-03 05:20:44 UTC；chain 143 有 9 条 active feed，全部有成功观测，最新为 2026-11-28 07:30:27 UTC。代码现在会有界重试、保留底层 DNS/TLS 错误，并安全尝试官方 batch API fallback，但该执行环境无法解析两个公开 RedStone host；不能把旧缓存或其它 provider 的报价标记成 RedStone 报价。
+
+| 项目                            | 当前状态                                                                                  | 关闭条件                                                                                                                 |
+| ------------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Feed registry 并发镜像刷新      | 已修复；每个 discovery workflow 由单个 finalizer 刷新，连续三次生产 run 的 finalizer 成功 | 持续观察定时运行                                                                                                         |
+| 部分 discovery 失败时的 pruning | 已修复；provider discovery 报错时跳过 absent-feed pruning 并让 job 失败                   | 持续观察定时运行                                                                                                         |
+| RedStone discovery 目录         | 未恢复；两个官方 HTTP hostname 均在 GitHub runner DNS 解析失败                            | 恢复 runner 到 RedStone DNS/HTTPS 的网络路径，或配置供应商提供的可用认证 gateway 与 API key；随后重跑 RedStone discovery |
+| RedStone chain 0 feed 健康      | 仍待验证；18/25 无成功观测，7/25 超过 30 天                                               | RedStone 目录与价格读取恢复后运行 feed reactivation/单 feed 价格验证                                                     |
+| Supra 历史数据                  | 仍待凭据；GitHub repository 和 Production environment 没有 `SUPRA_DORA_HISTORY_API_KEY`   | 配置 Supra 发放的 history API key，再验证 REST candles                                                                   |
+| Supra DORA REST quorum          | 按安全设计保持排除                                                                        | 实现或使用经审计的 Pull 合约证明验证，并加入端到端验证后再评估晋级                                                       |
+
+这里的 `ENOTFOUND` 出现在 GitHub Actions runner，不只是当前开发机的网络故障；开发机直接与命令级代理探测 RedStone host 也无法建立 TLS。完成后续两项供应商/运行环境输入前，不能声称所有 source 已全部恢复。
