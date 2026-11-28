@@ -9,7 +9,12 @@ import {
 
 export const runtime = 'nodejs';
 
-const ASSESSMENT_REASON = 'telegram_polymarket_assessment';
+const ASSESSMENT_REASONS = [
+  'telegram_polymarket_assessment',
+  'telegram_base_lending_assessment',
+  'telegram_hyperliquid_perps_assessment',
+  'telegram_dex_swap_assessment',
+];
 const MAX_USAGE_ROWS = 10;
 
 export async function POST(request: Request) {
@@ -49,7 +54,7 @@ export async function POST(request: Request) {
     .select('created_at, delta, meta')
     .eq('user_id', link.user_id)
     .eq('kind', 'usage')
-    .eq('reason', ASSESSMENT_REASON)
+    .in('reason', ASSESSMENT_REASONS)
     .order('created_at', { ascending: false })
     .limit(MAX_USAGE_ROWS);
   if (error) {

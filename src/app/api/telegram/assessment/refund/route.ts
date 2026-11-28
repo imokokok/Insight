@@ -45,10 +45,16 @@ export async function POST(request: Request) {
       { status: 503 }
     );
   if (!charge) return NextResponse.json({ success: true, refunded: false, reason: 'NOT_CHARGED' });
+  const allowedReasons = [
+    'telegram_polymarket_assessment',
+    'telegram_base_lending_assessment',
+    'telegram_hyperliquid_perps_assessment',
+    'telegram_dex_swap_assessment',
+  ];
   if (
     charge.kind !== 'usage' ||
     Number(charge.delta) !== -ASSESSMENT_COST ||
-    charge.reason !== 'telegram_polymarket_assessment'
+    !allowedReasons.includes(charge.reason)
   ) {
     return NextResponse.json(
       { success: false, message: 'Assessment charge did not match refund policy' },
@@ -65,7 +71,11 @@ export async function POST(request: Request) {
     source: 'wallet',
     reason: 'telegram_delivery_failed',
     requestId: `tg-refund-${body.updateId}`,
-    meta: { channel: 'telegram', product: 'polymarket_assessment', reason: 'delivery_failed' },
+    meta: {
+      channel: 'telegram',
+      product: charge.reason.replace(/^telegram_/, '').replace(/_assessment$/, ''),
+      reason: 'delivery_failed',
+    },
   });
   if (balance === null) {
     return NextResponse.json(

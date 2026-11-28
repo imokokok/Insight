@@ -42,6 +42,9 @@ export async function POST(request: Request) {
         success: true,
         linked: false,
         assessmentCostCredits: getEndpointCreditCost('/api/v1/safety/prediction-guard/attestation'),
+        scenarioAssessmentCostCredits: getEndpointCreditCost(
+          '/api/v1/safety/prediction-guard/attestation'
+        ),
       },
       { headers: { 'Cache-Control': 'no-store' } }
     );
@@ -69,6 +72,9 @@ export async function POST(request: Request) {
       balance: wallet.balance,
       frozen: wallet.frozen,
       assessmentCostCredits: getEndpointCreditCost('/api/v1/safety/prediction-guard/attestation'),
+      scenarioAssessmentCostCredits: getEndpointCreditCost(
+        '/api/v1/safety/prediction-guard/attestation'
+      ),
     },
     { headers: { 'Cache-Control': 'no-store' } }
   );
