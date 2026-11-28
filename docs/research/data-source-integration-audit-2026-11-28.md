@@ -134,14 +134,14 @@ PR #762 已合并到 `main`（SHA `3cf3094e2cbd123fb4fb1a09bb476d456ef49b3f`）�
 
 同一时间点 Supabase 只读复核：RedStone chain 0 有 25 条 active feed，其中 18 条从未成功、7 条最近成功时间超过 30 天，最新成功时间为 2026-10-03 05:20:44 UTC；chain 143 有 9 条 active feed，全部有成功观测，最新为 2026-11-28 07:30:27 UTC。代码现在会有界重试、保留底层 DNS/TLS 错误，并安全尝试官方 batch API fallback，但该执行环境无法解析两个公开 RedStone host；不能把旧缓存或其它 provider 的报价标记成 RedStone 报价。
 
-| 项目                            | 当前状态                                                                                  | 关闭条件                                                                                                                 |
-| ------------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| Feed registry 并发镜像刷新      | 已修复；每个 discovery workflow 由单个 finalizer 刷新，连续三次生产 run 的 finalizer 成功 | 持续观察定时运行                                                                                                         |
-| 部分 discovery 失败时的 pruning | 已修复；provider discovery 报错时跳过 absent-feed pruning 并让 job 失败                   | 持续观察定时运行                                                                                                         |
-| RedStone discovery 目录         | 未恢复；两个官方 HTTP hostname 均在 GitHub runner DNS 解析失败                            | 恢复 runner 到 RedStone DNS/HTTPS 的网络路径，或配置供应商提供的可用认证 gateway 与 API key；随后重跑 RedStone discovery |
-| RedStone chain 0 feed 健康      | 仍待验证；18/25 无成功观测，7/25 超过 30 天                                               | RedStone 目录与价格读取恢复后运行 feed reactivation/单 feed 价格验证                                                     |
-| Supra 历史数据                  | 仍待凭据；GitHub repository 和 Production environment 没有 `SUPRA_DORA_HISTORY_API_KEY`   | 配置 Supra 发放的 history API key，再验证 REST candles                                                                   |
-| Supra DORA REST quorum          | 按安全设计保持排除                                                                        | 实现或使用经审计的 Pull 合约证明验证，并加入端到端验证后再评估晋级                                                       |
+| 项目                            | 当前状态                                                                                  | 关闭条件                                                                                                     |
+| ------------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Feed registry 并发镜像刷新      | 已修复；每个 discovery workflow 由单个 finalizer 刷新，连续三次生产 run 的 finalizer 成功 | 持续观察定时运行                                                                                             |
+| 部分 discovery 失败时的 pruning | 已修复；provider discovery 报错时跳过 absent-feed pruning 并让 job 失败                   | 持续观察定时运行                                                                                             |
+| RedStone discovery 目录         | 代码已切换至当前认证 gateway；运行仍待缺失的 admin API key                                | 配置 `REDSTONE_GATEWAY_ADMIN_API_KEY` 并重跑 RedStone discovery；如供应商要求认证，再配置 Worker runtime key |
+| RedStone chain 0 feed 健康      | 仍待验证；18/25 无成功观测，7/25 超过 30 天                                               | RedStone 目录与价格读取恢复后运行 feed reactivation/单 feed 价格验证                                         |
+| Supra 历史数据                  | 仍待凭据；GitHub repository 和 Production environment 没有 `SUPRA_DORA_HISTORY_API_KEY`   | 配置 Supra 发放的 history API key，再验证 REST candles                                                       |
+| Supra DORA REST quorum          | 按安全设计保持排除                                                                        | 实现或使用经审计的 Pull 合约证明验证，并加入端到端验证后再评估晋级                                           |
 
 这里的 `ENOTFOUND` 出现在 GitHub Actions runner，不只是当前开发机的网络故障；开发机直接与命令级代理探测 RedStone host 也无法建立 TLS。完成后续两项供应商/运行环境输入前，不能声称所有 source 已全部恢复。
 
@@ -151,7 +151,7 @@ PR #762 已合并到 `main`（SHA `3cf3094e2cbd123fb4fb1a09bb476d456ef49b3f`）�
 
 本次在 `main` 基线 `0d80519df53f22c46e67f848fb1ef1388673dde0` 上实现统一网关服务：运行时请求 `/v2/data-packages/latest-by-data-feeds/redstone-primary-prod`，目录同步请求完整 catalogue；两者都改用 RedStone 官方 SDK、生产 service signer allowlist 和 `x-api-key`，不再把未签名 HTTP 价格对象当作 feed 证明。运行时要求 3 个授权 signer、取签名报价中位数并拒绝超过 5 分钟的包；catalogue 逐 feed 做签名验证和新鲜度检查。缺少 key 或请求失败会向 discovery 返回错误，因此现有失败保护会跳过 absent-feed pruning 并保留 last-known-good 目录。
 
-剩余外部依赖：已检查的 GitHub repository / Production environment secrets 和 Vercel Production environment 都没有 RedStone gateway key。完整 catalogue 请求需要 admin API key；代码将它限制在 GitHub Actions 的 `REDSTONE_GATEWAY_ADMIN_API_KEY`，而 Vercel runtime 读取单条已登记 feed 使用 `REDSTONE_GATEWAY_API_KEY`。如供应商支持不同权限的 key，应分别签发，避免把 admin key 放入应用运行时。需要安全配置两项 secret 后重新部署、运行 RedStone discovery，并抽查 ETH/BTC 等 chain 0 feed。不要通过聊天发送 key。未配置之前，这次代码修复不能算线上恢复；RedStone chain 0 的 25 条 feed 健康状态仍待重跑验证。
+剩余外部依赖：已检查的 GitHub repository / Production environment secrets 中没有 RedStone gateway keys。完整 catalogue 请求需要 admin API key；代码将它限制在 GitHub Actions 的 `REDSTONE_GATEWAY_ADMIN_API_KEY`，而 Cloudflare Worker runtime 读取单条已登记 feed 使用 `REDSTONE_GATEWAY_API_KEY`。如供应商支持不同权限的 key，应分别签发，避免把 admin key 放入应用运行时。需要安全配置两项 secret 后重新部署、运行 RedStone discovery，并抽查 ETH/BTC 等 chain 0 feed。不要通过聊天发送 key。未配置之前，这次代码修复不能算线上恢复；RedStone chain 0 的 25 条 feed 健康状态仍待重跑验证。
 
 签名数据包不包含旧 HTTP API 返回的 `change24h` 字段，当前客户端对该可选字段沿用默认值 `0`。价格、来源时间戳和签名证据仍来自经过 signer 校验的数据包；若产品需要 24 小时变化率，应另行接入有权限、可达并可验证的历史行情来源。
 
@@ -165,4 +165,4 @@ PR #767 合并了 lease 安全的 worktree `ship` 更新路径（main SHA `4fcfc
 
 仍需供应商/运维输入的密钥：`REDSTONE_GATEWAY_API_KEY`（GitHub `Production` environment，用于 Cloudflare Worker runtime）、`REDSTONE_GATEWAY_ADMIN_API_KEY`（GitHub repository secret，用于完整 catalogue discovery）以及 `SUPRA_DORA_HISTORY_API_KEY`（GitHub `Production` environment，用于 Cloudflare Worker 的 Supra history）。只读 secret-name 清单均未发现这些名称，未读取或记录任何密钥值。PR #769 补上了 `SUPRA_DORA_HISTORY_API_KEY` 到 Worker secrets allowlist 的传递；secret 未配置时仍会安全省略。配置后，Production deploy 会按 main 提交重新发布 Worker；还需重跑 RedStone discovery、验证代表性 chain 0 feed 和 Supabase health，才能关闭 RedStone 恢复项；配置 Supra key 后再验证历史 candles。Supra DORA quorum 限制仍按前述关闭条件处理。
 
-最终部署复核：PR #769 合并后的 `main` SHA `acd28d7eeb0798ba46ab83bbfed983c63e51b053` 已由 GitHub Production deploy run `46136458883` 发布；公开 `/api/health/release` 返回相同 SHA，目录接口返回 815 个 symbols、14 个有数据的 providers，payment-rail smoke 通过。该发布通过不代表缺失的三个供应商密钥已经配置，也不代表 RedStone 和 Supra 历史路径已有有效报价。
+部署复核：PR #769 合并前的 `main` SHA `acd28d7eeb0798ba46ab83bbfed983c63e51b053` 已由 GitHub Production deploy run `46136458883` 发布；公开 `/api/health/release` 返回相同 SHA，目录接口返回 815 个 symbols、14 个有数据的 providers。PR #769 合并后的 `main` SHA `661c31dfa87e52718f7872551e5767873e6a5fdb` 由 Production deploy run `46137688230` 部署成功，Cloudflare Worker 部署、公开域名 release SHA 断言和 payment-rail live smoke 均通过。这些发布检查不代表缺失的三个供应商密钥已经配置，也不代表 RedStone 和 Supra 历史路径已有有效报价。
