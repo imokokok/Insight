@@ -33,10 +33,18 @@ jobs:
 
       - name: Dump and verify
         run: |
+          set -euo pipefail
           BACKUP_DATE=$(date -u +%Y%m%d)
           mkdir -p backup
           node --import tsx scripts/turso/dump-ops.ts --output "backup/turso-ops-${BACKUP_DATE}.sql"
           gzip -f "backup/turso-ops-${BACKUP_DATE}.sql"
+          BACKUP_FILE="turso-ops-${BACKUP_DATE}.sql.gz"
+          gzip -t "backup/${BACKUP_FILE}"
+          (
+            cd backup
+            sha256sum --binary "$BACKUP_FILE" > SHA256SUMS
+            sha256sum --check --strict SHA256SUMS
+          )
           ls -la backup/
 
       # Restorability is proven before the file exists (the dump script
@@ -46,7 +54,9 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: turso-ops-backup
-          path: backup/turso-ops-*.sql.gz
+          path: |
+            backup/turso-ops-*.sql.gz
+            backup/SHA256SUMS
           if-no-files-found: error
           retention-days: 7
 
