@@ -21,6 +21,14 @@ contracts are unchanged.
 
 The dispatcher covers the low-frequency product-critical jobs:
 
+The hourly control-plane consumer derives current health from the rolling
+60-minute startup-timeout count (degraded at three or more failures), rather
+than trusting the RPC's legacy `healthy` value, which also includes the 24-hour
+count. It retains the 24-hour count, affected jobs, and burst threshold as
+historical incident context. A recovered burst therefore stops holding current
+health red once the recent window clears; the evidence remains in the workflow
+run and issue history. No database migration is required for this interpretation.
+
 | Workflow                        | Primary cadence                                               | Recovery guard                                                                                                                                                                                                                                                                                             |
 | ------------------------------- | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `snapshot-collect.yml`          | Supabase dispatch `:00,:15,:30,:45`                           | receipt-gated check at `:07,:22,:37,:52`                                                                                                                                                                                                                                                                   |
