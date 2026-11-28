@@ -96,12 +96,19 @@ beforeEach(() => {
   mockActivateJourneyReceiptCredit.mockResolvedValue(undefined);
 });
 
-it('rejects HEAD without entering the x402 payment dispatch', () => {
-  const response = HEAD();
+it('answers HEAD with the same status/headers as the GET quote and no body', async () => {
+  mockHandlePaid.mockResolvedValue(
+    new Response('quote body', {
+      status: 402,
+      headers: { 'payment-required': 'quote', 'content-type': 'application/json' },
+    })
+  );
+  const response = await HEAD(request(), { params: Promise.resolve({}) });
 
-  expect(response.status).toBe(405);
-  expect(response.headers.get('allow')).toBe('GET, POST, OPTIONS');
-  expect(mockHandlePaid).not.toHaveBeenCalled();
+  expect(response.status).toBe(402);
+  expect(response.headers.get('payment-required')).toBe('quote');
+  expect(await response.text()).not.toContain('quote body');
+  expect(mockHandlePaid).toHaveBeenCalledTimes(1);
 });
 
 it('uses a discoverable x402 GET path and only unlocks its receipt after settlement', async () => {

@@ -50,11 +50,22 @@ const PRE_TRADE_DEADLINE_MS = 45_000;
 export const OPTIONS = createOptionsHandler();
 
 // Paid safety decisions are exposed through GET (and CORS through OPTIONS).
-// Next.js otherwise delegates HEAD to GET, which would build a per-request
-// x402 quote for directory probes that cannot consume a response body.
-export function HEAD(): Response {
-  return new Response(null, { status: 405, headers: { Allow: 'GET, OPTIONS' } });
-}
+// HEAD must answer with the same quote/verdict status and headers as GET, with
+// the body stripped: discovery catalog workers (PayAI's catalog worker sends
+// HEAD before GET; x402dash rejects on a non-402 probe) refuse routes that
+// answer 405, and the x402 SDK's route matcher already falls HEAD back onto
+// GET routes for the unpaid quote. Anonymous probes never reach the business
+// logic, so this only costs a rate-limited quote issuance per probe.
+export const HEAD = async (
+  request: NextRequest,
+  routeContext: { params: Promise<Record<string, string>> }
+): Promise<Response> => {
+  const response = await GET(request, routeContext);
+  const headers = new Headers(response.headers);
+  headers.delete('content-length');
+  headers.delete('content-encoding');
+  return new Response(null, { status: response.status, headers });
+};
 
 interface PreTradeCheckParams {
   query: z.infer<typeof PreTradeQuerySchema>;

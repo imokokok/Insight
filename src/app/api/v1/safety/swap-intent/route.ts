@@ -24,11 +24,21 @@ import {
 export const maxDuration = 60;
 export const OPTIONS = createOptionsHandler();
 
-// A HEAD response has no receipt or intent semantics. Answer it before the
-// discoverable GET payment path so health probes do not issue x402 quotes.
-export function HEAD(): Response {
-  return new Response(null, { status: 405, headers: { Allow: 'GET, POST, OPTIONS' } });
-}
+// HEAD must answer with the same status/headers as the discoverable GET
+// payment path, with the body stripped: discovery catalog workers (PayAI sends
+// HEAD before GET; x402dash rejects on a non-402 probe) refuse routes that
+// answer 405. Anonymous probes never reach the business logic, so this only
+// costs a rate-limited x402 quote issuance per probe.
+export const HEAD = async (
+  request: NextRequest,
+  routeContext: { params: Promise<Record<string, string>> }
+): Promise<Response> => {
+  const response = await GET(request, routeContext);
+  const headers = new Headers(response.headers);
+  headers.delete('content-length');
+  headers.delete('content-encoding');
+  return new Response(null, { status: response.status, headers });
+};
 
 function responseForIntent(
   result: Awaited<ReturnType<typeof createSwapIntent>>,

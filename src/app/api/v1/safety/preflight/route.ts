@@ -21,11 +21,21 @@ export const maxDuration = 60;
 const PREFLIGHT_DEADLINE_MS = 45_000;
 export const OPTIONS = createOptionsHandler();
 
-// HEAD has no documented preflight semantics. Reject it before the GET
-// payment dispatch so availability probes cannot generate x402 quotes.
-export function HEAD(): Response {
-  return new Response(null, { status: 405, headers: { Allow: 'GET, OPTIONS' } });
-}
+// HEAD must answer with the same status/headers as the discoverable GET
+// payment dispatch, with the body stripped: discovery catalog workers (PayAI
+// sends HEAD before GET; x402dash rejects on a non-402 probe) refuse routes
+// that answer 405. Anonymous probes never reach the business logic, so this
+// only costs a rate-limited x402 quote issuance per probe.
+export const HEAD = async (
+  request: NextRequest,
+  routeContext: { params: Promise<Record<string, string>> }
+): Promise<Response> => {
+  const response = await GET(request, routeContext);
+  const headers = new Headers(response.headers);
+  headers.delete('content-length');
+  headers.delete('content-encoding');
+  return new Response(null, { status: response.status, headers });
+};
 
 type PreflightQuery = z.infer<typeof PreTradeQuerySchema>;
 
