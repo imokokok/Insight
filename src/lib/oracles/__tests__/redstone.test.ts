@@ -1,6 +1,6 @@
 import { OracleProviderError } from '@/lib/errors';
 import { RedStoneClient } from '@/lib/oracles/clients/redstone';
-import { REDSTONE_API_BASE } from '@/lib/oracles/constants/redstoneConstants';
+import { fetchRedStoneFeedSnapshot } from '@/lib/oracles/services/redstoneGateway';
 import { isSymbolActiveInCacheSync } from '@/lib/oracles/utils/dynamicFeedResolver';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
@@ -25,6 +25,16 @@ jest.mock('@/lib/oracles/utils/dynamicFeedResolver', () => ({
   resolveFeed: jest.fn(),
   isSymbolActiveInCacheSync: jest.fn(() => false),
 }));
+
+// The gateway service has its own signed-package tests. These client tests stub
+// that boundary with price-API-shaped data so the existing client behavior and
+// retry regression coverage remains focused on RedStoneClient.
+jest.mock('@/lib/oracles/services/redstoneGateway', () => ({
+  REDSTONE_AUTHENTICATED_GATEWAY_URL: 'https://oracle-gateway.a.redstone.finance',
+  fetchRedStoneFeedSnapshot: jest.fn(),
+}));
+
+const mockFetchSnapshot = jest.mocked(fetchRedStoneFeedSnapshot);
 
 const createMockResponse = (
   data: unknown,
@@ -60,12 +70,50 @@ const createMockResponse = (
  */
 const echoRequestedSymbol = (value = 68000.5) => {
   return (url: string): Response => {
-    const symbol = new URL(url).searchParams.get('symbol') ?? 'BTC';
+    const symbol = new URL(url).searchParams.get('dataFeedIds') ?? 'BTC';
     return createMockResponse([
       { symbol, value, timestamp: Date.now(), provider: 'redstone-rapid' },
     ]);
   };
 };
+
+async function mockGatewaySnapshotFromFetch(dataFeedId: string) {
+  const url = new URL(
+    '/v2/data-packages/latest-by-data-feeds/redstone-primary-prod',
+    'https://oracle-gateway.a.redstone.finance'
+  );
+  url.searchParams.set('dataFeedIds', dataFeedId);
+  const response = await mockFetch(url.toString(), {
+    method: 'GET',
+    headers: { Accept: 'application/json' },
+  });
+  if (!response.ok) {
+    throw Object.assign(new Error(`HTTP ${response.status}: ${response.statusText}`), {
+      status: response.status,
+    });
+  }
+
+  let data: unknown;
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error('JSON parse error');
+  }
+  const record = Array.isArray(data) ? data[0] : data;
+  const feed =
+    record && typeof record === 'object' && 'symbol' in record
+      ? (record as Record<string, unknown>)
+      : null;
+  if (!feed) return null;
+  return {
+    dataFeedId: typeof feed.symbol === 'string' ? feed.symbol : dataFeedId,
+    value: feed.value as number,
+    timestampMilliseconds: feed.timestamp as number,
+    provider: feed.provider as string | undefined,
+    change24h: feed.change24h as number | undefined,
+    change24hPercent: feed.change24hPercent as number | undefined,
+  };
+}
 
 /* eslint-disable max-lines-per-function */
 describe('RedStoneClient', () => {
@@ -78,6 +126,7 @@ describe('RedStoneClient', () => {
     (isSymbolActiveInCacheSync as jest.Mock).mockReturnValue(false);
     jest.useFakeTimers();
     mockFetch.mockReset();
+    mockFetchSnapshot.mockImplementation(mockGatewaySnapshotFromFetch);
     client = new RedStoneClient();
   });
 
@@ -230,7 +279,7 @@ describe('RedStoneClient', () => {
       expect(result.confidenceInterval?.bid).toBeLessThan(result.price);
       expect(result.confidenceInterval?.ask).toBeGreaterThan(result.price);
       expect(mockFetch).toHaveBeenCalledWith(
-        `${REDSTONE_API_BASE}/prices/?symbol=BTC&provider=redstone&limit=1`,
+        'https://oracle-gateway.a.redstone.finance/v2/data-packages/latest-by-data-feeds/redstone-primary-prod?dataFeedIds=BTC',
         expect.objectContaining({
           method: 'GET',
           headers: { Accept: 'application/json' },
@@ -255,7 +304,7 @@ describe('RedStoneClient', () => {
       // client must forward the symbol verbatim rather than uppercasing it.
       expect(result.symbol).toBe('btc');
       expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('symbol=btc'),
+        expect.stringContaining('dataFeedIds=btc'),
         expect.any(Object)
       );
     });
@@ -268,7 +317,7 @@ describe('RedStoneClient', () => {
       await client.getPrice('USDC/BRL');
 
       expect(mockFetch).toHaveBeenCalledWith(
-        `${REDSTONE_API_BASE}/prices/?symbol=USDC%2FBRL&provider=redstone&limit=1`,
+        'https://oracle-gateway.a.redstone.finance/v2/data-packages/latest-by-data-feeds/redstone-primary-prod?dataFeedIds=USDC%2FBRL',
         expect.any(Object)
       );
     });
@@ -282,13 +331,13 @@ describe('RedStoneClient', () => {
 
       expect(result.symbol).toBe('etrUSD_FUNDAMENTAL');
       expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('symbol=etrUSD_FUNDAMENTAL'),
+        expect.stringContaining('dataFeedIds=etrUSD_FUNDAMENTAL'),
         expect.any(Object)
       );
       // The buggy implementation uppercased to ETRUSD_FUNDAMENTAL, which the
       // API answers with HTTP 500; assert we never send the uppercased form.
       expect(mockFetch).not.toHaveBeenCalledWith(
-        expect.stringContaining('symbol=ETRUSD_FUNDAMENTAL'),
+        expect.stringContaining('dataFeedIds=ETRUSD_FUNDAMENTAL'),
         expect.any(Object)
       );
     });
@@ -298,8 +347,9 @@ describe('RedStoneClient', () => {
 
       const result = await client.getPrice('BTC');
 
-      expect(result.change24h).toBe(mockPriceData.change24h);
-      expect(result.change24hPercent).toBe(mockPriceData.change24hPercent);
+      // Signed latest data packages do not include a 24-hour change field.
+      expect(result.change24h).toBe(0);
+      expect(result.change24hPercent).toBe(0);
     });
 
     it('should throw error when API returns empty array', async () => {
@@ -388,10 +438,10 @@ describe('RedStoneClient', () => {
       expect(result.symbol).toBe('WBTC');
     });
 
-    it('rejects a response that carries no symbol', async () => {
+    it('treats a response without feed identity as unavailable', async () => {
       mockFetch.mockResolvedValueOnce(createMockResponse([{ ...base }]));
 
-      await expect(client.getPrice('WBTC')).rejects.toMatchObject({ errorCode: 'PARSE_ERROR' });
+      await expect(client.getPrice('WBTC')).rejects.toMatchObject({ code: 'FETCH_ERROR' });
     });
   });
 
@@ -566,7 +616,7 @@ describe('RedStoneClient', () => {
         symbol: 'BTC',
         value: 68000,
         timestamp: Date.now(),
-        provider: 'redstone-rapid',
+        provider: 'redstone-primary-prod',
       };
       const ethData = {
         symbol: 'ETH',
@@ -701,7 +751,7 @@ describe('RedStoneClient', () => {
         decimals: 8,
         supportedChainsCount: 13,
         updateIntervalMinutes: 10,
-        provider: 'redstone-rapid',
+        provider: 'redstone-primary-prod',
       });
     });
 
@@ -922,7 +972,7 @@ describe('RedStoneClient', () => {
 
       expect(result.change24h).toBe(0);
       expect(result.change24hPercent).toBe(0);
-      expect(result.source).toBeUndefined();
+      expect(result.source).toBe('redstone-primary-prod');
     });
 
     it('should handle response with source array', async () => {

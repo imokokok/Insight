@@ -60,6 +60,8 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          # Admin key required by RedStone's authenticated full-catalog endpoint.
+          REDSTONE_GATEWAY_ADMIN_API_KEY: ${{ secrets.REDSTONE_GATEWAY_ADMIN_API_KEY }}
           # Publish successful lifecycle mutations to Turso's bounded
           # last-known-good registry so primary-mode collectors do not need a
           # Supabase read at their next 15-minute slot.

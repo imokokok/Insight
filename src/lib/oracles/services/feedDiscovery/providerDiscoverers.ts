@@ -13,6 +13,7 @@ import { getAllCatalogFeeds } from '../../constants/chainlinkCatalogLoader';
 import { BLOCKCHAIN_TO_CHAIN_ID } from '../../constants/chainMapping';
 import { getAllSupportedSymbols } from '../../constants/supportedSymbols';
 import { isUsdDenominatedFeedSymbol } from '../../utils/oracleDataUtils';
+import { fetchRedStoneFeedCatalogue, REDSTONE_DATA_SERVICE_ID } from '../redstoneGateway';
 import { getReflectorDataService } from '../reflectorDataService';
 import { getSupraDataService } from '../supraDataService';
 import { WINKLINK_PRICE_FEEDS } from '../winklinkRealDataService';
@@ -361,188 +362,36 @@ export async function discoverDIAFeeds(): Promise<DiscoveryResult> {
 
 // ─── RedStone ─────────────────────────────────────────────────────
 
-const REDSTONE_DISCOVERY_SOURCES = [
-  {
-    url: 'https://oracle-gateway-1.a.redstone.finance/data-packages/latest/redstone-primary-prod',
-    dataServiceId: 'redstone-primary-prod',
-    name: 'RedStone DDL gateway',
-  },
-  {
-    // The RedStone API exposes the current full feed set in one bounded batch.
-    // Keep this as a fallback because the legacy public DDL hostname may not
-    // resolve in every region; do not fan out into one request per symbol.
-    url: 'https://api.redstone.finance/prices/?provider=redstone&limit=5000',
-    dataServiceId: 'redstone',
-    name: 'RedStone HTTP prices API',
-  },
-] as const;
-const REDSTONE_DISCOVERY_MAX_ATTEMPTS = 3;
-
-function describeDiscoveryRequestError(error: unknown): string {
-  if (!(error instanceof Error)) return String(error);
-
-  const cause = (error as Error & { cause?: unknown }).cause;
-  if (cause instanceof Error) {
-    const causeCode =
-      typeof (cause as Error & { code?: unknown }).code === 'string'
-        ? ` (${(cause as Error & { code: string }).code})`
-        : '';
-    return `${error.name}: ${error.message}; cause=${cause.name}${causeCode}: ${cause.message}`;
-  }
-
-  return `${error.name}: ${error.message}`;
-}
-
-async function fetchRedStoneSource(
-  source: (typeof REDSTONE_DISCOVERY_SOURCES)[number]
-): Promise<Response> {
-  let lastError: unknown;
-
-  for (let attempt = 1; attempt <= REDSTONE_DISCOVERY_MAX_ATTEMPTS; attempt += 1) {
-    let response: Response;
-    try {
-      response = await fetch(source.url, {
-        signal: AbortSignal.timeout(30000),
-      });
-    } catch (error) {
-      lastError = error;
-      if (attempt < REDSTONE_DISCOVERY_MAX_ATTEMPTS) {
-        await new Promise((resolve) => setTimeout(resolve, 250 * 2 ** (attempt - 1)));
-      }
-      continue;
-    }
-
-    if (response.ok) return response;
-
-    lastError = new Error(`${source.name} returned HTTP ${response.status}`);
-    // Client errors are deterministic (for example, an invalid service id),
-    // while rate limits and server errors may clear on a short retry.
-    if (response.status !== 429 && response.status < 500) throw lastError;
-
-    if (attempt < REDSTONE_DISCOVERY_MAX_ATTEMPTS) {
-      await new Promise((resolve) => setTimeout(resolve, 250 * 2 ** (attempt - 1)));
-    }
-  }
-
-  throw new Error(
-    `${source.name} request failed after ${REDSTONE_DISCOVERY_MAX_ATTEMPTS} attempts: ${describeDiscoveryRequestError(lastError)}`,
-    { cause: lastError }
-  );
-}
-
-async function fetchRedStoneDiscoveryResponse(): Promise<{
-  response: Response;
-  dataServiceId: string;
-}> {
-  const failures: string[] = [];
-
-  for (const source of REDSTONE_DISCOVERY_SOURCES) {
-    try {
-      const response = await fetchRedStoneSource(source);
-      if (source !== REDSTONE_DISCOVERY_SOURCES[0]) {
-        logger.warn('RedStone DDL unavailable; discovery used the HTTP prices API fallback');
-      }
-      return { response, dataServiceId: source.dataServiceId };
-    } catch (error) {
-      failures.push(`${source.name}: ${describeDiscoveryRequestError(error)}`);
-    }
-  }
-
-  throw new Error(`All RedStone discovery sources failed: ${failures.join(' | ')}`);
-}
-
 export async function discoverRedStoneFeeds(): Promise<DiscoveryResult> {
   const result: DiscoveryResult = { provider: 'redstone', discovered: 0, feeds: [], errors: [] };
 
   try {
-    const { response, dataServiceId } = await fetchRedStoneDiscoveryResponse();
-
-    const rawData = (await response.json()) as unknown;
-    type GatewayPackage = {
-      timestampMilliseconds?: number;
-      dataPoints?: Array<{ dataFeedId?: string; value?: number }>;
-    };
-    const gatewayData: Record<string, GatewayPackage[]> = {};
-    if (Array.isArray(rawData)) {
-      for (const legacy of rawData as Array<{
-        symbol?: string;
-        value?: number;
-        timestamp?: number;
-      }>) {
-        if (!legacy.symbol) continue;
-        gatewayData[legacy.symbol] = [
-          {
-            timestampMilliseconds: legacy.timestamp,
-            dataPoints: [{ dataFeedId: legacy.symbol, value: legacy.value }],
-          },
-        ];
-      }
-    } else if (rawData && typeof rawData === 'object') {
-      for (const [key, value] of Object.entries(rawData as Record<string, unknown>)) {
-        if (Array.isArray(value)) {
-          gatewayData[key] = value as GatewayPackage[];
-        } else if (value && typeof value === 'object') {
-          const legacy = value as { symbol?: string; value?: number; timestamp?: number };
-          const feedId = legacy.symbol || key;
-          gatewayData[feedId] = [
-            {
-              timestampMilliseconds: legacy.timestamp,
-              dataPoints: [{ dataFeedId: feedId, value: legacy.value }],
-            },
-          ];
-        }
-      }
-    }
-
-    for (const [feedId, packages] of Object.entries(gatewayData)) {
-      const item = packages?.find((pkg) => {
-        const value = pkg.dataPoints?.find((point) => point.dataFeedId === feedId)?.value;
-        return typeof value === 'number' && Number.isFinite(value) && value > 0;
-      });
-      const point = item?.dataPoints?.find((candidate) => candidate.dataFeedId === feedId);
-      if (!item || !point || typeof point.value !== 'number') continue;
-
+    const snapshots = await fetchRedStoneFeedCatalogue();
+    for (const snapshot of snapshots) {
+      const { dataFeedId, value, timestampMilliseconds } = snapshot;
       // Insight's price and consensus APIs expose BASE/USD prices. The full
       // RedStone catalogue also contains ratios such as WBTC/BTC and USDC/BRL;
       // admitting those rows lets a base-symbol query accidentally treat a
       // cross-rate as USD and causes duplicate votes for one provider.
-      if (!isUsdDenominatedFeedSymbol(feedId)) continue;
-
-      // RedStone's `provider=redstone` (full) prices endpoint returns each
-      // feed WITH its current `value` + `timestamp`. That IS a live price, so we
-      // self-verify from it instead of re-fetching every symbol through the
-      // price client during discovery verification. Re-probing 1000+ symbols
-      // from a single IP trips RedStone's rate limit (HTTP 500 -> 403) and,
-      // combined with the 15-min job timeout, left discovery collecting almost
-      // nothing. Trusting the discovery payload avoids ~1000 outbound requests
-      // entirely. Guard: only keep feeds whose discovered value is a finite,
-      // positive number (mirrors parsePriceResponse's check).
-      const discoveredValue = point.value;
-      if (
-        typeof discoveredValue !== 'number' ||
-        !Number.isFinite(discoveredValue) ||
-        discoveredValue <= 0
-      ) {
-        continue;
-      }
+      if (!isUsdDenominatedFeedSymbol(dataFeedId)) continue;
 
       result.feeds.push({
         provider: 'redstone',
-        symbol: feedId,
+        symbol: dataFeedId,
         chain_id: 0,
-        address: feedId,
-        name: `${feedId}/USD`,
+        address: dataFeedId,
+        name: `${dataFeedId}/USD`,
         decimals: 8,
-        category: inferCategory(feedId),
+        category: inferCategory(dataFeedId),
         is_active: true,
-        source: 'redstone-api',
-        // Signals verifyDiscoveredFeeds to skip the per-symbol price probe —
-        // discovery already proved this feed serves a valid price.
+        source: 'redstone-authenticated-gateway',
+        // The official SDK verifies the signature, signer allowlist, quorum,
+        // positive price, and five-minute freshness before this is preverified.
         metadata: {
           preverified: true,
-          discoveredValue,
-          discoveredTimestamp: item.timestampMilliseconds,
-          dataServiceId,
+          discoveredValue: value,
+          discoveredTimestamp: timestampMilliseconds,
+          dataServiceId: REDSTONE_DATA_SERVICE_ID,
         },
       });
     }

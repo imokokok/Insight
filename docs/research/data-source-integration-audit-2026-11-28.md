@@ -144,3 +144,15 @@ PR #762 已合并到 `main`（SHA `3cf3094e2cbd123fb4fb1a09bb476d456ef49b3f`）�
 | Supra DORA REST quorum          | 按安全设计保持排除                                                                        | 实现或使用经审计的 Pull 合约证明验证，并加入端到端验证后再评估晋级                                                       |
 
 这里的 `ENOTFOUND` 出现在 GitHub Actions runner，不只是当前开发机的网络故障；开发机直接与命令级代理探测 RedStone host 也无法建立 TLS。完成后续两项供应商/运行环境输入前，不能声称所有 source 已全部恢复。
+
+## 2026-11-28 官方 RedStone 网关接入复核
+
+更正前述“RedStone DNS 故障”的概括：旧 hostname `oracle-gateway-1.a.redstone.finance` 和旧 HTTP API `api.redstone.finance` 没有可用 DNS 记录；RedStone 当前 SDK 指定的生产认证网关 `oracle-gateway.a.redstone.finance` 有公开 A 记录。主机 DNS 对当前官方网关正常，原实现仍请求旧主机名，因此不应把现象描述成当前生产网关 DNS 故障。
+
+本次在 `main` 基线 `0d80519df53f22c46e67f848fb1ef1388673dde0` 上实现统一网关服务：运行时请求 `/v2/data-packages/latest-by-data-feeds/redstone-primary-prod`，目录同步请求完整 catalogue；两者都改用 RedStone 官方 SDK、生产 service signer allowlist 和 `x-api-key`，不再把未签名 HTTP 价格对象当作 feed 证明。运行时要求 3 个授权 signer、取签名报价中位数并拒绝超过 5 分钟的包；catalogue 逐 feed 做签名验证和新鲜度检查。缺少 key 或请求失败会向 discovery 返回错误，因此现有失败保护会跳过 absent-feed pruning 并保留 last-known-good 目录。
+
+剩余外部依赖：已检查的 GitHub repository / Production environment secrets 和 Vercel Production environment 都没有 RedStone gateway key。完整 catalogue 请求需要 admin API key；代码将它限制在 GitHub Actions 的 `REDSTONE_GATEWAY_ADMIN_API_KEY`，而 Vercel runtime 读取单条已登记 feed 使用 `REDSTONE_GATEWAY_API_KEY`。如供应商支持不同权限的 key，应分别签发，避免把 admin key 放入应用运行时。需要安全配置两项 secret 后重新部署、运行 RedStone discovery，并抽查 ETH/BTC 等 chain 0 feed。不要通过聊天发送 key。未配置之前，这次代码修复不能算线上恢复；RedStone chain 0 的 25 条 feed 健康状态仍待重跑验证。
+
+签名数据包不包含旧 HTTP API 返回的 `change24h` 字段，当前客户端对该可选字段沿用默认值 `0`。价格、来源时间戳和签名证据仍来自经过 signer 校验的数据包；若产品需要 24 小时变化率，应另行接入有权限、可达并可验证的历史行情来源。
+
+回归验证：RedStone gateway service、discovery 和 client 定向套件通过；SDK 查询参数使用生产网关、三 signer 门槛和 freshness gate；`workflow:check` 通过。此项只完成代码与本地测试，不代表已配置 production key 或完成 live provider probe。
