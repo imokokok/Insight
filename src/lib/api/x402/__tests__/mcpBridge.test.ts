@@ -1,7 +1,7 @@
 import { enqueueReputationAnchor } from '@/lib/erc8004/reputationAnchor';
 
 import { type X402Config } from '../config';
-import { recordX402Settlement } from '../guard';
+import { recordX402Settlement, X402_AGENT_RETRY_MANUAL } from '../guard';
 import {
   handleMcpIndexerQuote,
   handleMcpPaidToolCall,
@@ -649,7 +649,7 @@ describe('toResponse 402 body compat', () => {
     });
     expect(res.status).toBe(402);
     expect(res.headers.get('PAYMENT-REQUIRED')).toBeTruthy();
-    await expect(res.json()).resolves.toEqual(challenge);
+    await expect(res.json()).resolves.toEqual({ ...challenge, guidance: X402_AGENT_RETRY_MANUAL });
   });
 
   it('passes through non-402 instructions unchanged', async () => {

@@ -277,6 +277,24 @@ export function hasAuthCredentials(request: NextRequest): boolean {
  * header stays authoritative and any body that already carries `accepts` is
  * returned untouched.
  */
+/**
+ * Agent retry manual attached to every 402 challenge body. Agent wallets
+ * double-pay when a response is lost and the request is re-signed; stating
+ * the retry semantics in the 402 itself is the cheapest available fix.
+ * Purely additive: the PAYMENT-REQUIRED header stays the authoritative
+ * challenge, and any body that already carries a string `guidance` field is
+ * returned untouched.
+ */
+export const X402_AGENT_RETRY_MANUAL =
+  'Save the signed payment and the exact request before sending. Never sign a new payment for an unknown outcome.';
+
+function withAgentRetryManual(value: object): unknown {
+  if ('guidance' in value && typeof (value as { guidance?: unknown }).guidance === 'string') {
+    return value;
+  }
+  return { ...value, guidance: X402_AGENT_RETRY_MANUAL };
+}
+
 export function x402ResponseBody(instructions: HTTPResponseInstructions): unknown {
   const body = instructions.body === undefined ? null : instructions.body;
   if (instructions.status !== 402) return body;
@@ -287,7 +305,7 @@ export function x402ResponseBody(instructions: HTTPResponseInstructions): unknow
     !Array.isArray(body) &&
     Array.isArray((body as { accepts?: unknown }).accepts)
   ) {
-    return body;
+    return withAgentRetryManual(body);
   }
 
   const headers = instructions.headers ?? {};
@@ -301,9 +319,10 @@ export function x402ResponseBody(instructions: HTTPResponseInstructions): unknow
     if (
       decoded !== null &&
       typeof decoded === 'object' &&
+      !Array.isArray(decoded) &&
       Array.isArray((decoded as { accepts?: unknown }).accepts)
     ) {
-      return decoded;
+      return withAgentRetryManual(decoded);
     }
   } catch {
     // Undecodable header: keep the original body rather than guessing.

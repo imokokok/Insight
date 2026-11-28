@@ -15,6 +15,7 @@ import {
   paymentAuditFields,
   toNextResponse,
   X402_ACQUISITION_SOURCES,
+  X402_AGENT_RETRY_MANUAL,
   x402AcquisitionSource,
   x402OnboardingHeaders,
 } from '../guard';
@@ -251,7 +252,7 @@ describe('x402 guard', () => {
       expect(res.status).toBe(402);
       expect(res.headers.get('PAYMENT-REQUIRED')).toBe('quoted');
       const body = await res.json();
-      expect(body).toEqual({ accepts: [] });
+      expect(body).toEqual({ accepts: [], guidance: X402_AGENT_RETRY_MANUAL });
     });
 
     it('mirrors a header-encoded 402 challenge into the body for v1 parsers', async () => {
@@ -274,7 +275,19 @@ describe('x402 guard', () => {
         body: {},
       });
       expect(res.status).toBe(402);
-      await expect(res.json()).resolves.toEqual(challenge);
+      await expect(res.json()).resolves.toEqual({
+        ...challenge,
+        guidance: X402_AGENT_RETRY_MANUAL,
+      });
+    });
+
+    it('leaves an existing string guidance field untouched on 402 bodies', async () => {
+      const res = toNextResponse({
+        status: 402,
+        headers: { 'PAYMENT-REQUIRED': 'quoted' },
+        body: { accepts: [], guidance: 'custom guidance' },
+      });
+      await expect(res.json()).resolves.toEqual({ accepts: [], guidance: 'custom guidance' });
     });
 
     it('leaves non-402 bodies and undecodable 402 headers untouched', async () => {
