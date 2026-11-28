@@ -9,11 +9,24 @@ export async function fetchWithTimeout<T = unknown>(
   options: FetchWithTimeoutOptions = {}
 ): Promise<T> {
   const { timeout = 10000, signal: externalSignal, ...fetchOptions } = options;
+  if (!Number.isFinite(timeout) || timeout <= 0) {
+    throw new RangeError('Request timeout must be a positive finite number');
+  }
+
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  let timedOut = false;
+  const timeoutId = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, timeout);
+  const onExternalAbort = () => controller.abort(externalSignal?.reason);
 
   if (externalSignal) {
-    externalSignal.addEventListener('abort', () => controller.abort(), { once: true });
+    if (externalSignal.aborted) {
+      onExternalAbort();
+    } else {
+      externalSignal.addEventListener('abort', onExternalAbort, { once: true });
+    }
   }
 
   try {
@@ -26,8 +39,6 @@ export async function fetchWithTimeout<T = unknown>(
       signal: controller.signal,
     });
 
-    clearTimeout(timeoutId);
-
     if (!response.ok) {
       if (response.status === 404) {
         return null as T;
@@ -37,15 +48,17 @@ export async function fetchWithTimeout<T = unknown>(
 
     return await response.json();
   } catch (error) {
-    clearTimeout(timeoutId);
-
-    if (error instanceof Error && error.name === 'AbortError') {
-      if (externalSignal?.aborted) {
-        throw new Error(`Request aborted: ${url}`);
-      }
+    if (timedOut) {
       throw new Error(`Request timeout after ${timeout}ms: ${url}`);
+    }
+    if (externalSignal?.aborted) throw new Error(`Request aborted: ${url}`);
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error(`Request aborted: ${url}`);
     }
 
     throw error;
+  } finally {
+    clearTimeout(timeoutId);
+    externalSignal?.removeEventListener('abort', onExternalAbort);
   }
 }
