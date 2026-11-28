@@ -119,3 +119,11 @@ RedStone runtime 请求此前使用无尾斜杠、无 `limit` 的 `/prices` URL�
 Supra 历史接口仍受部署凭据阻塞：检查 GitHub repository secrets 与 `Production` environment 的 secret 名称时，都没有 `SUPRA_DORA_HISTORY_API_KEY`。普通 DORA REST 价格目前按安全策略排除 quorum；需先实现并验证 Pull 合约证明，不能因 REST API 能返回数值就恢复投票资格。
 
 修复验证：RedStone 定向套件 81/81 通过；feed discovery pruning/失败传播定向套件 6/6 通过；`npm run build:cron` 成功重建 16 个 cron bundle（11.9 MiB）；`git diff --check` 通过。以上均为本地验证，生产 discovery finalizer 和 RedStone runtime 尚待合并部署后复验。
+
+## 2026-11-28 线上 RedStone 重试复核
+
+PR #760 的 merge SHA `20eff8d50117fa211d7b477d7fc78ede29832a00` 已部署到 GitHub Actions。全 provider discovery 中 12/13 provider jobs 成功，RedStone discovery 在读取 `oracle-gateway-1.a.redstone.finance/data-packages/latest/redstone-primary-prod` 时发生 Node `TypeError: fetch failed`；registry finalizer 成功。对 RedStone 单独重试后仍出现相同 fetch failure，第二次 registry finalizer 也成功。失败响应没有触发 feed pruning。
+
+本机按项目网络规则先直连、再通过本地代理复查 RedStone DDL gateway 与 `api.redstone.finance/prices/`，均在 TLS 建连阶段失败（HTTP 状态为 000）。GitHub repository secrets 与 Production environment secret 名称均无 `REDSTONE_API_KEY` 或 RedStone gateway API key。RedStone 官方 SDK 当前生产 authenticated gateway 目录指向 `https://oracle-gateway.a.redstone.finance`；生产 authenticated gateway 凭据需要由 RedStone 提供，不能将该 URL 无凭据地假定为可替换的公开目录服务。单条价格 HTTP API 的官方请求格式见 [RedStone HTTP API](https://github.com/redstone-finance/redstone-api/blob/main/docs/HTTP_API.md)，生产 authenticated gateway 列表见 [RedStone SDK data-services-urls.ts](https://github.com/redstone-finance/redstone-oracles-monorepo/blob/main/packages/sdk/src/data-services-urls.ts)。
+
+新增 RedStone discovery 最多 3 次短间隔重试：对网络异常、超时、HTTP 429 和 5xx 重试；对 4xx 立即失败。最终错误消息保留底层 cause 和系统错误码，便于区分 DNS、TLS 与连接重置。该韧性改动可吸收瞬时错误，但不能修复当前 runner 与 RedStone DDL 的持续网络不可达，也不会用无签名或推测数据填充行情。线上恢复仍需在重试版部署后验证；若持续失败，需要恢复 RedStone 官方 gateway/API 可达性或由供应商提供可用的认证 gateway 与凭据。
