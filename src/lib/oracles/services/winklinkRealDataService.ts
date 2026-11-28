@@ -184,6 +184,9 @@ class WINkLinkRealDataService {
 
       const timestamp = timestampRaw ? Number(timestampRaw) * 1000 : Date.now();
       const timestampIsEstimated = !timestampRaw;
+      const dataAge = timestampIsEstimated
+        ? Number.MAX_SAFE_INTEGER
+        : Math.max(0, Math.floor((Date.now() - timestamp) / 1000));
 
       logger.info('Parsed price data', {
         symbol,
@@ -217,15 +220,17 @@ class WINkLinkRealDataService {
         chain: Blockchain.TRON,
         source: `WINkLink:${contractAddress}`,
         ingestionTimestamp: Date.now(),
+        dataAge,
+        countsTowardOracleQuorum: !timestampIsEstimated,
         metadataFallback: timestampIsEstimated || undefined,
         failureMode: timestampIsEstimated ? FailureMode.FALLBACK_METADATA : FailureMode.NONE,
         signalVector: buildSignalVector({
-          dataAgeSeconds: timestamp ? Math.floor((Date.now() - timestamp) / 1000) : 999,
+          dataAgeSeconds: dataAge,
           isOnChain: true,
           hasVerification: true,
           providerUptime: 95,
           hasConfidence: true,
-          hasTimestamp: !!timestamp,
+          hasTimestamp: !timestampIsEstimated,
           hasDecimals: true,
           hasSource: true,
           verificationMethod: 'latestAnswer',

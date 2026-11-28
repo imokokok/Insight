@@ -111,6 +111,11 @@ export class SupraClient extends BaseOracleClient {
           confidence: 0.95,
           chain: chain || Blockchain.ETHEREUM,
           source: 'supra-dora',
+          // DORA's REST proof must be submitted to Supra's Pull contract for
+          // signature verification. The read-only adapter decodes the proof
+          // payload locally, so it is useful for display but cannot vote in
+          // consensus until that verification is performed.
+          countsTowardOracleQuorum: false,
           pairIndex: latestData.pairIndex,
           high24h: latestData.high24h,
           low24h: latestData.low24h,

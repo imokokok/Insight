@@ -159,6 +159,7 @@ describe('SupraClient', () => {
         decimals: 8,
         confidence: 0.95,
         source: 'supra-dora',
+        countsTowardOracleQuorum: false,
         change24h: mockPriceData.change24h,
         change24hPercent: mockPriceData.change24h,
       });
