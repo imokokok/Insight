@@ -4,7 +4,7 @@
 
 Telegram is a read-only assessment and evidence channel. It must never connect to wallets, create an authorization, request a transaction signature, place an order, build or return executable calldata/order envelopes, submit or relay transactions, or reconcile a user transaction.
 
-The current controlled pilot exposes one Polymarket assessment. A user receives one sponsored sample before linking an authenticated Insight account. Linked users pay directly from their existing Insight credit balance only after Insight produces a trusted signed assessment. An assessment failure or missing attestation is not charged. Base lending, Hyperliquid perps, and DEX swap remain disabled until each has a guided input flow and an assessment-only signed response contract.
+The controlled pilot exposes Polymarket plus three linked-account-only assessment scenes: Aave V3 Base lending, Hyperliquid BTC/ETH perps, and quote-only Base Aerodrome DEX. The bot requires ordinary text inputs and a separate confirmation; the confirmation remains usable for seven days, and live market data is fetched only after the user confirms. The three scenes do not request JSON, timestamps, wallet addresses, signatures, orders, or transaction data. DEX V1 only shows a reviewed-pool quote/TWAP comparison and always returns `CAUTION` for human review. Linked users pay directly from their existing Insight credit balance only after a trusted signed assessment is produced; failures and undelivered reports are refunded idempotently.
 
 ## Account linking
 
@@ -23,17 +23,19 @@ Set the same high-entropy `TELEGRAM_INTEGRATION_SECRET` in the Insight deploymen
 
 - `POST /api/telegram/link/start` — issue a short-lived challenge for a verified Telegram user ID.
 - `POST /api/telegram/link/remove` — unlink that Telegram user ID.
-- `POST /api/telegram/account` — return linked state, wallet balance, readiness, and current assessment price; never return an API key or user ID.
+- `POST /api/telegram/account` — return linked state, wallet balance, readiness, and current Polymarket/scenario assessment prices; never return an API key or user ID.
 - `POST /api/telegram/usage` — return up to ten recent Telegram assessment charges for the linked account; never return user IDs, API keys, or unrelated ledger entries.
 - `POST /api/telegram/assessment` — assess one strictly validated Polymarket request, sign it, then charge the user's wallet idempotently.
+- `POST /api/telegram/scenario-assessment` — assess a strict Base lending, Hyperliquid perp, or reviewed Base Aerodrome DEX request, sign a canonical read-only report, then charge the user's wallet idempotently.
+- `POST /api/telegram/assessment/refund` — compensate an idempotent assessment charge when the worker cannot verify or deliver the signed report.
 
 `POST /api/telegram/link/claim` instead requires a normal authenticated Insight user session and an explicit confirmation from the account-link page.
 
-Apply migrations `0151_telegram_account_linking.sql` and `0152_telegram_wallet_billing.sql` before enabling `TELEGRAM_INTEGRATION_SECRET` in the Worker. Do not publish the Worker secret as a Wrangler variable or add it to browser settings.
+Apply migrations `0151_telegram_account_linking.sql`, `0152_telegram_wallet_billing.sql`, and `20261128124037_telegram_readonly_scenarios.sql` before enabling `TELEGRAM_INTEGRATION_SECRET` in the Worker. Do not publish the Worker secret as a Wrangler variable or add it to browser settings.
 
 ## Assessment billing behavior
 
-The Polymarket signed guard is priced using Insight's published endpoint price. The API performs the credit precheck before assessment work and commits the debit only after it has a signed decision. Insufficient balance returns a charge reason and no assessment. Upstream failure, timeout, or missing attester returns no assessment and makes no debit. The Telegram callback path supplies Telegram's update ID so a retry uses the same ledger idempotency key.
+The Polymarket and scenario signed assessments use Insight's published endpoint price. The API performs a credit precheck before assessment work and commits the debit only after it has a signed decision. Ledger reasons are scene-specific. Insufficient balance returns no assessment. Upstream failure, timeout, or missing attester returns no assessment and makes no debit. The Telegram callback path supplies Telegram's update ID so webhook retries use the same ledger idempotency key. If signature verification or Telegram report delivery fails after a charge, the worker calls the idempotent compensation route.
 
 The unlinked first sample uses the bot's configured Insight API key, a lifetime cap of one successful sample per private Telegram account, and a global ceiling of 200 credits per UTC calendar month enforced atomically by a shared Durable Object. At the current 20-credit price, this allows at most ten sponsored samples per month; dynamic price changes lower or raise the number of available samples while never exceeding the credit ceiling. Sponsorship is restricted to the configured private beta allowlist and is disabled for wildcard/public access. The ceiling fails closed if Insight cannot provide current pricing or the shared budget is unavailable. A failed assessment or failed Telegram delivery releases the pending trial reservation so the user can retry. After the sample, the bot requires account linking to continue.
 
@@ -42,8 +44,8 @@ The unlinked first sample uses the bot's configured Insight API key, a lifetime 
 | Scenario          | Status           | Required before enablement                                                                                                                                                                                      |
 | ----------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Polymarket        | Controlled pilot | Guided direction buttons, fresh market selection, 120-second quote/review window plus latency-derived reserve, live price-drift recheck, user-linked credits after the sample, PriorSeal signature verification |
-| Base lending      | Disabled         | Guided current-position read or explicitly declared what-if input; no calldata, transaction JSON, or call envelope in the response                                                                              |
-| Hyperliquid perps | Disabled         | Guided asset/direction/size/margin form; no IOC expiry fields or exchange order envelope exposed to the user                                                                                                    |
-| DEX swap          | Disabled         | Reviewed quote and policy form; signed assessment-only API returning no approval/swap calldata or recipient transaction request                                                                                 |
+| Base lending      | Assessment-only  | Aave V3 Base; caller-declared what-if values plus live on-chain risk parameters; no wallet/position/price-integrity/depeg check, calldata, or transaction envelope                                              |
+| Hyperliquid perps | Assessment-only  | BTC/ETH, caller-declared direction/size/margin with Hyperliquid-only venue context; no cross-venue consensus, account positions, IOC fields, or order envelope                                                  |
+| DEX swap          | Assessment-only  | Two reviewed Base Aerodrome Slipstream pairs; chain quote/TWAP evidence; no recipient/calldata; always `CAUTION`                                                                                                |
 
-Every result is an assessment. `ALLOW` never authorizes execution. A scenario opens only after its inputs, signed response, usage/billing, verification, failure handling, and user-facing explanation satisfy its gate.
+Every result is an assessment. `ALLOW` never authorizes execution. If its required source, billing, signature, or account service is unavailable, that request fails closed and returns no assessment. DEX `CAUTION` is an informational quote report, not a slippage guarantee.
