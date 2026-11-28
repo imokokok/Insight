@@ -87,6 +87,9 @@ jobs:
           MODE: ${{ inputs.mode || 'discover' }}
           PINNED: ${{ inputs.provider || '' }}
           PROVIDER: ${{ matrix.provider }}
+          # Matrix jobs may mutate different rows concurrently. Publish the
+          # bounded active-feed mirror once after every provider job finishes.
+          DEFER_TURSO_FEED_REGISTRY_REFRESH: 'true'
         run: |
           case "$MODE" in
             discover|seed) ;;
@@ -117,3 +120,20 @@ jobs:
               node .github/cron-dist/sync-feeds.mjs --mode="${MODE}" --provider="${PROVIDER}"
               ;;
           esac
+
+  publish-feed-registry:
+    name: Publish feed registry mirror
+    if: ${{ always() && !cancelled() }}
+    needs: discover-feeds
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - name: Refresh authoritative Turso feed registry
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          TURSO_PRICE_DATABASE_URL: libsql://insight-imokokok.aws-ap-southeast-1.turso.io
+          TURSO_PRICE_AUTH_TOKEN: ${{ secrets.TURSO_PRICE_AUTH_TOKEN }}
+          TURSO_PRICE_WRITE_MODE: ${{ vars.TURSO_PRICE_WRITE_MODE || 'legacy' }}
+        run: node .github/cron-dist/sync-feeds.mjs --mode=refresh-registry

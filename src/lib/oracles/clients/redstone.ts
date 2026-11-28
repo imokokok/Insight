@@ -65,6 +65,14 @@ const REDSTONE_MONAD_RELIABILITY = 0.9;
 // classified as TIMEOUT_ERROR (which is retryable).
 const REDSTONE_REQUEST_TIMEOUT_MS = 10000;
 
+function buildRedStonePriceUrl(symbol: string): string {
+  const url = new URL('/prices/', REDSTONE_API_BASE);
+  url.searchParams.set('symbol', symbol);
+  url.searchParams.set('provider', 'redstone');
+  url.searchParams.set('limit', '1');
+  return url.toString();
+}
+
 interface RedStonePriceResponse {
   symbol: string;
   value: number;
@@ -176,7 +184,10 @@ export class RedStoneClient extends BaseOracleClient {
             // it through verbatim. encodeURIComponent keeps pair-style symbols
             // (e.g. `CELO/EUR`) safe in the query string.
             //
-            // We query the `redstone` (full) data service, NOT `redstone-rapid`.
+            // We query the documented single-latest-price endpoint with
+            // `provider=redstone` (full), not `redstone-rapid` or the unbounded
+            // default result set. The explicit `limit=1` keeps the response
+            // bounded and matches RedStone's HTTP API contract.
             // Discovery pulls the full `provider=redstone` catalog (~1000+ feeds)
             // and self-verifies from the prices it already returns, so the runtime
             // fetch must use the SAME provider — otherwise the ~42% of symbols
@@ -184,16 +195,13 @@ export class RedStoneClient extends BaseOracleClient {
             // alt-coins) would 500 at snapshot time even though discovery proved
             // they serve a valid price. `redstone` (full) serves the entire
             // catalog; timestamps in the discovery payload were current.
-            const response = await fetch(
-              `${REDSTONE_API_BASE}/prices?symbol=${encodeURIComponent(symbol)}&provider=redstone`,
-              {
-                method: 'GET',
-                headers: {
-                  Accept: 'application/json',
-                },
-                signal: controller.signal,
-              }
-            );
+            const response = await fetch(buildRedStonePriceUrl(symbol), {
+              method: 'GET',
+              headers: {
+                Accept: 'application/json',
+              },
+              signal: controller.signal,
+            });
 
             if (!response.ok) {
               const errorCode = this.classifyErrorFromStatus(response.status);
@@ -476,7 +484,7 @@ export class RedStoneClient extends BaseOracleClient {
             ...realPrice,
             chain,
             verification: buildApiVerification(
-              `${REDSTONE_API_BASE}/prices?symbol=${encodeURIComponent(symbol)}&provider=redstone`,
+              buildRedStonePriceUrl(symbol),
               'getPrice',
               'RedStone API'
             ),

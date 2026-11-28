@@ -17,7 +17,7 @@
  *   npx tsx --env-file=.env.local scripts/sync-feeds.ts --mode=reactivate
  *   npx tsx --env-file=.env.local scripts/sync-feeds.ts --mode=reactivate --provider=dia
  *
- * Modes: seed, discover, registry, verify, reactivate
+ * Modes: seed, discover, registry, verify, reactivate, refresh-registry
  *   discover / seed / registry / verify: require --provider
  *   reactivate: --provider optional (omit = all providers, bounded)
  *

@@ -186,4 +186,55 @@ describe('discover — graceful pruning (migration 0025)', () => {
     expect(recordDiscovered).toHaveBeenCalledWith('redstone', 'BTC', 1);
     expect(json.results[0].pruned).toBe(0);
   });
+
+  it('returns a failed status when the provider discovery itself reports errors', async () => {
+    setupMocks({ btcProbeOk: true, incrementReturns: 1, lastSuccessAt: null });
+    mockedDiscoverAll.mockResolvedValue([
+      {
+        provider: 'redstone' as never,
+        feeds: [makeFeed('redstone', 'ETH', 1, null)],
+        discovered: 1,
+        errors: ['RedStone API returned 502'],
+      },
+    ] as never);
+
+    const response = await GET(
+      new Request('http://localhost/api/cron/sync-feeds?mode=discover&provider=redstone')
+    );
+    const json = await response.json();
+
+    expect(response.status).toBe(502);
+    expect(json.success).toBe(false);
+    expect(json.results[0].errors).toBe(1);
+    const queries = mockedGetAdminQueries.mock.results[0]?.value;
+    expect(queries.getOracleFeeds).not.toHaveBeenCalled();
+    expect(queries.incrementAbsentDiscoveryRuns).not.toHaveBeenCalled();
+    expect(queries.deactivateOracleFeeds).not.toHaveBeenCalled();
+  });
+
+  it('reports authoritative registry refresh failures as a failed request', async () => {
+    jest.clearAllMocks();
+    mockedVerifyCronSecret.mockReturnValue(null);
+    invalidateAllFeedsCache.mockReturnValue(undefined);
+    mockedGetAdminQueries.mockReturnValue({
+      getOracleFeedsWithStatus: jest.fn().mockResolvedValue({ feeds: [], errored: true }),
+    } as never);
+    const previousWriteMode = process.env.TURSO_PRICE_WRITE_MODE;
+    delete process.env.DEFER_TURSO_FEED_REGISTRY_REFRESH;
+    process.env.TURSO_PRICE_WRITE_MODE = 'primary';
+
+    try {
+      const response = await GET(
+        new Request('http://localhost/api/cron/sync-feeds?mode=refresh-registry')
+      );
+      const json = await response.json();
+
+      expect(response.status).toBe(500);
+      expect(json.success).toBe(false);
+    } finally {
+      if (previousWriteMode === undefined) delete process.env.TURSO_PRICE_WRITE_MODE;
+      else process.env.TURSO_PRICE_WRITE_MODE = previousWriteMode;
+      delete process.env.DEFER_TURSO_FEED_REGISTRY_REFRESH;
+    }
+  });
 });
