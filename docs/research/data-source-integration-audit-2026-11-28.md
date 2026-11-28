@@ -156,3 +156,11 @@ PR #762 已合并到 `main`（SHA `3cf3094e2cbd123fb4fb1a09bb476d456ef49b3f`）�
 签名数据包不包含旧 HTTP API 返回的 `change24h` 字段，当前客户端对该可选字段沿用默认值 `0`。价格、来源时间戳和签名证据仍来自经过 signer 校验的数据包；若产品需要 24 小时变化率，应另行接入有权限、可达并可验证的历史行情来源。
 
 回归验证：RedStone gateway service、discovery 和 client 定向套件通过；SDK 查询参数使用生产网关、三 signer 门槛和 freshness gate；`workflow:check` 通过。此项只完成代码与本地测试，不代表已配置 production key 或完成 live provider probe。
+
+## 2026-11-28 main 发布、Cloudflare 部署与密钥复核
+
+PR #767 合并了 lease 安全的 worktree `ship` 更新路径（main SHA `4fcfcc1e175c418208e187f28f6c87033982c768`）；PR #766 随后合并 RedStone 认证网关接入（main SHA `a78ff4aef6fb3fed482c43a29a8504ac2d067b43`）。`origin/main` 已核实与后一个 SHA 一致。GitHub Production deploy run `46134945459` 对该 SHA 成功：Cloudflare Worker 部署、公开域名 release SHA 断言和 payment-rail live smoke 均通过。
+
+更正运行环境记录：Insight 当前生产托管在 Cloudflare Workers；旧 Vercel deployment 列表不是当前生产状态。首次部署 `a78ff4ae` 时，新 `REDSTONE_GATEWAY_API_KEY` 尚未加入 Cloudflare Worker secret allowlist；随后只读检查也确认 GitHub `Production` environment 没有该 secret。因此该 SHA 的 Worker 已上线，但 RedStone runtime 仍无法通过认证网关取数，不能据此宣称 RedStone 已恢复。本次补充将 `REDSTONE_GATEWAY_API_KEY` 从 GitHub `Production` environment secret 传入 Worker secrets allowlist；secret 未配置时会被安全省略。
+
+仍需供应商/运维输入的密钥：`REDSTONE_GATEWAY_API_KEY`（GitHub `Production` environment，用于 Cloudflare Worker runtime）、`REDSTONE_GATEWAY_ADMIN_API_KEY`（GitHub repository secret，用于完整 catalogue discovery）以及 `SUPRA_DORA_HISTORY_API_KEY`（GitHub Actions 用于 Supra history）。本次只读 secret-name 清单均未发现这些名称，未读取或记录任何密钥值。配置后，Production deploy 会按 main 提交重新发布 Worker；还需重跑 RedStone discovery、验证代表性 chain 0 feed 和 Supabase health，才能关闭 RedStone 恢复项。Supra history 与 DORA quorum 限制仍按前述关闭条件处理。
